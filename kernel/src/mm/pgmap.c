@@ -9,6 +9,7 @@
 #include "lib/align.h"
 
 #include "mm/early.h"
+#include "mm/page_alloc.h"
 #include "mm/pageop.h"
 #include "mm/walker.h"
 

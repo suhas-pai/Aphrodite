@@ -12,6 +12,8 @@
 #include "dev/printk.h"
 
 #include "mm/early.h"
+#include "mm/page_alloc.h"
+
 #include "sys/boot.h"
 
 // The Limine requests can be placed anywhere, but it is important that

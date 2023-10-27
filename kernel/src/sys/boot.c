@@ -7,6 +7,7 @@
 
 #include "mm/memmap.h"
 #include "mm/section.h"
+#include "mm/mm_types.h"
 
 #include "time/kstrftime.h"
 
