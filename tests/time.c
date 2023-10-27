@@ -34,33 +34,33 @@ static void test_match(const char *const fmt) {
 }
 
 int test_time() {
-    assert(hour_12_to_24hour(12, false) == 0);
-    assert(hour_12_to_24hour(1, false) == 1);
-    assert(hour_12_to_24hour(8, false) == 8);
-    assert(hour_12_to_24hour(11, false) == 11);
-    assert(hour_12_to_24hour(12, true) == 12);
-    assert(hour_12_to_24hour(1, true) == 13);
-    assert(hour_12_to_24hour(8, true) == 20);
-    assert(hour_12_to_24hour(11, true) == 23);
+    assert(hour12_to_24hour(12, false) == 0);
+    assert(hour12_to_24hour(1, false) == 1);
+    assert(hour12_to_24hour(8, false) == 8);
+    assert(hour12_to_24hour(11, false) == 11);
+    assert(hour12_to_24hour(12, true) == 12);
+    assert(hour12_to_24hour(1, true) == 13);
+    assert(hour12_to_24hour(8, true) == 20);
+    assert(hour12_to_24hour(11, true) == 23);
 
-    assert(hour_24_to_12hour(0) == 12);
-    assert(hour_24_to_12hour(1) == 1);
-    assert(hour_24_to_12hour(8) == 8);
-    assert(hour_24_to_12hour(11) == 11);
-    assert(hour_24_to_12hour(12) == 12);
-    assert(hour_24_to_12hour(13) == 1);
-    assert(hour_24_to_12hour(20) == 8);
-    assert(hour_24_to_12hour(23) == 11);
-    assert(hour_24_to_12hour(23) == 11);
+    assert(hour24_to_12hour(0) == 12);
+    assert(hour24_to_12hour(1) == 1);
+    assert(hour24_to_12hour(8) == 8);
+    assert(hour24_to_12hour(11) == 11);
+    assert(hour24_to_12hour(12) == 12);
+    assert(hour24_to_12hour(13) == 1);
+    assert(hour24_to_12hour(20) == 8);
+    assert(hour24_to_12hour(23) == 11);
+    assert(hour24_to_12hour(23) == 11);
 
-    assert(!hour_24_is_pm(0));
-    assert(!hour_24_is_pm(1));
-    assert(!hour_24_is_pm(8));
-    assert(!hour_24_is_pm(11));
-    assert(hour_24_is_pm(12));
-    assert(hour_24_is_pm(18));
-    assert(hour_24_is_pm(20));
-    assert(hour_24_is_pm(23));
+    assert(!hour24_is_pm(0));
+    assert(!hour24_is_pm(1));
+    assert(!hour24_is_pm(8));
+    assert(!hour24_is_pm(11));
+    assert(hour24_is_pm(12));
+    assert(hour24_is_pm(18));
+    assert(hour24_is_pm(20));
+    assert(hour24_is_pm(23));
 
     for (enum weekday weekday = WEEKDAY_SUNDAY;
          weekday <= WEEKDAY_SATURDAY;

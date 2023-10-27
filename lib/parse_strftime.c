@@ -293,7 +293,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             break;
         }
         case 'I': { // Hour in 12-hour format
-            const uint64_t hour = hour_24_to_12hour((uint8_t)tm->tm_hour);
+            const uint64_t hour = hour24_to_12hour((uint8_t)tm->tm_hour);
             struct string_view sv =
                 unsigned_to_string_view(hour,
                                         NUMERIC_BASE_10,
@@ -351,7 +351,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             break;
         case 'p': // AM or PM
             CALL_CALLBACK(
-                hour_24_is_pm((uint8_t)tm->tm_hour) ?
+                hour24_is_pm((uint8_t)tm->tm_hour) ?
                     SV_STATIC("PM") : SV_STATIC("AM"));
             break;
         case 'r': // Same as "%I:%M:%S %p"
@@ -520,7 +520,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             break;
         }
         case 'l': { // 12-hour format with space-pad
-            const uint8_t hour = (uint8_t)hour_24_to_12hour(tm->tm_hour);
+            const uint8_t hour = (uint8_t)hour24_to_12hour(tm->tm_hour);
             struct string_view sv =
                 unsigned_to_string_view(hour,
                                         NUMERIC_BASE_10,

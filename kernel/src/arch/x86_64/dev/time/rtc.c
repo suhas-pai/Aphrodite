@@ -144,7 +144,7 @@ bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out) {
     // We expect 24-hour real-time info
     if (!rtc_is_in_24_hour_mode(info.reg_status_b)) {
         const bool is_pm = info.time.hour & 0x80;
-        info.time.hour = hour_12_to_24hour(info.time.hour, is_pm);
+        info.time.hour = hour12_to_24hour(info.time.hour, is_pm);
     }
 
     info.time.year += century_lower_2_digits * 100;

@@ -7,7 +7,6 @@
 **/*.dSYM
 
 .cache/
-tests/test
 
 compile_commands.json
 log.txt

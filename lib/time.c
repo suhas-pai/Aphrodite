@@ -13,18 +13,18 @@
 #define HAVE_SUNOS_EXT 1
 #define HAVE_VMS_EXT 1
 
-__optimize(3) uint8_t hour_12_to_24hour(const uint8_t hour, const bool is_pm) {
+__optimize(3) uint8_t hour12_to_24hour(const uint8_t hour, const bool is_pm) {
     // Use modulo to wrap hour 12 to hour 0
-    return (is_pm) ? ((hour % 12) + 12) : (hour % 12);
+    return is_pm ? ((hour % 12) + 12) : (hour % 12);
 }
 
-__optimize(3) uint8_t hour_24_to_12hour(const uint8_t hour) {
+__optimize(3) uint8_t hour24_to_12hour(const uint8_t hour) {
     const uint8_t result = (hour % 12);
-    return (result != 0) ? result : 12;
+    return result != 0 ? result : 12;
 }
 
-__optimize(3) bool hour_24_is_pm(const uint8_t hour) {
-    return (hour >= 12);
+__optimize(3) bool hour24_is_pm(const uint8_t hour) {
+    return hour >= 12;
 }
 
 __optimize(3)
@@ -154,7 +154,7 @@ __optimize(3) uint64_t tm_year_to_year(const int tm_year) {
 }
 
 __optimize(3) enum weekday weekday_prev(const enum weekday weekday) {
-    return (weekday != WEEKDAY_SUNDAY) ? (weekday - 1) : WEEKDAY_SATURDAY;
+    return (weekday != WEEKDAY_SUNDAY) ? weekday - 1 : WEEKDAY_SATURDAY;
 }
 
 __optimize(3) enum weekday weekday_next(const enum weekday weekday) {

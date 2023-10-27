@@ -485,10 +485,10 @@ static inline bool month_is_valid(const enum month month) {
     return month >= MONTH_JANUARY && month <= MONTH_DECEMBER;
 }
 
-uint8_t hour_12_to_24hour(uint8_t hour, bool is_pm);
-uint8_t hour_24_to_12hour(uint8_t hour);
+uint8_t hour12_to_24hour(uint8_t hour, bool is_pm);
+uint8_t hour24_to_12hour(uint8_t hour);
 
-bool hour_24_is_pm(uint8_t hour);
+bool hour24_is_pm(uint8_t hour);
 uint8_t weekday_to_decimal_monday_one(enum weekday weekday);
 
 uint8_t month_get_day_count(enum month month, bool in_leap_year);

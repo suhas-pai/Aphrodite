@@ -76,6 +76,7 @@ static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
 
     if (memcmp(sdt->signature, "MCFG", 4) == 0) {
         info.mcfg = (const struct acpi_mcfg *)sdt;
+        return;
     }
 }
 
