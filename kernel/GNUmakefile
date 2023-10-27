@@ -168,7 +168,7 @@ else ifeq ($(ARCH),riscv64)
         -m elf64lriscv \
         --no-relax
 else
-	$(error Architecture $(ARCH) not supported)
+    $(error Architecture $(ARCH) not supported)
 endif
 
 # Internal linker flags that should not be changed by the user.

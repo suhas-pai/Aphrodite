@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/printk.h"
-
 #if __has_include("mm/tlb.h")
     #include "mm/tlb.h"
 #endif /* __has_include("mm/tlb.h") */

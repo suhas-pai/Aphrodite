@@ -9,7 +9,7 @@
 #include "lib/adt/range.h"
 #include "lib/list.h"
 
-#include "mm_types.h"
+#include "mm/types.h"
 
 struct page_freelist {
     struct list page_list;

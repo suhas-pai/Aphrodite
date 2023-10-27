@@ -6,7 +6,7 @@
 #pragma once
 
 #include "mm_types.h"
-#include "zone.h"
+#include "section.h"
 
 void mm_early_init();
 void mm_early_post_arch_init();

@@ -31,7 +31,7 @@ enum cmos_rtc_reg_status_b_masks {
 
 #define MAX_ATTEMPTS 10
 
-static inline bool rtc_wait_until_available() {
+__optimize(3) static inline bool rtc_wait_until_available() {
     for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
         const uint8_t reg_a = cmos_read(CMOS_REGISTER_RTC_STATUS_A);
         if ((reg_a & __CMOS_RTC_REGSTATUS_A_UPDATE_IN_PROG) == 0) {
@@ -42,7 +42,7 @@ static inline bool rtc_wait_until_available() {
     return false;
 }
 
-static inline bool read_reg_status_b(uint8_t *const result_out) {
+__optimize(3) static inline bool read_reg_status_b(uint8_t *const result_out) {
     if (!rtc_wait_until_available()) {
         return false;
     }
@@ -51,19 +51,22 @@ static inline bool read_reg_status_b(uint8_t *const result_out) {
     return true;
 }
 
+__optimize(3)
 static inline bool rtc_is_daylight_savings_enabled(const uint8_t reg_status_b) {
-    return (reg_status_b & __CMOS_RTC_REGSTATUS_B_DAYLIGHT_SAVING);
+    return reg_status_b & __CMOS_RTC_REGSTATUS_B_DAYLIGHT_SAVING;
 }
 
+__optimize(3)
 static inline bool rtc_is_in_24_hour_mode(const uint8_t reg_status_b) {
-    return (reg_status_b & __CMOS_RTC_REGSTATUS_B_24HR_MODE);
+    return reg_status_b & __CMOS_RTC_REGSTATUS_B_24HR_MODE;
 }
 
+__optimize(3)
 static inline bool rtc_is_date_in_binary_format(const uint8_t reg_status_b) {
-    return (reg_status_b & __CMOS_RTC_REGSTATUS_B_DATE_BINFMT);
+    return reg_status_b & __CMOS_RTC_REGSTATUS_B_DATE_BINFMT;
 }
 
-void rtc_init() {
+__optimize(3) void rtc_init() {
     uint8_t reg_b = 0;
     if (!read_reg_status_b(&reg_b)) {
         printk(LOGLEVEL_WARN, "rtc: failed to read reg-status b\n");
@@ -76,10 +79,11 @@ void rtc_init() {
     printk(LOGLEVEL_INFO, "rtc: init complete\n");
 }
 
-static inline uint8_t convert_bcd_to_binary(const uint8_t bcd) {
-    return ((bcd & 0xF) + ((bcd >> 4) * 10));
+__optimize(3) static inline uint8_t convert_bcd_to_binary(const uint8_t bcd) {
+    return (bcd & 0xF) + ((bcd >> 4) * 10);
 }
 
+__optimize(3)
 static inline void read_rtc_cmos_info(struct rtc_cmos_info *const info_out) {
     rtc_wait_until_available();
 
@@ -155,6 +159,7 @@ bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out) {
     return true;
 }
 
+__optimize(3)
 struct tm tm_from_rtc_cmos_info(struct rtc_cmos_info *const info) {
     return (struct tm){
         .tm_sec = info->time.second,

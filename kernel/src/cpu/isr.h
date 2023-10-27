@@ -6,7 +6,6 @@
 #pragma once
 #include <stdbool.h>
 
-#include "asm/irq_context.h"
 #include "cpu/info.h"
 #include "sys/isr.h"
 

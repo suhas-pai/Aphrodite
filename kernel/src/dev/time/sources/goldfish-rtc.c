@@ -9,7 +9,9 @@
 #include "dev/printk.h"
 
 #include "lib/align.h"
+
 #include "mm/kmalloc.h"
+#include "mm/mmio.h"
 
 #include "time/kstrftime.h"
 #include "time/time.h"

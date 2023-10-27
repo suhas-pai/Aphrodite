@@ -47,7 +47,8 @@ struct current_split_info {
 #define CURRENT_SPLIT_INFO_INIT() \
     ((struct current_split_info){ \
         .phys_range = RANGE_EMPTY(), \
-        .virt_addr = 0 \
+        .virt_addr = 0, \
+        .is_active = false \
     })
 
 static void

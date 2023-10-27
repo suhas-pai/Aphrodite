@@ -12,9 +12,12 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
+#include "mm/mmio.h"
 
 #include "sys/mmio.h"
 #include "sys/port.h"
+
+#include "structs.h"
 
 static struct list g_domain_list = LIST_INIT(g_domain_list);
 static struct list g_device_list = LIST_INIT(g_device_list);

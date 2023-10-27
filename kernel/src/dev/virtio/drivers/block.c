@@ -3,13 +3,10 @@
  * © suhas pai
  */
 
-#include "dev/pci/device.h"
 #include "dev/printk.h"
-
 #include "lib/size.h"
 
 #include "block.h"
-#include "sys/mmio.h"
 
 struct virtio_block_config {
     le64_t capacity;

@@ -15,9 +15,9 @@ static inline void select_cmos_register(enum cmos_register reg) {
 
     /*
      * According to wiki.osdev.org;
-     * "It is probably a good idea to have a reasonable delay after selecting "
-     * "a CMOS register on Port 0x70, before reading/writing the value on Port "
-     * "0x71. "
+     *   It is probably a good idea to have a reasonable delay after selecting
+     *   a CMOS register on Port 0x70, before reading/writing the value on Port
+     *   0x71. "
      */
 
     cpu_pause();
@@ -26,10 +26,8 @@ static inline void select_cmos_register(enum cmos_register reg) {
 uint8_t cmos_read(const enum cmos_register reg) {
     const bool flag = disable_all_int_if_not();
 
-    /*
-     * Note: We have to select the cmos register every time as reading/writing
-     * from cmos deselects cmos.
-     */
+    // Note: We have to select the cmos register every time as reading/writing
+    // from cmos deselects cmos.
 
     select_cmos_register(reg);
     const uint8_t result = port_in8(PORT_CMOS_REGISTER_READ);

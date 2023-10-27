@@ -8,12 +8,9 @@
 #include "dtb/driver.h"
 #include "pci/driver.h"
 
-#include "virtio/driver.h"
-
 struct driver {
     struct dtb_driver *dtb;
     struct pci_driver *pci;
-    struct virtio_driver *virtio;
 };
 
 extern struct driver drivers_start;

@@ -12,5 +12,4 @@ uint64_t nsec_since_boot() {
     return (uint64_t)boot_get_time() + femto_to_nano(hpet_get_femto());
 }
 
-void arch_init_time() {
-}
+void arch_init_time() {}

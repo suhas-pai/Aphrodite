@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "cpu/spinlock.h"
+#include <stdbool.h>
 #include "sys/port.h"
 
 bool

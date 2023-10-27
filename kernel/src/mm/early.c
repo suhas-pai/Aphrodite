@@ -5,14 +5,14 @@
 
 #include "dev/printk.h"
 #include "lib/align.h"
-
 #include "sys/boot.h"
-#include "early.h"
 
+#include "early.h"
 #include "kmalloc.h"
 #include "memmap.h"
 #include "pagemap.h"
 #include "walker.h"
+#include "zone.h"
 
 struct freepages_info {
     struct list list;

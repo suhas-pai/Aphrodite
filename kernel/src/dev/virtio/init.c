@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "dev/virtio/driver.h"
+
 #include "dev/driver.h"
 #include "dev/printk.h"
 

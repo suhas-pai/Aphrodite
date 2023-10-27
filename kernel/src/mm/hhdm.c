@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include <stdint.h>
+
 #include "lib/assert.h"
 #include "lib/overflow.h"
-
-#include "limine.h"
 
 __hidden uint64_t HHDM_OFFSET = 0;
 

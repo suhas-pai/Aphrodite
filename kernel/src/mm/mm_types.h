@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lib/assert.h"
 #include "mm/types.h"
 
 #define SIZEOF_STRUCTPAGE (sizeof(uint64_t) * 5)

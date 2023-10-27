@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include "cpu/spinlock.h"
-#include "lib/list.h"
-
 #include "page.h"
 #include "pageop.h"
 
