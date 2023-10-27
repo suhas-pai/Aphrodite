@@ -2,6 +2,7 @@
 override MAKEFLAGS += -rR
 
 override IMAGE_NAME := template
+export IN_QEMU := 0
 
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
@@ -29,6 +30,31 @@ $(eval $(call DEFAULT_VAR,HOST_LIBS,$(DEFAULT_HOST_LIBS)))
 override DEFAULT_ARCH := x86_64
 $(eval $(call DEFAULT_VAR,ARCH,$(DEFAULT_ARCH)))
 
+override DEFAULT_MEM := 4G
+$(eval $(call DEFAULT_VAR,MEM,$(DEFAULT_MEM)))
+
+override DEFAULT_SMP := 4
+$(eval $(call DEFAULT_VAR,SMP,$(DEFAULT_SMP)))
+
+EXTRA_QEMU_ARGS=-d guest_errors -d unimp -d int -D ./log.txt -rtc base=localtime
+ifeq ($(DEBUG), 1)
+	EXTRA_QEMU_ARGS += -s -S -serial stdio
+else ifeq ($(CONSOLE), 1)
+	EXTRA_QEMU_ARGS += -s -S -monitor stdio -no-reboot -no-shutdown
+else
+	EXTRA_QEMU_ARGS += -serial stdio
+endif
+
+ifneq ($(DEBUG), 1)
+	ifeq ($(ARCH),aarch64)
+		ifeq ($(shell uname -s),Darwin)
+			ifeq ($(shell uname -p),arm)
+				EXTRA_QEMU_ARGS += -accel hvf
+			endif
+		endif
+	endif
+endif
+
 .PHONY: all
 all: $(IMAGE_NAME).iso
 
@@ -42,36 +68,44 @@ run: run-$(ARCH)
 run-hdd: run-hdd-$(ARCH)
 
 .PHONY: run-x86_64
+run-x86_64: QEMU_RUN = 1
 run-x86_64: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x86_64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-x86_64
+run-hdd-x86_64: QEMU_RUN = 1
 run-hdd-x86_64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x86_64/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd -hda $(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-aarch64
+run-aarch64: QEMU_RUN = 1
 run-aarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-aarch64 -M virt -cpu cortex-a72 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -bios ovmf-aarch64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-aarch64 -M virt -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd -device virtio-scsi-pci,id=scsi -device scsi-cd,drive=cd0 -drive id=cd0,if=none,format=raw,file=$(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-aarch64
+run-hdd-aarch64: QEMU_RUN = 1
 run-hdd-aarch64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-aarch64 -M virt -cpu cortex-a72 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -bios ovmf-aarch64/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-aarch64 -M virt -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd -hda $(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-riscv64
+run-riscv64: QEMU_RUN = 1
 run-riscv64: ovmf $(IMAGE_NAME).iso
-	qemu-system-riscv64 -M virt -cpu rv64 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device virtio-scsi-pci,id=scsi -device scsi-cd,drive=cd0 -drive id=cd0,format=raw,file=$(IMAGE_NAME).iso
+	qemu-system-riscv64 -M virt -cpu rv64,sv57=on -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device virtio-scsi-pci,id=scsi -device scsi-cd,drive=cd0 -drive id=cd0,format=raw,file=$(IMAGE_NAME).iso $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-riscv64
+run-hdd-riscv64: QEMU_RUN = 1
 run-hdd-riscv64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-riscv64 -M virt -cpu rv64 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd0 -drive id=hd0,format=raw,file=$(IMAGE_NAME).hdd
+	qemu-system-riscv64 -M virt -cpu rv64,sv57=on -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd0 -drive id=hd0,format=raw,file=$(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-bios
+run-bios: QEMU_RUN = 1
 run-bios: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -cpu max -m $(MEM) -cdrom $(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-bios
+run-hdd-bios: QEMU_RUN = 1
 run-hdd-bios: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -m 2G -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -cpu max -m $(MEM) -hda $(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: ovmf
 ovmf: ovmf-$(ARCH)
@@ -99,7 +133,7 @@ limine:
 
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel
+	$(MAKE) -C kernel DEBUG=$(DEBUG)
 
 $(IMAGE_NAME).iso: limine kernel
 	rm -rf iso_root
