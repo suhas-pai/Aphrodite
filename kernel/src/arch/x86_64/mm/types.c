@@ -4,8 +4,8 @@
  */
 
 #include "lib/macros.h"
+#include "mm/mm_types.h"
 
-#include "cpu.h"
 #include "limine.h"
 
 __hidden const uint64_t PAGE_OFFSET = 0xffffc00000000000;

@@ -4,11 +4,12 @@
  */
 
 #include "acpi/structs.h"
+#include "cpu/info.h"
+
 #include "dev/printk.h"
 #include "lib/align.h"
 #include "mm/mmio.h"
 
-#include "cpu.h"
 #include "gic.h"
 #include "sys/mmio.h"
 

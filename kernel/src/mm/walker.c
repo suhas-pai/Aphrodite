@@ -7,11 +7,10 @@
     #include "asm/ttbr.h"
 #endif /* defined(__x86_64__) */
 
+#include "cpu/info.h"
 #include "lib/align.h"
 
-#include "cpu.h"
 #include "page_alloc.h"
-
 #include "walker.h"
 
 static uint64_t
@@ -570,10 +569,9 @@ ptwalker_fill_in_to(struct pt_walker *const walker,
 __optimize(3) void
 ptwalker_deref_from_level(struct pt_walker *const walker,
                           pgt_level_t level,
-                          void *free_pgtable_cb_info)
+                          void *const free_pgtable_cb_info)
 {
-    if (__builtin_expect(
-            level < walker->level || level > walker->top_level, 0))
+    if (__builtin_expect(level < walker->level || level > walker->top_level, 0))
     {
         return;
     }

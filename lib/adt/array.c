@@ -6,6 +6,7 @@
 #include "lib/util.h"
 #include "array.h"
 
+__optimize(3)
 void array_init(struct array *const array, const uint32_t object_size) {
     array->gbuffer = GBUFFER_INIT();
     array->object_size = object_size;

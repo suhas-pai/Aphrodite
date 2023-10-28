@@ -4,7 +4,6 @@
  */
 
 #pragma once
-#include "lib/assert.h"
 
 #include "growable_buffer.h"
 #include "range.h"

@@ -9,7 +9,7 @@
     #include "asm/ttbr.h"
 #endif /* defined(__x86_64__) */
 
-#include "cpu.h"
+#include "cpu/info.h"
 #include "pgmap.h"
 
 __hidden struct pagemap kernel_pagemap = {

@@ -4,6 +4,7 @@
  */
 
 #include "asm/msr.h"
+#include "cpu/info.h"
 #include "dev/printk.h"
 
 #include "lib/align.h"
@@ -15,7 +16,6 @@
 #include "mm/walker.h"
 
 #include "sys/boot.h"
-#include "cpu.h"
 
 static uint64_t
 ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,

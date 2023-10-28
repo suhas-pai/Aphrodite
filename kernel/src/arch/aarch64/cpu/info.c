@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/cpu.c
+ * kernel/arch/aarch64/cpu/info.c
  * © suhas pai
  */
 
@@ -11,7 +11,7 @@
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
 
-#include "cpu.h"
+#include "info.h"
 #include "features.h"
 
 static struct cpu_info g_base_cpu_info = {

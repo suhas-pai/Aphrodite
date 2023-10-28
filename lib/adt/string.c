@@ -4,8 +4,6 @@
  */
 
 #include "lib/format.h"
-#include "lib/string.h"
-
 #include "growable_buffer.h"
 
 __optimize(3)

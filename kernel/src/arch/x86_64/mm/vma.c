@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include "cpu/info.h"
+
 #include "mm/pgmap.h"
 #include "mm/walker.h"
-
-#include "cpu.h"
 
 static inline uint64_t
 flags_from_info(struct pagemap *const pagemap,

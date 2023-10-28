@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "lib/string.h"
 #include "string_view.h"
 
 __optimize(3) struct string_view sv_drop_front(const struct string_view sv) {

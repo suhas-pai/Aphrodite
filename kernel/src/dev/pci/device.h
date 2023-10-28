@@ -6,13 +6,17 @@
 #pragma once
 
 #if defined(__x86_64__)
-    #include "arch/x86_64/cpu.h"
+    #include "cpu/info.h"
+    #include "cpu/isr.h"
+
+    #include "lib/bits.h"
+#elif defined(__riscv64)
 #endif /* defined(__x86_64__) */
 
 #include "lib/adt/array.h"
 #include "lib/adt/bitmap.h"
 
-#include "cpu/isr.h"
+#include "lib/list.h"
 
 struct pci_config_space {
     uint16_t domain_segment; // PCIe only. 0 for PCI Local bus

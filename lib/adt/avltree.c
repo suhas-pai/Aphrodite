@@ -4,8 +4,6 @@
  */
 
 #include <stdbool.h>
-
-#include "lib/assert.h"
 #include "avltree.h"
 
 __optimize(3) static inline

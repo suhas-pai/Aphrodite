@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include "cpu/info.h"
 #include "cpu/panic.h"
-#include "sys/isr.h"
 
-#include "cpu.h"
+#include "sys/isr.h"
 
 void isr_init() {
 

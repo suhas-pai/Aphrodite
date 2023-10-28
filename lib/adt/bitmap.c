@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "lib/bits.h"
 #include "lib/math.h"
 #include "lib/memory.h"
 #include "lib/util.h"

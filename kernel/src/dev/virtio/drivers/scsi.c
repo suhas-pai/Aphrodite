@@ -39,7 +39,7 @@ virtio_scsi_driver_init(struct virtio_device *const device,
     if (queue_count > VIRTIO_SCSI_QUEUE_MAX_COUNT) {
         printk(LOGLEVEL_WARN,
                "virtio-scsi: too many queues requested (%" PRIu32 "), falling "
-               "instead to driver max: %" PRIu16 "\n",
+               "back to driver max: %" PRIu16 "\n",
                queue_count,
                VIRTIO_SCSI_QUEUE_MAX_COUNT);
 

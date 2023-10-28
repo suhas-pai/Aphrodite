@@ -1,9 +1,9 @@
 /*
- * kernel/arch/riscv64/cpu.c
+ * kernel/arch/riscv64/cpu/info.c
  * © suhas pai
  */
 
-#include "cpu.h"
+#include "info.h"
 
 static struct cpu_info g_base_cpu_info = {
     .pagemap = &kernel_pagemap,

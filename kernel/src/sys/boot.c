@@ -6,8 +6,8 @@
 #include "dev/printk.h"
 
 #include "mm/memmap.h"
-#include "mm/section.h"
 #include "mm/mm_types.h"
+#include "mm/section.h"
 
 #include "time/kstrftime.h"
 

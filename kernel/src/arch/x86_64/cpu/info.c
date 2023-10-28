@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/cpu.c
+ * kernel/arch/x86_64/cpu/info.c
  * © suhas pai
  */
 
@@ -11,7 +11,7 @@
 #include "dev/printk.h"
 #include "sys/gdt.h"
 
-#include "cpu.h"
+#include "info.h"
 
 static struct cpu_capabilities g_cpu_capabilities = {
     .supports_avx512 = false,

@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/cpu.h
+ * kernel/arch/x86_64/cpu/info.h
  * © suhas pai
  */
 

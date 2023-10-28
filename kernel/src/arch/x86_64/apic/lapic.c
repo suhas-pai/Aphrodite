@@ -6,6 +6,7 @@
 #include "acpi/api.h"
 #include "asm/msr.h"
 
+#include "cpu/info.h"
 #include "cpu/isr.h"
 
 #include "dev/pit.h"
@@ -13,7 +14,6 @@
 
 #include "lib/time.h"
 
-#include "cpu.h"
 #include "lapic.h"
 #include "sys/mmio.h"
 

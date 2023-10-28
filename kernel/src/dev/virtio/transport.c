@@ -3,9 +3,9 @@
  * © suhas pai
  */
 
+#include "sys/mmio.h"
 
 #include "device.h"
-#include "sys/mmio.h"
 #include "transport.h"
 
 static

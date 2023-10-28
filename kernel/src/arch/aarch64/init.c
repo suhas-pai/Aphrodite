@@ -3,10 +3,9 @@
  * © suhas pai
  */
 
+#include "cpu/info.h"
 #include "mm/init.h"
 #include "sys/isr.h"
-
-#include "cpu.h"
 
 void arch_early_init() {
 

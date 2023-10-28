@@ -5,10 +5,10 @@
 
 #include "apic/ioapic.h"
 
+#include "cpu/info.h"
 #include "cpu/isr.h"
-#include "dev/printk.h"
 
-#include "cpu.h"
+#include "dev/printk.h"
 
 static isr_func_t g_funcs[256] = {0};
 

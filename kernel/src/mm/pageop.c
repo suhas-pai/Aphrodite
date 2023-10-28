@@ -3,11 +3,11 @@
  * © suhas pai
  */
 
+#include "cpu/info.h"
+
 #if __has_include("mm/tlb.h")
     #include "mm/tlb.h"
 #endif /* __has_include("mm/tlb.h") */
-
-#include "cpu.h"
 
 #include "pagemap.h"
 #include "page_alloc.h"

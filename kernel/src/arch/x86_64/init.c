@@ -3,12 +3,11 @@
  * © suhas pai
  */
 
+#include "cpu/info.h"
 #include "mm/init.h"
 
 #include "sys/gdt.h"
 #include "sys/idt.h"
-
-#include "cpu.h"
 
 void arch_early_init() {
 

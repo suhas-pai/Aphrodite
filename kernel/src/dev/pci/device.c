@@ -10,9 +10,9 @@
 
 #include "dev/printk.h"
 #include "lib/util.h"
+#include "sys/mmio.h"
 
 #include "device.h"
-#include "sys/mmio.h"
 #include "structs.h"
 
 __optimize(3)

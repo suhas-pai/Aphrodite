@@ -10,17 +10,15 @@
     #include "apic/ioapic.h"
     #include "apic/lapic.h"
     #include "apic/init.h"
+#elif defined(__aarch64__)
+    #include "cpu/info.h"
 #endif /* defined(__x86_64__) */
 
 #include "dev/printk.h"
 
 #if defined(__aarch64__)
     #include "mm/mmio.h"
-#endif /* defined(__aarch64__) */
-
-#if defined(__aarch64__)
     #include "sys/gic.h"
-    #include "cpu.h"
 #endif /* defined(__aarch64__) */
 
 void madt_init(const struct acpi_madt *const madt) {

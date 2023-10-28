@@ -23,11 +23,11 @@ virtio_split_queue_init(struct virtio_device *const device,
         "virto-queue: desc_pages allocation order needs to be increased");
 
     _Static_assert(
-        sizeof(uint16_t) * (3 + VIRTQ_MAX_DESC_COUNT) <= PAGE_SIZE,
+        sizeof(uint16_t) * VIRTQ_MAX_DESC_COUNT <= PAGE_SIZE,
         "virto-queue: avail_pages allocation order needs to be increased");
 
     _Static_assert(
-        ((sizeof(uint16_t) * 3) +
+        (sizeof(uint16_t) +
             (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))
                 <= (PAGE_SIZE << 1),
         "virto-queue: used_pages allocation order needs to be increased");
@@ -64,7 +64,7 @@ virtio_split_queue_init(struct virtio_device *const device,
 
     // The max possible used_ring_size should be 4102 bytes.
     const uint16_t used_ring_size =
-        (sizeof(uint16_t) * 3) + (sizeof(struct virtq_used_elem) * desc_count);
+        sizeof(uint16_t) + (sizeof(struct virtq_used_elem) * desc_count);
 
     uint8_t used_pages_order = 0;
     if (used_ring_size > PAGE_SIZE) {
