@@ -1,5 +1,5 @@
 /*
- * kernel/dev/virtio/queue.h
+ * kernel/src/dev/virtio/queue.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/dev/dtb/dtb.h
+ * kernel/src/dev/dtb/dtb.h
  * © suhas pai
  */
 

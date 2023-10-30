@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/dev/init.c
+ * kernel/src/arch/aarch64/dev/init.c
  * © suhas pai
  */
 

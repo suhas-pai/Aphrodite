@@ -91,7 +91,7 @@
 
 #define h_var(token) VAR_CONCAT(VAR_CONCAT_3(__, token, __), __LINE__)
 #define countof(carr) (sizeof(carr) / sizeof((carr)[0]))
-#define for_each_in_carr(arr, name) \
+#define carr_foreach(arr, name) \
     for (typeof(&(arr)[0]) name = &arr[0]; \
          name != ((arr) + countof(arr)); \
          name++)

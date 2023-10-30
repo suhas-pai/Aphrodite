@@ -1,5 +1,5 @@
 /*
- * kernel/mm/pageop.c
+ * kernel/src/mm/pageop.c
  * © suhas pai
  */
 

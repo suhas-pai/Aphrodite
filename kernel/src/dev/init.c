@@ -1,5 +1,5 @@
 /*
- * kernel/dev/init.c
+ * kernel/src/dev/init.c
  * © suhas pai
  */
 

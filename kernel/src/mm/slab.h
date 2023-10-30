@@ -1,5 +1,5 @@
 /*
- * kernel/mm/slab.h
+ * kernel/src/mm/slab.h
  * © suhas pai
  */
 

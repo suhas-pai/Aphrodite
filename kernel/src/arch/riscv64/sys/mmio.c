@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/sys/mmio.c
+ * kernel/src/arch/riscv64/sys/mmio.c
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/dev/virtio/init.h
+ * kernel/src/dev/virtio/init.h
  * © suhas pai
  */
 

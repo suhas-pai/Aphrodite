@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/sys/mmio.c
+ * kernel/src/arch/aarch64/sys/mmio.c
  * © suhas pai
  */
 

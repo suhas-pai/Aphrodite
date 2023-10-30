@@ -1,5 +1,5 @@
 /*
- * kernel/mm/pagemap.c
+ * kernel/src/mm/pagemap.c
  * © suhas pai
  */
 
@@ -78,8 +78,8 @@ pagemap_find_space_and_add_vma(struct pagemap *const pagemap,
         return true;
     }
 
-    const int flag2 = spin_acquire_with_irq(&pagemap->addrspace_lock);
-    spin_release_with_irq(&vma->lock, flag);
+    const int flag2 = spin_acquire_with_irq(&vma->lock);
+    spin_release_with_irq(&pagemap->addrspace_lock, flag);
 
     const bool map_result =
         arch_make_mapping(pagemap,

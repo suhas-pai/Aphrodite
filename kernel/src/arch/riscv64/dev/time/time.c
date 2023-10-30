@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/dev/time/time.c
+ * kernel/src/arch/riscv64/dev/time/time.c
  * © suhas pai
  */
 

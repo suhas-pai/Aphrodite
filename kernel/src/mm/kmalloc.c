@@ -1,5 +1,5 @@
 /*
- * kernel/mm/kmalloc.c
+ * kernel/src/mm/kmalloc.c
  * © suhas pai
  */
 

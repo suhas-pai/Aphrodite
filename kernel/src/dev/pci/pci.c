@@ -1,5 +1,5 @@
 /*
- * kernel/dev/pci/pci.c
+ * kernel/src/dev/pci/pci.c
  * © suhas pai
  */
 
@@ -52,7 +52,7 @@ enum pci_bar_masks {
     PCI_BAR_PORT_ADDR_SIZE_MASK = 0xfffffffc
 };
 
-static enum parse_bar_result
+__optimize(3) static enum parse_bar_result
 pci_bar_parse_size(struct pci_device_info *const dev,
                    struct pci_device_bar_info *const info,
                    uint64_t base_addr,
@@ -214,7 +214,26 @@ bool pci_map_bar(struct pci_device_bar_info *const bar) {
     return true;
 }
 
-uint8_t
+__optimize(3) bool pci_unmap_bar(struct pci_device_bar_info *const bar) {
+    if (!bar->is_mmio) {
+        printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on non-mmio bar\n");
+        return false;
+    }
+
+    if (!bar->is_mapped) {
+        return true;
+    }
+
+    vunmap_mmio(bar->mmio);
+
+    bar->mmio = NULL;
+    bar->index_in_mmio = 0;
+    bar->is_mapped = false;
+
+    return true;
+}
+
+__optimize(3) uint8_t
 pci_device_bar_read8(struct pci_device_bar_info *const bar,
                      const uint32_t offset)
 {
@@ -228,7 +247,7 @@ pci_device_bar_read8(struct pci_device_bar_info *const bar,
             port_in8((port_t)(bar->port_or_phys_range.front + offset));
 }
 
-uint16_t
+__optimize(3) uint16_t
 pci_device_bar_read16(struct pci_device_bar_info *const bar,
                       const uint32_t offset)
 {
@@ -242,7 +261,7 @@ pci_device_bar_read16(struct pci_device_bar_info *const bar,
             port_in16((port_t)(bar->port_or_phys_range.front + offset));
 }
 
-uint32_t
+__optimize(3) uint32_t
 pci_device_bar_read32(struct pci_device_bar_info *const bar,
                       const uint32_t offset)
 {
@@ -256,7 +275,7 @@ pci_device_bar_read32(struct pci_device_bar_info *const bar,
             port_in32((port_t)(bar->port_or_phys_range.front + offset));
 }
 
-uint64_t
+__optimize(3) uint64_t
 pci_device_bar_read64(struct pci_device_bar_info *const bar,
                       const uint32_t offset)
 {
@@ -517,6 +536,7 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
 #undef pci_read_cap_field
 }
 
+__optimize(3)
 static void free_inside_device_info(struct pci_device_info *const device) {
     struct pci_device_bar_info *const bar_list = device->bar_list;
     const uint8_t bar_count =
@@ -535,6 +555,17 @@ static void free_inside_device_info(struct pci_device_info *const device) {
     }
 
     array_destroy(&device->vendor_cap_list);
+}
+
+__optimize(3) static inline
+const char *pci_device_get_vendor_name(struct pci_device_info *const device) {
+    carr_foreach(pci_vendor_info_list, iter) {
+        if (device->vendor_id == iter->id) {
+            return iter->name;
+        }
+    }
+
+    return "unknown";
 }
 
 void
@@ -590,8 +621,9 @@ parse_function(struct pci_domain *const domain,
     info.multifunction = is_multi_function;
 
     printk(LOGLEVEL_INFO,
-           "\tdevice: " PCI_DEVICE_INFO_FMT "\n",
-           PCI_DEVICE_INFO_FMT_ARGS(&info));
+           "\tdevice: " PCI_DEVICE_INFO_FMT " from %s\n",
+           PCI_DEVICE_INFO_FMT_ARGS(&info),
+           pci_device_get_vendor_name(&info));
 
     const bool class_is_pci_bridge = info.class == 0x4 && info.subclass == 0x6;
     const bool hdrkind_is_pci_bridge =
@@ -817,6 +849,11 @@ pci_add_pcie_domain(struct range bus_range,
                     const uint64_t base_addr,
                     const uint16_t segment)
 {
+    uint64_t config_space_size = bus_range.size << 20;
+    if (!align_up(config_space_size, PAGE_SIZE, &config_space_size)) {
+        return NULL;
+    }
+
     struct pci_domain *const domain = kmalloc(sizeof(*domain));
     if (domain == NULL) {
         return NULL;
@@ -825,13 +862,13 @@ pci_add_pcie_domain(struct range bus_range,
     list_init(&domain->list);
     list_init(&domain->device_list);
 
-    const struct range config_space_range =
-        RANGE_INIT(base_addr, align_up_assert(bus_range.size << 20, PAGE_SIZE));
-
     domain->mmio =
-        vmap_mmio(config_space_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+        vmap_mmio(RANGE_INIT(base_addr, config_space_size),
+                  PROT_READ | PROT_WRITE,
+                  /*flags=*/0);
 
     if (domain->mmio == NULL) {
+        kfree(domain);
         printk(LOGLEVEL_WARN,
                "pcie: failed to mmio-map pci-domain config-space\n");
 
@@ -908,7 +945,7 @@ void pci_init_drivers() {
     }
 }
 
-void pci_init() {
+__optimize(3) void pci_init() {
 #if defined(__x86_64__)
     if (list_empty(&g_domain_list)) {
         struct pci_domain *const root_domain = kmalloc(sizeof(*root_domain));

@@ -1,5 +1,5 @@
 /*
- * kernel/cpu/util.h
+ * kernel/src/cpu/util.h
  * © suhas pai
  */
 

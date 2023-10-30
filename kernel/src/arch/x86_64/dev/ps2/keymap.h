@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/ps2/keymap.h
+ * kernel/src/arch/x86_64/dev/ps2/keymap.h
  * © suhas pai
  */
 

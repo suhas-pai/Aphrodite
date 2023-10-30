@@ -1,5 +1,5 @@
 /*
- * kernel/mm/mmio.c
+ * kernel/src/mm/mmio.c
  * © suhas pai
  */
 

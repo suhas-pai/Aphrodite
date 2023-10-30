@@ -1,5 +1,5 @@
 /*
- * kernel/mm/pagemap.h
+ * kernel/src/mm/pagemap.h
  * © suhas pai
  */
 

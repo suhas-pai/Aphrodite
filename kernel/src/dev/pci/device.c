@@ -1,5 +1,5 @@
 /*
- * kernel/dev/pci/device.h
+ * kernel/src/dev/pci/device.h
  * © suhas pai
  */
 
@@ -107,7 +107,7 @@ uint32_t pci_device_get_index(const struct pci_device_info *const device) {
                         /*count=*/1,
                         /*start_index=*/0,
                         /*expected_value=*/false,
-                        /*invert=*/1);
+                        /*invert=*/true);
 
         if (msix_vector == FIND_BIT_INVALID) {
             printk(LOGLEVEL_WARN,
@@ -117,16 +117,6 @@ uint32_t pci_device_get_index(const struct pci_device_info *const device) {
                    vector);
             return;
         }
-
-        /*
-         * The lower 3 bits of the Table Offset is the BIR.
-         *
-         * The BIR (Base Index Register) is the index of the BAR that contains
-         * the MSI-X Table.
-         *
-         * The remaining 29 (32-3) bits of the Table Offset is the offset to the
-         * MSI-X Table in the BAR.
-         */
 
         uint16_t msg_control =
             pci_read_with_offset(device,
@@ -145,6 +135,16 @@ uint32_t pci_device_get_index(const struct pci_device_info *const device) {
                    vector);
             return;
         }
+
+        /*
+         * The lower 3 bits of the Table Offset is the BIR.
+         *
+         * The BIR (Base Index Register) is the index of the BAR that contains
+         * the MSI-X Table.
+         *
+         * The remaining 29 (32-3) bits of the Table Offset is the offset to the
+         * MSI-X Table in the BAR.
+         */
 
         const uint32_t table_offset =
             pci_read_with_offset(device,

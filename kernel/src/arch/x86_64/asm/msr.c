@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/msr.c
+ * kernel/src/arch/x86_64/asm/msr.c
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/cpu/spinlock.c
+ * kernel/src/cpu/spinlock.c
  * © suhas pai
  */
 

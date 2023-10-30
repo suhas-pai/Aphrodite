@@ -1,5 +1,5 @@
 /*
- * kernel/mm/page.c
+ * kernel/src/mm/page.c
  * © suhas pai
  */
 

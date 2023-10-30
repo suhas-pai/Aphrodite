@@ -1,5 +1,5 @@
 /*
- * kernel/dev/virtio/drivers/block.c
+ * kernel/src/dev/virtio/drivers/block.c
  * © suhas pai
  */
 

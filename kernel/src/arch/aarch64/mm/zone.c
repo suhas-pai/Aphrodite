@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/mm/zone.c
+ * kernel/src/arch/aarch64/mm/zone.c
  * © suhas pai
  */
 

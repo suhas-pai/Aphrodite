@@ -1,5 +1,5 @@
 /*
- * kernel/mm/zone.h
+ * kernel/src/mm/zone.h
  * © suhas pai
  */
 

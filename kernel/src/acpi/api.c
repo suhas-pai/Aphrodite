@@ -1,5 +1,5 @@
 /*
- * kernel/acpi/init.c
+ * kernel/src/acpi/init.c
  * © suhas pai
  */
 

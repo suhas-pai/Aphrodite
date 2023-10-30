@@ -1,5 +1,5 @@
 /*
- * kernel/dev/time/kstrftime.c
+ * kernel/src/dev/time/kstrftime.c
  * © suhas pai
  */
 
@@ -25,7 +25,7 @@ time_format_to_string_sv_callback(
 }
 
 struct string kstrftime(const char *const format, const struct tm *const tm) {
-    struct string string = STRING_EMPTY();
+    struct string string = STRING_NULL();
     parse_strftime_format(time_format_to_string_sv_callback,
                           &string,
                           format,

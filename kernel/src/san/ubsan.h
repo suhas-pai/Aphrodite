@@ -1,5 +1,5 @@
 /*
- * kernel/san/ubsan.h
+ * kernel/src/san/ubsan.h
  * © suhas pai
  */
 

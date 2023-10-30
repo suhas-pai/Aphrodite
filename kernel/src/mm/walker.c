@@ -1,5 +1,5 @@
 /*
- * kernel/mm/walker.c
+ * kernel/src/mm/walker.c
  * © suhas pai
  */
 

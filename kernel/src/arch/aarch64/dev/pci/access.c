@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/dev/pci/access.c
+ * kernel/src/arch/aarch64/dev/pci/access.c
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/dev/printk.c
+ * kernel/src/dev/printk.c
  * © suhas pai
  */
 

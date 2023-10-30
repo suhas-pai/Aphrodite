@@ -1,5 +1,5 @@
 /*
- * kernel/mm/vma.c
+ * kernel/src/mm/vma.c
  * © suhas pai
  */
 

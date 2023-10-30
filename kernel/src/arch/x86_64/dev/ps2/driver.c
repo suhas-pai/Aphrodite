@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/ps2.c
+ * kernel/src/arch/x86_64/dev/ps2.c
  * © suhas pai
  */
 
@@ -246,7 +246,7 @@ void ps2_init() {
         __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
 
     const bool has_second_port =
-        (ps2_config & __PS2_CNTRLR_CONFIG_2ND_PORT_CLOCK) != 0;
+        ps2_config & __PS2_CNTRLR_CONFIG_2ND_PORT_CLOCK;
 
     if (has_second_port) {
         ps2_config |= __PS2_CNTRLR_CONFIG_2ND_PORT_INTERRUPT;

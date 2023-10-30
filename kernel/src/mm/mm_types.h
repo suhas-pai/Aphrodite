@@ -1,5 +1,5 @@
 /*
- * kernel/mm/mm_types.h
+ * kernel/src/mm/mm_types.h
  * © suhas pai
  */
 

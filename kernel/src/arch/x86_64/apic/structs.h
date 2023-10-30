@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/apic/structs.h
+ * kernel/src/arch/x86_64/apic/structs.h
  * © suhas pai
  */
 

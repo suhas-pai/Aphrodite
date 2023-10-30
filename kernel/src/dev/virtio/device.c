@@ -1,5 +1,5 @@
 /*
- * kernel/dev/virtio/device.c
+ * kernel/src/dev/virtio/device.c
  * © suhas pai
  */
 

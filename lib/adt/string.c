@@ -15,16 +15,15 @@ static inline void set_null_terminator(const struct string *const string) {
      * Instead, we can set the byte right after used-part of the gbuffer to 0
      * for the null-terminator.
      *
-     * NOTE: The caller is responsible for ensuring we can add one extra byte.
+     * prepare_append() is responsible for ensuring we can add one extra byte.
      */
 
     const struct growable_buffer gbuffer = string->gbuffer;
     ((uint8_t *)gbuffer.begin)[gbuffer.index] = '\0';
 }
 
-__optimize(3)
-struct string string_alloc(const struct string_view sv) {
-    struct string result = STRING_EMPTY();
+__optimize(3) struct string string_alloc(const struct string_view sv) {
+    struct string result = STRING_NULL();
     string_append_sv(&result, sv);
 
     return result;

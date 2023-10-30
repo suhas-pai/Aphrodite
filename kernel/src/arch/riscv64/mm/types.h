@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/mm/types.h
+ * kernel/src/arch/riscv64/mm/types.h
  * © suhas pai
  */
 

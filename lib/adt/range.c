@@ -35,18 +35,6 @@ range_multiply(const struct range range,
 }
 
 __optimize(3)
-struct range range_align_in(const struct range range, const uint64_t boundary) {
-    uint64_t front = 0;
-    if (!align_up(range.front, boundary, &front) ||
-        (front - range.front) >= range.size)
-    {
-        return RANGE_EMPTY();
-    }
-
-    return RANGE_INIT(front, align_down(range.size, boundary));
-}
-
-__optimize(3)
 struct range range_from_index(const struct range range, const uint64_t index) {
     assert(range_has_index(range, index));
     return RANGE_INIT(range.front + index, range.size - index);
@@ -56,6 +44,27 @@ __optimize(3)
 struct range range_from_loc(const struct range range, const uint64_t loc) {
     assert(range_has_loc(range, loc));
     return RANGE_INIT(loc, range.size - (loc - range.front));
+}
+
+__optimize(3) bool
+range_align_in(const struct range range,
+               const uint64_t boundary,
+               struct range *const result_out)
+{
+    uint64_t front = 0;
+    if (!align_up(range.front, boundary, &front) ||
+        (front - range.front) >= range.size)
+    {
+        return false;
+    }
+
+    const uint64_t size = align_down(range.size, boundary);
+    if (size == 0) {
+        return false;
+    }
+
+    *result_out = RANGE_INIT(front, size);
+    return true;
 }
 
 __optimize(3) bool

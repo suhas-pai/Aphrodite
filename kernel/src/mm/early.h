@@ -1,5 +1,5 @@
 /*
- * kernel/mm/early.h
+ * kernel/src/mm/early.h
  * © suhas pai
  */
 

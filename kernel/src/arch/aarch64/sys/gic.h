@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/sys/gic.h
+ * kernel/src/arch/aarch64/sys/gic.h
  * © suhas pai
  */
 

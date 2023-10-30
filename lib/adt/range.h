@@ -34,7 +34,6 @@ struct range {
 
 struct range range_create_upto(uint64_t size);
 struct range range_create_end(uint64_t front, uint64_t size);
-struct range range_align_in(struct range range, uint64_t boundary);
 
 struct range range_from_index(struct range range, uint64_t index);
 struct range range_from_loc(struct range range, uint64_t loc);
@@ -49,6 +48,9 @@ bool
 range_round_up_subrange(struct range range,
                         uint64_t mult,
                         struct range *result_out);
+
+bool
+range_align_in(struct range range, uint64_t boundary, struct range *range_out);
 
 bool
 range_align_out(struct range range, uint64_t boundary, struct range *range_out);

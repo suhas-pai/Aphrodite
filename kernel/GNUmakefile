@@ -212,6 +212,13 @@ all: bin/$(KERNEL)
 src/limine.h:
 	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
 
+src/dev/pci/vendors.h:
+	curl -Lo src/dev/pci/pci.ids https://pci-ids.ucw.cz/v2.2/pci.ids
+	awk '/^[^#[:blank:]C]/ { num=""$$1; name=$$0; sub("^"num, "", name); sub("[[:blank:]]+", "", name); print "PCI_VENDOR(0x"num",\""name"\")" }' src/dev/pci/pci.ids > $@
+	sed -i -e 's/(???)//g' $@
+	sed -i -e s/\"NICEVT\"/\'NICEVT\'/g $@
+	rm src/dev/pci/pci.ids
+
 # Link rules for the final kernel executable.
 bin/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
 	mkdir -p "$$(dirname $@)"
@@ -221,7 +228,7 @@ bin/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.c files.
-obj/%.c.o: src/%.c GNUmakefile src/limine.h
+obj/%.c.o: src/%.c GNUmakefile src/limine.h src/dev/pci/vendors.h
 	mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 

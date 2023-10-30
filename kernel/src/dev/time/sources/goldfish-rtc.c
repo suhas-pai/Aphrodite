@@ -1,5 +1,5 @@
 /*
- * kernel/dev/time/sources/goldfish-rtc.c
+ * kernel/src/dev/time/sources/goldfish-rtc.c
  * © suhas pai
  */
 

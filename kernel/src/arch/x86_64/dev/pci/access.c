@@ -1,9 +1,9 @@
 /*
- * kernel/arch/x86_64/dev/pci/read.c
+ * kernel/src/arch/x86_64/dev/pci/read.c
  * © suhas pai
  */
 
-#include "dev/pci/pci.h"
+#include "dev/pci/device.h"
 #include "dev/pci/structs.h"
 
 #include "dev/port.h"

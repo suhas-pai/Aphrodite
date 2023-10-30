@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/sys/isr.c
+ * kernel/src/arch/x86_64/sys/isr.c
  * © suhas pai
  */
 

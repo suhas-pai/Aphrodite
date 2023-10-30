@@ -1,5 +1,5 @@
 /*
- * kernel/dev/init.h
+ * kernel/src/dev/init.h
  * © suhas pai
  */
 

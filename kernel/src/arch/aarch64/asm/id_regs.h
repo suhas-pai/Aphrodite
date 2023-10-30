@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/asm/id_regs.h
+ * kernel/src/arch/aarch64/asm/id_regs.h
  * © suhas pai
  */
 

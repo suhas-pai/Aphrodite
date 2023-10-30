@@ -35,14 +35,14 @@ enum traversal_result {
 };
 
 static enum traversal_result
-travserse_tree(const struct address_space *const addrspace,
-               const struct range in_range,
-               struct addrspace_node *node,
-               const uint64_t size,
-               const uint64_t align,
-               uint64_t *const result_out,
-               struct addrspace_node **const node_out,
-               struct addrspace_node **const prev_out)
+traverse_tree(const struct address_space *const addrspace,
+              const struct range in_range,
+              struct addrspace_node *node,
+              const uint64_t size,
+              const uint64_t align,
+              uint64_t *const result_out,
+              struct addrspace_node **const node_out,
+              struct addrspace_node **const prev_out)
 {
     while (true) {
         struct addrspace_node *const prev = addrspace_node_prev(node);
@@ -180,14 +180,14 @@ find_from_start(const struct address_space *const addrspace,
 
         uint64_t result = 0;
         const enum traversal_result traverse_result =
-            travserse_tree(addrspace,
-                           in_range,
-                           node,
-                           size,
-                           align,
-                           &result,
-                           &node,
-                           prev_out);
+            traverse_tree(addrspace,
+                          in_range,
+                          node,
+                          size,
+                          align,
+                          &result,
+                          &node,
+                          prev_out);
 
         switch (traverse_result) {
             case TRAVERSAL_DONE:

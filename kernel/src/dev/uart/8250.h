@@ -1,5 +1,5 @@
 /*
- * kernel/dev/uart/8250.h
+ * kernel/src/dev/uart/8250.h
  * © suhas pai
  */
 

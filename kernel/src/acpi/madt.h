@@ -1,5 +1,5 @@
 /*
- * kernel/acpi/madt.h
+ * kernel/src/acpi/madt.h
  * © suhas pai
  */
 

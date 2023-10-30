@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/exceptions.h
+ * kernel/src/arch/x86_64/asm/exceptions.h
  * © suhas pai
  */
 

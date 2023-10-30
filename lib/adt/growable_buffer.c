@@ -37,8 +37,8 @@ gbuffer_open(void *const buffer,
 {
     const struct growable_buffer gbuffer = {
         .begin = buffer,
-        .index = used,
         .end = buffer + capacity,
+        .index = used,
         .is_alloc = is_alloc
     };
 

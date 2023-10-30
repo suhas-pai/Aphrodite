@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/cpuid.c
+ * kernel/src/arch/x86_64/asm/cpuid.c
  * © suhas pai
  */
 

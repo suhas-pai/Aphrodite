@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/apic/init.h
+ * kernel/src/arch/x86_64/apic/init.h
  * © suhas pai
  */
 

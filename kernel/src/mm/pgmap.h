@@ -1,5 +1,5 @@
 /*
- * kernel/mm/pgmap.h
+ * kernel/src/mm/pgmap.h
  * © suhas pai
  */
 

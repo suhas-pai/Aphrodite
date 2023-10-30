@@ -1,3 +1,5 @@
 /src/limine.h
 /bin
 /obj
+
+/src/dev/pci/vendors.h

@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/asm/irq_context.h
+ * kernel/src/arch/riscv64/asm/irq_context.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/dev/pci/device.h
+ * kernel/src/dev/pci/device.h
  * © suhas pai
  */
 
@@ -48,6 +48,7 @@ struct pci_device_bar_info {
 };
 
 bool pci_map_bar(struct pci_device_bar_info *bar);
+bool pci_unmap_bar(struct pci_device_bar_info *bar);
 
 uint8_t
 pci_device_bar_read8(struct pci_device_bar_info *const bar, uint32_t offset);

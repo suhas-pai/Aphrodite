@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/dev/uart/pl011.h
+ * kernel/src/arch/aarch64/dev/uart/pl011.h
  * © suhas pai
  */
 

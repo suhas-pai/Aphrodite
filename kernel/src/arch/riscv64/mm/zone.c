@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/mm/zone.c
+ * kernel/src/arch/riscv64/mm/zone.c
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/acpi/structs.h
+ * kernel/src/acpi/structs.h
  * © suhas pai
  */
 

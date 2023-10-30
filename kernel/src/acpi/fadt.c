@@ -1,5 +1,5 @@
 /*
- * kernel/acpi/fadt.c
+ * kernel/src/acpi/fadt.c
  * © suhas pai
  */
 

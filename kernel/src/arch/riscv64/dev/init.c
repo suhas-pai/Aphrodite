@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/dev/init.c
+ * kernel/src/arch/riscv64/dev/init.c
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/time/hpet.h
+ * kernel/src/arch/x86_64/dev/time/hpet.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/apic/ioapic.c
+ * kernel/src/arch/x86_64/apic/ioapic.c
  * © suhas pai
  */
 
@@ -71,10 +71,8 @@ redirect_irq(const uint8_t lapic_id,
     const uint32_t reg =
         ioapic_redirect_table_get_reg_for_n(redirect_table_index);
 
-    /*
-     * For selector=reg, write the lower-32 bits, for selector=reg + 1, write
-     * the upper-32 bits.
-     */
+    // For selector=reg, write the lower-32 bits, for selector=reg + 1, write
+    // the upper-32 bits.
 
     ioapic_write(ioapic, reg, req_value);
     ioapic_write(ioapic, reg + 1, req_value >> 32);

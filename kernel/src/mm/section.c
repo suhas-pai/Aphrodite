@@ -1,5 +1,5 @@
 /*
- * kernel/mm/sections.c
+ * kernel/src/mm/sections.c
  * © suhas pai
  */
 
@@ -7,6 +7,28 @@
 #include "mm/page.h"
 
 #include "sys/boot.h"
+
+__optimize(3) void
+page_section_init(struct page_section *const section,
+                  struct page_zone *const zone,
+                  const struct range range,
+                  const uint64_t pfn)
+{
+    section->zone = zone;
+    section->lock = SPINLOCK_INIT();
+    section->pfn = pfn;
+    section->range = range;
+    section->min_order = 0;
+    section->max_order = 0;
+    section->total_free = 0;
+
+    for (uint8_t i = 0; i != MAX_ORDER; i++) {
+        list_init(&section->freelist_list[i].page_list);
+        section->freelist_list[i].count = 0;
+    }
+
+    list_init(&section->zone_list);
+}
 
 __optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
     const struct page_section *const begin = mm_get_page_section_list();

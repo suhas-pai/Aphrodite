@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/uart/com1.c
+ * kernel/src/arch/x86_64/dev/uart/com1.c
  * © suhas pai
  */
 

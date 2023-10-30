@@ -1,5 +1,5 @@
 /*
- * kernel/dev/pci/structs.h
+ * kernel/src/dev/pci/structs.h
  * © suhas pai
  */
 
@@ -148,6 +148,17 @@ enum pci_spec_device_bar_flags {
     __PCI_DEVBAR_IO = 1ull << 0,
     __PCI_DEVBAR_MEMKIND_MASK = 0b11 << __PCI_DEVBAR_MEMKIND_SHIFT,
     __PCI_DEVBAR_PREFETCHABLE = 1ull << __PCI_DEVBAR_PREFETCHABLE_SHIFT,
+};
+
+struct pci_vendor_info {
+    uint32_t id;
+    const char *name;
+};
+
+static const struct pci_vendor_info pci_vendor_info_list[] = {
+#define PCI_VENDOR(id_, name_) {.id = (id_), .name = (name_)},
+    #include "vendors.h"
+#undef PCI_VENDOR
 };
 
 struct pci_spec_device_info_base {

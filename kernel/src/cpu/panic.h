@@ -1,5 +1,5 @@
 /*
- * kernel/cpu/panic.h
+ * kernel/src/cpu/panic.h
  * © suhas pai
  */
 

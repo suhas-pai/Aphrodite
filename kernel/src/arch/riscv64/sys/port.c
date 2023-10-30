@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/sys/port.c
+ * kernel/src/arch/riscv64/sys/port.c
  * © suhas pai
  */
 

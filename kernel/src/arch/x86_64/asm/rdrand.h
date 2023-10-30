@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/rdrand.h
+ * kernel/src/arch/x86_64/asm/rdrand.h
  * © suhas pai
  */
 

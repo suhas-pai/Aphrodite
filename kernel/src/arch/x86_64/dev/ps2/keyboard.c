@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/ps2/keyboard.c
+ * kernel/src/arch/x86_64/dev/ps2/keyboard.c
  * © suhas pai
  */
 
@@ -171,7 +171,7 @@ ps2_keyboard_interrupt(const uint64_t int_no, irq_context_t *const context) {
         return;
     }
 
-    struct string string = STRING_EMPTY();
+    struct string string = STRING_NULL();
     if (g_kbd_state.shift != 0) {
         string_append_sv(&string, SV_STATIC("shift"));
     }
@@ -239,9 +239,5 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
                           g_ps2_vector,
                           /*masked=*/false);
 
-    if (ps2_read_input_byte() != -1) {
-        printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
-    } else {
-        printk(LOGLEVEL_INFO, "ps2: keyboard failed to initialize\n");
-    }
+    printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
 }

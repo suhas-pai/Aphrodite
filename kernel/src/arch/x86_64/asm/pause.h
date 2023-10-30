@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/pause.h
+ * kernel/src/arch/x86_64/asm/pause.h
  * © suhas pai
  */
 

@@ -12,7 +12,8 @@ struct string {
     struct growable_buffer gbuffer;
 };
 
-#define STRING_EMPTY() ((struct string){ .gbuffer = GBUFFER_INIT() })
+#define STRING_NULL() ((struct string){ .gbuffer = GBUFFER_INIT() })
+#define STRING_EMPTY() ((struct string){ .gbuffer = GBUFFER_FROM_PTR("", 1) })
 #define STRING_STATIC(cstr) \
     ((struct string){ \
         .gbuffer = GBUFFER_FROM_PTR(cstr, LEN_OF(cstr)) \

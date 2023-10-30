@@ -1,6 +1,6 @@
 
 /*
- * kernel/arch/x86_64/sys/port.c
+ * kernel/src/arch/x86_64/sys/port.c
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/dev/time/time.h
+ * kernel/src/dev/time/time.h
  * © suhas pai
  */
 

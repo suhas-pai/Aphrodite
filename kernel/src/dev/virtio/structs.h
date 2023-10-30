@@ -1,5 +1,5 @@
 /*
- * kernel/dev/virtio/structs.h
+ * kernel/src/dev/virtio/structs.h
  * © suhas pai
  */
 

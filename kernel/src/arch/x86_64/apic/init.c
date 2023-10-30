@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/apic/init.c
+ * kernel/src/arch/x86_64/apic/init.c
  * © suhas pai
  */
 
@@ -11,9 +11,9 @@
 
 #include "cpu/isr.h"
 #include "dev/printk.h"
-#include "sys/pic.h"
 
-#include "ioapic.h"
+#include "mm/mmio.h"
+#include "sys/pic.h"
 
 void
 lapic_timer_irq_callback(const uint64_t int_no, irq_context_t *const frame) {

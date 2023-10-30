@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/time/hpet.c
+ * kernel/src/arch/x86_64/dev/time/hpet.c
  * © suhas pai
  */
 
@@ -64,8 +64,7 @@ void hpet_init(const struct acpi_hpet *const hpet) {
     }
 
     const bool has_64bit_counter =
-        (hpet->event_timer_block_id &
-            __HPET_EVENTTIMER_BLOCKID_64BIT_COUNTER) != 0;
+        hpet->event_timer_block_id & __HPET_EVENTTIMER_BLOCKID_64BIT_COUNTER;
 
     if (!has_64bit_counter) {
         printk(LOGLEVEL_WARN,

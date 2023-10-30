@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/dev/cmos.h
+ * kernel/src/arch/x86_64/dev/cmos.h
  * © suhas pai
  */
 

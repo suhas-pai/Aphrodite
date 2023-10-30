@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/acpi/structs.h
+ * kernel/src/arch/riscv64/acpi/structs.h
  * © suhas pai
  */
 

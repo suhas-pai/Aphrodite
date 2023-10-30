@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/cr.h
+ * kernel/src/arch/x86_64/asm/cr.h
  * © suhas pai
  */
 

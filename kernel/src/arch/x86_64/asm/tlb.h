@@ -1,5 +1,5 @@
 /*
- * kernel/arch/x86_64/asm/tlb.h
+ * kernel/src/arch/x86_64/asm/tlb.h
  * © suhas pai
  */
 

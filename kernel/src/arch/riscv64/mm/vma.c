@@ -1,5 +1,5 @@
 /*
- * kernel/arch/riscv64/mm/vma.c
+ * kernel/src/arch/riscv64/mm/vma.c
  * © suhas pai
  */
 

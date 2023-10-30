@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/mm/tcr.h
+ * kernel/src/arch/aarch64/mm/tcr.h
  * © suhas pai
  */
 

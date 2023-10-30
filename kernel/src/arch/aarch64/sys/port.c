@@ -1,5 +1,5 @@
 /*
- * kernel/arch/aarch64/port.c
+ * kernel/src/arch/aarch64/port.c
  * © suhas pai
  */
 
