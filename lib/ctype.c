@@ -26,7 +26,7 @@ enum desc {
     HEX_DIGIT = 1 << 10
 };
 
-static uint16_t ctype_array[128] = {
+static const uint16_t ctype_array[128] = {
     CNTRL,
     CNTRL,
     CNTRL,

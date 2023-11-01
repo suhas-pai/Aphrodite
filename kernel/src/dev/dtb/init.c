@@ -64,7 +64,7 @@ static void init_pci_node(const void *const dtb, const int pci_offset) {
         return;
     }
 
-    if (sv_compare_c_str(device_type, "pci") != 0) {
+    if (!sv_equals_c_str(device_type, "pci")) {
         printk(LOGLEVEL_WARN,
                "dtb: \"compatible\" property of pci node is not pci, got "
                SV_FMT " instead\n",

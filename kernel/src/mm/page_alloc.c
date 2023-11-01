@@ -484,7 +484,7 @@ alloc_pages_from_zone(struct page_zone *zone,
                       const enum page_state state,
                       const uint64_t alloc_flags,
                       const uint8_t order,
-                      const bool fallback)
+                      const bool allow_fallback)
 {
     if (order >= MAX_ORDER) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
@@ -501,7 +501,7 @@ alloc_pages_from_zone(struct page_zone *zone,
                                   /*largeinfo=*/NULL);
     }
 
-    if (!fallback) {
+    if (!allow_fallback) {
         return NULL;
     }
 

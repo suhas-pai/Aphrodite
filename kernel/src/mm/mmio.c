@@ -221,7 +221,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
     if (!result) {
         spin_release_with_irq(&mmio_space_lock, flag);
         printk(LOGLEVEL_WARN,
-               "mm: failed to map mmio region at " RANGE_FMT "\n",
+               "mm: failed to unmap mmio region at " RANGE_FMT "\n",
                RANGE_FMT_ARGS(virt_range));
 
         return false;

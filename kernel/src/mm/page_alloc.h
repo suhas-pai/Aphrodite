@@ -46,6 +46,6 @@ struct page *
 alloc_large_page_in_zone(struct page_zone *zone,
                          uint64_t alloc_flags,
                          pgt_level_t level,
-                         bool fallback);
+                         bool allow_fallback);
 
 struct page *alloc_table();

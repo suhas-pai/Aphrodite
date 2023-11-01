@@ -12,16 +12,17 @@
 #include "transport.h"
 
 struct virtio_device_shmem_region {
-    union {
-        struct mmio_region *mmio;
-        struct range phys_range;
-    };
+    struct mmio_region *mmio;
+    struct range phys_range;
 
     uint8_t id;
     bool mapped : 1;
 };
 
 bool virtio_device_shmem_region_map(struct virtio_device_shmem_region *region);
+
+bool
+virtio_device_shmem_region_unmap(struct virtio_device_shmem_region *region);
 
 struct virtio_device {
     struct list list;

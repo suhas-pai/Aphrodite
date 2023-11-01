@@ -74,6 +74,7 @@
 
 #define typeof_field(type, field) typeof(((type *)0)->field)
 #define sizeof_field(type, field) sizeof(((type *)0)->field)
+#define sizeof_bits_field(type, field) bytes_to_bits(sizeof_field(type, field))
 
 #define LEN_OF(str) (sizeof(str) - 1)
 

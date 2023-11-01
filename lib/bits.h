@@ -94,3 +94,23 @@ get_next_range_of_lsb_zero_bits(uint64_t number,
          !range_empty(iter_name);                                              \
          iter_name =                                                           \
             get_next_range_of_lsb_one_bits(number, iter_name, end_index))
+
+#define count_all_zero_bits(number, start_index, end_index) \
+    ({ \
+        uint8_t __result__ = 0; \
+        for_every_lsb_zero_bit_rng(number, start_index, end_index, __iter__) { \
+           __result__ += __iter__.size; \
+        } \
+        \
+        __result__;\
+    })
+
+#define count_all_one_bits(number, start_index, end_index) \
+    ({ \
+        uint8_t __result__ = 0; \
+        for_every_lsb_one_bit_rng(number, start_index, end_index, __iter__) { \
+           __result__ += __iter__.size; \
+        } \
+        \
+        __result__;\
+    })

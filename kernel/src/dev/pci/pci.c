@@ -8,7 +8,6 @@
 #include "dev/driver.h"
 #include "dev/printk.h"
 
-#include "lib/align.h"
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
@@ -849,11 +848,6 @@ pci_add_pcie_domain(struct range bus_range,
                     const uint64_t base_addr,
                     const uint16_t segment)
 {
-    uint64_t config_space_size = bus_range.size << 20;
-    if (!align_up(config_space_size, PAGE_SIZE, &config_space_size)) {
-        return NULL;
-    }
-
     struct pci_domain *const domain = kmalloc(sizeof(*domain));
     if (domain == NULL) {
         return NULL;
@@ -863,7 +857,7 @@ pci_add_pcie_domain(struct range bus_range,
     list_init(&domain->device_list);
 
     domain->mmio =
-        vmap_mmio(RANGE_INIT(base_addr, config_space_size),
+        vmap_mmio(RANGE_INIT(base_addr, bus_range.size << 20),
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
