@@ -598,7 +598,7 @@ enum {
 
     __CPUID_FEAT_EXT7_ECX0_EDX_CET_IBT = 1ull << 20,
 
-    /* Bit 21-25 are reserved */
+    // Bit 21-25 are reserved
     /*
      * Supports IBRS if 1.
      *

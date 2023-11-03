@@ -6,11 +6,12 @@
 #include "acpi/api.h"
 #include "dev/printk.h"
 #include "lib/align.h"
-
-#include "ioapic.h"
 #include "sys/mmio.h"
 
-static struct array ioapic_list = ARRAY_INIT(sizeof(struct ioapic_info));
+#include "ioapic.h"
+
+static struct array g_ioapic_list =
+    ARRAY_INIT(sizeof(struct ioapic_info));
 
 uint64_t
 create_ioapic_redirect_request(
@@ -30,14 +31,14 @@ create_ioapic_redirect_request(
         dest_mode << 11 |
         (uint32_t)is_active_low << 13 |
         (uint32_t)is_level_triggered << 15 |
-        ((uint32_t)masked << 16) |
+        (uint32_t)masked << 16 |
         (uint64_t)lapic_id << 56;
 
     return result;
 }
 
 static struct ioapic_info *ioapic_info_for_gsi(const uint32_t gsi) {
-    array_foreach(&ioapic_list, struct ioapic_info, item) {
+    array_foreach(&g_ioapic_list, struct ioapic_info, item) {
         const uint32_t gsi_base = item->gsi_base;
         if (gsi > gsi_base && gsi < gsi_base + item->max_redirect_count) {
             return item;
@@ -119,7 +120,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
            info.max_redirect_count,
            RANGE_FMT_ARGS(mmio_region_get_range(info.regs_mmio)));
 
-    assert_msg(array_append(&ioapic_list, &info),
+    assert_msg(array_append(&g_ioapic_list, &info),
                "ioapic: failed to add io-apic base to array");
 }
 
@@ -148,10 +149,8 @@ ioapic_redirect_irq(const uint8_t lapic_id,
                     const uint8_t vector,
                     const bool masked)
 {
-    /*
-     * First check if the IOAPIC already directs this IRQ to the requested
-     * vector. If so, we don't need to do anything.
-     */
+    // First check if the IOAPIC already directs this IRQ to the requested
+    // vector. If so, we don't need to do anything.
 
     array_foreach(&get_acpi_info()->iso_list, struct apic_iso_info, item) {
         if (item->irq_src != irq) {

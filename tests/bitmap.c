@@ -4,7 +4,7 @@
  */
 
 #include "lib/adt/bitmap.h"
-#include "common.h"
+#include "lib/bits.h"
 
 void
 set_and_check_index(struct bitmap *const bitmap, const uint64_t index) {

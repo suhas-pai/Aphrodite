@@ -27,15 +27,15 @@ enum prot_fail {
 };
 
 __optimize(3) static inline enum prot_fail verify_prot(const prot_t prot) {
-    if (prot == PROT_NONE) {
+    if (__builtin_expect(prot == PROT_NONE, 0)) {
         return PROT_FAIL_PROT_NONE;
     }
 
-    if (prot & PROT_EXEC) {
+    if (__builtin_expect(prot & PROT_EXEC, 0)) {
         return PROT_FAIL_PROT_EXEC;
     }
 
-    if (prot & PROT_USER) {
+    if (__builtin_expect(prot & PROT_USER, 0)) {
         return PROT_FAIL_PROT_USER;
     }
 
@@ -163,13 +163,13 @@ vmap_mmio(const struct range phys_range,
           const prot_t prot,
           const uint64_t flags)
 {
-    if (range_empty(phys_range)) {
+    if (__builtin_expect(range_empty(phys_range), 0)) {
         printk(LOGLEVEL_WARN,
                "vmap_mmio(): attempting to map empty phys-range\n");
         return NULL;
     }
 
-    if (!range_has_align(phys_range, PAGE_SIZE)) {
+    if (__builtin_expect(!range_has_align(phys_range, PAGE_SIZE), 0)) {
         printk(LOGLEVEL_WARN,
                "vmap_mmio(): phys-range " RANGE_FMT " isn't aligned to the "
                "page size\n",

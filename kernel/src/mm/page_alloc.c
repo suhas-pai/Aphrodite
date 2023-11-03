@@ -145,12 +145,13 @@ get_from_freelist_order(struct page_section *const section,
     return take_off_freelist_order(section, order, page, page_remove_order);
 }
 
-void
+static void
 free_range_of_pages(struct page *page,
                     struct page_section *const section,
-                    const uint64_t amount)
+                    const uint64_t amount,
+                    const uint8_t max_order)
 {
-    int8_t order = MAX_ORDER - 1;
+    int8_t order = max_order - 1;
     uint64_t avail = amount;
 
     for (; order >= 0; order--) {
@@ -251,6 +252,35 @@ setup_pages_off_freelist(struct page *const page,
     verify_not_reached();
 }
 
+static void
+place_head_range_of_free_pages_lower(struct page *page,
+                                     struct page_section *const section,
+                                     const uint64_t amount,
+                                     const uint8_t orig_order)
+{
+    int8_t order = orig_order - 1;
+    uint64_t avail = amount;
+
+    for (; order >= 0; order--) {
+        if (avail >= (1ull << order)) {
+            break;
+        }
+    }
+
+    list_remove(&page->freelist_head.freelist);
+    list_add(&section->freelist_list[order].page_list,
+             &page->freelist_head.freelist);
+
+    page->freelist_head.order = (uint8_t)order;
+    avail -= 1ull << order;
+
+    if (avail == 0) {
+        return;
+    }
+
+    free_range_of_pages(page + (1ull << order), section, avail, (uint8_t)order);
+}
+
 __optimize(3) static struct page *
 get_large_from_freelist_order(struct page_section *const section,
                               const uint8_t freelist_order,
@@ -286,7 +316,10 @@ get_large_from_freelist_order(struct page_section *const section,
             page_phys = new_phys;
 
             const uint64_t free_amount = (uint64_t)(page - head);
-            free_range_of_pages(head, section, free_amount);
+            place_head_range_of_free_pages_lower(head,
+                                                 section,
+                                                 free_amount,
+                                                 freelist_order);
         }
 
         setup_pages_off_freelist(page, largepage_order, PAGE_STATE_LARGE_HEAD);
@@ -296,7 +329,7 @@ get_large_from_freelist_order(struct page_section *const section,
         const uint64_t count = (uint64_t)(end - begin);
 
         if (count != 0) {
-            free_range_of_pages(begin, section, count);
+            free_range_of_pages(begin, section, count, freelist_order);
         }
     } else {
         do {
@@ -455,7 +488,7 @@ alloc_pages(const enum page_state state,
             const uint64_t alloc_flags,
             const uint8_t order)
 {
-    if (order >= MAX_ORDER) {
+    if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
         return NULL;
     }
@@ -486,7 +519,7 @@ alloc_pages_from_zone(struct page_zone *zone,
                       const uint8_t order,
                       const bool allow_fallback)
 {
-    if (order >= MAX_ORDER) {
+    if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
         return NULL;
     }
@@ -706,7 +739,7 @@ void free_amount_of_pages(struct page *const page, uint64_t amount) {
         }
     }
 
-    return free_range_of_pages(free_page, section, amount);
+    return free_range_of_pages(free_page, section, amount, MAX_ORDER);
 }
 
 void free_large_page(struct page *head) {
@@ -740,7 +773,7 @@ void free_large_page(struct page *head) {
 }
 
 void free_pages(struct page *const page, const uint8_t order) {
-    if (order >= MAX_ORDER) {
+    if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: free_pages() got order >= MAX_ORDER\n");
         return;
     }
@@ -763,7 +796,7 @@ void free_pages(struct page *const page, const uint8_t order) {
 __optimize(3)
 struct page *deref_page(struct page *page, struct pageop *const pageop) {
     const enum page_state state = page_get_state(page);
-    assert(__builtin_expect(state != PAGE_STATE_LARGE_HEAD, 1));
+    assert(state != PAGE_STATE_LARGE_HEAD);
 
     if (ref_down(&page->used.refcount)) {
         list_add(&pageop->delayed_free, &page->used.delayed_free_list);

@@ -20,7 +20,9 @@ align_up(const uint64_t number,
          uint64_t *const result_out)
 {
     uint64_t result = 0;
-    if (boundary == 0 || !check_add(number, boundary - 1, &result)) {
+    if (__builtin_expect(boundary == 0, 0) ||
+        !check_add(number, boundary - 1, &result))
+    {
         return false;
     }
 

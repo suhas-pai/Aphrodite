@@ -13,10 +13,10 @@
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
 
+#include "sys/mmio.h"
+
 #include "time/kstrftime.h"
 #include "time/time.h"
-
-#include "sys/mmio.h"
 
 struct goldfish_rtc {
     volatile uint32_t time_low;

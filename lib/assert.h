@@ -9,7 +9,8 @@
 #if defined(BUILD_KERNEL)
     #include "kernel/src/cpu/panic.h"
 
-    #define assert(cond) if (!(cond)) panic(TO_STRING(cond) "\n")
+    #define assert(cond) \
+        if (__builtin_expect(!(cond), 0)) panic(TO_STRING(cond) "\n")
     #define assert_msg(cond, msg, ...) \
         if (!(cond)) panic(msg "\n", ##__VA_ARGS__)
 

@@ -386,12 +386,12 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
                                          struct virtio_pci_notify_cfg_cap,
                                          notify_off_multiplier);
 
-                virt_device.pci.notify_queue_select = bar->mmio->base + offset;
-                cfg_kind = "notify-cfg";
-
                 notify_cfg_range =
-                    RANGE_INIT((uint64_t)virt_device.pci.notify_queue_select,
-                               length);
+                    RANGE_INIT((uint64_t)bar->mmio->base + offset, length);
+
+                cfg_kind = "notify-cfg";
+                virt_device.pci.notify_queue_select =
+                    (void *)notify_cfg_range.front;
 
                 break;
             }

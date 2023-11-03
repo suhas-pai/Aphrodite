@@ -13,14 +13,15 @@
 #include "dev/printk.h"
 
 #include "lib/time.h"
+#include "sys/mmio.h"
 
 #include "lapic.h"
-#include "sys/mmio.h"
 
 struct mmio_region *lapic_mmio_region = NULL;
 volatile struct lapic_registers *lapic_regs = NULL;
 
-static struct array lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
+static struct array g_lapic_list =
+    ARRAY_INIT(sizeof(struct lapic_info));
 
 static inline uint32_t
 setup_timer_register(const enum lapic_timer_mode timer_mode,
@@ -213,7 +214,7 @@ void lapic_init() {
 }
 
 void lapic_add(const struct lapic_info *const lapic_info) {
-    const uint64_t index = array_item_count(lapic_list);
+    const uint64_t index = array_item_count(g_lapic_list);
     if (!lapic_info->enabled) {
         if (lapic_info->online_capable) {
             printk(LOGLEVEL_INFO,
@@ -240,6 +241,6 @@ void lapic_add(const struct lapic_info *const lapic_info) {
                lapic_info->apic_id);
     }
 
-    assert_msg(array_append(&lapic_list, lapic_info),
+    assert_msg(array_append(&g_lapic_list, lapic_info),
                "lapic: failed to add local-apic info to array");
 }

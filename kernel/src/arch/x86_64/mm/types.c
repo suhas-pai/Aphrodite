@@ -15,6 +15,7 @@ __hidden const uint64_t VMAP_END = 0xffffe00000000000;
 __hidden uint64_t PAGING_MODE = 0;
 __hidden uint64_t PAGE_END = 0;
 
+__hidden
 struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
     [LARGEPAGE_LEVEL_2MIB] = {
         .order = 9,

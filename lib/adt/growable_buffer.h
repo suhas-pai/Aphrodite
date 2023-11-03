@@ -26,8 +26,8 @@ struct growable_buffer {
 
 #define GBUFFER_FROM_PTR(ptr, capacity) \
     ((struct growable_buffer){ \
-        .begin = (ptr),        \
-        .index = 0,            \
+        .begin = (ptr), \
+        .index = 0, \
         .end = (ptr) + (capacity), \
         .is_alloc = false \
     })

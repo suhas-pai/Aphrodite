@@ -493,11 +493,11 @@ void run_num_to_str_test(const struct num_to_str_test *const test) {
 }
 
 void test_convert() {
-    for_each_in_carr (str_to_num_test_list, test) {
+    carr_foreach(str_to_num_test_list, test) {
         run_str_to_num_test(test);
     }
 
-    for_each_in_carr (num_to_str_test_list, test) {
+    carr_foreach(num_to_str_test_list, test) {
         run_num_to_str_test(test);
     }
 }

@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "lib/macros.h"
 
-/* rsdp = "Root System Description Pointer" */
+// rsdp = "Root System Description Pointer"
 
 struct acpi_rsdp_v2_info {
     uint32_t length;
@@ -27,7 +27,7 @@ struct acpi_rsdp {
     struct acpi_rsdp_v2_info v2;
 } __packed;
 
-/* sdt = "System Description Table" */
+// sdt = "System Description Table"
 
 struct acpi_sdt {
     char signature[4];
@@ -41,7 +41,7 @@ struct acpi_sdt {
     uint32_t creator_revision;
 } __packed;
 
-/* rsdt = "Root System Description Table" */
+// rsdt = "Root System Description Table"
 
 struct acpi_rsdt {
     struct acpi_sdt sdt;
@@ -98,7 +98,7 @@ struct acpi_madt_entry_ioapic {
     uint8_t apic_id;
     uint8_t reserved;
     uint32_t base;
-    uint32_t gsib; /* gsib = "Global System Interrupt Base" */
+    uint32_t gsib; // gsib = "Global System Interrupt Base"
 } __packed;
 
 enum acpi_madt_entry_iso_flags {
@@ -110,7 +110,7 @@ struct acpi_madt_entry_iso {
     struct acpi_madt_entry_header header;
     uint8_t bus_source;
     uint8_t irq_source;
-    uint32_t gsi; /* gsi = "Global System Interrupt" */
+    uint32_t gsi; // gsi = "Global System Interrupt"
     uint16_t flags;
 } __packed;
 
@@ -125,7 +125,7 @@ struct acpi_madt_entry_nmi_src {
     uint8_t source;
     uint8_t reserved;
     uint16_t flags;
-    uint32_t gsi; /* gsi = "Global System Interrupt" */
+    uint32_t gsi; // gsi = "Global System Interrupt"
 } __packed;
 
 struct acpi_madt_entry_nmi {
@@ -251,7 +251,7 @@ enum acpi_gas_access_size_kind {
     ACPI_GAS_ACCESS_SIZE_8_BYTE,
 };
 
-/* gas = Generic Address Structure */
+// gas = Generic Address Structure
 struct acpi_gas {
     enum acpi_gas_addrspace_kind addr_space : 8;
 
@@ -314,11 +314,8 @@ enum acpi_fadt_arm_boot_flags {
 };
 
 enum acpi_fadt_pm1_status {
-    /*
-     * This bit gets set any time the most significant bit of a 24/32-bit
-     * counter changes from clear to set or set to clear.
-     */
-
+    // This bit gets set any time the most significant bit of a 24/32-bit
+    // counter changes from clear to set or set to clear.
     __ACPI_FADT_PM1_STATUS_TIMER_CARRY_STATUS = 1 << 0,
 
     /*
@@ -329,7 +326,6 @@ enum acpi_fadt_pm1_status {
      * incoherent cache for a processor in the C3 state when the bus master
      * performs a memory transaction).
      */
-
     __ACPI_FADT_PM1_STATUS_BUS_MASTER_STATUS = 1 << 4,
 
     /*
@@ -340,7 +336,6 @@ enum acpi_fadt_pm1_status {
      * the platform runtime firmware releasing control of the Global Lock and
      * having seen the pending bit set.
      */
-
     __ACPI_FADT_PM1_STATUS_GBL_STATUS = 1 << 5,
 
     /*
@@ -364,26 +359,24 @@ enum acpi_fadt_pm1_status {
      * ignored by OSPM. If the power button was the cause of the wake (from an
      * S1-S4 state), then this bit is set prior to returning control to OSPM.
      */
-
     __ACPI_FADT_PM1_STATUS_PWR_BTN_STATUS = 1 << 8,
 
     /*
-    * This optional bit is set when the sleep button is pressed. In the system
-    * working state, while SLPBTN_EN and SLPBTN_STS are both set, an interrupt
-    * event is raised. In the sleep or soft-off states a wake event is generated
-    * when the sleeping button is pressed and the SLPBTN_EN bit is set. This bit
-    * is only set by hardware and can only be reset by software writing a "1" to
-    * this bit position.
-    *
-    * Support for the sleep button is indicated by the SLP_BUTTON flag in the
-    * FADT being reset (zero). If the SLP_BUTTON flag is set or a sleep button
-    * device object is present in the ACPI Namespace, then this bit field is
-    * ignored by OSPM.
-    *
-    * If the sleep button was the cause of the wake (from an S1-S4 state), then
-    * this bit is set prior to returning control to OSPM.
-    */
-
+     * This optional bit is set when the sleep button is pressed. In the system
+     * working state, while SLPBTN_EN and SLPBTN_STS are both set, an interrupt
+     * event is raised. In the sleep or soft-off states a wake event is
+     * generated when the sleeping button is pressed and the SLPBTN_EN bit is
+     * set. This bit is only set by hardware and can only be reset by software
+     * writing a "1" to this bit position.
+     *
+     * Support for the sleep button is indicated by the SLP_BUTTON flag in the
+     * FADT being reset (zero). If the SLP_BUTTON flag is set or a sleep button
+     * device object is present in the ACPI Namespace, then this bit field is
+     * ignored by OSPM.
+     *
+     * If the sleep button was the cause of the wake (from an S1-S4 state), then
+     * this bit is set prior to returning control to OSPM.
+     */
     __ACPI_FADT_PM1_STATUS_SLP_BTN_STATUS = 1 << 9,
 
     /*
@@ -398,7 +391,6 @@ enum acpi_fadt_pm1_status {
      * FADT is set, and the RTC was the cause of the wake from the S4 state),
      * then this bit is set prior to returning control to OSPM.
      */
-
     __ACPI_FADT_PM1_STATUS_RTC_STS = 1 << 10,
 
     /*
@@ -423,7 +415,6 @@ enum acpi_fadt_pm1_status {
      * sleeping state. Thus if the bit is 1 and the system is put into a
      * sleeping state, the system will not automatically wake.
      */
-
     __ACPI_FADT_PM1_STATUS_PCIEXP_WAKE_STS = 1 << 14,
 
     /*
@@ -432,7 +423,6 @@ enum acpi_fadt_pm1_status {
      * working state. This bit is set by hardware and can only be cleared by
      * software writing a "1" to this bit position.
      */
-
     __ACPI_FADT_PM1_STATUS_WAKE_STATUS = 1 << 15,
 };
 
@@ -470,7 +460,6 @@ enum acpi_fadt_pm1_enable_registers {
      * prevent entry to a sleeping state. Thus if the bit is 1 and the system is
      * put into a sleeping state, the system will not automatically wake.
      */
-
     __ACPI_FADT_PM1_ENABLE_PCIEXP_WAKE_EN = 1 << 14,
 };
 
@@ -483,7 +472,6 @@ enum acpi_fadt_pm1_control_registers {
      * responsibility of the hardware to set or reset this bit. OSPM always
      * preserves this bit position.
      */
-
     __ACPI_FADT_PM1_CONTROL_SCI_EN = 1 << 0,
 
     /*
@@ -492,7 +480,6 @@ enum acpi_fadt_pm1_control_registers {
      * bit is reset, the generation of a bus master request does not affect any
      * processor in the C3 state.
      */
-
     __ACPI_FADT_PM1_CONTROL_BM_RLD = 1 << 1,
 
     /*
@@ -505,7 +492,6 @@ enum acpi_fadt_pm1_control_registers {
      * Global Lock and the setting of the pending bit in the FACS memory
      * structure.
      */
-
     __ACPI_FADT_PM1_CONTROL_GBL_RLS = 1 << 2,
 
     /*
@@ -516,7 +502,6 @@ enum acpi_fadt_pm1_control_registers {
      * state (as described by the object). OSPM takes the two values from the
      * \_Sx object and programs each value into the respective SLP_TYPx field.
      */
-
     __ACPI_FADT_PM1_CONTROL_SLP_TYP = 0b111ull << 10,
 
     /*
@@ -524,7 +509,6 @@ enum acpi_fadt_pm1_control_registers {
      * this bit causes the system to sequence into the sleeping state associated
      * with the SLP_TYPx fields programmed with the values from the \_Sx object.
      */
-
     __ACPI_FADT_PM1_CONTROL_SLP_EN = 1 << 13,
 };
 
@@ -534,7 +518,7 @@ struct acpi_fadt {
     uint32_t firmware_ctrl;
     uint32_t dsdt;
 
-    /* field used in ACPI 1.0; no longer in use, for compatibility only */
+    // field used in ACPI 1.0; no longer in use, for compatibility only
     uint8_t reserved;
     uint8_t preferred_power_management_profile;
 

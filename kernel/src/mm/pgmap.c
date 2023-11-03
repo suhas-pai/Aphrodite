@@ -1009,9 +1009,7 @@ pgunmap_at(struct pagemap *const pagemap,
     const bool should_free_pages = unmap_options->free_pages;
     const bool dont_split_large_pages = unmap_options->dont_split_large_pages;
 
-    // Try flushing entire tables if we can. This allows us to override only one
-    // pte rather than overriding a pte for every entry in each table.
-
+    // Try flushing entire tables if we can.
     pgt_level_t level = walker.level;
     for (pgt_level_t iter = level + 1; iter <= walker.top_level; iter++) {
         if (virt_range.size < PAGE_SIZE_AT_LEVEL(iter)) {

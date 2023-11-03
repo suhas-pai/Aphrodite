@@ -212,23 +212,23 @@ enum ahci_hba_port_cmd_status_flags {
 };
 
 enum ahci_hba_port_interrupt_enable_flags {
-    __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE = 1 << 0,
-    __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE = 1 << 1,
-    __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE = 1 << 2,
-    __AHCI_HBA_IE_SET_DEV_BITS_FIS_INT_ENABLE = 1 << 3,
-    __AHCI_HBA_IE_UNKNOWN_FIS_INT_ENABLE = 1 << 4,
-    __AHCI_HBA_IE_DESC_PROCESSED_INT_ENABLE = 1 << 5,
-    __AHCI_HBA_IE_PORT_CHANGE_INT_ENABLE = 1 << 6,
-    __AHCI_HBA_IE_DEV_MECH_PRESENCE_INT_ENABLE = 1 << 7,
-    __AHCI_HBA_IE_PHYRDY_CHANGE_STATUS = 1 << 22,
-    __AHCI_HBA_IE_INCORRECT_PORT_MULT_STATUS = 1 << 23,
-    __AHCI_HBA_IE_OVERFLOW_STATUS = 1 << 24,
-    __AHCI_HBA_IE_INTERFACE_NOT_FATAL_ERR_STATUS = 1 << 26,
-    __AHCI_HBA_IE_INTERFACE_FATAL_ERR_STATUS = 1 << 27,
-    __AHCI_HBA_IE_HOST_BUS_DATA_ERR_STATUS = 1 << 28,
-    __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS = 1 << 29,
-    __AHCI_HBA_IE_TASK_FILE_ERR_STATUS = 1 << 30,
-    __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1 << 31,
+    __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE = 1ull << 0,
+    __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE = 1ull << 1,
+    __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE = 1ull << 2,
+    __AHCI_HBA_IE_SET_DEV_BITS_FIS_INT_ENABLE = 1ull << 3,
+    __AHCI_HBA_IE_UNKNOWN_FIS_INT_ENABLE = 1ull << 4,
+    __AHCI_HBA_IE_DESC_PROCESSED_INT_ENABLE = 1ull << 5,
+    __AHCI_HBA_IE_PORT_CHANGE_INT_ENABLE = 1ull << 6,
+    __AHCI_HBA_IE_DEV_MECH_PRESENCE_INT_ENABLE = 1ull << 7,
+    __AHCI_HBA_IE_PHYRDY_CHANGE_STATUS = 1ull << 22,
+    __AHCI_HBA_IE_INCORRECT_PORT_MULT_STATUS = 1ull << 23,
+    __AHCI_HBA_IE_OVERFLOW_STATUS = 1ull << 24,
+    __AHCI_HBA_IE_INTERFACE_NOT_FATAL_ERR_STATUS = 1ull << 26,
+    __AHCI_HBA_IE_INTERFACE_FATAL_ERR_STATUS = 1ull << 27,
+    __AHCI_HBA_IE_HOST_BUS_DATA_ERR_STATUS = 1ull << 28,
+    __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS = 1ull << 29,
+    __AHCI_HBA_IE_TASK_FILE_ERR_STATUS = 1ull << 30,
+    __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
 
 #define SATA_SIG_ATA 0x00000101 // SATA drive
@@ -276,14 +276,14 @@ struct ahci_hba_command_table {
 };
 
 enum ahci_fis_kind {
-    FIS_KIND_REG_H2D = 0x27,
-    FIS_KIND_REG_D2H = 0x34,
-    FIS_KIND_DMA_ACT = 0x39,
-    FIS_KIND_DMA_SETUP = 0x41,
-    FIS_KIND_DATA = 0x46,
-    FIS_KIND_BIST = 0x58,
-    FIS_KIND_PIO_SETUP = 0x5F,
-    FIS_KIND_DEV_BITS = 0xA1,
+    AHCI_FIS_KIND_REG_H2D = 0x27,
+    AHCI_FIS_KIND_REG_D2H = 0x34,
+    AHCI_FIS_KIND_DMA_ACT = 0x39,
+    AHCI_FIS_KIND_DMA_SETUP = 0x41,
+    AHCI_FIS_KIND_DATA = 0x46,
+    AHCI_FIS_KIND_BIST = 0x58,
+    AHCI_FIS_KIND_PIO_SETUP = 0x5F,
+    AHCI_FIS_KIND_DEV_BITS = 0xA1,
 };
 
 enum ahci_fis_reg_h2d_flags {
@@ -405,7 +405,7 @@ struct ahci_hba_fis {
     struct ahci_fis_pio_setup psfis;
     uint8_t pad1[12];
 
-    struct ahci_fis_reg_d2h	rfis;
+    struct ahci_fis_reg_d2h rfis;
     uint8_t pad2[4];
 
     uint32_t sdbfis;

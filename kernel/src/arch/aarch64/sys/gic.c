@@ -9,9 +9,9 @@
 #include "dev/printk.h"
 #include "lib/align.h"
 #include "mm/mmio.h"
+#include "sys/mmio.h"
 
 #include "gic.h"
-#include "sys/mmio.h"
 
 #define GIC_DIST_IMPLEMENTER_ID_RESET 0x0001043B
 

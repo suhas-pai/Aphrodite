@@ -33,7 +33,7 @@ struct list g_cpu_list = LIST_INIT(g_cpu_list);
 static bool g_base_cpu_init = false;
 
 __optimize(3) const struct cpu_info *get_base_cpu_info() {
-    assert(__builtin_expect(g_base_cpu_init, 1));
+    assert(g_base_cpu_init);
     return &g_base_cpu_info;
 }
 
@@ -42,7 +42,7 @@ __optimize(3) const struct cpu_info *get_cpu_info() {
 }
 
 __optimize(3) struct cpu_info *get_cpu_info_mut() {
-    assert(__builtin_expect(g_base_cpu_init, 1));
+    assert(g_base_cpu_init);
 
     struct cpu_info *result = NULL;
     asm volatile ("mrs %0, tpidr_el1" : "=r"(result));

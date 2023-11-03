@@ -87,10 +87,8 @@ static inline uint8_t ioapic_version_reg_get_version(const uint32_t version) {
 
 static inline
 uint32_t ioapic_version_reg_get_max_redirect_count(const uint32_t version) {
-    /*
-     * Bits [16:23] of the version register holds the max-redirect count, minus
-     * one.
-     */
+    // Bits [16:23] of the version register holds the max-redirect count, minus
+    // one.
 
     return (uint8_t)(version >> 16) + 1;
 }

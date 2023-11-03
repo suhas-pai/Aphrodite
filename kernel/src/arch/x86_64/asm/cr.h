@@ -87,7 +87,6 @@ enum {
     __CR0_BIT_NW = (1ull << 29),
 
     // Cache Disable
-
     __CR0_BIT_CD = (1ull << 30),
 
     // Paging
@@ -150,7 +149,6 @@ enum {
      *  PAUSE, PREFETCHh, SFENCE, LFENCE, MFENCE, MOVNTI, CLFLUSH, CRC32, and
      *  POPCNT. The operating system or executive must explicitly set this flag.
      */
-
     __CR4_BIT_OSFXSR = (1ull << 9),
 
     /*
@@ -166,7 +164,6 @@ enum {
      * flag is not set, the processor will generate an invalid opcode exception
      * (#UD) whenever it detects an unmasked SIMD floating-point exception.
      */
-
     __CR4_BIT_OSXMMEXCPTO = (1ull << 10),
 
     /*
@@ -174,7 +171,6 @@ enum {
      * SGDT, SIDT, SLDT, SMSW, and STR. An attempt at such execution causes a
      * general-protection exception (#GP)
      */
-
     __CR4_BIT_UMIP = (1ull << 11),
 
     /*
@@ -185,7 +181,6 @@ enum {
      * 4-level paging to translate 48-bit linear addresses. This bit cannot be
      * modified in IA-32e mode.
      */
-
     __CR4_BIT_LA57 = (1ull << 12),
 
     // VMXE = Virtual Machine Extensions Enable
@@ -218,7 +213,6 @@ enum {
      *   (3) enables the processor to execute XGETBV and XSETBV instructions in
      *       order to read and write XCR0.
      */
-
     __CR4_BIT_OSXSAVE = (1ull << 18),
 
     /*
@@ -231,7 +225,6 @@ enum {
      * is enumerated as 0 and execution of any Key Locker instruction causes an
      * invalid-opcode exception (#UD).
      */
-
     __CR4_BIT_KEY_LOCKER = (1ull << 19),
 
     // Supervisor Mode Executions Protection Enable
@@ -253,7 +246,6 @@ enum {
      * This bit also enables access to the PKRU register using the RDPKRU and
      * WRPKRU instructions.
      */
-
     __CR4_BIT_PKE = (1ull << 22),
 
     /*
@@ -262,7 +254,6 @@ enum {
      * This flag can be set only if CR0.WP is set, and it must be clear before
      * CR0.WP can be cleared
      */
-
     __CR4_BIT_CET = (1ull << 23),
 
     // Enable protection keys for supervisor-mode pages
@@ -273,7 +264,6 @@ enum {
      * supervisor-mode linear addresses with that protection key can be read or
      * written.
      */
-
     __CR4_BIT_PKS = (1ull << 24),
 
     /*
@@ -283,7 +273,6 @@ enum {
      * user-interrupt notification identification, and the user-interrupt
      * instructions
      */
-
     __CR4_BIT_UINTR = (1ull << 25),
 
     /*
@@ -293,7 +282,6 @@ enum {
      * This field is available in 64-bit mode. A value of 15 means all
      * interrupts will be disabled.
      */
-
     __CR4_BIT_TPL = (1ull << 26),
 };
 
@@ -302,14 +290,12 @@ enum {
      * This bit 0 must be 1. An attempt to write 0 to this bit causes a #GP
      * exception.
      */
-
     __XCR0_BIT_X87 = 1ull << 0,
 
     /*
      * If 1, the XSAVE feature set can be used to manage MXCSR and the XMM
      * registers (XMM0- XMM15 in 64-bit mode; otherwise XMM0-XMM7)
      */
-
     __XCR0_BIT_SSE = 1ull << 1,
 
     /*
@@ -317,28 +303,24 @@ enum {
      * can be used to manage the upper halves of the YMM registers (YMM0-YMM15
      * in 64-bit mode; otherwise YMM0-YMM7).
      */
-
     __XCR0_BIT_AVX = 1ull << 2,
 
     /*
      * XCR0.BNDREG (bit 3): If 1, Intel MPX instructions can be executed and the
      * XSAVE feature set can be used to manage the bounds registers BND0–BND3.
      */
-
     __XCR0_BIT_BNDREG = 1ull << 3,
 
     /*
      * If 1, Intel MPX instructions can be executed and the XSAVE feature set
      * can be used to manage the BNDCFGU and BNDSTATUS registers
      */
-
     __XCR0_BIT_BNDCSR = 1ull << 4,
 
     /*
      * If 1, Intel AVX-512 instructions can be executed and the XSAVE feature
      * set can be used to manage the opmask registers k0–k7
      */
-
     __XCR0_BIT_OPMASK = 1ull << 5,
 
     /*
@@ -346,7 +328,6 @@ enum {
      * set can be used to manage the upper halves of the lower ZMM registers
      * (ZMM0-ZMM15 in 64-bit mode; otherwise ZMM0- ZMM7).
      */
-
     __XCR0_BIT_ZMM_HI256 = 1ull << 6,
 
     /*
@@ -354,7 +335,6 @@ enum {
      * set can be used to manage the upper ZMM registers (ZMM16-ZMM31, only in
      * 64-bit mode).
      */
-
     __XCR0_BIT_HI16_ZMM = 1ull << 7,
 
     // Bit 8 is reserved
@@ -368,13 +348,11 @@ enum {
      * If 1, and if XCR0.TILEDATA is also 1, Intel AMX instructions can be
      * executed and the XSAVE feature set can be used to manage TILECFG
      */
-
     __XCR0_BIT_TILECFG = 1ull << 17,
 
     /*
      * If 1, and if XCR0.TILECFG is also 1, Intel AMX instructions can be
      * executed and the XSAVE feature set can be used to manage TILEDATA
      */
-
     __XCR0_BIT_TILEDATA = 1ull << 18,
 };

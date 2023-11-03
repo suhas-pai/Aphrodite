@@ -117,8 +117,7 @@ void page_set_flag(struct page *const page, const enum struct_page_flags flag) {
 }
 
 __optimize(3) bool
-page_has_flag(const struct page *const page,
-              const enum struct_page_flags flag)
+page_has_flag(const struct page *const page, const enum struct_page_flags flag)
 {
     return page_get_flags(page) & flag;
 }

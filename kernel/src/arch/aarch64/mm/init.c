@@ -275,7 +275,7 @@ map_into_kernel_pagemap(const struct range phys_range,
                         const uint64_t pte_flags)
 {
     const struct pgmap_options options = {
-        .pte_flags = __PTE_INNER_SH | __PTE_ACCESS | pte_flags,
+        .pte_flags = __PTE_INNER_SH | pte_flags,
 
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,

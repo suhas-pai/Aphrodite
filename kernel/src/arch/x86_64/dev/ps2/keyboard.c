@@ -55,6 +55,7 @@ struct ps2_keyboard_state {
     bool in_e0 : 1;
 };
 
+static isr_vector_t g_ps2_vector = 0;
 static struct ps2_keyboard_state g_kbd_state = {
     .shift = 0,
     .cmd = 0,
@@ -64,7 +65,6 @@ static struct ps2_keyboard_state g_kbd_state = {
     .in_e0 = false
 };
 
-static isr_vector_t g_ps2_vector = 0;
 static char get_char_from_ps2_kb(const uint8_t scan_code) {
     if (g_kbd_state.shift != 0) {
         return ps2_key_to_char_shift[scan_code];

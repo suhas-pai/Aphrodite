@@ -86,7 +86,8 @@ virtio_split_queue_init(struct virtio_device *const device,
         return false;
     }
 
-    virtio_device_set_selected_queue_desc_phys(device, page_to_phys(desc_pages));
+    virtio_device_set_selected_queue_desc_phys(device,
+                                               page_to_phys(desc_pages));
     virtio_device_set_selected_queue_driver_phys(device,
                                                  page_to_phys(avail_page));
     virtio_device_set_selected_queue_device_phys(device,

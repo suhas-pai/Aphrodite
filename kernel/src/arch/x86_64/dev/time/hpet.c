@@ -9,9 +9,9 @@
 #include "lib/time.h"
 
 #include "mm/mmio.h"
+#include "sys/mmio.h"
 
 #include "hpet.h"
-#include "sys/mmio.h"
 
 struct hpet_addrspace_timer_info {
     volatile uint64_t config_and_capability;

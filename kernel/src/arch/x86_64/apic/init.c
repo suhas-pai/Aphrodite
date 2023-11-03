@@ -59,7 +59,7 @@ void apic_init(const uint64_t local_apic_base) {
     printk(LOGLEVEL_INFO, "apic: msr: 0x%" PRIx64 "\n", apic_msr);
     assert_msg(apic_msr & __IA32_MSR_APIC_BASE_IS_BSP, "apic: cpu is not bsp");
 
-    /* Use x2apic if available */
+    // Use x2apic if available
     if (get_cpu_capabilities()->supports_x2apic) {
         apic_msr |= __IA32_MSR_APIC_BASE_X2APIC;
         get_acpi_info_mut()->using_x2apic = true;

@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "lib/align.h"
 #include "mm/pgmap.h"
 
 static inline uint64_t
@@ -11,7 +10,7 @@ flags_from_info(struct pagemap *const pagemap,
                 const prot_t prot,
                 const enum vma_cachekind cachekind)
 {
-    uint64_t result = __PTE_VALID | __PTE_INNER_SH | __PTE_ACCESS;
+    uint64_t result = __PTE_VALID | __PTE_INNER_SH;
     if (pagemap != &kernel_pagemap) {
         result |= __PTE_NONGLOBAL | __PTE_USER;
     }

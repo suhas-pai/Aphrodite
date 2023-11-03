@@ -124,7 +124,7 @@ ps2_get_device_kind(const enum ps2_port_id device_id,
         return false;
     }
 
-    /* NOTE: This is a hack. We're not supposed to have to have these checks. */
+    // NOTE: This is a hack. We're not supposed to have to have these checks.
 
     const int16_t first = ps2_read_input_byte();
     const int16_t second = ps2_read_input_byte();

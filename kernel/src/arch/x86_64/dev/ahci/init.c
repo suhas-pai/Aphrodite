@@ -17,8 +17,8 @@
 #include "sys/mmio.h"
 #include "structs.h"
 
-__optimize(3)
-static void ahci_hba_port_start_running(volatile struct ahci_hba_port *const port) {
+__optimize(3) static
+void ahci_hba_port_start_running(volatile struct ahci_hba_port *const port) {
     const uint32_t flags =
         __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE |
         __AHCI_HBA_PORT_CMDSTATUS_START;
@@ -29,8 +29,8 @@ static void ahci_hba_port_start_running(volatile struct ahci_hba_port *const por
 
 #define MAX_ATTEMPTS 10
 
-__optimize(3)
-static bool ahci_hba_port_stop_running(volatile struct ahci_hba_port *const port) {
+__optimize(3) static
+bool ahci_hba_port_stop_running(volatile struct ahci_hba_port *const port) {
     const uint32_t flags =
         __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE |
         __AHCI_HBA_PORT_CMDSTATUS_START;
@@ -147,7 +147,6 @@ ahci_hba_port_init(volatile struct ahci_hba_port *const port,
            "ahci: port at index %" PRIu8 " has a cmd-list base at %p\n",
            index,
            (void *)phys_range.front);
-
 
     volatile struct ahci_port_command_header *entry =
         phys_to_virt(phys_range.front);

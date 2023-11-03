@@ -12,18 +12,18 @@
 
 #define check_add_assert(lhs, rhs) ({ \
     __auto_type __result__ = lhs; \
-    assert(__builtin_expect(check_add(lhs, rhs, &__result__), 1)); \
+    assert(check_add(lhs, rhs, &__result__)); \
     __result__; \
 })
 
 #define check_sub_assert(lhs, rhs) ({ \
     __auto_type __result__ = lhs; \
-    assert(__builtin_expect(check_sub(lhs, rhs, &__result__), 1)); \
+    assert(check_sub(lhs, rhs, &__result__)); \
     __result__; \
 })
 
 #define check_mul_assert(lhs, rhs) ({ \
     __auto_type __result__ = lhs; \
-    assert(__builtin_expect(check_mul(lhs, rhs, &__result__), 1)); \
+    assert(check_mul(lhs, rhs, &__result__)); \
     __result__; \
 })

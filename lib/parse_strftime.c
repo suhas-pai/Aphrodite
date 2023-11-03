@@ -9,7 +9,7 @@
 #define HAVE_SUNOS_EXT 1
 #define HAVE_VMS_EXT 1
 
-static inline struct strftime_modifiers
+__optimize(3) static inline struct strftime_modifiers
 parse_strftime_mods(const char *const iter, const char **const iter_out) {
     struct strftime_modifiers mods = {0};
     switch (*iter) {

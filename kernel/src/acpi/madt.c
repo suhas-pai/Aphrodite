@@ -467,12 +467,12 @@ void madt_init(const struct acpi_madt *const madt) {
                        "\tacpi processor uid: %" PRIu32 "\n",
                        cntrl->version,
                        cntrl->flags,
-                        (cntrl->flags &
-                         __ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED) != 0 ?
-                            "yes" : "no",
-                        (cntrl->flags &
-                         __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE) != 0 ?
-                            "yes" : "no",
+                       cntrl->flags &
+                            __ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED ?
+                                "yes" : "no",
+                        cntrl->flags &
+                            __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE ?
+                                "yes" : "no",
                        cntrl->hart_id,
                        cntrl->acpi_proc_uid);
 

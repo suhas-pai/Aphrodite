@@ -14,9 +14,7 @@ flags_from_info(struct pagemap *const pagemap,
     assert_msg(sanitized_prot != 0,
                "mm: arch_make_mapping(): got protections w/o any of rwx");
 
-    uint64_t result =
-        __PTE_VALID | __PTE_ACCESSED | __PTE_DIRTY | (sanitized_prot << 1);
-
+    uint64_t result = __PTE_VALID | (sanitized_prot << 1);
     if (pagemap == &kernel_pagemap) {
         result |= __PTE_GLOBAL;
     } else {

@@ -178,19 +178,16 @@ struct virtio_pci_isr_cfg_cap {
 } __packed;
 
 struct virtio_pci_vendor_data_cap {
-    uint8_t cap_vndr;    /* Generic PCI field: PCI_CAP_ID_VNDR */
-    uint8_t cap_next;    /* Generic PCI field: next ptr. */
-    uint8_t cap_len;     /* Generic PCI field: capability length */
-    uint8_t cfg_type;    /* Identifies the structure. */
-    uint16_t vendor_id;  /* Identifies the vendor-specific format. */
+    uint8_t cap_vndr;    // Generic PCI field: PCI_CAP_ID_VNDR
+    uint8_t cap_next;    // Generic PCI field: next ptr.
+    uint8_t cap_len;     // Generic PCI field: capability length
+    uint8_t cfg_type;    // Identifies the structure.
+    uint16_t vendor_id;  // Identifies the vendor-specific format.
 } __packed;
 
 enum virtio_device_status {
-    /*
-     * Indicates that the guest OS has found the device and recognized it as a
-     * valid virtio device.
-     */
-
+    // Indicates that the guest OS has found the device and recognized it as a
+    // valid virtio device.
     __VIRTIO_DEVSTATUS_ACKNOWLEDGE = 1 << 0,
 
     // Indicates that the guest OS knows how to drive the device
@@ -199,18 +196,12 @@ enum virtio_device_status {
     // Indicates that the driver is set up and ready to drive the device.
     __VIRTIO_DEVSTATUS_DRIVER_OK = 1 << 2,
 
-    /*
-     * Indicates that the driver has acknowledged all the features it
-     * understands, and feature negotiation is complete.
-     */
-
+    // Indicates that the driver has acknowledged all the features it
+    // understands, and feature negotiation is complete.
     __VIRTIO_DEVSTATUS_FEATURES_OK = 1 << 3,
 
-    /*
-     * Indicates that the device has experienced an error from which it can’t
-     * re-cover.
-     */
-
+    // Indicates that the device has experienced an error from which it can’t
+    // re-cover.
     __VIRTIO_DEVSTATUS_DEVICE_NEEDS_RESET = 1 << 6,
 
     /*
@@ -219,7 +210,6 @@ enum virtio_device_status {
      * the device for some reason, or even a fatal error during device
      * operation.
      */
-
     __VIRTIO_DEVSTATUS_FAILED = 1 << 7
 };
 
@@ -229,21 +219,14 @@ enum virtio_device_feature_bits {
      * with the VIRTQ_DESC_F_INDIRECT flag set, as described in 2.7.5.3 Indirect
      * Descriptors and 2.8.7 Indirect Flag: Scatter-Gather Support.
      */
-
     __VIRTIO_DEVFEATURE_INDR_DESC = 1ull << 28,
 
-    /*
-     * This feature enables the used_event and the avail_event fields as
-     * described in 2.7.7, 2.7.8 and 2.8.10
-     */
-
+    // This feature enables the used_event and the avail_event fields as
+    // described in 2.7.7, 2.7.8 and 2.8.10
     __VIRTIO_DEVFEATURE_EVENT_IDX = 1ull << 29,
 
-    /*
-     * This indicates compliance with this specification, giving a simple way to
-     * detect legacy devices or drivers.
-     */
-
+    // This indicates compliance with this specification, giving a simple way to
+    // detect legacy devices or drivers.
     __VIRTIO_DEVFEATURE_VERSION_1 = 1ull << 32,
 
     /*
@@ -269,21 +252,14 @@ enum virtio_device_feature_bits {
      * device access is limited or translated in any way, e.g. whether an IOMMU
      * may be present.
      */
-
     __VIRTIO_DEVFEATURE_ACCESS_PLATFORM = 1ull << 33,
 
-    /*
-     * This feature indicates support for the packed virtqueue layout as
-     * described in 2.8 Packed Virtqueues.
-     */
-
+    // This feature indicates support for the packed virtqueue layout as
+    // described in 2.8 Packed Virtqueues.
     __VIRTIO_DEVFEATURES_PACKED_RING = 1ull << 34,
 
-    /*
-     * This feature indicates that all buffers are used by the device in the
-     * same order in which they have been made available.
-     */
-
+    // This feature indicates that all buffers are used by the device in the
+    // same order in which they have been made available.
     __VIRTIO_DEVFEATURES_IN_ORDER = 1ull << 35,
 
     /*
@@ -302,14 +278,10 @@ enum virtio_device_feature_bits {
      * Thus a weaker form of memory barriers is sufficient to yield better
      * performance.
      */
-
     __VIRTIO_DEVFEATURES_ORDER_PLATFORM = 1ull << 37,
 
-    /*
-     * This feature indicates that the device supports Single Root I/O
-     * Virtualization. Currently only PCI devices support this feature.
-     */
-
+    // This feature indicates that the device supports Single Root I/O
+    // Virtualization. Currently only PCI devices support this feature.
     __VIRTIO_DEVFEATURES_SR_IOV = 1ull << 38,
 
     /*
@@ -317,7 +289,6 @@ enum virtio_device_feature_bits {
      * identifying the virtqueue) in its device notifications.
      * See 2.9 Driver Notifications.
      */
-
     __VIRTIO_DEVFEATURES_NOTIFICATION_DATA = 1ull << 39,
 
     /*
@@ -338,14 +309,10 @@ enum virtio_device_feature_bits {
      * delivery method is transport specific.
      * For more details about driver notifications over PCI see 4.1.5.2.
      */
-
     __VIRTIO_DEVFEATURES_NOTIF_CONFIG_DATA = 1ull << 39,
 
-    /*
-     * This feature indicates that the driver can reset a queue individually.
-     * See 2.6.1
-     */
-
+    // This feature indicates that the driver can reset a queue individually.
+    // See 2.6.1
     __VIRTIO_DEVFEATURES_RESET = 1ull << 39,
 };
 
@@ -419,7 +386,6 @@ struct virtio_mmio_device_legacy {
      * of 2 and is used by the device to calculate the Guest address of the
      * first queue page (see QueuePFN).
      */
-
     volatile uint32_t guest_page_size; // Write-only
 
     /*
@@ -429,7 +395,6 @@ struct virtio_mmio_device_legacy {
      * operations on the QueueNumMax, QueueNum, QueueAlign and QueuePFN
      * registers apply to. The index number of the first queue is zero (0x0).
      */
-
     _Alignas(16) volatile uint32_t queue_select; // Write-only
 
     /*
@@ -441,7 +406,6 @@ struct virtio_mmio_device_legacy {
      * only when QueuePFN is set to zero (0x0), so when the queue is not
      * actively used.
      */
-
     volatile const uint32_t queue_num_max;
 
     /*
@@ -452,7 +416,6 @@ struct virtio_mmio_device_legacy {
      * driver will use. This applies to the queue selected by writing to
      * QueueSel.
      */
-
     volatile uint32_t queue_num; // Write-only
 
     /*
@@ -462,7 +425,6 @@ struct virtio_mmio_device_legacy {
      * the Used Ring in bytes. This value should be a power of 2 and applies to
      * the queue selected by writing to QueueSel.
      */
-
     volatile uint32_t queue_align; // Write-only
 
     /*
@@ -477,7 +439,6 @@ struct virtio_mmio_device_legacy {
      * the queue is in use. Both read and write accesses apply to the queue
      * selected by writing to QueueSel.
      */
-
     volatile uint32_t queue_pfn;
 
     _Alignas(16) volatile uint32_t queue_notify; // Write-only
@@ -495,7 +456,6 @@ struct virtio_mmio_device_legacy {
      * Writing zero (0x0) to this register triggers a device reset. The device
      * sets QueuePFN to zero (0x0) for all queues in the device.
      */
-
     _Alignas(16) volatile uint32_t status;
 
     volatile const uint32_t padding_2[35];
@@ -536,9 +496,9 @@ struct virtq_avail {
     // le16_t used_event; /* Only if VIRTIO_F_EVENT_IDX */
 };
 
-/* le32 is used here for ids for padding reasons. */
+// le32 is used here for ids for padding reasons.
 struct virtq_used_elem {
-    /* Index of start of used descriptor chain. */
+    // Index of start of used descriptor chain.
     le32_t id;
 
     /*
@@ -582,10 +542,8 @@ enum virtio_block_legacy_feature_flags {
 };
 
 enum virtio_scsi_feature_flags {
-    /*
-     * A single request can include both device-readable and device-writable
-     * data buffers.
-     */
+    // A single request can include both device-readable and device-writable
+    // data buffers.
     __VIRTIO_SCSI_INOUT = 1 << 0,
 
     /*
@@ -595,24 +553,18 @@ enum virtio_scsi_feature_flags {
      */
     __VIRTIO_SCSI_HOTPLUG = 1 << 1,
 
-    /*
-     * The host will report changes to LUN parameters via a
-     * VIRTIO_SCSI_T_PARAM_CHANGE event; the guest SHOULD handle them.
-     */
+    // The host will report changes to LUN parameters via a
+    // VIRTIO_SCSI_T_PARAM_CHANGE event; the guest SHOULD handle them.
     __VIRTIO_SCSI_CHANGE = 1 << 2,
 
-    /*
-     * The extended fields for T10 protection information (DIF/DIX) are included
-     * in the SCSI request header
-     */
+    // The extended fields for T10 protection information (DIF/DIX) are included
+    // in the SCSI request header
     __VIRTIO_SCSI_T10_PI = 1 << 3,
 };
 
 enum virtio_scsi_cmd_response {
-    /*
-     * When the request was completed and the status byte is filled with a SCSI
-     * status code (not necessarily “GOOD”)
-     */
+    // When the request was completed and the status byte is filled with a SCSI
+    // status code (not necessarily “GOOD”)
     VIRTIO_SCSI_CMDRESP_OK,
 
     /*
@@ -622,32 +574,23 @@ enum virtio_scsi_cmd_response {
      */
     VIRTIO_SCSI_CMDRESP_OVERRUN,
 
-    /*
-     * If the request was cancelled due to an ABORT TASK or ABORT TASK SET task
-     * management function
-     */
+    // If the request was cancelled due to an ABORT TASK or ABORT TASK SET task
+    // management function
     VIRTIO_SCSI_CMDRESP_ABORTED,
 
-    /*
-     * If the request was never processed because the target indicated by lun
-     * does not exist
-     */
+    // If the request was never processed because the target indicated by lun
+    // does not exist
     VIRTIO_SCSI_CMDRESP_BAD_TARGET,
 
-    /*
-     * If the request was cancelled due to a bus or device reset (including a
-     * task man- agement function)
-     */
+    // If the request was cancelled due to a bus or device reset (including a
+    // task man- agement function)
     VIRTIO_SCSI_CMDRESP_RESET,
 
     // If the request failed but retrying on the same path is likely to work
     VIRTIO_SCSI_CMDRESP_BUSY,
 
-    /*
-     * If the request failed due to a problem in the connection between the host
-     * and the target (severed link).
-     */
-
+    // If the request failed due to a problem in the connection between the host
+    // and the target (severed link).
     VIRTIO_SCSI_CMDRESP_TRANSPORT_FAILURE,
 
     /*
@@ -656,10 +599,8 @@ enum virtio_scsi_cmd_response {
      */
     VIRTIO_SCSI_CMDRESP_TARGET_FAILURE,
 
-    /*
-     * If the nexus is suffering a failure but retrying on other paths might
-     * yield a different result
-     */
+    // If the nexus is suffering a failure but retrying on other paths might
+    // yield a different result
     VIRTIO_SCSI_CMDRESP_NEXUS_FAILURE,
 
     /*

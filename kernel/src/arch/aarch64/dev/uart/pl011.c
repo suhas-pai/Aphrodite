@@ -6,8 +6,8 @@
 #include "cpu/spinlock.h"
 #include "dev/printk.h"
 #include "mm/kmalloc.h"
-
 #include "sys/mmio.h"
+
 #include "pl011.h"
 
 struct pl011_device {

@@ -171,6 +171,7 @@ parse_length(struct printf_spec_info *const curr_spec,
 
                     curr_spec->length_sv = sv_create_length(iter - 2, 2);
                     iter++;
+
                     break;
                 }
                 default: {
@@ -715,7 +716,7 @@ parse_printf(const char *const fmt,
                 continue;
         }
 
-        /* Move past specifier */
+        // Move past specifier
         iter++;
 
         uint32_t padded_zero_count = 0;

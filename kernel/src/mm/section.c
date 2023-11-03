@@ -44,10 +44,7 @@ __optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
 }
 
 __optimize(3) uint64_t page_to_phys(const struct page *const page) {
-    const bool valid_page =
-        (uint64_t)page >= PAGE_OFFSET && (uint64_t)page < PAGE_END;
-
-    assert(__builtin_expect(valid_page, 1));
+    assert((uint64_t)page >= PAGE_OFFSET && (uint64_t)page < PAGE_END);
     const struct page_section *const section = page_to_section(page);
 
     const uint64_t page_pfn = page_to_pfn(page);
