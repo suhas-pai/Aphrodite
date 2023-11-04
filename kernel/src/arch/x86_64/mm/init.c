@@ -17,23 +17,6 @@
 
 #include "sys/boot.h"
 
-static uint64_t
-ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,
-                          const pgt_level_t level,
-                          void *const cb_info)
-{
-    (void)walker;
-    (void)level;
-    (void)cb_info;
-
-    const uint64_t phys = early_alloc_page();
-    if (__builtin_expect(phys != INVALID_PHYS, 1)) {
-        return phys;
-    }
-
-    panic("mm: failed to setup page-structs, ran out of memory\n");
-}
-
 static void
 alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
     enum pt_walker_result walker_result = E_PT_WALKER_OK;
@@ -42,7 +25,7 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
     ptwalker_create_for_pagemap(&pt_walker,
                                 &kernel_pagemap,
                                 virt_addr,
-                                /*alloc_pgtable=*/ptwalker_alloc_pgtable_cb,
+                                ptwalker_early_alloc_pgtable_cb,
                                 /*free_pgtable=*/NULL);
 
     const bool supports_1gib_pages =

@@ -731,13 +731,15 @@ early_free_pages_from_section(struct page *const page,
 }
 
 __optimize(3) bool
-find_near_free_pages(struct page *const page,
-                     uint64_t amount,
-                     struct page **const page_out,
-                     uint64_t *const amount_out)
+find_nearby_free_pages(struct page *const page,
+                       uint64_t amount,
+                       struct page **const page_out,
+                       uint64_t *const amount_out)
 {
     struct page_section *const section = page_to_section(page);
-    uint64_t page_pfn = page_to_pfn(page) - section->pfn;
+
+    uint64_t page_pfn = page_to_pfn(page);
+    page_pfn = check_sub_assert(page_pfn, section->pfn);
 
     struct page *free_page = page;
     bool merged_range = false;
@@ -750,8 +752,8 @@ find_near_free_pages(struct page *const page,
             const uint64_t extra = (uint64_t)(page - free_page);
             const uint8_t order = free_head->freelist_head.order;
 
-            // Avoid moving to a different freelist if we can't add the combined
-            // range to a higher order.
+            // Only take off freelist if we can add the combined range to a
+            // higher order.
 
             if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
                 (1ull << order) + extra >= (1ull << (order + 1)))
@@ -767,8 +769,8 @@ find_near_free_pages(struct page *const page,
             struct page *const free_head = free_page - 1;
             const uint8_t order = free_head->freelist_head.order;
 
-            // Avoid moving to a different freelist if we can't add the combined
-            // range to a higher order.
+            // Only take off freelist if we can add the combined range to a
+            // higher order.
 
             if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
                 (1ull << order) + 1 >= (1ull << (order + 1)))
@@ -781,9 +783,12 @@ find_near_free_pages(struct page *const page,
         }
     }
 
-    const uint64_t end_pfn = section->pfn + PAGE_COUNT(section->range.size);
-    if (__builtin_expect(page_pfn < end_pfn - 1, 1)) {
-        struct page *const next_page = page + 1;
+    const uint64_t end_pfn = page_pfn + amount;
+    const uint64_t section_end_pfn =
+        section->pfn + PAGE_COUNT(section->range.size);
+
+    if (__builtin_expect(end_pfn != section_end_pfn, 1)) {
+        struct page *const next_page = free_page + amount;
         if (page_get_state(next_page) == PAGE_STATE_FREE_LIST_HEAD) {
             const uint8_t order = next_page->freelist_head.order;
             take_off_freelist_to_add_later(section, order, next_page);
@@ -793,14 +798,14 @@ find_near_free_pages(struct page *const page,
         }
     }
 
-    *page_out = page;
+    *page_out = free_page;
     *amount_out = amount;
 
     return merged_range;
 }
 
 __optimize(3) void free_amount_of_pages(struct page *page, uint64_t amount) {
-    find_near_free_pages(page, amount, &page, &amount);
+    find_nearby_free_pages(page, amount, &page, &amount);
     free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
 }
 
@@ -855,7 +860,7 @@ void free_pages(struct page *const page, const uint8_t order) {
     struct page *free_page = page;
     uint64_t amount = 0;
 
-    if (find_near_free_pages(free_page, amount, &free_page, &amount)) {
+    if (find_nearby_free_pages(free_page, amount, &free_page, &amount)) {
         free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
     } else {
         add_to_freelist_order(page_to_section(page), order, page);

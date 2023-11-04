@@ -134,7 +134,7 @@ pl011_init(const port_t base,
     volatile struct pl011_device *const device =
         (volatile struct pl011_device *)base;
 
-    uint32_t cr = mmio_read(&device->cr_offset);
+    const uint32_t cr = mmio_read(&device->cr_offset);
     uint32_t lcr = mmio_read(&device->lcr_offset);
 
     // Disable UART before anything else
@@ -149,8 +149,8 @@ pl011_init(const port_t base,
     // Set frequency divisors (UARTIBRD and UARTFBRD) to configure the speed
     const uint32_t div = 4 * PL011_BASE_CLOCK / baudrate;
 
-    uint32_t ibrd = div & 0x3f;
-    uint32_t fbrd = (div >> 6) & 0xffff;
+    const uint32_t ibrd = div & 0x3f;
+    const uint32_t fbrd = (div >> 6) & 0xffff;
 
     mmio_write(&device->ibrd_offset, ibrd);
     mmio_write(&device->fbrd_offset, fbrd);

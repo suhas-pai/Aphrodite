@@ -114,9 +114,8 @@ ptwalker_create_for_pagemap(struct pt_walker *const walker,
                             const ptwalker_alloc_pgtable_t alloc_pgtable,
                             const ptwalker_free_pgtable_t free_pgtable)
 {
-    const uint64_t root_phys = get_root_phys(pagemap, virt_addr);
     ptwalker_create_from_root_phys(walker,
-                                   root_phys,
+                                   get_root_phys(pagemap, virt_addr),
                                    virt_addr,
                                    alloc_pgtable,
                                    free_pgtable);
