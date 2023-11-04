@@ -12,7 +12,7 @@
     #define assert(cond) \
         if (__builtin_expect(!(cond), 0)) panic(TO_STRING(cond) "\n")
     #define assert_msg(cond, msg, ...) \
-        if (!(cond)) panic(msg "\n", ##__VA_ARGS__)
+        if (__builtin_expect(!(cond), 0)) panic(msg "\n", ##__VA_ARGS__)
 
     #define verify_not_reached() panic("verify_not_reached()\n")
 #elif defined(BUILD_TEST)

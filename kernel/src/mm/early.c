@@ -258,7 +258,37 @@ __optimize(3) uint64_t early_alloc_large_page(const uint32_t alloc_amount) {
 __hidden uint64_t KERNEL_BASE = 0;
 __hidden uint64_t structpage_page_count = 0;
 
-void mm_early_init() {
+__optimize(3) void mm_early_init() {
+    const uint64_t memmap_count = mm_get_memmap_count();
+    for (uint64_t index = 0; index != memmap_count; index++) {
+        const struct mm_memmap *const memmap = &mm_get_memmap_list()[index];
+        switch (memmap->kind) {
+            case MM_MEMMAP_KIND_NONE:
+                verify_not_reached();
+            case MM_MEMMAP_KIND_USABLE:
+                claim_pages(memmap);
+                structpage_page_count += PAGE_COUNT(memmap->range.size);
+
+                break;
+            case MM_MEMMAP_KIND_RESERVED:
+            case MM_MEMMAP_KIND_ACPI_RECLAIMABLE:
+            case MM_MEMMAP_KIND_ACPI_NVS:
+            case MM_MEMMAP_KIND_BAD_MEMORY:
+                break;
+            case MM_MEMMAP_KIND_BOOTLOADER_RECLAIMABLE:
+                // Because we're claiming this kind of memmap later, they are
+                // still represented in the structpage table.
+
+                //structpage_page_count += PAGE_COUNT(memmap->range.size);
+                break;
+            case MM_MEMMAP_KIND_KERNEL_AND_MODULES:
+            case MM_MEMMAP_KIND_FRAMEBUFFER:
+                break;
+        }
+    }
+}
+
+__optimize(3) void mm_init() {
     printk(LOGLEVEL_INFO, "mm: hhdm at %p\n", (void *)HHDM_OFFSET);
     printk(LOGLEVEL_INFO, "mm: kernel at %p\n", (void *)KERNEL_BASE);
 
@@ -271,11 +301,7 @@ void mm_early_init() {
             case MM_MEMMAP_KIND_NONE:
                 verify_not_reached();
             case MM_MEMMAP_KIND_USABLE:
-                claim_pages(memmap);
-
                 type_desc = "usable";
-                structpage_page_count += PAGE_COUNT(memmap->range.size);
-
                 break;
             case MM_MEMMAP_KIND_RESERVED:
                 type_desc = "reserved";
@@ -296,11 +322,6 @@ void mm_early_init() {
                 // page tables.
 
                 type_desc = "bootloader-reclaimable";
-
-                // Because we're claiming this kind of memmap later, they are
-                // still represented in the structpage table.
-
-                //structpage_page_count += PAGE_COUNT(memmap->range.size);
                 break;
             case MM_MEMMAP_KIND_KERNEL_AND_MODULES:
                 type_desc = "kernel-and-modules";
@@ -422,6 +443,76 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
 
         prev_level = walker.level;
         prev_was_at_end = walker.indices[prev_level - 1] == PGT_PTE_COUNT - 1;
+    }
+}
+
+static bool g_mapped_early_identity = false;
+static pgt_level_t g_mapped_early_top_level = 0;
+
+static uint64_t g_mapped_early_phys = 0;
+static uint64_t g_mapped_early_root_phys = 0;
+
+__optimize(3) void
+mm_early_identity_map_phys(const uint64_t root_phys,
+                           const uint64_t phys,
+                           const uint64_t pte_flags)
+{
+    assert_msg(!g_mapped_early_identity,
+               "mm: mm_early_identity_map_phys() only supports "
+               "identity-mapping early 1 page!");
+
+    struct pt_walker walker;
+    ptwalker_create_from_root_phys(&walker,
+                                   root_phys,
+                                   /*virt_addr=*/phys,
+                                   ptwalker_early_alloc_pgtable_cb,
+                                   /*free_pgtable=*/NULL);
+
+    g_mapped_early_top_level = walker.level - 1;
+    const enum pt_walker_result walker_result =
+        ptwalker_fill_in_to(&walker,
+                            /*level=*/1,
+                            /*should_ref=*/false,
+                            /*alloc_pgtable_cb_info=*/NULL,
+                            /*free_pgtable_cb_info=*/NULL);
+
+    assert_msg(walker_result == E_PT_WALKER_OK,
+               "mm: failed to fill out pagemap in "
+               "mm_early_identity_map_phys()");
+
+    pte_t *const pte = &walker.tables[0][walker.indices[0]];
+    pte_write(pte, phys | pte_flags);
+
+    g_mapped_early_phys = phys;
+    g_mapped_early_root_phys = root_phys;
+    g_mapped_early_identity = true;
+}
+
+__optimize(3) void mm_remove_early_identity_map() {
+    if (!g_mapped_early_identity) {
+        return;
+    }
+
+    struct pt_walker walker;
+    ptwalker_create_from_root_phys(&walker,
+                                   g_mapped_early_root_phys,
+                                   /*virt_addr=*/g_mapped_early_phys,
+                                   ptwalker_early_alloc_pgtable_cb,
+                                   /*free_pgtable=*/NULL);
+
+    for (pgt_level_t level = 1; level <= g_mapped_early_top_level; level++) {
+        pte_t *const table = walker.tables[level - 1];
+
+        const uint64_t phys = virt_to_phys(table);
+        const uint64_t section_index =
+            (uint64_t)(phys_to_section(phys) - mm_get_page_section_list());
+
+        struct page *const page = phys_to_page(phys);
+
+        page->section = section_index + 1;
+        page->state = PAGE_STATE_USED;
+
+        free_page(page);
     }
 }
 
@@ -691,7 +782,7 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
 }
 
 __optimize(3) static inline void split_sections_for_zones() {
-    for (uint8_t i = 0; i != mm_get_usable_count(); i++) {
+    for (uint8_t i = 0; i != mm_get_section_count(); i++) {
         struct page_section *const section = mm_get_page_section_list() + i;
 
         struct page_zone *const begin_zone = phys_to_zone(section->range.front);
@@ -713,14 +804,14 @@ __optimize(3) static inline void split_sections_for_zones() {
 
 __optimize(3) static void setup_zone_section_list() {
     struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_usable_count();
+    const struct page_section *const end = begin + mm_get_section_count();
 
     for (__auto_type section = begin; section != end; section++) {
         list_add(&section->zone->section_list, &section->zone_list);
     }
 }
 
-void mm_early_post_arch_init() {
+void mm_post_arch_init() {
     // Claim bootloader-reclaimable memmaps now that we've switched to our own
     // pagemap.
     // FIXME: Avoid claiming thees pages until we setup our own stack.
@@ -740,7 +831,7 @@ void mm_early_post_arch_init() {
     //  2. Set the section field in page->flags.
 
     struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_usable_count();
+    const struct page_section *const end = begin + mm_get_section_count();
 
     for (__auto_type section = begin; section != end; section++) {
         mark_crucial_pages(section);

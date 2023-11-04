@@ -43,7 +43,7 @@ int sv_compare(const struct string_view sv, const struct string_view sv2) {
     }
 
     // Both svs are empty
-    if (sv.length == 0) {
+    if (__builtin_expect(sv.length == 0, 0)) {
         return 0;
     }
 

@@ -6,11 +6,11 @@
 #pragma once
 #include <stdint.h>
 
-void boot_early_init();
 void boot_init();
+void boot_post_early_init();
 
 uint8_t mm_get_memmap_count();
-uint8_t mm_get_usable_count();
+uint8_t mm_get_section_count();
 
 const void *boot_get_rsdp();
 const void *boot_get_dtb();

@@ -316,7 +316,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     const struct range ident_map_range = range_create_end(kib(16), gib(4));
     map_into_kernel_pagemap(/*phys_range=*/ident_map_range,
                             /*virt_addr=*/ident_map_range.front,
-                            __PTE_MMIO);
+                            __PTE_MMIO | __PTE_PXN | __PTE_UXN);
 
     // Map all 'good' regions into the hhdm
     uint64_t kernel_memmap_size = 0;
@@ -418,16 +418,12 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 static void setup_mair() {
     // Device nGnRnE
     const uint64_t device_uncacheable_encoding = 0b00000000;
-
     // Device GRE
     const uint64_t device_write_combining_encoding = 0b00001100;
-
     // Normal memory, inner and outer non-cacheable
     const uint64_t memory_uncacheable_encoding = 0b01000100;
-
     // Normal memory inner and outer writethrough, non-transient
     const uint64_t memory_writethrough_encoding = 0b10111011;
-
     // Normal memory, inner and outer write-back, non-transient
     const uint64_t memory_write_back_encoding = 0b11111111;
 
@@ -441,13 +437,13 @@ static void setup_mair() {
     write_mair_el1(mair_value);
 }
 
-void mm_init() {
+void mm_arch_init() {
     setup_mair();
 
     uint64_t kernel_memmap_size = 0;
     setup_kernel_pagemap(&kernel_memmap_size);
 
-    mm_early_post_arch_init();
+    mm_post_arch_init();
     fill_kernel_pagemap_struct(kernel_memmap_size);
 
     printk(LOGLEVEL_INFO, "mm: finished setting up\n");

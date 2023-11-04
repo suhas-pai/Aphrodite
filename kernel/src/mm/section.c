@@ -30,9 +30,22 @@ page_section_init(struct page_section *const section,
     list_init(&section->zone_list);
 }
 
+__optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
+    struct page_section *const begin = mm_get_page_section_list();
+    struct page_section *const end = begin + mm_get_section_count();
+
+    for (struct page_section *iter = begin; iter != end; iter++) {
+        if (range_has_loc(iter->range, phys)) {
+            return iter;
+        }
+    }
+
+    verify_not_reached();
+}
+
 __optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
     const struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_usable_count();
+    const struct page_section *const end = begin + mm_get_section_count();
 
     for (const struct page_section *iter = begin; iter != end; iter++) {
         if (range_has_loc(iter->range, phys)) {

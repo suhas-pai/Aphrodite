@@ -405,11 +405,11 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
         "mm: failed to setup kernel-pagemap");
 }
 
-void mm_init() {
+void mm_arch_init() {
     uint64_t kernel_memmap_size = 0;
     setup_kernel_pagemap(&kernel_memmap_size);
 
-    mm_early_post_arch_init();
+    mm_post_arch_init();
     fill_kernel_pagemap_struct(kernel_memmap_size);
 
     printk(LOGLEVEL_INFO, "mm: finished setting up\n");

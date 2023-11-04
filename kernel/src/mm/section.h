@@ -29,6 +29,9 @@ struct page_section {
     struct spinlock lock;
     struct page_freelist freelist_list[MAX_ORDER];
 
+    // max_order in section is one plus the highest order that has at least one
+    // page in its freelist.
+
     uint8_t min_order;
     uint8_t max_order;
 
@@ -42,3 +45,5 @@ page_section_init(struct page_section *section,
                   uint64_t pfn);
 
 struct page_section *mm_get_page_section_list();
+struct page_section *phys_to_section(uint64_t phys);
+

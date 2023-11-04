@@ -14,42 +14,46 @@
 #include "boot.h"
 #include "limine.h"
 
-static volatile struct limine_hhdm_request hhdm_request = {
+// The Limine requests can be placed anywhere, but it is important that
+// the compiler does not optimise them away, so, in C, they should
+// NOT be made "static".
+
+struct limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-static volatile struct limine_kernel_address_request kern_addr_request = {
+struct limine_kernel_address_request kern_addr_request = {
     .id = LIMINE_KERNEL_ADDRESS_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-static volatile struct limine_memmap_request memmap_request = {
+struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-static volatile struct limine_paging_mode_request paging_mode_request = {
+struct limine_paging_mode_request paging_mode_request = {
     .id = LIMINE_PAGING_MODE_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-static volatile struct limine_rsdp_request rsdp_request = {
+struct limine_rsdp_request rsdp_request = {
     .id = LIMINE_RSDP_REQUEST,
     .revision = 0
 };
 
-static volatile struct limine_dtb_request dtb_request = {
+struct limine_dtb_request dtb_request = {
     .id = LIMINE_DTB_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-static volatile struct limine_boot_time_request boot_time_request = {
+struct limine_boot_time_request boot_time_request = {
     .id = LIMINE_BOOT_TIME_REQUEST,
     .revision = 0
 };
@@ -72,7 +76,6 @@ static const void *rsdp = NULL;
 static const void *dtb = NULL;
 
 static int64_t boot_time = 0;
-static uint64_t section_mask = 0;
 
 __optimize(3) const struct mm_memmap *mm_get_memmap_list() {
     return mm_memmap_list;
@@ -86,7 +89,7 @@ __optimize(3) uint8_t mm_get_memmap_count() {
     return mm_memmap_count;
 }
 
-__optimize(3) uint8_t mm_get_usable_count() {
+__optimize(3) uint8_t mm_get_section_count() {
     return mm_page_section_count;
 }
 
@@ -103,18 +106,10 @@ __optimize(3) int64_t boot_get_time() {
 }
 
 __optimize(3) uint64_t mm_get_full_section_mask() {
-    return section_mask;
+    return (1ull << mm_page_section_count) - 1;
 }
 
-__optimize(3) void boot_early_init() {
-    if (dtb_request.response == NULL || dtb_request.response->dtb_ptr == NULL) {
-        printk(LOGLEVEL_WARN, "boot: device tree is missing\n");
-    } else {
-        dtb = dtb_request.response->dtb_ptr;
-    }
-}
-
-void boot_init() {
+__optimize(3) void boot_init() {
     assert(hhdm_request.response != NULL);
     assert(kern_addr_request.response != NULL);
     assert(memmap_request.response != NULL);
@@ -203,10 +198,18 @@ void boot_init() {
 
     mm_memmap_count = memmap_index;
     mm_page_section_count = usable_index;
+}
 
+void boot_post_early_init() {
     printk(LOGLEVEL_INFO,
            "boot: there are %" PRIu8 " usable memmaps\n",
            mm_page_section_count);
+
+    if (dtb_request.response == NULL || dtb_request.response->dtb_ptr == NULL) {
+        printk(LOGLEVEL_WARN, "boot: device tree is missing\n");
+    } else {
+        dtb = dtb_request.response->dtb_ptr;
+    }
 
     if (rsdp_request.response == NULL ||
         rsdp_request.response->address == NULL)
@@ -264,7 +267,6 @@ __optimize(3) void boot_remove_section(struct page_section *const section) {
         distance(section + 1, &mm_page_section_list[mm_page_section_count]);
 
     memmove(section, section + 1, length);
-    section_mask >>= 1;
 }
 
 __optimize(3)
@@ -275,7 +277,6 @@ struct page_section *boot_add_section_at(struct page_section *const section) {
     memmove(section + 1, section, length);
     mm_page_section_count++;
 
-    section_mask = section_mask << 1 | (1 << 0);
     return section;
 }
 

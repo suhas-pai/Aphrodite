@@ -5,4 +5,4 @@
 
 #pragma once
 
-void mm_init();
+void mm_arch_init();

@@ -15,23 +15,6 @@
 
 #include "pgmap.h"
 
-__optimize(3) static uint64_t
-ptwalker_early_alloc_pgtable_cb(struct pt_walker *const walker,
-                                const pgt_level_t level,
-                                void *const cb_info)
-{
-    (void)walker;
-    (void)level;
-    (void)cb_info;
-
-    const uint64_t phys = early_alloc_page();
-    if (__builtin_expect(phys != INVALID_PHYS, 1)) {
-        return phys;
-    }
-
-    panic("mm: failed to setup page-structs, ran out of memory\n");
-}
-
 enum map_result {
     MAP_DONE,
     MAP_CONTINUE,

@@ -3,17 +3,31 @@
  * © suhas pai
  */
 
+#include "asm/ttbr.h"
 #include "cpu/info.h"
+
+#include "mm/early.h"
 #include "mm/init.h"
+
 #include "sys/isr.h"
 
-void arch_early_init() {
+#define QEMU_SERIAL_PHYS 0x9000000
 
+__optimize(3) void arch_early_init() {
+    const uint64_t root_phys = read_ttbr0_el1();
+    const uint64_t pte_flags =
+        PTE_LEAF_FLAGS | __PTE_INNER_SH | __PTE_MMIO | __PTE_UXN | __PTE_PXN;
+
+    mm_early_identity_map_phys(root_phys, QEMU_SERIAL_PHYS, pte_flags);
 }
 
-void arch_init() {
+__optimize(3) void arch_post_mm_init() {
+    mm_remove_early_identity_map();
+}
+
+__optimize(3) void arch_init() {
     cpu_init();
-    mm_init();
+    mm_arch_init();
 
     isr_install_vbar();
 }

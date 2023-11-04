@@ -9,11 +9,12 @@
 
 #include "cpu/info.h"
 #include "lib/align.h"
+#include "mm/early.h"
 
 #include "page_alloc.h"
 #include "walker.h"
 
-static uint64_t
+__optimize(3) static uint64_t
 ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,
                           const pgt_level_t level,
                           void *const cb_info) {
@@ -38,6 +39,23 @@ ptwalker_free_pgtable_cb(struct pt_walker *const walker,
 
     struct pageop *const pageop = (struct pageop *)cb_info;
     list_add(&pageop->delayed_free, &page->table.delayed_free_list);
+}
+
+__optimize(3) uint64_t
+ptwalker_early_alloc_pgtable_cb(struct pt_walker *const walker,
+                                const pgt_level_t level,
+                                void *const cb_info)
+{
+    (void)walker;
+    (void)level;
+    (void)cb_info;
+
+    const uint64_t phys = early_alloc_page();
+    if (__builtin_expect(phys != INVALID_PHYS, 1)) {
+        return phys;
+    }
+
+    panic("mm: failed to setup page-structs, ran out of memory\n");
 }
 
 static inline uint64_t
@@ -97,7 +115,20 @@ ptwalker_create_for_pagemap(struct pt_walker *const walker,
                             const ptwalker_free_pgtable_t free_pgtable)
 {
     const uint64_t root_phys = get_root_phys(pagemap, virt_addr);
+    ptwalker_create_from_root_phys(walker,
+                                   root_phys,
+                                   virt_addr,
+                                   alloc_pgtable,
+                                   free_pgtable);
+}
 
+void
+ptwalker_create_from_root_phys(struct pt_walker *const walker,
+                               const uint64_t root_phys,
+                               const uint64_t virt_addr,
+                               const ptwalker_alloc_pgtable_t alloc_pgtable,
+                               const ptwalker_free_pgtable_t free_pgtable)
+{
     assert(has_align(root_phys, PAGE_SIZE));
     assert(has_align(virt_addr, PAGE_SIZE));
 

@@ -2,6 +2,9 @@
 
 An operating system written in C17 (gnu17), for x86_64, aarch64, and riscv64.
 
+Migrated from older repository: https://github.com/suhas-pai/operating-system-old
+Check older repository for full commit history
+
 ## Features
 
 The kernel has the following implemented:

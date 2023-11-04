@@ -13,9 +13,13 @@ void arch_early_init() {
 
 }
 
-void arch_init() {
+void arch_post_mm_init() {
+
+}
+
+__optimize(3) void arch_init() {
     gdt_load();
     idt_init();
     cpu_init();
-    mm_init();
+    mm_arch_init();
 }

@@ -46,6 +46,11 @@ struct pt_walker {
         .free_pgtable = NULL   \
     })
 
+uint64_t
+ptwalker_early_alloc_pgtable_cb(struct pt_walker *walker,
+                                pgt_level_t level,
+                                void *cb_info);
+
 // ptwalker with default settings expects a `struct pageop *` to be provided as
 // the cb_info for free_pgtable.
 
@@ -69,6 +74,13 @@ ptwalker_create_for_pagemap(struct pt_walker *walker,
                             uint64_t virt_addr,
                             ptwalker_alloc_pgtable_t alloc_pgtable,
                             ptwalker_free_pgtable_t free_pgtable);
+
+void
+ptwalker_create_from_root_phys(struct pt_walker *walker,
+                               uint64_t root_phys,
+                               uint64_t virt_addr,
+                               ptwalker_alloc_pgtable_t alloc_pgtable,
+                               ptwalker_free_pgtable_t free_pgtable);
 
 void
 ptwalker_create_from_toplevel(struct pt_walker *walker,
