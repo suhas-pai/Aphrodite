@@ -124,7 +124,7 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
 
                 if (pte == end) {
                     const bool should_fill_in =
-                        pt_walker.indices[2] != PGT_PTE_COUNT;
+                        pt_walker.indices[2] != PGT_PTE_COUNT - 1;
 
                     pt_walker.indices[1] = PGT_PTE_COUNT - 1;
                     walker_result =
@@ -141,7 +141,7 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
                         goto panic;
                     }
 
-                    if (pt_walker.indices[2] == 0) {
+                    if (!should_fill_in) {
                         goto try_1gib;
                     }
 
@@ -194,7 +194,7 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
                 pte++;
                 if (pte == end) {
                     const bool should_fill_in =
-                        pt_walker.indices[1] != PGT_PTE_COUNT;
+                        pt_walker.indices[1] != PGT_PTE_COUNT - 1;
 
                     pt_walker.indices[0] = PGT_PTE_COUNT - 1;
                     walker_result =

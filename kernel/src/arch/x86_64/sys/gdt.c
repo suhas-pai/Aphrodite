@@ -9,19 +9,19 @@
 struct gdt_descriptor {
     uint16_t limit;
     uint16_t base_low16;
-    uint8_t  base_mid8;
-    uint8_t  access;
-    uint8_t  granularity;
-    uint8_t  base_high8;
+    uint8_t base_mid8;
+    uint8_t access;
+    uint8_t granularity;
+    uint8_t base_high8;
 };
 
 struct tss_descriptor {
     uint16_t length;
     uint16_t base_low16;
-    uint8_t  base_mid8;
-    uint8_t  flags1;
-    uint8_t  flags2;
-    uint8_t  base_high8;
+    uint8_t base_mid8;
+    uint8_t flags1;
+    uint8_t flags2;
+    uint8_t base_high8;
     uint32_t base_upper32;
     uint32_t reserved;
 };
@@ -81,7 +81,7 @@ struct gdt {
 #define USER_CODE_64_INDEX 9
 #define USER_DATA_64_INDEX 10
 
-// This must be in a mutable section
+// This must be in writable memory
 static struct gdt g_gdt = {
     .entries = {
         [NULL_INDEX] = {0},

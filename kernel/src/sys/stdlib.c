@@ -97,26 +97,24 @@ __optimize(3) char *strrchr(const char *const str, const int ch) {
                                const void **const right_out,                   \
                                size_t *const len_out)                          \
     {                                                                          \
-        if (len < sizeof(type)) {                                              \
-            return 0;                                                          \
+        if (len >= sizeof(type)) {                                             \
+            do {                                                               \
+                const type left_ch = *(const type *)left;                      \
+                const type right_ch = *(const type *)right;                    \
+                                                                               \
+                if (left_ch != right_ch) {                                     \
+                    return (int)(left_ch - right_ch);                          \
+                }                                                              \
+                                                                               \
+                left += sizeof(type);                                          \
+                right += sizeof(type);                                         \
+                len -= sizeof(type);                                           \
+            } while (len >= sizeof(type));                                     \
+                                                                               \
+            *left_out = left;                                                  \
+            *right_out = right;                                                \
+            *len_out = len;                                                    \
         }                                                                      \
-                                                                               \
-        do {                                                                   \
-            const type left_ch = *(const type *)left;                          \
-            const type right_ch = *(const type *)right;                        \
-                                                                               \
-            if (left_ch != right_ch) {                                         \
-                return (int)(left_ch - right_ch);                              \
-            }                                                                  \
-                                                                               \
-            left += sizeof(type);                                              \
-            right += sizeof(type);                                             \
-            len -= sizeof(type);                                               \
-        } while (len >= sizeof(type));                                         \
-                                                                               \
-        *left_out = left;                                                      \
-        *right_out = right;                                                    \
-        *len_out = len;                                                        \
                                                                                \
         return 0;                                                              \
     }

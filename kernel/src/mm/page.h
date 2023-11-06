@@ -12,8 +12,10 @@
 #include "mm_types.h"
 
 enum page_state {
-    PAGE_STATE_FREE_LIST_TAIL,
+    PAGE_STATE_IN_FREE_LIST,
+
     PAGE_STATE_FREE_LIST_HEAD,
+    PAGE_STATE_FREE_LIST_TAIL,
 
     PAGE_STATE_SYSTEM_CRUCIAL,
 

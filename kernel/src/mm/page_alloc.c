@@ -27,10 +27,11 @@ add_to_freelist_order(struct page_section *const section,
     list_init(&page->freelist_head.freelist);
     list_add(&freelist->page_list, &page->freelist_head.freelist);
 
-    const struct page *const end = page + (1ull << freelist_order);
-    for (struct page *iter = page + 1; iter != end; iter++) {
-        page_set_state(iter, PAGE_STATE_FREE_LIST_TAIL);
-        iter->freelist_tail.head = page;
+    if (freelist_order != 0) {
+        struct page *const back = page + (1ull << freelist_order) - 1;
+        page_set_state(back, PAGE_STATE_FREE_LIST_TAIL);
+
+        back->freelist_tail.head = page;
     }
 
     atomic_fetch_add(&section->zone->total_free, 1ull << freelist_order);
@@ -54,9 +55,11 @@ add_to_freelist_order_from_higher(struct page_section *const section,
     list_init(&page->freelist_head.freelist);
     list_add(&freelist->page_list, &page->freelist_head.freelist);
 
-    const struct page *const end = page + (1ull << freelist_order);
-    for (struct page *iter = page + 1; iter != end; iter++) {
-        iter->freelist_tail.head = page;
+    if (freelist_order != 0) {
+        struct page *const back = page + (1ull << freelist_order) - 1;
+
+        back->state = PAGE_STATE_FREE_LIST_TAIL;
+        back->freelist_tail.head = page;
     }
 
     freelist->count++;
@@ -213,6 +216,7 @@ setup_pages_off_freelist(struct page *const page,
 
             return;
         }
+        case PAGE_STATE_IN_FREE_LIST:
         case PAGE_STATE_FREE_LIST_HEAD:
         case PAGE_STATE_FREE_LIST_TAIL:
         case PAGE_STATE_LRU_CACHE:
@@ -471,6 +475,7 @@ setup_alloced_page(struct page *const page,
 
             return page;
         }
+        case PAGE_STATE_IN_FREE_LIST:
         case PAGE_STATE_FREE_LIST_HEAD:
         case PAGE_STATE_FREE_LIST_TAIL:
         case PAGE_STATE_LRU_CACHE:
@@ -719,9 +724,11 @@ early_free_pages_from_section(struct page *const page,
     list_init(&page->freelist_head.freelist);
     list_add(&freelist->page_list, &page->freelist_head.freelist);
 
-    const struct page *const end = page + (1ull << order);
-    for (struct page *iter = page + 1; iter != end; iter++) {
-        iter->freelist_tail.head = page;
+    if (order != 0) {
+        struct page *const back = page + (1ull << order) - 1;
+
+        back->state = PAGE_STATE_FREE_LIST_TAIL;
+        back->freelist_tail.head = page;
     }
 
     section->zone->total_free += 1ull << order;

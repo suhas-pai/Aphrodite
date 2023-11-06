@@ -45,10 +45,8 @@ struct ps2_keyboard_state {
     uint8_t cmd : 2;
     uint8_t ctrl : 2;
 
-    /*
-     * Sets whether the current key was released, or is from extension
-     * scan-code.
-     */
+    // Sets whether the current key was released, or is from extension
+    // scan-code.
 
     bool alt : 1;
     bool caps_lock : 1;

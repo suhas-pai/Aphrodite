@@ -10,8 +10,6 @@
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
-#include "mm/page.h"
-#include "mm/page_alloc.h"
 #include "mm/zone.h"
 
 #include "sys/mmio.h"

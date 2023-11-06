@@ -5,7 +5,6 @@
 
 #include "lib/overflow.h"
 #include "mm/page.h"
-
 #include "sys/boot.h"
 
 __optimize(3) void

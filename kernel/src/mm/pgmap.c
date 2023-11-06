@@ -8,7 +8,6 @@
 #include "dev/printk.h"
 #include "lib/align.h"
 
-#include "mm/early.h"
 #include "mm/page_alloc.h"
 #include "mm/pageop.h"
 #include "mm/walker.h"
@@ -297,11 +296,14 @@ map_normal(struct pt_walker *const walker,
                         return MAP_DONE;
                 }
 
+                const bool should_fill_in =
+                    walker->indices[1] != PGT_PTE_COUNT - 1;
+
                 ptwalker_result =
                     ptwalker_next_with_options(walker,
                                                /*level=*/1,
-                                               /*alloc_parents=*/false,
-                                               /*alloc_level=*/false,
+                                               /*alloc_parents=*/should_fill_in,
+                                               /*alloc_level=*/should_fill_in,
                                                should_ref,
                                                alloc_pgtable_cb_info,
                                                free_pgtable_cb_info);
@@ -320,7 +322,7 @@ map_normal(struct pt_walker *const walker,
                     // Exit if the level above is at index 0, which may mean
                     // that a large page can be placed at the higher level.
 
-                    if (walker->indices[1] == 0) {
+                    if (!should_fill_in) {
                         *offset_in = offset;
                         return MAP_RESTART;
                     }
@@ -333,18 +335,18 @@ map_normal(struct pt_walker *const walker,
         uint64_t phys_addr = phys_begin + offset;
         const uint64_t phys_end = phys_begin + size;
 
+        ptwalker_result =
+            ptwalker_fill_in_to(walker,
+                                /*level=*/1,
+                                should_ref,
+                                options->alloc_pgtable_cb_info,
+                                options->free_pgtable_cb_info);
+
+        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
+            panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
+        }
+
         do {
-            ptwalker_result =
-                ptwalker_fill_in_to(walker,
-                                    /*level=*/1,
-                                    should_ref,
-                                    options->alloc_pgtable_cb_info,
-                                    options->free_pgtable_cb_info);
-
-            if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-                panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
-            }
-
             pte_t *const table = walker->tables[0];
             pte_t *pte = &table[walker->indices[0]];
             const pte_t *const end = &table[PGT_PTE_COUNT];
@@ -359,15 +361,24 @@ map_normal(struct pt_walker *const walker,
                 pte++;
 
                 if (pte == end) {
+                    if (phys_addr == phys_end) {
+                        *offset_in = phys_addr - phys_begin;
+                        return MAP_DONE;
+                    }
+
+                    const bool should_fill_in =
+                        walker->indices[1] != PGT_PTE_COUNT - 1;
+
                     walker->indices[0] = PGT_PTE_COUNT - 1;
                     ptwalker_result =
-                        ptwalker_next_with_options(walker,
-                                                   /*level=*/1,
-                                                   /*alloc_parents=*/false,
-                                                   /*alloc_level=*/false,
-                                                   should_ref,
-                                                   alloc_pgtable_cb_info,
-                                                   free_pgtable_cb_info);
+                        ptwalker_next_with_options(
+                            walker,
+                            /*level=*/1,
+                            /*alloc_parents=*/should_fill_in,
+                            /*alloc_level=*/should_fill_in,
+                            should_ref,
+                            alloc_pgtable_cb_info,
+                            free_pgtable_cb_info);
 
                     if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0))
                     {
@@ -377,15 +388,13 @@ map_normal(struct pt_walker *const walker,
                     // Exit if the level above is at index 0, which may mean
                     // that a large page can be placed at the higher level.
 
-                    if (walker->indices[1] == 0) {
+                    if (!should_fill_in) {
                         *offset_in = phys_addr - phys_begin;
                         return MAP_RESTART;
                     }
 
                     break;
-                }
-
-                if (phys_addr == phys_end) {
+                } else if (phys_addr == phys_end) {
                     walker->indices[0] = pte - table;
                     *offset_in = phys_addr - phys_begin;
 
@@ -619,20 +628,19 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
     uint64_t phys_addr = phys_begin + offset;
 
     const uint64_t phys_end = phys_begin + size;
+    enum pt_walker_result ptwalker_result =
+        ptwalker_fill_in_to(walker,
+                            level,
+                            should_ref,
+                            alloc_pgtable_cb_info,
+                            free_pgtable_cb_info);
+
+    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
+    panic:
+        panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
+    }
 
     do {
-        enum pt_walker_result ptwalker_result =
-            ptwalker_fill_in_to(walker,
-                                level,
-                                should_ref,
-                                alloc_pgtable_cb_info,
-                                free_pgtable_cb_info);
-
-        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-        panic:
-            panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
-        }
-
         pte_t *const table = walker->tables[level - 1];
         pte_t *pte = &table[walker->indices[level - 1]];
         const pte_t *const end = &table[PGT_PTE_COUNT];
@@ -653,12 +661,15 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
 
             pte++;
             if (pte == end) {
+                const bool should_fill_in =
+                    walker->indices[level] != PGT_PTE_COUNT - 1;
+
                 walker->indices[level - 1] = PGT_PTE_COUNT - 1;
                 ptwalker_result =
                     ptwalker_next_with_options(walker,
                                                level,
-                                               /*alloc_parents=*/false,
-                                               /*alloc_level=*/false,
+                                               /*alloc_parents=*/should_fill_in,
+                                               /*alloc_level=*/should_fill_in,
                                                should_ref,
                                                alloc_pgtable_cb_info,
                                                free_pgtable_cb_info);
@@ -670,7 +681,7 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
                 // Exit if the level above is at index 0, which may mean that a
                 // large page can be placed at the higher level.
 
-                if (walker->indices[walker->level] == 0) {
+                if (!should_fill_in) {
                     *offset_in = phys_addr - phys_begin;
                     return MAP_RESTART;
                 }
