@@ -78,7 +78,8 @@ __optimize(3) void *memset_all_ones(void *dst, unsigned long n) {
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
         asm volatile ("rep stosb"
-                      :: "D"(dst), "al"(UINT8_MAX), "c"(n)
+                      : "+D"(dst), "+c"(n)
+                      : "a"(UINT8_MAX)
                       : "memory");
         return ret;
     }

@@ -6,7 +6,7 @@
 #include "dev/pci/device.h"
 #include "dev/pci/structs.h"
 
-#include "dev/port.h"
+#include "dev/pio.h"
 #include "dev/printk.h"
 
 #include "lib/align.h"
@@ -93,7 +93,7 @@ seek_to_config_space(const struct pci_config_space *const config_space,
         ((uint32_t)config_space->bus << 16) |
         __PCI_CONFIG_ADDR_ENABLE;
 
-    port_out32(PORT_PCI_CONFIG_ADDRESS, address);
+    pio_write32(PIO_PORT_PCI_CONFIG_ADDRESS, address);
 }
 
 
@@ -109,11 +109,11 @@ arch_pci_read(const struct pci_device_info *const device,
     seek_to_config_space(&device->config_space, offset);
     switch (access_size) {
         case sizeof(uint8_t):
-            return port_in8(PORT_PCI_CONFIG_DATA + (offset & 0b11));
+            return pio_read8(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11));
         case sizeof(uint16_t):
-            return port_in16(PORT_PCI_CONFIG_DATA + (offset & 0b11));
+            return pio_read16(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11));
         case sizeof(uint32_t):
-            return port_in32(PORT_PCI_CONFIG_DATA + (offset & 0b11));
+            return pio_read32(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11));
     }
 
     verify_not_reached();
@@ -133,16 +133,16 @@ arch_pci_write(const struct pci_device_info *const device,
     switch (access_size) {
         case sizeof(uint8_t):
             assert(value <= UINT8_MAX);
-            port_out8(PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
+            pio_write8(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
 
             return true;
         case sizeof(uint16_t):
             assert(value <= UINT16_MAX);
-            port_out16(PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
+            pio_write16(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
 
             return true;
         case sizeof(uint32_t):
-            port_out32(PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
+            pio_write32(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
             return true;
     }
 

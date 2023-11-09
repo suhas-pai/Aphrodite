@@ -481,7 +481,7 @@ sv_to_signed(const struct string_view sv,
 #define LOOP_OVER_POSITIVE_INT(base, mod_block)                                \
     do {                                                                       \
         const char *const h_var(chars) =                                       \
-            (options.capitalize) ?                                             \
+            options.capitalize ?                                               \
                 get_alphanumeric_upper_string() :                              \
                 get_alphanumeric_lower_string();                               \
                                                                                \
@@ -530,8 +530,8 @@ unsigned_to_string_view(uint64_t number,
             break;
     }
 
-    // Subtract one because our macro below will add a null-terminator,
-    // so we want to be pointing one before the last index.
+    // Subtract one because our macro below will add a null-terminator, so we
+    // want to be pointing one before the last index.
 
     uint8_t i = final_index - 1;
     LOOP_OVER_POSITIVE_INT(base, {

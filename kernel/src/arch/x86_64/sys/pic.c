@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "asm/pause.h"
 
-#include "sys/port.h"
+#include "sys/pio.h"
 
 #define PIC1        0x20        /* IO base address for master PIC */
 #define PIC2        0xA0        /* IO base address for slave PIC */
@@ -45,10 +45,10 @@ static inline bool is_irq_in_pic_2(const uint8_t irq) {
 
 void pic_send_eoi(const uint8_t irq) {
     if (is_irq_in_pic_2(irq)) {
-        port_out8(PIC2_COMMAND, PIC_EOI);
+        pio_write8(PIC2_COMMAND, PIC_EOI);
     }
 
-    port_out8(PIC1_COMMAND, PIC_EOI);
+    pio_write8(PIC1_COMMAND, PIC_EOI);
 }
 
 /*
@@ -61,34 +61,44 @@ arguments:
 void pic_remap(const uint8_t offset1, const uint8_t offset2) {
     unsigned char a1, a2;
 
-    a1 = port_in8(PIC1_DATA);                        // save masks
-    a2 = port_in8(PIC2_DATA);
+    a1 = pio_read8(PIC1_DATA);                        // save masks
+    a2 = pio_read8(PIC2_DATA);
 
-    port_out8(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);  // starts the initialization sequence (in cascade mode)
+    // starts the initialization sequence (in cascade mode)
+    pio_write8(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     cpu_pause();
-    port_out8(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
-    cpu_pause();
-    port_out8(PIC1_DATA, offset1);                 // ICW2: Master PIC vector offset
-    cpu_pause();
-    port_out8(PIC2_DATA, offset2);                 // ICW2: Slave PIC vector offset
-    cpu_pause();
-    port_out8(PIC1_DATA, 4);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-    cpu_pause();
-    port_out8(PIC2_DATA, 2);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
+    pio_write8(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
     cpu_pause();
 
-    port_out8(PIC1_DATA, ICW4_8086);
-    cpu_pause();
-    port_out8(PIC2_DATA, ICW4_8086);
+    // ICW2: Master PIC vector offset
+    pio_write8(PIC1_DATA, offset1);
     cpu_pause();
 
-    port_out8(PIC1_DATA, a1);   // restore saved masks.
-    port_out8(PIC2_DATA, a2);
+    // ICW2: Slave PIC vector offset
+    pio_write8(PIC2_DATA, offset2);
+    cpu_pause();
+
+    // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+    pio_write8(PIC1_DATA, 4);
+    cpu_pause();
+
+    // ICW3: tell Slave PIC its cascade identity (0000 0010)
+    pio_write8(PIC2_DATA, 2);
+    cpu_pause();
+
+    pio_write8(PIC1_DATA, ICW4_8086);
+    cpu_pause();
+    pio_write8(PIC2_DATA, ICW4_8086);
+    cpu_pause();
+
+    // restore saved masks.
+    pio_write8(PIC1_DATA, a1);
+    pio_write8(PIC2_DATA, a2);
 }
 
 void pic_disable() {
-    port_out8(PIC2_DATA, 0xff);
-    port_out8(PIC1_DATA, 0xff);
+    pio_write8(PIC2_DATA, 0xff);
+    pio_write8(PIC1_DATA, 0xff);
 }
 
 void pic_mask_irq(uint8_t irq) {
@@ -100,8 +110,8 @@ void pic_mask_irq(uint8_t irq) {
         port = PIC1_DATA;
     }
 
-    const uint8_t value = port_in8(port) | (1 << irq);
-    port_out8(port, value);
+    const uint8_t value = pio_read8(port) | (1 << irq);
+    pio_write8(port, value);
 }
 
 void pic_clear_irq_mask(uint8_t irq) {
@@ -113,8 +123,8 @@ void pic_clear_irq_mask(uint8_t irq) {
         port = PIC1_DATA;
     }
 
-    const uint8_t value = port_in8(port) & ~(1 << irq);
-    port_out8(port, value);
+    const uint8_t value = pio_read8(port) & ~(1 << irq);
+    pio_write8(port, value);
 }
 
 void pic_mask_remapped_irqs() {

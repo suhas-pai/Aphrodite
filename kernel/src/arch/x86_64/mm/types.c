@@ -17,14 +17,14 @@ __hidden uint64_t PAGE_END = 0;
 
 __hidden
 struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
-    [LARGEPAGE_LEVEL_2MIB] = {
+    [LARGEPAGE_LEVEL_2MIB - 1] = {
         .order = 9,
         .largepage_order = 0,
         .level = LARGEPAGE_LEVEL_2MIB,
         .size = PAGE_SIZE_2MIB,
         .is_supported = true
     },
-    [LARGEPAGE_LEVEL_1GIB] = {
+    [LARGEPAGE_LEVEL_1GIB - 1] = {
         .order = 18,
         .largepage_order = 1,
         .level = LARGEPAGE_LEVEL_1GIB,
@@ -43,7 +43,7 @@ __optimize(3) bool pte_is_present(const pte_t pte) {
 }
 
 __optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
-    return largepage_level_info_list[level].is_supported;
+    return largepage_level_info_list[level - 1].is_supported;
 }
 
 __optimize(3) bool pte_is_large(const pte_t pte) {

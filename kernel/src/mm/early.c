@@ -114,6 +114,14 @@ __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
                 prev->avail_page_count += page_count;
                 prev->total_page_count += page_count;
 
+                struct freepages_info *const prev_prev = list_prev(prev, list);
+                if (&prev_prev->list != &g_freepage_list &&
+                    prev_prev->avail_page_count > prev->avail_page_count)
+                {
+                    list_remove(&prev->asc_list);
+                    add_to_asc_list(prev);
+                }
+
                 return;
             }
         }
@@ -437,12 +445,12 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         }
 
         struct page *const page = virt_to_page(walker.tables[walker.level - 1]);
-
         page->table.refcount.count++;
-        i += PAGE_SIZE_AT_LEVEL(walker.level);
 
         prev_level = walker.level;
         prev_was_at_end = walker.indices[prev_level - 1] == PGT_PTE_COUNT - 1;
+
+        i += PAGE_SIZE_AT_LEVEL(walker.level);
     }
 }
 

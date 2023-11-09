@@ -79,7 +79,7 @@ __optimize(3) uint32_t
 mbuffer_increment_ptr(struct mutable_buffer *const mbuffer,
                       const uint32_t bad_amt)
 {
-    return min(mbuffer_free_space(*mbuffer), bad_amt);;
+    return min(mbuffer_free_space(*mbuffer), bad_amt);
 }
 
 __optimize(3) uint32_t

@@ -42,9 +42,10 @@ endif
 COMMON_CFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
                 -Wsign-conversion -Werror -Wfloat-equal -Wredundant-decls \
                 -Wshadow -Wstrict-overflow=5 -Wundef -Wnull-dereference \
-                -funsigned-char -Werror=format-security \
-                -Isrc/arch/$(ARCH) -DBUILD_KERNEL -Wno-address-of-packed-member \
-                -fno-omit-frame-pointer -fsanitize=undefined -fms-extensions
+                -funsigned-char -Wformat=2 -Isrc/arch/$(ARCH) -DBUILD_KERNEL \
+                -Wno-address-of-packed-member -fno-omit-frame-pointer \
+                -fms-extensions -DFLANTERM_FB_SUPPORT_BPP \
+                -fsanitize=undefined -Wno-error=null-dereference
 
 ifeq ($(ARCH), riscv64)
     override COMMON_CFLAGS += -D__riscv64
@@ -52,6 +53,10 @@ endif
 
 ifeq ($(IN_QEMU), 1)
     override COMMON_CFLAGS += -DIN_QEMU
+endif
+
+ifeq ($(RELEASE), 1)
+    override COMMON_CFLAGS += -Ofast
 endif
 
 # User controllable C flags.
@@ -231,6 +236,10 @@ bin/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
 obj/%.c.o: src/%.c GNUmakefile src/limine.h src/dev/pci/vendors.h
 	mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+obj/flanterm/%.c.o: src/flanterm/%.c GNUmakefile
+	mkdir -p "$$(dirname $@)"
+	$(CC) $(CFLAGS) $(CPPFLAGS) -Ofast -c $< -o $@
 
 obj/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)

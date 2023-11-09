@@ -241,13 +241,6 @@ bool range_has_index_range(struct range range, struct range other) {
 
 __optimize(3)
 bool range_overlaps(const struct range range, const struct range other) {
-    if (range_has_loc(range, other.front)) {
-        return true;
-    }
-
-    if (range_has_loc(other, range.front)) {
-        return true;
-    }
-
-    return false;
+    return range_has_loc(range, other.front) ||
+           range_has_loc(other, range.front);
 }

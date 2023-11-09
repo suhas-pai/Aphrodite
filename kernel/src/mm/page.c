@@ -19,7 +19,9 @@ __optimize(3) void zero_page(void *page) {
     uint64_t count = PAGE_SIZE / sizeof(uint64_t);
     asm volatile ("cld;\n"
                   "rep stosq"
-                  : "+D"(page), "+c" (count) : "a"(0) : "memory");
+                  : "+D"(page), "+c"(count)
+                  : "a"(0)
+                  : "memory");
 #elif defined(__aarch64__)
     const uint64_t *const end = page + PAGE_SIZE;
     for (uint64_t *iter = page; iter != end; iter += 32) {
@@ -66,7 +68,9 @@ __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
     uint64_t qword_count = full_size / sizeof(uint64_t);
     asm volatile ("cld;\n"
                   "rep stosq"
-                  : "+D"(page), "+c" (qword_count) : "a"(0) : "memory");
+                  : "+D"(page), "+c"(qword_count)
+                  : "a"(0)
+                  : "memory");
 #elif defined(__aarch64__)
     const uint64_t *const end = page + full_size;
     for (uint64_t *iter = page; iter != end; iter += 32) {

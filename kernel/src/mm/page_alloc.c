@@ -164,8 +164,8 @@ free_range_of_pages(struct page *page,
         }
     }
 
-    // max_order in section is one plus the highest order that has
-    // at least one page in its freelist.
+    // max_order in section is one plus the highest order that has at least one
+    // page in its freelist.
 
     uint8_t highest_order = (uint8_t)order;
     if (section->max_order <= highest_order) {
@@ -175,7 +175,7 @@ free_range_of_pages(struct page *page,
     do {
         add_to_freelist_order(section, (uint8_t)order, page);
 
-        const uint64_t page_count = 1ull << order;
+        const uint64_t page_count = 1ull << (uint8_t)order;
         avail -= page_count;
 
         if (avail == 0) {
@@ -385,7 +385,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
     uint8_t locked_section_mask = 0;
 
     struct page_section *iter =
-        list_head(&zone->section_list, typeof(*iter), zone_list);;
+        list_head(&zone->section_list, typeof(*iter), zone_list);
 
     do {
         if (!spin_try_acquire_with_irq(&iter->lock, &flag)) {
@@ -623,17 +623,16 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
 struct page *
 alloc_large_page(const uint64_t alloc_flags, const pgt_level_t level) {
     struct page_zone *zone = page_zone_iterstart();
-    if (__builtin_expect(!largepage_level_info_list[level].is_supported, 0)) {
+    const struct largepage_level_info *const info =
+        &largepage_level_info_list[level - 1];
+
+    if (__builtin_expect(!info->is_supported, 0)) {
         printk(LOGLEVEL_WARN,
                "mm: alloc_large_page() allocating at level %" PRIu8 " is not "
                "supported\n",
                level);
         return NULL;
     }
-
-    struct page *page = NULL;
-    const struct largepage_level_info *const info =
-        &largepage_level_info_list[level];
 
     const uint8_t order = info->order;
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
@@ -642,6 +641,7 @@ alloc_large_page(const uint64_t alloc_flags, const pgt_level_t level) {
         return NULL;
     }
 
+    struct page *page = NULL;
     while (zone != NULL) {
         page = try_alloc_large_page_from_zone(zone, info);
         if (page != NULL) {
@@ -664,16 +664,16 @@ alloc_large_page_from_zone(struct page_zone *zone,
                            const pgt_level_t level,
                            const bool fallback)
 {
-    if (__builtin_expect(!largepage_level_info_list[level].is_supported, 0)) {
+    const struct largepage_level_info *const info =
+        &largepage_level_info_list[level - 1];
+
+    if (__builtin_expect(!info->is_supported, 0)) {
         printk(LOGLEVEL_WARN,
                "mm: alloc_large_page() allocating at level %" PRIu8 " is not "
                "supported\n",
                level);
         return NULL;
     }
-
-    const struct largepage_level_info *const info =
-        &largepage_level_info_list[level];
 
     const uint8_t order = info->order;
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
@@ -765,7 +765,7 @@ find_nearby_free_pages(struct page *const page,
             if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
                 (1ull << order) + extra >= (1ull << (order + 1)))
             {
-                take_off_freelist_to_add_later(section, order, free_head);
+                take_off_freelist_order(section, order, free_head, order);
 
                 free_page = free_head;
                 amount += extra;
@@ -782,7 +782,7 @@ find_nearby_free_pages(struct page *const page,
             if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
                 (1ull << order) + 1 >= (1ull << (order + 1)))
             {
-                take_off_freelist_to_add_later(section, order, free_head);
+                take_off_freelist_order(section, order, free_head, order);
 
                 amount += 1;
                 merged_range = true;
@@ -823,9 +823,12 @@ void free_large_page(struct page *head) {
     const int flag = spin_acquire_with_irq(&section->lock);
 
     const pgt_level_t level = head->largehead.level;
-    const uint64_t page_count = 1ull << largepage_level_info_list[level].order;
+    struct largepage_level_info *const level_info =
+        &largepage_level_info_list[level - 1];
 
+    const uint64_t page_count = 1ull << level_info->order;
     const struct page *const end = head + page_count;
+
     for (struct page *page = head; page < end;) {
         if (!ref_down(&page->largehead.page_refcount)) {
             page++;
@@ -876,9 +879,6 @@ void free_pages(struct page *const page, const uint8_t order) {
 
 __optimize(3)
 struct page *deref_page(struct page *page, struct pageop *const pageop) {
-    const enum page_state state = page_get_state(page);
-    assert(state != PAGE_STATE_LARGE_HEAD);
-
     if (ref_down(&page->used.refcount)) {
         list_add(&pageop->delayed_free, &page->used.delayed_free_list);
         return NULL;
@@ -902,7 +902,7 @@ deref_large_page(struct page *const page,
     }
 
     const struct page *const end =
-        page + (1ull << largepage_level_info_list[level].order);
+        page + (1ull << largepage_level_info_list[level - 1].order);
 
     for (struct page *iter = page; iter != end; iter++) {
         deref_page(iter, pageop);

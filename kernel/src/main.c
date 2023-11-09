@@ -8,6 +8,7 @@
 #include "asm/irqs.h"
 #include "cpu/isr.h"
 
+#include "dev/flanterm.h"
 #include "dev/init.h"
 #include "dev/printk.h"
 
@@ -22,15 +23,6 @@
 
 LIMINE_BASE_REVISION(1)
 
-// The Limine requests can be placed anywhere, but it is important that
-// the compiler does not optimise them away, so, usually, they should
-// be made volatile or equivalent.
-
-struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
-};
-
 // Halt and catch fire function.
 static void hcf(void) {
     for (;;) {
@@ -42,7 +34,7 @@ static void hcf(void) {
     }
 }
 
-void test_alloc_largepage() {
+static void test_alloc_largepage() {
     struct page *const largepage =
         alloc_large_page(__ALLOC_ZERO, LARGEPAGE_LEVEL_1GIB);
 
@@ -71,24 +63,9 @@ void _start(void) {
         hcf();
     }
 
-    // Ensure we got a framebuffer.
-    if (framebuffer_request.response == NULL
-     || framebuffer_request.response->framebuffer_count < 1)
-    {
-        hcf();
-    }
-
-    // Fetch the first framebuffer.
-    struct limine_framebuffer *const framebuffer =
-        framebuffer_request.response->framebuffers[0];
-
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
-    volatile uint32_t *const fb_ptr = framebuffer->address;
-    for (size_t i = 0; i < 100; i++) {
-        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
-    }
-
     boot_init();
+    setup_flanterm();
 
     mm_early_init();
     arch_early_init();

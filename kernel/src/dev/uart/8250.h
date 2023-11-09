@@ -6,7 +6,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "sys/port.h"
+#include "sys/pio.h"
 
 bool
 uart8250_init(port_t base,

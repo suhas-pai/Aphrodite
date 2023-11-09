@@ -13,8 +13,8 @@ uint8_t virtio_pci_read_device_status(struct virtio_device *const device) {
     return mmio_read(&device->pci.common_cfg->device_status);
 }
 
-static uint64_t
-virtio_pci_read_device_features(struct virtio_device *const device) {
+static
+uint64_t virtio_pci_read_device_features(struct virtio_device *const device) {
     mmio_write(&device->pci.common_cfg->device_feature_select, 0);
     const uint32_t lower = mmio_read(&device->pci.common_cfg->device_feature);
 

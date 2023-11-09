@@ -14,7 +14,7 @@
 #include "mm/mmio.h"
 
 #include "sys/mmio.h"
-#include "sys/port.h"
+#include "sys/pio.h"
 
 #include "structs.h"
 
@@ -243,7 +243,7 @@ pci_device_bar_read8(struct pci_device_bar_info *const bar,
     return
         bar->is_mmio ?
             mmio_read_8(bar->mmio->base + bar->index_in_mmio + offset) :
-            port_in8((port_t)(bar->port_or_phys_range.front + offset));
+            pio_read8((port_t)(bar->port_or_phys_range.front + offset));
 }
 
 __optimize(3) uint16_t
@@ -257,7 +257,7 @@ pci_device_bar_read16(struct pci_device_bar_info *const bar,
     return
         bar->is_mmio ?
             mmio_read_16(bar->mmio->base + bar->index_in_mmio + offset) :
-            port_in16((port_t)(bar->port_or_phys_range.front + offset));
+            pio_read16((port_t)(bar->port_or_phys_range.front + offset));
 }
 
 __optimize(3) uint32_t
@@ -271,7 +271,7 @@ pci_device_bar_read32(struct pci_device_bar_info *const bar,
     return
         bar->is_mmio ?
             mmio_read_32(bar->mmio->base + bar->index_in_mmio + offset) :
-            port_in32((port_t)(bar->port_or_phys_range.front + offset));
+            pio_read32((port_t)(bar->port_or_phys_range.front + offset));
 }
 
 __optimize(3) uint64_t
@@ -293,7 +293,7 @@ pci_device_bar_read64(struct pci_device_bar_info *const bar,
     return
         (bar->is_mmio) ?
             mmio_read_64(bar->mmio->base + bar->index_in_mmio + offset) :
-            port_in64((port_t)(bar->port_or_phys_range.front + offset));
+            pio_read64((port_t)(bar->port_or_phys_range.front + offset));
 #endif /* defined(__x86_64__) */
 }
 

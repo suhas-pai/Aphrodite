@@ -654,7 +654,7 @@ bitmap_has(const struct bitmap *const bitmap,
             bits_to_bytes_noround(count) / sizeof(TYPE_FOR_BIT_AMT(bit_amt));  \
                                                                                \
         if (word_count != 0) {                                                 \
-            if (!VAR_CONCAT_3(membuf_, bit_amt, _is_all)(                      \
+            if (!VAR_CONCAT_3(membuf, bit_amt, _is_all)(                      \
                     (TYPE_FOR_BIT_AMT(bit_amt) *)ptr,                          \
                     word_count,                                                \
                     value ? (TYPE_FOR_BIT_AMT(bit_amt))(~0) : 0))              \

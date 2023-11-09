@@ -6,7 +6,7 @@
 #include "dev/ps2/keyboard.h"
 #include "asm/pause.h"
 
-#include "dev/port.h"
+#include "dev/pio.h"
 #include "dev/printk.h"
 
 #include "driver.h"
@@ -15,13 +15,13 @@
 
 int16_t ps2_read_input_byte() {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
-        const uint8_t byte = port_in8(PORT_PS2_READ_STATUS);
+        const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
         if ((byte & __PS2_STATUS_REG_OUTPUT_BUFFER_FULL) == 0) {
             cpu_pause();
             continue;
         }
 
-        return port_in8(PORT_PS2_INPUT_BUFFER);
+        return pio_read8(PIO_PORT_PS2_INPUT_BUFFER);
     }
 
     return -1;
@@ -29,13 +29,13 @@ int16_t ps2_read_input_byte() {
 
 bool ps2_write(const uint16_t port, const uint8_t value) {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
-        const uint8_t byte = port_in8(PORT_PS2_READ_STATUS);
+        const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
         if (byte & __PS2_STATUS_REG_INPUT_BUFFER_FULL) {
             cpu_pause();
             continue;
         }
 
-        port_out8(port, value);
+        pio_write8(port, value);
         return true;
     }
 
@@ -43,7 +43,7 @@ bool ps2_write(const uint16_t port, const uint8_t value) {
 }
 
 bool ps2_send_command(const enum ps2_command command) {
-    return ps2_write(PORT_PS2_WRITE_CMD, command);
+    return ps2_write(PIO_PORT_PS2_WRITE_CMD, command);
 }
 
 int16_t ps2_read_config() {
@@ -59,7 +59,7 @@ bool ps2_write_config(const uint8_t value) {
         return false;
     }
 
-    if (!ps2_write(PORT_PS2_INPUT_BUFFER, value)) {
+    if (!ps2_write(PIO_PORT_PS2_INPUT_BUFFER, value)) {
         return false;
     }
 
@@ -73,7 +73,7 @@ bool send_byte_to_port(const enum ps2_port_id device, const uint8_t byte) {
         }
     }
 
-    return ps2_write(PORT_PS2_INPUT_BUFFER, byte);
+    return ps2_write(PIO_PORT_PS2_INPUT_BUFFER, byte);
 }
 
 int16_t ps2_send_to_port(const enum ps2_port_id device, const uint8_t byte) {

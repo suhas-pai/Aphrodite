@@ -1,5 +1,5 @@
 /*
- * sys/mmio.h
+ * kernel/src/sys/mmio.h
  * © suhas pai
  */
 

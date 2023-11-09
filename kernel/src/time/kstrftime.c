@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/time/kstrftime.c
+ * kernel/src/time/kstrftime.c
  * © suhas pai
  */
 

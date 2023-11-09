@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "sys/port.h"
+#include "sys/pio.h"
 
 void
 pl011_init(port_t base,

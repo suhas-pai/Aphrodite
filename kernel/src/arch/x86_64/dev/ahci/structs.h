@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "lib/macros.h"
 
-struct ahci_hba_port {
+struct ahci_spec_hba_port {
     volatile uint32_t cmd_list_base_phys_lower32; // 1K byte-aligned
     volatile uint32_t cmd_list_base_phys_upper32;
     volatile uint32_t fis_base_address_lower32; // 256-byte aligned
@@ -28,7 +28,7 @@ struct ahci_hba_port {
     volatile uint32_t vendor[4];
 };
 
-struct ahci_hba_registers {
+struct ahci_spec_hba_registers {
     volatile const uint32_t host_capabilities;
 
     volatile uint32_t global_host_control;
@@ -49,7 +49,7 @@ struct ahci_hba_registers {
     volatile uint8_t reserved[0xA0-0x2C];
     volatile uint8_t vendor_registers[0x100-0xA0];
 
-    volatile struct ahci_hba_port ports[32];
+    volatile struct ahci_spec_hba_port ports[32];
 };
 
 enum ahci_hba_interface_speed_support {
@@ -159,12 +159,12 @@ enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
         0xffffull << AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS_SHIFT
 };
 
-enum ahci_hba_port_interface_comm_ctrl {
-    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_IDLE,
-    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE,
-    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_PATRIAL,
-    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_SLUMBER = 6,
-    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_DEV_SLEEP = 8
+enum ahci_hba_pio_readterface_comm_ctrl {
+    AHCI_HBA_pio_readTERFACE_COMM_CTRL_IDLE,
+    AHCI_HBA_pio_readTERFACE_COMM_CTRL_ACTIVE,
+    AHCI_HBA_pio_readTERFACE_COMM_CTRL_PATRIAL,
+    AHCI_HBA_pio_readTERFACE_COMM_CTRL_SLUMBER = 6,
+    AHCI_HBA_pio_readTERFACE_COMM_CTRL_DEV_SLEEP = 8
 };
 
 enum ahci_hba_port_cmd_status_shifts {
@@ -211,7 +211,7 @@ enum ahci_hba_port_cmd_status_flags {
     __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL = 0b11111ull << 28,
 };
 
-enum ahci_hba_port_interrupt_enable_flags {
+enum ahci_hba_pio_readterrupt_enable_flags {
     __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE = 1ull << 0,
     __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE = 1ull << 1,
     __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE = 1ull << 2,
@@ -255,7 +255,7 @@ enum ahci_hba_port_det {
     AHCI_HBA_PORT_DET_OFFLINE_MODE
 };
 
-struct ahci_hba_prdt_entry {
+struct ahci_spec_hba_prdt_entry {
     volatile uint32_t data_base_address_lower32;
     volatile uint32_t data_base_address_upper32;
     volatile uint32_t reserved;
@@ -267,12 +267,12 @@ struct ahci_hba_prdt_entry {
 
 #define AHCI_HBA_MAX_PRDT_ENTRIES 8
 
-struct ahci_hba_command_table {
+struct ahci_spec_hba_cmd_table {
     volatile uint8_t command_fis[64];
     volatile uint8_t atapi_command[16];
     volatile uint8_t reserved[48];
 
-    volatile struct ahci_hba_prdt_entry prdt_entries[AHCI_HBA_MAX_PRDT_ENTRIES];
+    volatile struct ahci_spec_hba_prdt_entry prdt_entries[AHCI_HBA_MAX_PRDT_ENTRIES];
 };
 
 enum ahci_fis_kind {
@@ -290,7 +290,7 @@ enum ahci_fis_reg_h2d_flags {
     __AHCI_FIS_REG_H2D_IS_ATA_CMD = 1 << 7
 };
 
-struct ahci_fis_reg_h2d {
+struct ahci_spec_fis_reg_h2d {
     uint8_t fis_type;
     uint8_t flags;
 
@@ -315,7 +315,7 @@ struct ahci_fis_reg_h2d {
     uint8_t reserved_1[4];
 } __packed;
 
-struct ahci_fis_reg_d2h {
+struct ahci_spec_fis_reg_d2h {
     uint8_t fis_type;
     uint8_t pmport:4;
     uint8_t reserved:2;
@@ -342,7 +342,7 @@ struct ahci_fis_reg_d2h {
     uint8_t reserved_4[4];
 } __packed;
 
-struct ahci_fis_data {
+struct ahci_spec_fis_data {
     uint8_t fis_type;
     uint8_t pmport:4;
     uint8_t reserved:4;
@@ -351,7 +351,7 @@ struct ahci_fis_data {
     uint32_t data[1];
 } __packed;
 
-struct ahci_fis_pio_setup {
+struct ahci_spec_fis_pio_setup {
     uint8_t fis_type;
     uint8_t pmport:4;
     uint8_t reserved:1;
@@ -381,7 +381,7 @@ struct ahci_fis_pio_setup {
     uint8_t rsv4[2];
 } __packed;
 
-struct ahci_fis_dma_setup {
+struct ahci_spec_fis_dma_setup {
     uint8_t fis_type;
     uint8_t pmport:4;
     uint8_t reserved:1;
@@ -398,14 +398,14 @@ struct ahci_fis_dma_setup {
     uint32_t reserved_2;
 } __packed;
 
-struct ahci_hba_fis {
-    struct ahci_fis_dma_setup dsfis;
+struct ahci_spec_hba_fis {
+    struct ahci_spec_fis_dma_setup dma_fis;
     uint8_t pad0[4];
 
-    struct ahci_fis_pio_setup psfis;
+    struct ahci_spec_fis_pio_setup pio_fis;
     uint8_t pad1[12];
 
-    struct ahci_fis_reg_d2h rfis;
+    struct ahci_spec_fis_reg_d2h reg_d2g;
     uint8_t pad2[4];
 
     uint32_t sdbfis;
@@ -421,20 +421,21 @@ enum ahci_port_command_header_shifts {
 
 enum ahci_port_command_header_flags {
     __AHCI_PORT_CMDHDR_FIS_LENGTH = 0b11111,
+
     __AHCI_PORT_CMDHDR_ATAPI = 1 << 5,
     __AHCI_PORT_CMDHDR_WRITE = 1 << 6,
     __AHCI_PORT_CMDHDR_PREFETCHABLE = 1 << 7,
     __AHCI_PORT_CMDHDR_RESET = 1 << 8,
     __AHCI_PORT_CMDHDR_BIST = 1 << 9,
     __AHCI_PORT_CMDHDR_CLR_BUSY_ON_ROK = 1 << 10,
+
     __AHCI_PORT_CMDHDR_PORT_MULT_PORT =
         0b1111 << AHCI_PORT_CMDHDR_PORT_MULT_PORT_SHIFT,
-
     __AHCI_PORT_CMDHDR_PRDT_LENGTH =
         0xffffull << AHCI_PORT_CMDHDR_PRDT_LENGTH_SHIFT,
 };
 
-struct ahci_port_command_header {
+struct ahci_spec_port_cmd_header {
     volatile uint16_t flags;
 
     uint16_t prdt_length;

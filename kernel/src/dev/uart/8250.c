@@ -59,11 +59,11 @@ get_reg(const port_t uart8250_base,
     const uint32_t offset = num << info->reg_shift;
     switch (info->reg_width) {
         case sizeof(uint8_t):
-            return port_in8(uart8250_base + offset);
+            return pio_read8(uart8250_base + offset);
         case sizeof(uint16_t):
-            return port_in16(uart8250_base + offset);
+            return pio_read16(uart8250_base + offset);
         case sizeof(uint32_t):
-            return port_in32(uart8250_base + offset);
+            return pio_read32(uart8250_base + offset);
     }
 
     verify_not_reached();
@@ -78,13 +78,13 @@ set_reg(const port_t uart8250_base,
     const uint32_t offset = num << info->reg_shift;
     switch (info->reg_width) {
         case sizeof(uint8_t):
-            port_out8(uart8250_base + offset, val);
+            pio_write8(uart8250_base + offset, val);
             return;
         case sizeof(uint16_t):
-            port_out16(uart8250_base + offset, val);
+            pio_write16(uart8250_base + offset, val);
             return;
         case sizeof(uint32_t):
-            port_out32(uart8250_base + offset, val);
+            pio_write32(uart8250_base + offset, val);
             return;
     }
 

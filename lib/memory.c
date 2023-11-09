@@ -13,7 +13,9 @@ uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
         void *ret = buf;
         asm volatile ("cld;\n"
                       "rep stosw"
-                      : "+D"(buf), "+c" (count) : "a"(c) : "memory");
+                      : "+D"(buf), "+c"(count)
+                      : "a"(c)
+                      : "memory");
         return ret;
     }
 #endif /* defined(__x86_64__) */
@@ -33,12 +35,12 @@ uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
     if (count > 32) {
         asm volatile ("cld;\n"
                       "rep stosl"
-                      : "+D"(buf), "+c" (count) : "a"(c) : "memory");
+                      : "+D"(buf), "+c"(count)
+                      : "a"(c)
+                      : "memory");
         return ret;
     }
-#endif /* defined(__aarch64__) */
-
-#if defined(__aarch64__)
+#elif defined(__aarch64__)
     if (count >= 2) {
         do {
             asm volatile ("stp %w0, %w0, [%1]" :: "r"(c), "r"(buf));
@@ -54,10 +56,8 @@ uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
                 *buf = c;
             }
 
-            break;
+            return ret;
         } while (true);
-
-        return ret;
     }
 
     if (count == 1) {
@@ -80,12 +80,12 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
     if (count > 32) {
         asm volatile ("cld;\n"
                       "rep stosq"
-                      : "+D"(buf), "+c" (count) : "a"(c) : "memory");
+                      : "+D"(buf), "+c"(count)
+                      : "a"(c)
+                      : "memory");
         return ret;
     }
-#endif /* defined(__aarch64__) */
-
-#if defined(__aarch64__)
+#elif defined(__aarch64__)
     if (count >= 2) {
         do {
             asm volatile ("stp %0, %0, [%1]" :: "r"(c), "r"(buf));
@@ -101,10 +101,8 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
                 *buf = c;
             }
 
-            break;
+            return ret;
         } while (true);
-
-        return ret;
     }
 
     if (count == 1) {
@@ -121,7 +119,7 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
 }
 
 __optimize(3) bool
-membuf_8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
+membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
     const uint8_t *const end = buf + count;
     for (uint8_t *iter = buf; iter != end; iter++) {
         if (*iter != c) {
@@ -133,7 +131,7 @@ membuf_8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
 }
 
 __optimize(3) bool
-membuf_16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
+membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
     const uint16_t *const end = buf + count;
     for (uint16_t *iter = buf; iter != end; iter++) {
         if (*iter != c) {
@@ -145,7 +143,7 @@ membuf_16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
 }
 
 __optimize(3) bool
-membuf_32_is_all(uint32_t *const buf, const uint64_t count, const uint32_t c) {
+membuf32_is_all(uint32_t *const buf, const uint64_t count, const uint32_t c) {
     const uint32_t *const end = buf + count;
     for (uint32_t *iter = buf; iter != end; iter++) {
         if (*iter != c) {
@@ -157,7 +155,7 @@ membuf_32_is_all(uint32_t *const buf, const uint64_t count, const uint32_t c) {
 }
 
 __optimize(3) bool
-membuf_64_is_all(uint64_t *const buf, const uint64_t count, const uint64_t c) {
+membuf64_is_all(uint64_t *const buf, const uint64_t count, const uint64_t c) {
     const uint64_t *const end = buf + count;
     for (uint64_t *iter = buf; iter != end; iter++) {
         if (*iter != c) {

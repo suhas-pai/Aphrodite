@@ -740,8 +740,8 @@ parse_printf(const char *const fmt,
             }
         }
 
-        // If we're not wider than the specified width, we have to pad with
-        // either spaces or zeroes.
+        // We have to pad with either spaces or zeroes if we're not wider than
+        // the specified width,
 
         uint32_t space_pad_count = 0;
         if (is_int_specifier(curr_spec.spec)) {

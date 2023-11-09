@@ -1,5 +1,5 @@
 /*
- * sys/boot.c
+ * kernel/src/sys/boot.c
  * © suhas pai
  */
 
@@ -15,8 +15,13 @@
 #include "limine.h"
 
 // The Limine requests can be placed anywhere, but it is important that
-// the compiler does not optimise them away, so, in C, they should
-// NOT be made "static".
+// the compiler does not optimise them away, so, usually, they should
+// be made volatile or equivalent.
+
+struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
+};
 
 struct limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
@@ -58,6 +63,8 @@ struct limine_boot_time_request boot_time_request = {
     .revision = 0
 };
 
+static struct limine_framebuffer_response framebuffer_resp = {0};
+
 static struct mm_memmap mm_memmap_list[255] = {0};
 static uint8_t mm_memmap_count = 0;
 
@@ -93,6 +100,10 @@ __optimize(3) uint8_t mm_get_section_count() {
     return mm_page_section_count;
 }
 
+__optimize(3) const struct limine_framebuffer_response *boot_get_fb() {
+    return &framebuffer_resp;
+}
+
 __optimize(3) const void *boot_get_rsdp() {
     return rsdp;
 }
@@ -110,11 +121,16 @@ __optimize(3) uint64_t mm_get_full_section_mask() {
 }
 
 __optimize(3) void boot_init() {
+    // Ensure we got a framebuffer.
+    assert(framebuffer_request.response != NULL &&
+           framebuffer_request.response->framebuffer_count != 0);
+
     assert(hhdm_request.response != NULL);
     assert(kern_addr_request.response != NULL);
     assert(memmap_request.response != NULL);
     assert(paging_mode_request.response != NULL);
 
+    framebuffer_resp = *framebuffer_request.response;
     HHDM_OFFSET = hhdm_request.response->offset;
     KERNEL_BASE = kern_addr_request.response->virtual_base;
     PAGING_MODE = paging_mode_request.response->mode;
@@ -165,8 +181,7 @@ __optimize(3) void boot_init() {
                     continue;
                 }
 
-                const uint64_t prev_end = range_get_end_assert(prev_range);
-                range = range_from_loc(range, prev_end);
+                range = range_from_loc(range, range_get_end_assert(prev_range));
             }
         }
 
@@ -211,8 +226,7 @@ void boot_post_early_init() {
         dtb = dtb_request.response->dtb_ptr;
     }
 
-    if (rsdp_request.response == NULL ||
-        rsdp_request.response->address == NULL)
+    if (rsdp_request.response == NULL || rsdp_request.response->address == NULL)
     {
     #if !defined(__riscv64)
         panic("boot: acpi not found\n");
@@ -230,7 +244,7 @@ void boot_post_early_init() {
     boot_time = boot_time_request.response->boot_time;
     printk(LOGLEVEL_INFO, "boot: boot timestamp is %" PRIu64 ": ", boot_time);
 
-    struct tm tm = tm_from_stamp((uint64_t)boot_time);
+    const struct tm tm = tm_from_stamp((uint64_t)boot_time);
     printk_strftime("%c\n", &tm);
 }
 

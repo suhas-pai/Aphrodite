@@ -77,10 +77,8 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
         }                                                                      \
     } while (false)
 
-    /*
-     * `conv_buffer` has enough space to fit the max 64-bit unsigned number, and
-     * since our sv is at most 2 characters, we have enough space for a zero.
-     */
+    // `conv_buffer` has enough space to fit the max 64-bit unsigned number, and
+    // since our sv is at most 2 characters, we have enough space for a zero.
 
 #define PAD_WITH_CHAR_IF_NECESSARY(sv, ch, expected_len) \
     do {                                                                       \
@@ -174,10 +172,8 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             RECURSIVE_CALL_FOR_SPEC('Y');
             break;
 #if defined(HAVE_HPUX_EXT)
-        /*
-         * TODO: 'N' requires locale support. For now we just print out the
-         * century
-         */
+        // TODO: 'N' requires locale support. For now we just print out the
+        // century
         case 'N': // Emperor/Era name
 #endif /* defined(HAVE_HPUX_EXT) */
         case 'C': { // Year divided by 100 (Last two digits)
@@ -245,17 +241,13 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
                                          (uint16_t)tm->tm_yday);
 
             if (month == MONTH_DECEMBER && week_number == 1) {
-                /*
-                 * If we're in December, but the week-number (of the year) is 1,
-                 * then we're actually in the next year
-                 */
+                // If we're in December, but the week-number (of the year) is 1,
+                // then we're actually in the next year
 
                 year += 1;
             } else if (month == MONTH_JANUARY && week_number >= 52) {
-                /*
-                 * If we're in January, but the week-number (of the year) is 52
-                 * or higher, then we're in the previous year.
-                 */
+                // If we're in January, but the week-number (of the year) is 52
+                // or higher, then we're in the previous year.
 
                 year -= 1;
             }
@@ -306,10 +298,8 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             break;
         }
         case 'j': { // Day of the year
-            /*
-             * Add one since tm_yday is days since january 1st, while day of the
-             * year is expected to start at 1.
-             */
+            // Add one since tm_yday is days since january 1st, while day of the
+            // year is expected to start at 1.
 
             struct string_view sv =
                 unsigned_to_string_view((uint16_t)tm->tm_yday + 1,

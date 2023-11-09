@@ -1,5 +1,5 @@
 /*
- * sys/stdlib.c
+ * kernel/src/sys/stdlib.c
  * © suhas pai
  */
 
@@ -247,9 +247,8 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     if (src > dst) {
     #if defined(__x86_64__)
         if (n >= REP_MOVSB_MIN) {
-            asm volatile ("std;"
+            asm volatile ("cld;"
                           "rep movsb;"
-                          "cld"
                           :: "D"(dst), "S"(src), "c"(n) : "memory");
             return ret;
         }
@@ -317,7 +316,11 @@ __optimize(3) void *memset(void *dst, const int val, unsigned long n) {
     void *ret = dst;
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
-        asm volatile ("rep stosb" :: "D"(dst), "al"(val), "c"(n) : "memory");
+        asm volatile ("cld;"
+                      "rep stosb"
+                      : "+D"(dst), "+c"(n)
+                      : "a"(val)
+                      : "memory");
         return ret;
     }
 #else
@@ -378,9 +381,11 @@ void *memchr(const void *const ptr, const int ch, const size_t count) {
 __optimize(3) void bzero(void *dst, unsigned long n) {
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
-        asm volatile ("cld;\n"
+        asm volatile ("cld;"
                       "rep stosb"
-                      : "+D"(dst), "+c" (n) : "a"(0) : "memory");
+                      : "+D"(dst), "+c"(n)
+                      : "a"(0)
+                      : "memory");
         return;
     }
 #elif defined(__aarch64__)

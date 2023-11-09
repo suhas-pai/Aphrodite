@@ -876,7 +876,7 @@ pgmap_at(struct pagemap *const pagemap,
         return false;
     }
 
-    struct range virt_range = RANGE_INIT(virt_addr, phys_range.size);
+    const struct range virt_range = RANGE_INIT(virt_addr, phys_range.size);
     if (__builtin_expect(range_overflows(virt_range), 0)) {
         printk(LOGLEVEL_WARN,
                "pgmap_at(): virt-range goes beyond end of address-space\n");
