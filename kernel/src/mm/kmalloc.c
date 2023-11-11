@@ -45,7 +45,7 @@ void kmalloc_init() {
 
 __optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
 void *kmalloc(const uint32_t size) {
-    assert_msg(__builtin_expect(kmalloc_is_initialized, 1),
+    assert_msg(kmalloc_is_initialized,
                "mm: kmalloc() called before kmalloc_init()");
 
     if (__builtin_expect(size == 0, 0)) {
@@ -72,7 +72,7 @@ void *kmalloc(const uint32_t size) {
 
 __optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
 void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
-    assert_msg(__builtin_expect(kmalloc_is_initialized, 1),
+    assert_msg(kmalloc_is_initialized,
                "mm: kmalloc_size() called before kmalloc_init()");
 
     if (__builtin_expect(size == 0, 0)) {
@@ -104,7 +104,7 @@ void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
 }
 
 __optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
-    assert_msg(__builtin_expect(kmalloc_is_initialized, 1),
+    assert_msg(kmalloc_is_initialized,
                "mm: krealloc() called before kmalloc_init()");
 
     // Allow buffer=NULL to call kmalloc().
@@ -117,10 +117,10 @@ __optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
     }
 
     if (__builtin_expect(size == 0, 0)) {
+        kfree(buffer);
         printk(LOGLEVEL_WARN,
                "mm: krealloc(): got size=0, use kfree() instead\n");
 
-        kfree(buffer);
         return NULL;
     }
 
@@ -141,7 +141,7 @@ __optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
 }
 
 __optimize(3) void kfree(void *const buffer) {
-    assert_msg(__builtin_expect(kmalloc_is_initialized, 1),
+    assert_msg(kmalloc_is_initialized,
                "mm: kfree() called before kmalloc_init()");
     slab_free(buffer);
 }

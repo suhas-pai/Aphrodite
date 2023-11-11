@@ -617,6 +617,7 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
         }
 
         if (__builtin_expect(level != walker->top_level, 1)) {
+            table = walker->tables[level];
             pte_write(&table[walker->indices[level]], /*value=*/0);
         }
 

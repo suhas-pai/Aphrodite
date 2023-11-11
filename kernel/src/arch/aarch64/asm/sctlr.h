@@ -703,22 +703,22 @@ enum sctlr_flags {
 
 __optimize(3) static inline uint64_t read_sctlr_el0() {
     uint64_t result = 0;
-    asm volatile("mrs %0, sctlr_el0" : "=r"(result));
+    asm volatile ("mrs %0, sctlr_el0" : "=r"(result));
 
     return result;
 }
 
 __optimize(3) static inline uint64_t read_sctlr_el1() {
     uint64_t result = 0;
-    asm volatile("mrs %0, sctlr_el1" : "=r"(result));
+    asm volatile ("mrs %0, sctlr_el1" : "=r"(result));
 
     return result;
 }
 
 __optimize(3) static inline void write_sctlr_el0(const uint64_t value) {
-    asm volatile("msr sctlr_el0, %0" :: "r"(value));
+    asm volatile ("msr sctlr_el0, %0" :: "r"(value));
 }
 
 __optimize(3) static inline void write_sctlr_el1(const uint64_t value) {
-    asm volatile("msr sctlr_el1, %0" :: "r"(value));
+    asm volatile ("msr sctlr_el1, %0" :: "r"(value));
 }

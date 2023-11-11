@@ -60,10 +60,8 @@ get_range_of_lsb_zero_bits(const uint64_t number,
                            const uint64_t start_index,
                            const uint64_t end_index)
 {
-    /*
-     * We can avoid extra checks/branches by bitwise inversing the number and
-     * finding one bits instead.
-     */
+    // We can avoid extra checks/branches by bitwise inversing the number and
+    // finding one bits instead.
 
     return get_range_of_lsb_one_bits(~number, start_index, end_index);
 }

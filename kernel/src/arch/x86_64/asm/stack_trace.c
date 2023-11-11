@@ -8,7 +8,9 @@
 
 struct stack_trace *stacktrace_top() {
     struct stack_trace *stk = NULL;
-    asm volatile ("mov %%rbp, %0" : "=r"(stk) ::);
+    asm volatile ("mov %%rbp, %0"
+                  : "=r"(stk)
+                  :: "memory");
 
     return stk;
 }

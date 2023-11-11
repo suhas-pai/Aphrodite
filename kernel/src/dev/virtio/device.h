@@ -9,7 +9,6 @@
 #include "mm/mmio.h"
 
 #include "structs.h"
-#include "transport.h"
 
 struct virtio_device_shmem_region {
     struct mmio_region *mmio;
@@ -38,8 +37,6 @@ struct virtio_device {
         } pci;
     };
 
-    struct virtio_transport_ops ops;
-
     // Array of struct virtio_device_shmem_region
     struct array shmem_regions;
 
@@ -54,10 +51,12 @@ struct virtio_device {
     } pci_offsets;
 
     bool is_transitional : 1;
-    enum virtio_device_kind kind;
+    bool is_pci : 1;
+
+    enum virtio_device_kind kind : 6;
 };
 
-#define VIRTIO_DEVICE_INIT(name) \
+#define VIRTIO_DEVICE_INIT(name, is_pci_) \
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
         .pci.pci_device = NULL, \
@@ -65,7 +64,6 @@ struct virtio_device {
         .pci.device_cfg = RANGE_EMPTY(), \
         .pci.notify_queue_select = NULL, \
         .pci.pci_cfg = NULL, \
-        .ops = VIRTIO_TRANSPORT_OPS_INIT(), \
         .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
         .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
         .queue_list = NULL, \
@@ -73,5 +71,6 @@ struct virtio_device {
         .pci_offsets.pci_cfg = 0, \
         .pci_offsets.isr_cfg = 0, \
         .is_transitional = false, \
+        .is_pci = (is_pci_), \
         .kind = VIRTIO_DEVICE_KIND_INVALID \
     })

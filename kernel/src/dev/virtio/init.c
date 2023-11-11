@@ -17,6 +17,8 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
+#include "transport.h"
+
 static struct list g_device_list = LIST_INIT(g_device_list);
 static uint64_t g_device_count = 0;
 
@@ -267,12 +269,12 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
         return;
     }
 
-    struct virtio_device virt_device = VIRTIO_DEVICE_INIT(virt_device);
+    struct virtio_device virt_device;
 
     virt_device.kind = device_kind;
     virt_device.is_transitional = is_trans;
     virt_device.pci.pci_device = pci_device;
-    virt_device.ops = virtio_transport_ops_for_pci();
+    virt_device.is_pci = true;
 
     pci_device_enable_privl(pci_device, __PCI_DEVICE_PRIVL_BUS_MASTER);
 
@@ -516,10 +518,11 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
     }
 
 #undef pci_read_virtio_cap_field
-    virtio_pci_init(&virt_device);
-
-    list_add(&g_device_list, &virt_device.list);
-    g_device_count++;
+    struct virtio_device *const device = virtio_pci_init(&virt_device);
+    if (device != NULL) {
+        list_add(&g_device_list, &device->list);
+        g_device_count++;
+    }
 }
 
 static struct pci_driver pci_driver = {

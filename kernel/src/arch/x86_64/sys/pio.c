@@ -9,11 +9,10 @@
 
 __optimize(3) uint8_t pio_read8(const port_t port) {
     uint8_t result = 0;
-    asm volatile (
-        "in %1, %0\n\t"
-        : "=a" (result)
-        : "Nd" (port)
-        : "memory");
+    asm volatile ("in %1, %0\n\t"
+                  : "=a" (result)
+                  : "Nd" (port)
+                  : "memory");
 
     return result;
 }

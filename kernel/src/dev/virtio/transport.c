@@ -8,12 +8,10 @@
 #include "device.h"
 #include "transport.h"
 
-static
 uint8_t virtio_pci_read_device_status(struct virtio_device *const device) {
     return mmio_read(&device->pci.common_cfg->device_status);
 }
 
-static
 uint64_t virtio_pci_read_device_features(struct virtio_device *const device) {
     mmio_write(&device->pci.common_cfg->device_feature_select, 0);
     const uint32_t lower = mmio_read(&device->pci.common_cfg->device_feature);
@@ -24,7 +22,7 @@ uint64_t virtio_pci_read_device_features(struct virtio_device *const device) {
     return ((uint64_t)upper << 32 | lower);
 }
 
-static void
+void
 virtio_pci_write_driver_features(struct virtio_device *const device,
                                  const uint64_t value)
 {
@@ -35,14 +33,14 @@ virtio_pci_write_driver_features(struct virtio_device *const device,
     mmio_write(&device->pci.common_cfg->driver_feature, value >> 32);
 }
 
-static void
+void
 virtio_pci_write_device_status(struct virtio_device *const device,
                                const uint8_t status)
 {
     mmio_write(&device->pci.common_cfg->device_status, status);
 }
 
-static void
+void
 virtio_pci_read_device_info(struct virtio_device *const device,
                             const uint16_t offset,
                             const uint8_t size,
@@ -71,7 +69,7 @@ virtio_pci_read_device_info(struct virtio_device *const device,
     verify_not_reached();
 }
 
-static void
+void
 virtio_pci_write_device_info(struct virtio_device *const device,
                              const uint16_t offset,
                              const uint8_t size,
@@ -101,18 +99,18 @@ virtio_pci_write_device_info(struct virtio_device *const device,
 }
 
 void
-virto_pci_select_queue(struct virtio_device *const device,
+virtio_pci_select_queue(struct virtio_device *const device,
                        const uint16_t queue)
 {
     mmio_write(&device->pci.common_cfg->queue_select, le_to_cpu(queue));
 }
 
-uint16_t virto_pci_selected_queue_max_size(struct virtio_device *const device) {
+uint16_t virtio_pci_selected_queue_max_size(struct virtio_device *const device) {
     return le_to_cpu(mmio_read(&device->pci.common_cfg->queue_size));
 }
 
 void
-virto_pci_set_selected_queue_size(struct virtio_device *const device,
+virtio_pci_set_selected_queue_size(struct virtio_device *const device,
                                   const uint16_t size)
 {
     mmio_write(&device->pci.common_cfg->queue_size, cpu_to_le(size));
@@ -151,32 +149,131 @@ virtio_pci_set_selected_queue_device_phys(struct virtio_device *const device,
     mmio_write(&device->pci.common_cfg->queue_device, cpu_to_le(phys));
 }
 
-struct virtio_transport_ops virtio_transport_ops_for_mmio() {
+uint8_t virtio_mmio_read_device_status(struct virtio_device *const device) {
+    (void)device;
     verify_not_reached();
 }
 
-struct virtio_transport_ops virtio_transport_ops_for_pci() {
-    return (struct virtio_transport_ops){
-        .read_device_status = virtio_pci_read_device_status,
-        .read_device_features = virtio_pci_read_device_features,
+uint64_t virtio_mmio_read_device_features(struct virtio_device *const device) {
+    (void)device;
+    verify_not_reached();
+}
 
-        .write_device_status = virtio_pci_write_device_status,
-        .write_driver_features = virtio_pci_write_driver_features,
+void
+virtio_mmio_write_driver_features(struct virtio_device *const device,
+                                  const uint64_t value)
+{
+    (void)device;
+    (void)value;
 
-        .read_device_info = virtio_pci_read_device_info,
-        .write_device_info = virtio_pci_write_device_info,
+    verify_not_reached();
+}
 
-        .select_queue = virto_pci_select_queue,
-        .selected_queue_max_size = virto_pci_selected_queue_max_size,
-        .set_selected_queue_size = virto_pci_set_selected_queue_size,
+void
+virtio_mmio_write_device_status(struct virtio_device *const device,
+                                const uint8_t status)
+{
+    (void)device;
+    (void)status;
 
-        .notify_queue = virtio_pci_notify_queue,
-        .enable_selected_queue = virtio_pci_enable_selected_queue,
+    verify_not_reached();
+}
 
-        .set_selected_queue_desc_phys = virtio_pci_set_selected_queue_desc_phys,
-        .set_selected_queue_driver_phys =
-            virtio_pci_set_selected_queue_driver_phys,
-        .set_selected_queue_device_phys =
-            virtio_pci_set_selected_queue_device_phys
-    };
+void
+virtio_mmio_read_device_info(struct virtio_device *const device,
+                             const uint16_t offset,
+                             const uint8_t size,
+                             void *const buf)
+{
+    (void)device;
+    (void)offset;
+    (void)size;
+    (void)buf;
+
+    verify_not_reached();
+}
+
+void
+virtio_mmio_write_device_info(struct virtio_device *const device,
+                              const uint16_t offset,
+                              const uint8_t size,
+                              const void *const buf)
+{
+    (void)device;
+    (void)offset;
+    (void)size;
+    (void)buf;
+
+    verify_not_reached();
+}
+
+void
+virtio_mmio_select_queue(struct virtio_device *const device,
+                         const uint16_t queue)
+{
+    (void)device;
+    (void)queue;
+
+    verify_not_reached();
+}
+
+uint16_t
+virtio_mmio_selected_queue_max_size(struct virtio_device *const device) {
+    (void)device;
+    verify_not_reached();
+}
+
+void
+virtio_mmio_set_selected_queue_size(struct virtio_device *const device,
+                                    const uint16_t size)
+{
+    (void)device;
+    (void)size;
+
+    verify_not_reached();
+}
+
+void
+virtio_mmio_notify_queue(struct virtio_device *const device,
+                         const uint16_t index)
+{
+    (void)device;
+    (void)index;
+
+    verify_not_reached();
+}
+
+void virtio_mmio_enable_selected_queue(struct virtio_device *const device) {
+    (void)device;
+    verify_not_reached();
+}
+
+void
+virtio_mmio_set_selected_queue_desc_phys(struct virtio_device *const device,
+                                         const uint64_t phys)
+{
+    (void)device;
+    (void)phys;
+
+    verify_not_reached();
+}
+
+void
+virtio_mmio_set_selected_queue_driver_phys(struct virtio_device *const device,
+                                           const uint64_t phys)
+{
+    (void)device;
+    (void)phys;
+
+    verify_not_reached();
+}
+
+void
+virtio_mmio_set_selected_queue_device_phys(struct virtio_device *const device,
+                                           const uint64_t phys)
+{
+    (void)device;
+    (void)phys;
+
+    verify_not_reached();
 }

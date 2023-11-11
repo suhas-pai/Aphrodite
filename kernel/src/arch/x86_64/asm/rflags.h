@@ -39,13 +39,13 @@ enum rflags {
 
 __optimize(3) static inline uint64_t read_rflags() {
     uint64_t rflags = 0;
-    asm volatile("pushfq;"
-                 "popq %0" : "=r" (rflags) : : "memory");
+    asm volatile ("pushfq;"
+                  "popq %0" : "=r" (rflags) : : "memory");
 
     return rflags;
 }
 
 __optimize(3) static inline void write_rflags(const uint64_t rflags) {
-    asm volatile("push %0;"
-                 "popfq" :: "r" (rflags) : "memory");
+    asm volatile ("push %0;"
+                  "popfq" :: "r" (rflags) : "memory");
 }

@@ -10,151 +10,148 @@
 #include "macros.h"
 
 enum desc {
-    ALPHA_NUM = 1 << 0,
+    __ALPHA_LOWER = 1 << 0,
+    __ALPHA_UPPER = 1 << 1,
 
-    ALPHA_LOWER = 1 << 1,
-    ALPHA_UPPER = 1 << 2,
+    __CNTRL = 1 << 2,
+    __DIGIT = 1 << 3,
+    __GRAPH = 1 << 4,
+    __PRINT = 1 << 5,
+    __PUNCT = 1 << 6,
+    __SPACE = 1 << 7,
 
-    ALPHA = 1 << 3,
-    CNTRL = 1 << 4,
-    DIGIT = 1 << 5,
-    GRAPH = 1 << 6,
-    PRINT = 1 << 7,
-    PUNCT = 1 << 8,
-    SPACE = 1 << 9,
-
-    HEX_DIGIT = 1 << 10
+    __HEX_DIGIT = 1 << 8
 };
 
 static const uint16_t ctype_array[128] = {
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL | SPACE,
-    CNTRL | SPACE,
-    CNTRL | SPACE,
-    CNTRL | SPACE,
-    CNTRL | SPACE,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    CNTRL,
-    PRINT | SPACE,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    ALPHA_NUM | DIGIT | GRAPH | PRINT | HEX_DIGIT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    ALPHA_NUM | ALPHA | GRAPH | PRINT | ALPHA_UPPER,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT | HEX_DIGIT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    ALPHA_NUM | ALPHA | GRAPH | ALPHA_LOWER | PRINT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    GRAPH | PRINT | PUNCT,
-    CNTRL
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL | __SPACE,
+    __CNTRL | __SPACE,
+    __CNTRL | __SPACE,
+    __CNTRL | __SPACE,
+    __CNTRL | __SPACE,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __CNTRL,
+    __PRINT | __SPACE,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __DIGIT | __GRAPH | __PRINT | __HEX_DIGIT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __ALPHA_UPPER | __HEX_DIGIT,
+    __GRAPH | __PRINT | __ALPHA_UPPER | __HEX_DIGIT,
+    __GRAPH | __PRINT | __ALPHA_UPPER | __HEX_DIGIT,
+    __GRAPH | __PRINT | __ALPHA_UPPER | __HEX_DIGIT,
+    __GRAPH | __PRINT | __ALPHA_UPPER | __HEX_DIGIT,
+    __GRAPH | __PRINT | __ALPHA_UPPER | __HEX_DIGIT,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __ALPHA_UPPER,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __ALPHA_LOWER | __PRINT | __HEX_DIGIT,
+    __GRAPH | __ALPHA_LOWER | __PRINT | __HEX_DIGIT,
+    __GRAPH | __ALPHA_LOWER | __PRINT | __HEX_DIGIT,
+    __GRAPH | __ALPHA_LOWER | __PRINT | __HEX_DIGIT,
+    __GRAPH | __ALPHA_LOWER | __PRINT | __HEX_DIGIT,
+    __GRAPH | __ALPHA_LOWER | __PRINT | __HEX_DIGIT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __ALPHA_LOWER | __PRINT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __GRAPH | __PRINT | __PUNCT,
+    __CNTRL
 };
 
 __optimize(3) static inline bool is_ascii(const C_TYPE c) {
@@ -171,7 +168,8 @@ __optimize(3) int isalnum(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & ALPHA_NUM) ? 1 : 0;
+    const uint16_t mask = __ALPHA_LOWER | __ALPHA_UPPER | __DIGIT;
+    return (ctype_array[(int)c] & mask) ? 1 : 0;
 }
 
 __optimize(3) int isalpha(const C_TYPE c) {
@@ -179,7 +177,7 @@ __optimize(3) int isalpha(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & ALPHA) ? 1 : 0;
+    return (ctype_array[(int)c] & (__ALPHA_LOWER | __ALPHA_UPPER)) ? 1 : 0;
 }
 
 __optimize(3) int iscntrl(const C_TYPE c) {
@@ -187,7 +185,7 @@ __optimize(3) int iscntrl(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & CNTRL) ? 1 : 0;
+    return (ctype_array[(int)c] & __CNTRL) ? 1 : 0;
 }
 
 __optimize(3) int isdigit(const C_TYPE c) {
@@ -195,7 +193,7 @@ __optimize(3) int isdigit(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & DIGIT) ? 1 : 0;
+    return (ctype_array[(int)c] & __DIGIT) ? 1 : 0;
 }
 
 __optimize(3) int isgraph(const C_TYPE c) {
@@ -203,7 +201,7 @@ __optimize(3) int isgraph(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & GRAPH) ? 1 : 0;
+    return (ctype_array[(int)c] & __GRAPH) ? 1 : 0;
 }
 
 __optimize(3) int islower(const C_TYPE c) {
@@ -211,7 +209,7 @@ __optimize(3) int islower(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & ALPHA_LOWER) ? 1 : 0;
+    return (ctype_array[(int)c] & __ALPHA_LOWER) ? 1 : 0;
 }
 
 __optimize(3) int isprint(const C_TYPE c) {
@@ -219,7 +217,7 @@ __optimize(3) int isprint(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & PRINT) ? 1 : 0;
+    return (ctype_array[(int)c] & __PRINT) ? 1 : 0;
 }
 
 __optimize(3) int ispunct(const C_TYPE c) {
@@ -227,7 +225,7 @@ __optimize(3) int ispunct(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & PUNCT) ? 1 : 0;
+    return (ctype_array[(int)c] & __PUNCT) ? 1 : 0;
 }
 
 __optimize(3) int isspace(const C_TYPE c) {
@@ -235,7 +233,7 @@ __optimize(3) int isspace(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & SPACE) ? 1 : 0;
+    return (ctype_array[(int)c] & __SPACE) ? 1 : 0;
 }
 
 __optimize(3) int isupper(const C_TYPE c) {
@@ -243,7 +241,7 @@ __optimize(3) int isupper(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & ALPHA_UPPER) ? 1 : 0;
+    return (ctype_array[(int)c] & __ALPHA_UPPER) ? 1 : 0;
 }
 
 __optimize(3) int isxdigit(const C_TYPE c) {
@@ -251,7 +249,7 @@ __optimize(3) int isxdigit(const C_TYPE c) {
         return 0;
     }
 
-    return (ctype_array[(int)c] & HEX_DIGIT) ? 1 : 0;
+    return (ctype_array[(int)c] & __HEX_DIGIT) ? 1 : 0;
 }
 
 __optimize(3) int tolower(const C_TYPE c) {

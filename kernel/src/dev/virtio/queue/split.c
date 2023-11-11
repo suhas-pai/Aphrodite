@@ -6,6 +6,7 @@
 #include "dev/printk.h"
 #include "mm/page_alloc.h"
 
+#include "../transport.h"
 #include "split.h"
 
 bool
@@ -20,17 +21,17 @@ virtio_split_queue_init(struct virtio_device *const device,
 
     _Static_assert(
         sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT <= (PAGE_SIZE << 1),
-        "virto-queue: desc_pages allocation order needs to be increased");
+        "virtio-queue: desc_pages allocation order needs to be increased");
 
     _Static_assert(
         sizeof(uint16_t) * VIRTQ_MAX_DESC_COUNT <= PAGE_SIZE,
-        "virto-queue: avail_pages allocation order needs to be increased");
+        "virtio-queue: avail_pages allocation order needs to be increased");
 
     _Static_assert(
         (sizeof(uint16_t) +
             (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))
                 <= (PAGE_SIZE << 1),
-        "virto-queue: used_pages allocation order needs to be increased");
+        "virtio-queue: used_pages allocation order needs to be increased");
 
     // The max possible size of the descriptor list is actually 8192 bytes.
     struct page *desc_pages = NULL;

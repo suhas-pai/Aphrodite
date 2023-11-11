@@ -1051,7 +1051,7 @@ pgunmap_at(struct pagemap *const pagemap,
             ptwalker_deref_from_level(&walker, walker.level, &pageop);
 
             if (pte_is_dirty(entry)) {
-                page_set_flag(pte_to_page(entry), PAGE_IS_DIRTY);
+                page_set_flag(pte_to_page(entry), __PAGE_IS_DIRTY);
             }
 
             const uint64_t map_size = virt_range.size - offset;

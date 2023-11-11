@@ -97,7 +97,7 @@ _Static_assert(sizeof(struct page) == SIZEOF_STRUCTPAGE,
                "SIZEOF_STRUCTPAGE is incorrect");
 
 enum struct_page_flags {
-    PAGE_IS_DIRTY = 1 << 0,
+    __PAGE_IS_DIRTY = 1 << 0,
 };
 
 uint32_t page_get_flags(const struct page *page);

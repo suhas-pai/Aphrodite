@@ -343,7 +343,7 @@ gic_dist_add_msi(const struct acpi_madt_entry_gic_msi_frame *const frame) {
 }
 
 __optimize(3) const struct gic_distributor *get_gic_dist() {
-    assert_msg(__builtin_expect(g_dist_initialized, 1),
+    assert_msg(g_dist_initialized,
                "gic: get_gic_dist() called before gic_dist_init()");
     return &g_dist;
 }

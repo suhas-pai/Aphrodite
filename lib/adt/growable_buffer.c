@@ -65,8 +65,8 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
     // Avoid using realloc() here because by using malloc_size() we know that
     // we've used up all memory that was available to us.
 
-    uint32_t realloc_size = check_add_assert(gbuffer_capacity(*gb), add);
-    void *const new_alloc = malloc_size(realloc_size, &realloc_size);
+    uint32_t new_size = check_add_assert(gbuffer_capacity(*gb), add);
+    void *const new_alloc = malloc_size(new_size, &new_size);
 
     if (gb->is_alloc) {
         memcpy(new_alloc, gb->begin, gbuffer_used_size(*gb));
@@ -76,7 +76,7 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
     }
 
     gb->begin = new_alloc;
-    gb->end = new_alloc + realloc_size;
+    gb->end = new_alloc + new_size;
 
     return true;
 }

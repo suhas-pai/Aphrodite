@@ -618,7 +618,7 @@ bitmap_has(const struct bitmap *const bitmap,
 
     uint64_t count = range.size;
 
-    const uint8_t first_byte_value_bits = value ? UINT8_MAX : 0;
+    const uint8_t single_byte_value_bits = value ? UINT8_MAX : 0;
     const uint64_t first_byte_bit_index = range.front % sizeof_bits(uint8_t);
 
     if (first_byte_bit_index != 0) {
@@ -629,7 +629,7 @@ bitmap_has(const struct bitmap *const bitmap,
         const uint8_t first_byte_bits =
             first_byte_shifted & mask_for_n_bits(first_byte_bits_count);
         const uint8_t first_byte_expected =
-            first_byte_value_bits & mask_for_n_bits(first_byte_bits_count);
+            single_byte_value_bits & mask_for_n_bits(first_byte_bits_count);
 
         if (first_byte_bits != first_byte_expected) {
             return false;
@@ -643,9 +643,7 @@ bitmap_has(const struct bitmap *const bitmap,
         ptr++;
     }
 
-    /*
-     * Stage 2: Check entire words if our n >= bit_sizeof(word-type)
-     */
+    // Stage 2: Check entire words if our n >= bit_sizeof(word-type)
 
 #define TYPE_FOR_BIT_AMT(bit_amount) VAR_CONCAT_3(uint, bit_amount, _t)
 #define CHECK_MEMBUF_ALL_BITS_OF_VALUE(bit_amt)                                \
@@ -683,7 +681,7 @@ bitmap_has(const struct bitmap *const bitmap,
 
     const uint8_t last_byte_bits = *(uint8_t *)ptr & mask_for_n_bits(count);
     const uint8_t last_byte_expected =
-        first_byte_value_bits & mask_for_n_bits(count);
+        single_byte_value_bits & mask_for_n_bits(count);
 
     return (last_byte_bits == last_byte_expected);
 }
@@ -717,10 +715,8 @@ bitmap_set_range(struct bitmap *const bitmap,
     void *ptr = bitmap->gbuffer.begin + bits_to_bytes_noround(bit_index);
     uint64_t bits_left = range.size;
 
-    /*
-     * Only manually set first-byte if bit_index isn't zero, otherwise depend on
-     * more performant memset().
-     */
+    // Only manually set first-byte if bit_index isn't zero, otherwise depend on
+    // more performant memset().
 
     const uint8_t first_byte_bit_index = bit_index % sizeof_bits(uint8_t);
     if (first_byte_bit_index != 0) {

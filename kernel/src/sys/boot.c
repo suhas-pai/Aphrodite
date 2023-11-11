@@ -18,47 +18,47 @@
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent.
 
-struct limine_framebuffer_request framebuffer_request = {
+static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0
 };
 
-struct limine_hhdm_request hhdm_request = {
+static volatile struct limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-struct limine_kernel_address_request kern_addr_request = {
+static volatile struct limine_kernel_address_request kern_addr_request = {
     .id = LIMINE_KERNEL_ADDRESS_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-struct limine_memmap_request memmap_request = {
+static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-struct limine_paging_mode_request paging_mode_request = {
+static volatile struct limine_paging_mode_request paging_mode_request = {
     .id = LIMINE_PAGING_MODE_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-struct limine_rsdp_request rsdp_request = {
+static volatile struct limine_rsdp_request rsdp_request = {
     .id = LIMINE_RSDP_REQUEST,
     .revision = 0
 };
 
-struct limine_dtb_request dtb_request = {
+static volatile struct limine_dtb_request dtb_request = {
     .id = LIMINE_DTB_REQUEST,
     .revision = 0,
     .response = NULL
 };
 
-struct limine_boot_time_request boot_time_request = {
+static volatile struct limine_boot_time_request boot_time_request = {
     .id = LIMINE_BOOT_TIME_REQUEST,
     .revision = 0
 };
@@ -120,17 +120,16 @@ __optimize(3) uint64_t mm_get_full_section_mask() {
     return (1ull << mm_page_section_count) - 1;
 }
 
-__optimize(3) void boot_init() {
-    // Ensure we got a framebuffer.
-    assert(framebuffer_request.response != NULL &&
-           framebuffer_request.response->framebuffer_count != 0);
-
+void boot_init() {
     assert(hhdm_request.response != NULL);
     assert(kern_addr_request.response != NULL);
     assert(memmap_request.response != NULL);
     assert(paging_mode_request.response != NULL);
 
-    framebuffer_resp = *framebuffer_request.response;
+    if (framebuffer_request.response != NULL) {
+        framebuffer_resp = *framebuffer_request.response;
+    }
+
     HHDM_OFFSET = hhdm_request.response->offset;
     KERNEL_BASE = kern_addr_request.response->virtual_base;
     PAGING_MODE = paging_mode_request.response->mode;

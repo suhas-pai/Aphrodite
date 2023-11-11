@@ -152,7 +152,7 @@ __optimize(3) void lapic_eoi() {
     if (get_acpi_info()->using_x2apic) {
         lapic_write(X2APIC_LAPIC_REG_EOI, 0);
     } else if (__builtin_expect(lapic_regs != NULL, 1)) {
-        mmio_write(&lapic_regs->eoi, 0);
+        mmio_write(&lapic_regs->eoi, /*value=*/0);
     }
 }
 

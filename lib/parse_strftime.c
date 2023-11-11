@@ -136,7 +136,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             break;
         }
         case 'b':
-        case 'h': { // weekday name abbreviated
+        case 'h': { // month name abbreviated
             const enum month month = tm_mon_to_month(tm->tm_mon);
             if (month_is_valid(month)) {
                 CALL_CALLBACK(GET_SV_FROM_FUNC(month_to_sv_abbrev, month));
@@ -146,7 +146,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
 
             break;
         }
-        case 'B': { // Full Month name
+        case 'B': { // Full month name
             const enum month month = tm_mon_to_month(tm->tm_mon);
             if (month_is_valid(month)) {
                 CALL_CALLBACK(GET_SV_FROM_FUNC(month_to_sv, month));
@@ -233,6 +233,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
         case 'G': { // ISO 8601 Week-based year
             const enum month month = tm_mon_to_month(tm->tm_mon);
             uint64_t year = tm_year_to_year(tm->tm_year);
+
             const uint8_t week_number =
                 iso_8601_get_week_number((enum weekday)tm->tm_wday,
                                          month,

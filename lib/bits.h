@@ -13,7 +13,7 @@
         (bad_number) >> (start_index);                            \
     uint8_t __result__ = 0;                                       \
     if (__number__ == 0) {                                        \
-        __result__ = (sizeof_bits(__number__) - (start_index));   \
+        __result__ = sizeof_bits(__number__) - (start_index);     \
     } else {                                                      \
         __result__ =                                              \
             sizeof(__number__) >= 8 ?                             \

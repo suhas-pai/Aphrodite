@@ -9,5 +9,7 @@
 #include "lib/macros.h"
 
 __optimize(3) static inline void invlpg(const uint64_t addr) {
-    asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
+    asm volatile ("invlpg (%0)"
+                  :: "r"(addr)
+                  : "memory");
 }

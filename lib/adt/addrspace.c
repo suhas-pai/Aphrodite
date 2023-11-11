@@ -292,6 +292,7 @@ __optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
         struct addrspace_node *const prev =
             addrspace_node_prev(addrspace_node_of(parent));
 
+        assert(prev != NULL);
         list_add(&prev->list, &node->list);
     }
 }

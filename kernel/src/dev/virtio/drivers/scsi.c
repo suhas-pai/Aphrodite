@@ -4,6 +4,7 @@
  */
 
 #include "../init.h"
+#include "../transport.h"
 
 #include "dev/printk.h"
 #include "scsi.h"

@@ -82,7 +82,7 @@ struct acpi_madt_entry_header {
 } __packed;
 
 enum acpi_madt_entry_cpu_lapic_flags {
-    __ACPI_MADT_ENTRY_CPU_LAPIC_FLAG_ENABLED = 1 << 0,
+    __ACPI_MADT_ENTRY_CPU_LAPIC_FLAG_ENABLED        = 1 << 0,
     __ACPI_MADT_ENTRY_CPU_LAPIC_FLAG_ONLINE_CAPABLE = 1 << 1
 };
 

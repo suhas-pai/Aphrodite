@@ -22,10 +22,8 @@ enum ia32_msr {
 
     IA32_MSR_FMASK = 0xC0000084,
 
-    /*
-     * IA32_MSR_STAR stores the CS (Code Segment) and SS (Stack Segment) info
-     * at bits [47:32] and [63:48] respectively.
-     */
+    // IA32_MSR_STAR stores the CS (Code Segment) and SS (Stack Segment) info
+    // at bits [47:32] and [63:48] respectively.
 
     IA32_MSR_STAR = 0xC0000081,
     IA32_MSR_TSC_DEADLINE = 0x6E0,

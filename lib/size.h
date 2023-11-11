@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lib/inttypes.h"
 #include "lib/adt/string_view.h"
+#include "lib/inttypes.h"
 
 #define kib(amount) ((1ull << 10) * (amount))
 #define mib(amount) ((1ull << 20) * (amount))

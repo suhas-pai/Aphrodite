@@ -18,11 +18,11 @@ static inline bool are_interrupts_enabled() {
 }
 
 __optimize(3) static inline void disable_all_interrupts() {
-    asm volatile("cli");
+    asm volatile ("cli");
 }
 
 __optimize(3) static inline void enable_all_interrupts() {
-    asm volatile("sti");
+    asm volatile ("sti");
 }
 
 __optimize(3) static inline bool disable_all_int_if_not() {

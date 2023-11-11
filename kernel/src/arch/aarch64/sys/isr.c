@@ -14,7 +14,7 @@ void isr_init() {
 }
 
 void isr_install_vbar() {
-    asm volatile("msr vbar_el1, %0" :: "r"(ivt_el1));
+    asm volatile ("msr vbar_el1, %0" :: "r"(ivt_el1));
     printk(LOGLEVEL_INFO, "isr: installed vbar_el1\n");
 }
 

@@ -18,7 +18,7 @@ virtio_device_shmem_region_map(struct virtio_device_shmem_region *const region)
 
     if (mmio == NULL) {
         printk(LOGLEVEL_WARN,
-               "virtio-pci: failed to map shared-memory region\n");
+               "virtio-device: failed to map shared-memory region\n");
         return false;
     }
 

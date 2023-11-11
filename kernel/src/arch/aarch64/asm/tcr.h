@@ -400,11 +400,11 @@ enum tcr_flags {
 
 __optimize(3) static inline uint64_t read_tcr_el1() {
     uint64_t result = 0;
-    asm volatile("mrs %0, tcr_el1" : "=r"(result));
+    asm volatile ("mrs %0, tcr_el1" : "=r"(result));
 
     return result;
 }
 
 __optimize(3) static inline void write_tcr_el1(const uint64_t value) {
-    asm volatile("msr tcr_el1, %0" :: "r"(value));
+    asm volatile ("msr tcr_el1, %0" :: "r"(value));
 }

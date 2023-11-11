@@ -182,7 +182,9 @@ __optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
     void *ret = dst;
 #if defined(__x86_64__)
     if (n >= REP_MOVSB_MIN) {
-        asm volatile ("rep movsb" :: "D"(dst), "S"(src), "c"(n) : "memory");
+        asm volatile ("rep movsb"
+                      : "+D"(dst), "+S"(src), "+c"(n)
+                      :: "memory");
         return ret;
     }
 #endif
@@ -249,7 +251,8 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
         if (n >= REP_MOVSB_MIN) {
             asm volatile ("cld;"
                           "rep movsb;"
-                          :: "D"(dst), "S"(src), "c"(n) : "memory");
+                          : "+D"(dst), "+S"(src), "+c"(n)
+                          :: "memory");
             return ret;
         }
     #endif /* defined(__x86_64__) */
@@ -273,11 +276,11 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
             void *dst_back = &((uint8_t *)dst)[n - 1];
             const void *src_back = &((const uint8_t *)src)[n - 1];
 
-            asm volatile (
-                "std;"
-                "rep movsb;"
-                "cld"
-                :: "D"(dst_back), "S"(src_back), "c"(n) : "memory");
+            asm volatile ("std;"
+                          "rep movsb;"
+                          "cld"
+                          : "+D"(dst_back), "+S"(src_back), "+c"(n)
+                          :: "memory");
 
             return ret;
         }
