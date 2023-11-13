@@ -420,35 +420,35 @@ enum alloc_and_map_result {
 
 __optimize(3) enum alloc_and_map_result
 alloc_and_map_normal(struct pt_walker *const walker,
-                      struct current_split_info *const curr_split,
-                      struct pageop *const pageop,
-                      const uint64_t virt_begin,
-                      uint64_t *const offset_in,
-                      const uint64_t size,
-                      const struct pgmap_options *const options,
-                      const struct pgmap_alloc_options *const alloc_options)
+                     struct current_split_info *const curr_split,
+                     struct pageop *const pageop,
+                     const uint64_t virt_begin,
+                     uint64_t *const offset_in,
+                     const uint64_t size,
+                     const struct pgmap_options *const options,
+                     const struct pgmap_alloc_options *const alloc_options)
 {
     uint64_t offset = *offset_in;
     if (__builtin_expect(offset >= size, 0)) {
         return ALLOC_AND_MAP_DONE;
     }
 
-    const bool should_ref = !options->is_in_early;
     const uint64_t pte_flags = options->pte_flags;
-
     const pgmap_alloc_page_t alloc_a_page = alloc_options->alloc_page;
-
-    void *const alloc_pgtable_cb_info = options->alloc_pgtable_cb_info;
-    void *const free_pgtable_cb_info = options->free_pgtable_cb_info;
     void *const alloc_page_cb_info = alloc_options->alloc_page_cb_info;
 
     enum pt_walker_result ptwalker_result = E_PT_WALKER_OK;
     if (options->is_overwrite) {
+        void *const alloc_pgtable_cb_info = options->alloc_pgtable_cb_info;
+        void *const free_pgtable_cb_info = options->free_pgtable_cb_info;
+
+        const bool should_ref = !options->is_in_early;
+
         do {
             ptwalker_result =
                 ptwalker_fill_in_to(walker,
                                     /*level=*/1,
-                                    should_ref,
+                                    /*should_ref=*/!options->is_in_early,
                                     alloc_pgtable_cb_info,
                                     free_pgtable_cb_info);
 
@@ -524,7 +524,7 @@ alloc_and_map_normal(struct pt_walker *const walker,
         ptwalker_result =
             ptwalker_fill_in_to(walker,
                                 /*level=*/1,
-                                should_ref,
+                                /*should_ref=*/!options->is_in_early,
                                 options->alloc_pgtable_cb_info,
                                 options->free_pgtable_cb_info);
 
@@ -567,9 +567,9 @@ alloc_and_map_normal(struct pt_walker *const walker,
                             /*level=*/1,
                             /*alloc_parents=*/should_fill_in,
                             /*alloc_level=*/should_fill_in,
-                            should_ref,
-                            alloc_pgtable_cb_info,
-                            free_pgtable_cb_info);
+                            /*should_ref=*/!options->is_in_early,
+                            options->alloc_pgtable_cb_info,
+                            options->free_pgtable_cb_info);
 
                     if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0))
                     {
@@ -1010,26 +1010,21 @@ alloc_and_map_large_at_level_no_overwrite(
 
     const pgmap_alloc_large_page_t alloc_a_large_page =
         alloc_options->alloc_large_page;
-
-    void *const alloc_pgtable_cb_info = options->alloc_pgtable_cb_info;
-    void *const free_pgtable_cb_info = options->free_pgtable_cb_info;
     void *const alloc_large_page_cb_info =
         alloc_options->alloc_large_page_cb_info;
 
-    const bool should_ref = !options->is_in_early;
-
-    uint64_t offset = *offset_in;
     enum pt_walker_result ptwalker_result =
         ptwalker_fill_in_to(walker,
                             level,
-                            should_ref,
-                            alloc_pgtable_cb_info,
-                            free_pgtable_cb_info);
+                            !options->is_in_early,
+                            options->alloc_pgtable_cb_info,
+                            options->free_pgtable_cb_info);
 
     if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
         return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
     }
 
+    uint64_t offset = *offset_in;
     do {
         pte_t *const table = walker->tables[level - 1];
         pte_t *pte = &table[walker->indices[level - 1]];
@@ -1061,13 +1056,14 @@ alloc_and_map_large_at_level_no_overwrite(
 
                 walker->indices[level - 1] = PGT_PTE_COUNT(level) - 1;
                 ptwalker_result =
-                    ptwalker_next_with_options(walker,
-                                               level,
-                                               /*alloc_parents=*/should_fill_in,
-                                               /*alloc_level=*/should_fill_in,
-                                               should_ref,
-                                               alloc_pgtable_cb_info,
-                                               free_pgtable_cb_info);
+                    ptwalker_next_with_options(
+                        walker,
+                        level,
+                        /*alloc_parents=*/should_fill_in,
+                        /*alloc_level=*/should_fill_in,
+                        /*should_ref=*/!options->is_in_early,
+                        options->alloc_pgtable_cb_info,
+                        options->free_pgtable_cb_info);
 
                 if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
                     return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;

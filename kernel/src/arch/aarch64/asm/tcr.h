@@ -42,8 +42,8 @@ enum tcr_shareability_attribute {
 };
 
 enum tcr_granule_size {
+    TCR_GRANULE_16KIB = 1,
     TCR_GRANULE_4KIB,
-    TCR_GRANULE_16KIB,
     TCR_GRANULE_64KIB,
 };
 

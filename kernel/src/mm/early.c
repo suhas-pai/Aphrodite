@@ -396,7 +396,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
          level++)
     {
         struct page *const page = virt_to_page(walker.tables[level - 1]);
-        if (page->extra.table.refcount == 0) {
+        if (page->table.refcount.count == 0) {
             init_table_page(page);
         }
     }
@@ -460,12 +460,12 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
                 struct page *const page =
                     virt_to_page(walker.tables[level - 1]);
 
-                page->extra.table.refcount++;
+                page->table.refcount.count++;
             }
         }
 
         struct page *const page = virt_to_page(walker.tables[walker.level - 1]);
-        page->extra.table.refcount++;
+        page->table.refcount.count++;
 
         prev_level = walker.level;
         prev_was_at_end = walker.indices[prev_level - 1] ==

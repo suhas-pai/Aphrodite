@@ -4,10 +4,6 @@
  */
 
 #include "asm/mair.h"
-#if defined(AARCH64_USE_16K_PAGES)
-    #include "asm/tcr.h"
-#endif /* defined(AARCH64_USE_16K_PAGES) */
-
 #include "dev/printk.h"
 
 #include "lib/align.h"
@@ -80,8 +76,8 @@ static void setup_pagestructs_table() {
 }
 
 static void
-map_into_kernel_pagemap(const struct range phys_range,
-                        const uint64_t virt_addr,
+map_into_kernel_pagemap(struct range phys_range,
+                        uint64_t virt_addr,
                         const uint64_t pte_flags)
 {
     const struct pgmap_options options = {
@@ -96,6 +92,20 @@ map_into_kernel_pagemap(const struct range phys_range,
         .is_in_early = true,
         .is_overwrite = false,
     };
+
+#if defined(AARCH64_USE_16K_PAGES)
+    struct range new_phys_range = RANGE_EMPTY();
+    if (!range_align_in(phys_range, PAGE_SIZE, &new_phys_range)) {
+        printk(LOGLEVEL_WARN,
+               "mm: failed to align memmap at phys-range " RANGE_FMT ", "
+               "couldn't align to 16kib page size\n",
+               RANGE_FMT_ARGS(phys_range));
+        return;
+    }
+
+    virt_addr += new_phys_range.front - phys_range.front;
+    phys_range = new_phys_range;
+#endif /* defined(AARCH64_USE_16K_PAGES) */
 
     assert_msg(pgmap_at(&kernel_pagemap, phys_range, virt_addr, &options),
                "mm: failed to setup kernel-pagemap");
@@ -155,13 +165,8 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     }
 
     *kernel_memmap_size_out = kernel_memmap_size;
+
     setup_pagestructs_table();
-
-#if defined(AARCH64_USE_16K_PAGES)
-    write_tcr_el1((read_tcr_el1() & ~__TCR_GRANULE_SIZE_EL1) |
-                  TCR_GRANULE_16KIB << TCR_GRANULE_SIZE_TTBR1_SHIFT);
-#endif /* defined(AARCH64_USE_16K_PAGES) */
-
     switch_to_pagemap(&kernel_pagemap);
 
     // All 'good' memmaps use pages with associated struct pages to them,

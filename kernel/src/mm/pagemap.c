@@ -7,6 +7,9 @@
     #include "asm/regs.h"
 #elif defined(__aarch64__)
     #include "asm/ttbr.h"
+    #if defined(AARCH64_USE_16K_PAGES)
+        #include "asm/tcr.h"
+    #endif /* defined(AARCH64_USE_16K_PAGES) */
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
@@ -144,6 +147,11 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 #elif defined(__aarch64__)
     write_ttbr0_el1(virt_to_phys(pagemap->lower_root));
     write_ttbr1_el1(virt_to_phys(pagemap->higher_root));
+
+#if defined(AARCH64_USE_16K_PAGES)
+    write_tcr_el1((read_tcr_el1() & ~__TCR_GRANULE_SIZE_EL1) |
+                  TCR_GRANULE_16KIB << TCR_GRANULE_SIZE_TTBR1_SHIFT);
+#endif /* defined(AARCH64_USE_16K_PAGES) */
 
     asm volatile ("dsb sy; isb" ::: "memory");
 #else

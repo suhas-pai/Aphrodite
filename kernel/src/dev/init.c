@@ -22,10 +22,12 @@ void serial_init() {
 #if defined(__x86_64__)
     com1_init();
 #elif defined(__aarch64__)
-    pl011_init((port_t)0x9000000,
-               /*baudrate=*/115200,
-               /*data_bits=*/8,
-               /*stop_bits=*/1);
+    #if !defined(AARCH64_USE_16K_PAGES)
+        pl011_init((port_t)0x9000000,
+                   /*baudrate=*/115200,
+                   /*data_bits=*/8,
+                   /*stop_bits=*/1);
+    #endif /* !defined(AARCH64_USE_16K_PAGES) */
 #elif defined(__riscv64)
     uart8250_init((port_t)0x10000000,
                   /*baudrate=*/115200,
