@@ -426,7 +426,7 @@ alloc_and_map_normal(struct pt_walker *const walker,
                       uint64_t *const offset_in,
                       const uint64_t size,
                       const struct pgmap_options *const options,
-                      const struct pgalloc_map_options *const alloc_options)
+                      const struct pgmap_alloc_options *const alloc_options)
 {
     uint64_t offset = *offset_in;
     if (__builtin_expect(offset >= size, 0)) {
@@ -436,7 +436,7 @@ alloc_and_map_normal(struct pt_walker *const walker,
     const bool should_ref = !options->is_in_early;
     const uint64_t pte_flags = options->pte_flags;
 
-    const pgalloc_map_alloc_page_t alloc_a_page = alloc_options->alloc_page;
+    const pgmap_alloc_page_t alloc_a_page = alloc_options->alloc_page;
 
     void *const alloc_pgtable_cb_info = options->alloc_pgtable_cb_info;
     void *const free_pgtable_cb_info = options->free_pgtable_cb_info;
@@ -811,12 +811,12 @@ alloc_and_map_large_at_level_overwrite(
     const uint64_t size,
     const pgt_level_t level,
     const struct pgmap_options *const options,
-    const struct pgalloc_map_options *const alloc_options)
+    const struct pgmap_alloc_options *const alloc_options)
 {
     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
     const uint64_t pte_flags = options->pte_flags;
 
-    const pgalloc_map_alloc_large_page_t alloc_a_large_page =
+    const pgmap_alloc_large_page_t alloc_a_large_page =
         alloc_options->alloc_large_page;
 
     void *const alloc_pgtable_cb_info = options->alloc_pgtable_cb_info;
@@ -1003,12 +1003,12 @@ alloc_and_map_large_at_level_no_overwrite(
     const uint64_t size,
     const pgt_level_t level,
     const struct pgmap_options *const options,
-    const struct pgalloc_map_options *const alloc_options)
+    const struct pgmap_alloc_options *const alloc_options)
 {
     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
     const uint64_t pte_flags = options->pte_flags;
 
-    const pgalloc_map_alloc_large_page_t alloc_a_large_page =
+    const pgmap_alloc_large_page_t alloc_a_large_page =
         alloc_options->alloc_large_page;
 
     void *const alloc_pgtable_cb_info = options->alloc_pgtable_cb_info;
@@ -1378,13 +1378,13 @@ pgmap_at(struct pagemap *const pagemap,
     return result;
 }
 
-static enum pgalloc_map_result
-pgalloc_map_with_ptwalker(struct pt_walker *const walker,
+static enum pgmap_alloc_result
+pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                           struct current_split_info *const curr_split,
                           struct pageop *const pageop,
                           const struct range virt_range,
                           const struct pgmap_options *const options,
-                          const struct pgalloc_map_options *const alloc_options)
+                          const struct pgmap_alloc_options *const alloc_options)
 {
     uint64_t offset = 0;
     const uint64_t supports_largepage_at_level_mask =
@@ -1507,27 +1507,27 @@ pgalloc_map_with_ptwalker(struct pt_walker *const walker,
     return E_PGALLOC_MAP_OK;
 }
 
-enum pgalloc_map_result
-pgalloc_map_at(struct pagemap *const pagemap,
+enum pgmap_alloc_result
+pgmap_alloc_at(struct pagemap *const pagemap,
                struct range virt_range,
                const struct pgmap_options *const options,
-               const struct pgalloc_map_options *const alloc_options)
+               const struct pgmap_alloc_options *const alloc_options)
 {
     if (__builtin_expect(range_empty(virt_range), 0)) {
-        printk(LOGLEVEL_WARN, "mm: pgalloc_map_at(): virt-range is empty\n");
+        printk(LOGLEVEL_WARN, "mm: pgmap_alloc_at(): virt-range is empty\n");
         return false;
     }
 
     if (__builtin_expect(range_overflows(virt_range), 0)) {
         printk(LOGLEVEL_WARN,
-               "mm: pgalloc_map_at(): virt-range goes beyond end of "
+               "mm: pgmap_alloc_at(): virt-range goes beyond end of "
                "address-space\n");
         return false;
     }
 
     if (__builtin_expect(!range_has_align(virt_range, PAGE_SIZE), 0)) {
         printk(LOGLEVEL_WARN,
-               "mm: pgalloc_map_at(): virt-range isn't aligned to PAGE_SIZE\n");
+               "mm: pgmap_alloc_at(): virt-range isn't aligned to PAGE_SIZE\n");
         return false;
     }
 
@@ -1586,8 +1586,8 @@ pgalloc_map_at(struct pagemap *const pagemap,
         }
     }
 
-    const enum pgalloc_map_result result =
-        pgalloc_map_with_ptwalker(&walker,
+    const enum pgmap_alloc_result result =
+        pgmap_alloc_with_ptwalker(&walker,
                                   &curr_split,
                                   &pageop,
                                   virt_range,

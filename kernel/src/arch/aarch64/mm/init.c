@@ -34,7 +34,7 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
         .is_overwrite = false
     };
 
-    const struct pgalloc_map_options alloc_options = {
+    const struct pgmap_alloc_options alloc_options = {
         .alloc_page = early_alloc_page,
         .alloc_large_page = early_alloc_large_page,
 
@@ -42,8 +42,8 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
         .alloc_large_page_cb_info = NULL,
     };
 
-    const enum pgalloc_map_result map_result =
-        pgalloc_map_at(&kernel_pagemap,
+    const enum pgmap_alloc_result map_result =
+        pgmap_alloc_at(&kernel_pagemap,
                        RANGE_INIT(virt_addr, map_size),
                        &options,
                        &alloc_options);

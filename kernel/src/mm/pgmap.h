@@ -25,30 +25,28 @@ pgmap_at(struct pagemap *pagemap,
          uint64_t virt_addr,
          const struct pgmap_options *options);
 
-typedef uint64_t (*pgalloc_map_alloc_page_t)(void *cb_info);
+typedef uint64_t (*pgmap_alloc_page_t)(void *cb_info);
+typedef uint64_t (*pgmap_alloc_large_page_t)(pgt_level_t level, void *cb_info);
 
-typedef
-uint64_t (*pgalloc_map_alloc_large_page_t)(pgt_level_t level, void *cb_info);
-
-struct pgalloc_map_options {
-    pgalloc_map_alloc_page_t alloc_page;
-    pgalloc_map_alloc_large_page_t alloc_large_page;
+struct pgmap_alloc_options {
+    pgmap_alloc_page_t alloc_page;
+    pgmap_alloc_large_page_t alloc_large_page;
 
     void *alloc_page_cb_info;
     void *alloc_large_page_cb_info;
 };
 
-enum pgalloc_map_result {
+enum pgmap_alloc_result {
     E_PGALLOC_MAP_OK,
     E_PGALLOC_MAP_PAGE_ALLOC_FAIL,
     E_PGALLOC_MAP_PGTABLE_ALLOC_FAIL
 };
 
-enum pgalloc_map_result
-pgalloc_map_at(struct pagemap *pagemap,
+enum pgmap_alloc_result
+pgmap_alloc_at(struct pagemap *pagemap,
                struct range virt_range,
                const struct pgmap_options *options,
-               const struct pgalloc_map_options *alloc_options);
+               const struct pgmap_alloc_options *alloc_options);
 
 struct pgunmap_options {
     bool free_pages : 1;
