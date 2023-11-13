@@ -9,7 +9,6 @@
 #include "lib/macros.h"
 
 // rsdp = "Root System Description Pointer"
-
 struct acpi_rsdp_v2_info {
     uint32_t length;
     uint64_t xsdt_addr;
@@ -28,7 +27,6 @@ struct acpi_rsdp {
 } __packed;
 
 // sdt = "System Description Table"
-
 struct acpi_sdt {
     char signature[4];
     uint32_t length;
@@ -42,7 +40,6 @@ struct acpi_sdt {
 } __packed;
 
 // rsdt = "Root System Description Table"
-
 struct acpi_rsdt {
     struct acpi_sdt sdt;
     char ptrs[];

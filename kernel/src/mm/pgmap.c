@@ -860,32 +860,32 @@ pgmap_at(struct pagemap *const pagemap,
          const struct pgmap_options *const options)
 {
     if (__builtin_expect(range_empty(phys_range), 0)) {
-        printk(LOGLEVEL_WARN, "pgmap_at(): phys-range is empty\n");
+        printk(LOGLEVEL_WARN, "mm: pgmap_at(): phys-range is empty\n");
         return false;
     }
 
     if (__builtin_expect(range_overflows(phys_range), 0)) {
         printk(LOGLEVEL_WARN,
-               "pgmap_at(): phys-range goes beyond end of address-space\n");
+               "mm: pgmap_at(): phys-range goes beyond end of address-space\n");
         return false;
     }
 
     if (__builtin_expect(!range_has_align(phys_range, PAGE_SIZE), 0)) {
         printk(LOGLEVEL_WARN,
-               "pgmap_at(): phys-range isn't aligned to PAGE_SIZE\n");
+               "mm: pgmap_at(): phys-range isn't aligned to PAGE_SIZE\n");
         return false;
     }
 
     const struct range virt_range = RANGE_INIT(virt_addr, phys_range.size);
     if (__builtin_expect(range_overflows(virt_range), 0)) {
         printk(LOGLEVEL_WARN,
-               "pgmap_at(): virt-range goes beyond end of address-space\n");
+               "mm: pgmap_at(): virt-range goes beyond end of address-space\n");
         return false;
     }
 
     if (__builtin_expect(!range_has_align(virt_range, PAGE_SIZE), 0)) {
         printk(LOGLEVEL_WARN,
-               "pgmap_at(): virt-range isn't aligned to PAGE_SIZE\n");
+               "mm: pgmap_at(): virt-range isn't aligned to PAGE_SIZE\n");
         return false;
     }
 
@@ -990,7 +990,7 @@ pgunmap_at(struct pagemap *const pagemap,
 {
     if (__builtin_expect(!range_has_align(virt_range, PAGE_SIZE), 0)) {
         printk(LOGLEVEL_WARN,
-               "pgunmap_at(): virt-range is not aligned to PAGE_SIZE\n");
+               "mm: pgunmap_at(): virt-range is not aligned to PAGE_SIZE\n");
         return false;
     }
 
@@ -1050,8 +1050,10 @@ pgunmap_at(struct pagemap *const pagemap,
             pte_write(pte, /*value=*/0);
             ptwalker_deref_from_level(&walker, walker.level, &pageop);
 
+            const uint64_t pte_phys = pte_to_phys(entry);
             if (pte_is_dirty(entry)) {
-                page_set_flag(pte_to_page(entry), __PAGE_IS_DIRTY);
+                set_pages_dirty(phys_to_page(pte_phys),
+                                PAGE_SIZE_AT_LEVEL(walker.level) / PAGE_SIZE);
             }
 
             const uint64_t map_size = virt_range.size - offset;
@@ -1059,7 +1061,7 @@ pgunmap_at(struct pagemap *const pagemap,
                 pgmap_with_ptwalker(&walker,
                                     /*curr_split=*/NULL,
                                     &pageop,
-                                    RANGE_INIT(pte_to_phys(entry), map_size),
+                                    RANGE_INIT(pte_phys, map_size),
                                     virt_range.front + offset,
                                     map_options);
 
@@ -1097,6 +1099,7 @@ pgunmap_at(struct pagemap *const pagemap,
         const enum pt_walker_result walker_result = ptwalker_next(&walker);
 
         if (__builtin_expect(walker_result != E_PT_WALKER_OK, 0)) {
+            pageop_finish(&pageop);
             return false;
         }
 

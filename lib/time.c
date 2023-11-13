@@ -96,10 +96,7 @@ __optimize(3) bool year_is_leap_year(const uint64_t year) {
     // Year has to be divisible by 4 (first two lsb bits are zero) and either
     // the year is not divisible by 100 or the year is divisible by 400.
 
-    return (
-        ((year & 0b11) == 0) &&
-        ((year % 100) != 0 || ((year % 400) == 0))
-    );
+    return ((year & 0b11) == 0) && ((year % 100) != 0 || ((year % 400) == 0));
 }
 
 __optimize(3) uint16_t year_get_day_count(const uint64_t year) {

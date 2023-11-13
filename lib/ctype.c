@@ -9,7 +9,7 @@
 #include "ctype.h"
 #include "macros.h"
 
-enum desc {
+enum ctype_masks {
     __ALPHA_LOWER = 1 << 0,
     __ALPHA_UPPER = 1 << 1,
 

@@ -22,11 +22,11 @@ struct rtc_time_info {
     ((struct rtc_time_info) { \
         .second = 0, \
         .minute = 0, \
-        .hour = 0,   \
-        .day = 0,    \
+        .hour = 0, \
+        .day = 0, \
         .month = MONTH_INVALID, \
         .weekday = WEEKDAY_INVALID, \
-        .year = 0\
+        .year = 0 \
     })
 
 struct rtc_cmos_info {

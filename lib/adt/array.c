@@ -7,12 +7,6 @@
 #include "array.h"
 
 __optimize(3)
-void array_init(struct array *const array, const uint32_t object_size) {
-    array->gbuffer = GBUFFER_INIT();
-    array->object_size = object_size;
-}
-
-__optimize(3)
 struct array array_alloc(const uint32_t obj_size, const uint32_t item_cap) {
     return (struct array){
         .gbuffer = gbuffer_alloc(check_mul_assert(obj_size, item_cap)),

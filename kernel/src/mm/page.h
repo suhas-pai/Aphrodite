@@ -37,7 +37,14 @@ struct page {
     _Atomic uint8_t state;
 
     page_section_t section;
-    uint16_t extra;
+
+    union {
+        struct {
+            _Atomic uint16_t flags;
+        } largepage_head;
+
+        uint16_t bits;
+    } extra;
 
     union {
         struct {
@@ -100,11 +107,18 @@ enum struct_page_flags {
     __PAGE_IS_DIRTY = 1 << 0,
 };
 
+enum struct_page_largehead_flags {
+    __PAGE_LARGEHEAD_IS_DIRTY = 1 << 0,
+    __PAGE_LARGEHEAD_HAS_DIRTY_PAGE = 1 << 1
+};
+
 uint32_t page_get_flags(const struct page *page);
 
 void page_set_flag(struct page *page, enum struct_page_flags flag);
 bool page_has_flag(const struct page *page, enum struct_page_flags flag);
 void page_clear_flag(struct page *page, enum struct_page_flags flag);
+
+void set_pages_dirty(struct page *page, uint64_t amount);
 
 enum page_state page_get_state(const struct page *page);
 void page_set_state(struct page *page, enum page_state state);

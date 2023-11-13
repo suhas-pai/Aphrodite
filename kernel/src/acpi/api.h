@@ -41,7 +41,7 @@ struct acpi_info {
 #if defined(__aarch64__)
     // Array of struct acpi_msi_frame
     struct array msi_frame_list;
-#endif /* defined(__x86_64__) */
+#endif /* defined(__aarch64__) */
     struct array iso_list;
 
     uint8_t nmi_lint : 1;

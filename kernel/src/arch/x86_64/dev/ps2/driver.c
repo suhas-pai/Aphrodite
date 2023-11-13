@@ -27,7 +27,7 @@ int16_t ps2_read_input_byte() {
     return -1;
 }
 
-bool ps2_write(const uint16_t port, const uint8_t value) {
+bool ps2_write(const port_t port, const uint8_t value) {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
         const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
         if (byte & __PS2_STATUS_REG_INPUT_BUFFER_FULL) {

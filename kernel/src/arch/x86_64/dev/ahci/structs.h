@@ -255,14 +255,17 @@ enum ahci_hba_port_det {
     AHCI_HBA_PORT_DET_OFFLINE_MODE
 };
 
+enum ahci_spec_hba_prdt_entry_flags {
+    __AHCI_SPEC_HBA_PRDT_ENTRY_DATA_BYTE_COUNT_MINUS_ONE = (1ull << 22) - 1,
+    __AHCI_SPEC_HBA_PRDT_ENTRY_INT_ON_COMPLETION = 1ull << 31,
+};
+
 struct ahci_spec_hba_prdt_entry {
     volatile uint32_t data_base_address_lower32;
     volatile uint32_t data_base_address_upper32;
     volatile uint32_t reserved;
 
-    volatile uint32_t data_byte_count:22; // 4M max
-    volatile uint32_t reserved_1:9;
-    volatile uint32_t interrupt_on_completion:1;
+    volatile uint32_t flags;
 };
 
 #define AHCI_HBA_MAX_PRDT_ENTRIES 8
@@ -272,7 +275,8 @@ struct ahci_spec_hba_cmd_table {
     volatile uint8_t atapi_command[16];
     volatile uint8_t reserved[48];
 
-    volatile struct ahci_spec_hba_prdt_entry prdt_entries[AHCI_HBA_MAX_PRDT_ENTRIES];
+    volatile struct ahci_spec_hba_prdt_entry prdt_entries[
+        AHCI_HBA_MAX_PRDT_ENTRIES];
 };
 
 enum ahci_fis_kind {
@@ -307,8 +311,8 @@ struct ahci_spec_fis_reg_h2d {
     uint8_t lba5;
     uint8_t feature_high8;
 
-    uint8_t countl;
-    uint8_t counth;
+    uint8_t count_low;
+    uint8_t count_high;
     uint8_t icc;
     uint8_t control;
 
@@ -391,27 +395,27 @@ struct ahci_spec_fis_dma_setup {
 
     uint8_t reserved_1[2];
 
-    uint64_t DMAbufferID;
+    uint64_t dma_buffer_id;
     uint32_t rsvd;
-    uint32_t DMAbufOffset;
-    uint32_t TransferCount;
+    uint32_t dma_buffer_offset;
+    uint32_t transfer_count;
     uint32_t reserved_2;
 } __packed;
 
 struct ahci_spec_hba_fis {
     struct ahci_spec_fis_dma_setup dma_fis;
-    uint8_t pad0[4];
+    uint8_t reserved[4];
 
     struct ahci_spec_fis_pio_setup pio_fis;
-    uint8_t pad1[12];
+    uint8_t reserved_1[12];
 
     struct ahci_spec_fis_reg_d2h reg_d2g;
-    uint8_t pad2[4];
+    uint8_t reserved_2[4];
 
     uint32_t sdbfis;
 
     uint8_t ufis[64];
-    uint8_t reserved[0x100-0xA0];
+    uint8_t reserved_4[0x100-0xA0];
 } __packed;
 
 enum ahci_port_command_header_shifts {
@@ -438,7 +442,17 @@ enum ahci_port_command_header_flags {
 struct ahci_spec_port_cmd_header {
     volatile uint16_t flags;
 
+    /*
+     * Length of the scatter/gather descriptor table in entries, called the
+     * Physical Region Descriptor Table. Each entry is 4 DW. A ‘0’ represents 0
+     * entries, FFFFh represents 65,535 entries. The HBA uses this field to know
+     * when to stop fetching PRDs. If this field is ‘0’, then no data transfer
+     * shall occur with the command.
+     */
     uint16_t prdt_length;
+
+    // Indicates the current byte count that has transferred on device writes
+    // (system memory to device) or device reads (device to system memory).
     uint32_t prd_byte_count;
     uint32_t cmd_table_base_lower32;
     uint32_t cmd_table_base_upper32;

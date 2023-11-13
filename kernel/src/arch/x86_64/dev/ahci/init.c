@@ -6,6 +6,7 @@
 #include "dev/driver.h"
 #include "dev/printk.h"
 
+#include "lib/bits.h"
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
@@ -156,9 +157,12 @@ ahci_spec_hba_pio_readit(volatile struct ahci_spec_hba_port *const port,
         mmio_write(&entry->prdt_length, AHCI_HBA_MAX_PRDT_ENTRIES);
         mmio_write(&entry->prd_byte_count, 0);
         mmio_write(&entry->cmd_table_base_lower32, phys);
-        mmio_write(&entry->cmd_table_base_upper32, phys >> 32);
 
-        phys += sizeof(struct ahci_spec_hba_cmd_table);
+        if (device->supports_64bit_dma) {
+            mmio_write(&entry->cmd_table_base_upper32, phys >> 32);
+        }
+
+        phys += sizeof(*entry);
     }
 
     mmio_write(&port->interrupt_enable,

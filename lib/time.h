@@ -472,16 +472,14 @@ enum month {
 #define MAX_WEEK_NUMBER_LENGTH LEN_OF("53")
 #define MAX_WEEKDAY_NUMBER_LENGTH LEN_OF("7")
 
-/*
- * Weekday - Day of the Week (Sunday...Saturday)
- * Year day - Days since January 1st
- */
+// Weekday - Day of the Week (Sunday...Saturday)
+// Year day - Days since January 1st
 
-static inline bool weekday_is_valid(const enum weekday day) {
+__optimize(3) static inline bool weekday_is_valid(const enum weekday day) {
     return day >= WEEKDAY_SUNDAY && day <= WEEKDAY_SATURDAY;
 }
 
-static inline bool month_is_valid(const enum month month) {
+__optimize(3) static inline bool month_is_valid(const enum month month) {
     return month >= MONTH_JANUARY && month <= MONTH_DECEMBER;
 }
 

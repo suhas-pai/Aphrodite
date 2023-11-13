@@ -131,6 +131,51 @@ page_clear_flag(struct page *const page, const enum struct_page_flags flag) {
     atomic_fetch_and_explicit(&page->flags, ~flag, memory_order_relaxed);
 }
 
+__optimize(3)
+void set_pages_dirty(struct page *const page, const uint64_t amount) {
+    struct page *iter = page;
+    uint64_t avail = amount;
+
+    do {
+        page_set_flag(iter, __PAGE_IS_DIRTY);
+
+        const enum page_state page_state = page_get_state(iter);
+        if (page_state == PAGE_STATE_LARGE_HEAD) {
+            atomic_store_explicit(&iter->extra.largepage_head.flags,
+                                  __PAGE_LARGEHEAD_IS_DIRTY,
+                                  memory_order_relaxed);
+
+            const uint8_t order =
+                largepage_level_info_list[iter->largehead.level].order;
+
+            struct page *tail = iter + 1;
+            const struct page *const end = iter + (1ull << order);
+
+            for (; tail != end; tail++) {
+                page_set_flag(tail, __PAGE_IS_DIRTY);
+            }
+
+            avail -= min(avail, 1ull << order);
+            if (avail == 0) {
+                break;
+            }
+
+            iter += 1ull << order;
+        } else if (page_state == PAGE_STATE_LARGE_TAIL) {
+            struct page *const largehead = iter->largetail.head;
+            atomic_store_explicit(&largehead->extra.largepage_head.flags,
+                                  __PAGE_LARGEHEAD_HAS_DIRTY_PAGE,
+                                  memory_order_relaxed);
+
+            iter += 1;
+            avail -= 1;
+        } else {
+            iter += 1;
+            avail -= 1;
+        }
+    } while (avail != 0);
+}
+
 __optimize(3) enum page_state page_get_state(const struct page *const page) {
     return atomic_load_explicit(&page->state, memory_order_relaxed);
 }

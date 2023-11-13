@@ -13,7 +13,7 @@
 static struct array g_ioapic_list =
     ARRAY_INIT(sizeof(struct ioapic_info));
 
-uint64_t
+__optimize(3) uint64_t
 create_ioapic_redirect_request(
     const uint8_t vector,
     const enum ioapic_redirect_req_delivery_mode delivery_mode,
@@ -37,6 +37,7 @@ create_ioapic_redirect_request(
     return result;
 }
 
+__optimize(3)
 static struct ioapic_info *ioapic_info_for_gsi(const uint32_t gsi) {
     array_foreach(&g_ioapic_list, struct ioapic_info, item) {
         const uint32_t gsi_base = item->gsi_base;
@@ -124,7 +125,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
                "ioapic: failed to add io-apic base to array");
 }
 
-uint32_t
+__optimize(3) uint32_t
 ioapic_read(const struct ioapic_info *const ioapic, const enum ioapic_reg reg) {
     volatile struct ioapic_registers *const regs = ioapic->regs;
 
@@ -132,7 +133,7 @@ ioapic_read(const struct ioapic_info *const ioapic, const enum ioapic_reg reg) {
     return mmio_read(&regs->data);
 }
 
-void
+__optimize(3) void
 ioapic_write(const struct ioapic_info *const ioapic,
              const enum ioapic_reg reg,
              const uint32_t value)

@@ -602,8 +602,6 @@ parse_function(struct pci_domain *const domain,
         hdrkind == PCI_SPEC_DEVHDR_KIND_GENERAL ?
             pci_read(&info, struct pci_spec_device_info, interrupt_pin) : 0;
 
-    array_init(&info.vendor_cap_list, sizeof(uint8_t));
-
     info.id = pci_read(&info, struct pci_spec_device_info_base, device_id);
     info.vendor_id = vendor_id;
     info.command = pci_read(&info, struct pci_spec_device_info_base, command);
@@ -618,6 +616,7 @@ parse_function(struct pci_domain *const domain,
     info.subclass = pci_read(&info, struct pci_spec_device_info_base, subclass);
     info.irq_pin = irq_pin;
     info.multifunction = is_multi_function;
+    info.vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
 
     printk(LOGLEVEL_INFO,
            "\tdevice: " PCI_DEVICE_INFO_FMT " from %s\n",
@@ -646,7 +645,7 @@ parse_function(struct pci_domain *const domain,
     bool has_io_bar = false;
 
     switch (hdrkind) {
-        case PCI_SPEC_DEVHDR_KIND_GENERAL: {
+        case PCI_SPEC_DEVHDR_KIND_GENERAL:
             info.max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
             info.bar_list =
                 kmalloc(sizeof(struct pci_device_bar_info) *
@@ -706,8 +705,7 @@ parse_function(struct pci_domain *const domain,
             }
 
             break;
-        }
-        case PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE: {
+        case PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE:
             info.max_bar_count = PCI_BAR_COUNT_FOR_BRIDGE;
             info.bar_list =
                 kmalloc(sizeof(struct pci_device_bar_info) *
@@ -771,7 +769,6 @@ parse_function(struct pci_domain *const domain,
 
             pci_parse_bus(domain, &info.config_space, secondary_bus_number);
             break;
-        }
         case PCI_SPEC_DEVHDR_KIND_CARDBUS_BRIDGE:
             printk(LOGLEVEL_INFO,
                    "pcie: cardbus bridge not supported. ignoring");

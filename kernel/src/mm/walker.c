@@ -3,10 +3,6 @@
  * © suhas pai
  */
 
-#if defined(__aarch64__)
-    #include "asm/ttbr.h"
-#endif /* defined(__x86_64__) */
-
 #include "cpu/info.h"
 #include "lib/align.h"
 #include "mm/early.h"

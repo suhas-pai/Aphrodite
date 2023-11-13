@@ -26,7 +26,6 @@ struct array {
 #define ARRAY_INIT(size) \
     ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size)})
 
-void array_init(struct array *array, uint32_t object_size);
 struct array array_alloc(uint32_t object_size, uint32_t item_capacity);
 
 bool array_append(struct array *array, const void *item);

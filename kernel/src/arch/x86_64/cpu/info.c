@@ -199,7 +199,7 @@ static void init_cpuid_features() {
               ((uint64_t)gdt_get_kernel_code_segment() << 32 |
                (uint64_t)gdt_get_user_data_segment() << 48));
 
-    write_msr(IA32_MSR_FMASK, 0);
+    write_msr(IA32_MSR_FMASK, /*value=*/0);
     write_msr(IA32_MSR_MISC_ENABLE,
               (read_msr(IA32_MSR_MISC_ENABLE) |
                __IA32_MSR_MISC_FAST_STRING_ENABLE));

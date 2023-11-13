@@ -99,8 +99,8 @@
 
 #define swap(a, b) ({ \
     const __auto_type __tmp = b; \
-    b = a;                 \
-    a = __tmp;             \
+    b = a; \
+    a = __tmp; \
 })
 
 #define max(a, b) ({ \

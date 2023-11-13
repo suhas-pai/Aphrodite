@@ -78,8 +78,6 @@ static void calibrate_timer() {
         lapic_timer_freq_multiple * PIT_FREQUENCY;
 }
 
-/******* PUBLIC APIs *******/
-
 __optimize(3) uint32_t lapic_read(const enum x2apic_lapic_reg reg) {
     return read_msr(IA32_MSR_X2APIC_BASE + reg);
 }
@@ -91,8 +89,7 @@ void lapic_write(const enum x2apic_lapic_reg reg, const uint64_t value) {
 
 void adjust_lint_extint_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_EXTINT << 8;
-    const uint64_t remove_mask =
-        0b111 << 8 | (1 << 12)  | (1 << 14)  | (1 << 16);
+    const uint64_t remove_mask = 0b111 << 8 | 1 << 12  | 1 << 14  | 1 << 16;
 
     *value_in = (*value_in & ~remove_mask) | add_mask;
 }

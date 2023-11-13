@@ -114,8 +114,10 @@ __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
                 prev->avail_page_count += page_count;
                 prev->total_page_count += page_count;
 
-                struct freepages_info *const prev_prev = list_prev(prev, list);
-                if (&prev_prev->list != &g_freepage_list &&
+                struct freepages_info *const prev_prev =
+                    list_prev_safe(prev, list, &g_freepage_list);
+
+                if (prev_prev != NULL &&
                     prev_prev->avail_page_count > prev->avail_page_count)
                 {
                     list_remove(&prev->asc_list);

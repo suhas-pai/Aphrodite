@@ -64,8 +64,7 @@ arch_make_mapping(struct pagemap *const pagemap,
         .is_overwrite = is_overwrite
     };
 
-    pgmap_at(pagemap, phys_range, virt_addr, &options);
-    return true;
+    return pgmap_at(pagemap, phys_range, virt_addr, &options);
 }
 
 bool
