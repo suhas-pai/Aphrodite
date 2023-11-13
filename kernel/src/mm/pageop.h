@@ -24,9 +24,7 @@ struct pageop {
     })
 
 void
-pageop_init(struct pageop *pageop,
-            struct pagemap *pagemap,
-            struct range range);
+pageop_init(struct pageop *pageop, struct pagemap *pagemap, struct range range);
 
 void
 pageop_flush_pte_in_current_range(struct pageop *pageop,

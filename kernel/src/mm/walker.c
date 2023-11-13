@@ -608,7 +608,7 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
     pte_t *table = walker->tables[level - 1];
     for (; level <= walker->top_level; level++) {
         struct page *const pt = virt_to_page(table);
-        if (!ref_down(&pt->table.refcount)) {
+        if (!pt_ref_down(pt)) {
             break;
         }
 
@@ -617,7 +617,9 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
             pte_write(&table[walker->indices[level]], /*value=*/0);
         }
 
-        free_pgtable(walker, pt, free_pgtable_cb_info);
+        if (ref_down(&pt->table.refcount)) {
+            free_pgtable(walker, pt, free_pgtable_cb_info);
+        }
     }
 
     walker->level = level;

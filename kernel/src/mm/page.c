@@ -176,6 +176,22 @@ void set_pages_dirty(struct page *const page, const uint64_t amount) {
     } while (avail != 0);
 }
 
+__optimize(3) void pt_ref_up(struct page *const pt) {
+    atomic_fetch_add_explicit(&pt->extra.table.refcount,
+                              /*value=*/1,
+                              memory_order_relaxed);
+}
+
+bool pt_ref_down(struct page *const pt) {
+    const uint16_t old =
+        atomic_fetch_sub_explicit(&pt->extra.table.refcount,
+                                  /*value=*/1,
+                                  memory_order_relaxed);
+
+    assert_msg(old > 0, "mm: table page has a refcount <= 0");
+    return old == 1;
+}
+
 __optimize(3) enum page_state page_get_state(const struct page *const page) {
     return atomic_load_explicit(&page->state, memory_order_relaxed);
 }

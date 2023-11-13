@@ -41,3 +41,7 @@ __optimize(3) void ref_up(struct refcount *const ref) {
 __optimize(3) bool ref_down(struct refcount *const ref) {
     return refcount_decrement(ref, /*amount=*/1);
 }
+
+__optimize(3) uint32_t ref_get(struct refcount *const ref) {
+    return (uint32_t)atomic_load_explicit(&ref->count, memory_order_relaxed);
+}

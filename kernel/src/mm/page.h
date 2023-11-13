@@ -42,6 +42,9 @@ struct page {
         struct {
             _Atomic uint16_t flags;
         } largepage_head;
+        struct {
+            _Atomic uint16_t refcount;
+        } table;
 
         uint16_t bits;
     } extra;
@@ -119,6 +122,9 @@ bool page_has_flag(const struct page *page, enum struct_page_flags flag);
 void page_clear_flag(struct page *page, enum struct_page_flags flag);
 
 void set_pages_dirty(struct page *page, uint64_t amount);
+
+void pt_ref_up(struct page *pt);
+bool pt_ref_down(struct page *pt);
 
 enum page_state page_get_state(const struct page *page);
 void page_set_state(struct page *page, enum page_state state);

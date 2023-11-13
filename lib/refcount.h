@@ -27,3 +27,4 @@ bool refcount_decrement(struct refcount *ref, int32_t amount);
 void ref_up(struct refcount *ref);
 bool ref_down(struct refcount *ref);
 
+uint32_t ref_get(struct refcount *ref);
