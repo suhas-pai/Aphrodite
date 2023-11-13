@@ -43,8 +43,8 @@ enum tcr_shareability_attribute {
 
 enum tcr_granule_size {
     TCR_GRANULE_4KIB,
-    TCR_GRANULE_64KIB,
     TCR_GRANULE_16KIB,
+    TCR_GRANULE_64KIB,
 };
 
 enum tcr_phys_addrspace_size {
@@ -60,20 +60,20 @@ enum tcr_phys_addrspace_size {
 enum tcr_flags {
     // The size offset of the memory region addressed by TTBR0_EL1.
     // The region size is 2^(64-T0SZ) bytes.
-
     __TCR_T0SZ = 0b11111ull,
+
     // A TLB miss on an address that is translated using TTBR0_EL1 generates a
     // Translation fault. No translation table walk is performed.
-
     __TCR_EPD0 = 1ull << 7,
+
     __TCR_IRGN0 = 0b11ull << TCR_INNER_CACHEABILITY_TTBR0_SHIFT,
     __TCR_ORGN0 = 0b11ull << TCR_OUTER_CACHEABILITY_TTBR0_SHIFT,
     __TCR_SH0 = 0b11ull << TCR_SHAREABILITY_ATTR_TTBR0_SHIFT,
-    __TCR_TG0 = 0b11ull << TCR_GRANULE_SIZE_TTBR0_SHIFT,
+
+    __TCR_GRANULE_SIZE_EL0 = 0b11ull << TCR_GRANULE_SIZE_TTBR0_SHIFT,
 
     // The size offset of the memory region addressed by TTBR1_EL1.
     // The region size is 2^(64-T0SZ) bytes.
-
     __TCR_T1SZ = 0b11111ull << TCR_TTBR1_SIZE_OFFSET_SHIFT,
 
     // Selects whether TTBR0_EL1 (0) or TTBR1_EL1 (1) defines the ASID
@@ -89,30 +89,27 @@ enum tcr_flags {
     __TCR_IRGN1 = 0b11ull << TCR_INNER_CACHEABILITY_TTBR1_SHIFT,
     __TCR_ORGN1 = 0b11ull << TCR_OUTER_CACHEABILITY_TTBR1_SHIFT,
     __TCR_SH1 = 0b11ull << TCR_SHAREABILITY_ATTR_TTBR1_SHIFT,
-    __TCR_TG1 = 0b11ull << TCR_GRANULE_SIZE_TTBR1_SHIFT,
+
+    __TCR_GRANULE_SIZE_EL1 = 0b11ull << TCR_GRANULE_SIZE_TTBR1_SHIFT,
     __TCR_IPS = 0b111ull << 32,
 
     // 16 bit - the upper 16 bits of TTBR0_EL1 and TTBR1_EL1 are used for
     // allocation and matching in the TLB.
-
     __TCR_AS = 1ull << 36,
 
     // Top Byte ignored. Indicates whether the top byte of an address is used
     // for address match for the TTBR0_EL1
     // region, or ignored and used for tagged addresses.
-
     __TCR_TBI_EL0 = 1ull << 37,
 
     // Top Byte ignored. Indicates whether the top byte of an address is used
     // for address match for the TTBR1_EL1 region, or ignored and used for
     // tagged addresses.
-
     __TCR_TBI_EL1 = 1ull << 38,
 
     // When FEAT_HAFDBS is implemented:
     // Hardware Access flag update in stage 1 translations from EL0 and EL1.
     // Stage 1 Access flag update enabled.
-
     __TCR_HW_ACCESS_FLAG_ENABLE = 1ull << 39,
 
     // When FEAT_HAFDBS is implemented:
@@ -120,7 +117,6 @@ enum tcr_flags {
     // EL1.
     // Stage 1 hardware management of dirty state enabled, only if the HA bit is
     // also set to 1.
-
     __TCR_HW_DIRTY_FLAG_ENABLE = 1ull << 40,
 
     // When FEAT_HPDS is implemented:
@@ -128,7 +124,6 @@ enum tcr_flags {
     // bits, APTable, PXNTable, and UXNTable, except NSTable, in the translation
     // tables pointed to by TTBR0_EL1.
     // Hierarchical permissions are disabled.
-
     __TCR_HIERARCHIAL_PERMS_DISABLE_EL0 = 1ull << 41,
 
     // When FEAT_HPDS is implemented:
@@ -136,7 +131,6 @@ enum tcr_flags {
     // bits, APTable, PXNTable, and UXNTable, except NSTable, in the translation
     // tables pointed to by TTBR1_EL1
     // Hierarchical permissions are disabled.
-
     __TCR_HIERARCHIAL_PERMS_DISABLE_EL1 = 1ull << 42,
 
     // When FEAT_HPDS2 is implemented:
@@ -149,7 +143,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD0 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD0 is 0.
-
     __TCR_HWU059 = 1ull << 43,
 
     // When FEAT_HPDS2 is implemented:
@@ -162,7 +155,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD0 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD0 is 0.
-
     __TCR_HWU060 = 1ull << 44,
 
     // When FEAT_HPDS2 is implemented:
@@ -175,7 +167,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD0 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD0 is 0.
-
     __TCR_HWU061 = 1ull << 45,
 
     // When FEAT_HPDS2 is implemented:
@@ -188,7 +179,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD0 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD0 is 0.
-
     __TCR_HWU062 = 1ull << 46,
 
     // When FEAT_HPDS2 is implemented:
@@ -201,7 +191,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD1 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD1 is 0.
-
     __TCR_HWU159 = 1ull << 47,
 
     // When FEAT_HPDS2 is implemented:
@@ -214,7 +203,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD1 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD1 is 0.
-
     __TCR_HWU160 = 1ull << 48,
 
     // When FEAT_HPDS2 is implemented:
@@ -227,7 +215,6 @@ enum tcr_flags {
     // DEFINED purpose if the value of TCR_EL1.HPD1 is 1.
 
     // The Effective value of this field is 0 if the value of TCR_EL1.HPD1 is 0.
-
     __TCR_HWU161 = 1ull << 49,
 
     // When FEAT_HPDS2 is implemented:
@@ -238,7 +225,6 @@ enum tcr_flags {
     // For translations using TTBR1_EL1, bit[62] of each stage 1 translation
     // table Block or Page entry can be used by hardware for an IMPLEMENTATION
     // DEFINED purpose if the value of TCR_EL1.HPD1 is 1.
-
     __TCR_HWU162 = 1ull << 50,
 
     // When FEAT_PAuth is implemented:
@@ -254,7 +240,6 @@ enum tcr_flags {
 
     // This affects addresses where the address would be translated by tables
     // pointed to by TTBR0_EL1.
-
     __TCR_TBID0 = 1ull << 51,
 
     // When FEAT_PAuth is implemented:
@@ -270,7 +255,6 @@ enum tcr_flags {
     // TCR_EL1.TBI1 applies to Instruction and Data accesses.
     // This affects addresses where the address would be translated by tables
     // pointed to by TTBR1_EL1.
-
     __TCR_TBID1 = 1ull << 52,
 
     // When FEAT_SVE is implemented:
@@ -291,7 +275,6 @@ enum tcr_flags {
     // A TLB miss on a virtual address that is translated using TTBR0_EL1 due to
     // the specified access types causes the access to fail without taking an
     // exception. No stage 1 translation table walk is performed.
-
     __TCR_NFD0 = 1ull << 53,
 
     // When FEAT_SVE is implemented:
@@ -312,7 +295,6 @@ enum tcr_flags {
     // A TLB miss on a virtual address that is translated using TTBR1_EL1 due to
     // the specified access types causes the access to fail without taking an
     // exception. No stage 1 translation table walk is performed.
-
     __TCR_NFD1 = 1ull << 54,
 
     // When FEAT_E0PD is implemented:
@@ -326,7 +308,6 @@ enum tcr_flags {
     // counted as TLB misses for performance monitoring. The fault should take
     // the same time to generate, whether the address is present in the TLB or
     // not, to mitigate attacks that use fault timing.
-
     __TCR_E0PD0 = 1ull << 55,
 
     // When FEAT_E0PD is implemented:
@@ -339,7 +320,6 @@ enum tcr_flags {
     // monitoring. The fault should take the same time to generate, whether the
     // address is present in the TLB or not, to mitigate attacks that use fault
     // timing.
-
     __TCR_E0PD1 = 1ull << 56,
 
     // When FEAT_MTE2 is implemented:
@@ -354,7 +334,6 @@ enum tcr_flags {
     // HCR_EL2.{E2H,TGE}!={1,1}, when address[59:55] = 0b11111.
     // This control has no effect on the generation of Unchecked accesses at EL1
     // or EL0.
-
     __TCR_TCMA1 = 1ull << 58,
 
     // When FEAT_LPA2 is implemented:
@@ -394,7 +373,6 @@ enum tcr_flags {
 
     // All calculations of the stage 1 base address are modified for tables of
     // fewer than 8 entries so that the table is aligned to 64 bytes.
-
     __TCR_DS = 1ull << 59,
 };
 

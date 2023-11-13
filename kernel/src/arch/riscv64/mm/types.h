@@ -8,8 +8,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lib/macros.h"
-
 #define MAX_ORDER 31
 
 #define PML1_SHIFT 12
@@ -22,7 +20,7 @@
 #define PTE_PHYS_MASK 0x003ffffffffffc00
 
 #define PGT_LEVEL_COUNT 5
-#define PGT_PTE_COUNT 512
+#define PGT_PTE_COUNT(level) ({ (void)(level); (uint64_t)512; })
 
 #define PML1_MASK 0x1ff
 #define PML2_MASK PML1_MASK
@@ -73,11 +71,11 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
 #define PAGE_SIZE_AT_LEVEL(level) \
     ({\
         const uint64_t __sizes__[] = { \
-            PAGE_SIZE,      \
+            PAGE_SIZE, \
             PAGE_SIZE_2MIB, \
             PAGE_SIZE_1GIB, \
-            PAGE_SIZE_1GIB * PGT_PTE_COUNT, \
-            PAGE_SIZE_1GIB * PGT_PTE_COUNT * PGT_PTE_COUNT \
+            PAGE_SIZE_512GIB, \
+            PAGE_SIZE_512GIB * PGT_PTE_COUNT(4) \
         }; \
        __sizes__[level - 1];\
     })

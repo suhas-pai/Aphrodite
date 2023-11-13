@@ -58,6 +58,10 @@ ifeq ($(RELEASE), 1)
     override COMMON_CFLAGS += -Ofast
 endif
 
+ifeq ($(USE_16K_PAGES), 1)
+    override COMMON_CFLAGS += -DAARCH64_USE_16K_PAGES
+endif
+
 # User controllable C flags.
 override DEFAULT_CFLAGS += $(COMMON_CFLAGS)
 $(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))

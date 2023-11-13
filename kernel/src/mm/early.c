@@ -59,7 +59,19 @@ __optimize(3) static void add_to_asc_list(struct freepages_info *const info) {
 }
 
 __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
-    struct freepages_info *const info = phys_to_virt(memmap->range.front);
+#if defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES)
+    struct range phys_range = memmap->range;
+    if (!range_align_in(phys_range, PAGE_SIZE, &phys_range)) {
+        printk(LOGLEVEL_WARN,
+               "early; failed to claim memmap at phys-range " RANGE_FMT ", "
+               "couldn't align to 16kib page size\n",
+               RANGE_FMT_ARGS(phys_range));
+    }
+#else
+    const struct range phys_range = memmap->range;
+#endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
+
+    struct freepages_info *const info = phys_to_virt(phys_range.front);
 
     list_init(&info->list);
     list_init(&info->asc_list);
@@ -160,7 +172,9 @@ __optimize(3) uint64_t early_alloc_page() {
     return free_page;
 }
 
-__optimize(3) uint64_t early_alloc_large_page(const uint32_t alloc_amount) {
+__optimize(3)
+uint64_t early_alloc_large_page(const pgt_level_t level, void *cb_info) {
+    (void)cb_info;
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");
         return INVALID_PHYS;
@@ -170,6 +184,9 @@ __optimize(3) uint64_t early_alloc_large_page(const uint32_t alloc_amount) {
 
     uint64_t free_page = INVALID_PHYS;
     bool is_in_middle = false;
+
+    const uint64_t alloc_amount =
+        1ull << largepage_level_info_list[level - 1].order;
 
     list_foreach(info, &g_asc_freelist, asc_list) {
         const uint64_t avail_page_count = info->avail_page_count;
@@ -393,7 +410,8 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     //       level and the current level that need to be initialized.
 
     uint8_t prev_level = walker.level;
-    bool prev_was_at_end = walker.indices[prev_level - 1] == PGT_PTE_COUNT - 1;
+    bool prev_was_at_end =
+        walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
 
     for (uint64_t i = 0; i < length;) {
         const enum pt_walker_result advance_result =
@@ -450,7 +468,8 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         page->table.refcount.count++;
 
         prev_level = walker.level;
-        prev_was_at_end = walker.indices[prev_level - 1] == PGT_PTE_COUNT - 1;
+        prev_was_at_end = walker.indices[prev_level - 1] ==
+            PGT_PTE_COUNT(prev_level) - 1;
 
         i += PAGE_SIZE_AT_LEVEL(walker.level);
     }
@@ -469,7 +488,7 @@ mm_early_identity_map_phys(const uint64_t root_phys,
 {
     assert_msg(!g_mapped_early_identity,
                "mm: mm_early_identity_map_phys() only supports "
-               "identity-mapping early 1 page!");
+               "identity-mapping early a single page!");
 
     struct pt_walker walker;
     ptwalker_create_from_root_phys(&walker,

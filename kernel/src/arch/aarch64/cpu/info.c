@@ -855,6 +855,12 @@ void collect_cpu_features() {
             g_cpu_features.sme = CPU_FEAT_SME2;
         }
     }
+
+    g_cpu_features.mixed_endian_support = id_aa64mmfr0 & __ID_AA64MMFR0_BIGEND;
+    g_cpu_features.granule_16k_supported =
+        id_aa64mmfr0 & __ID_AA64MMFR0_TGRAN16;
+    g_cpu_features.granule_64k_supported =
+        id_aa64mmfr0 & __ID_AA64MMFR0_TGRAN64;
 }
 
 void print_cpu_features() {
@@ -1219,7 +1225,10 @@ void print_cpu_features() {
            "\tsve_sha3: %s\n"
            "\tsve_sm4: %s\n"
            "\ttme: %s\n"
-           "\ttrbe: %s\n",
+           "\ttrbe: %s\n"
+           "\tmixed endian support: %s\n"
+           "\tsupports 16kib pages: %s\n"
+           "\tsupports 64kib pages: %s\n",
            g_cpu_features.able ? "yes" : "no",
            g_cpu_features.aderr ? "yes" : "no",
            g_cpu_features.anerr ? "yes" : "no",
@@ -1416,12 +1425,20 @@ void print_cpu_features() {
            g_cpu_features.sve_sha3 ? "yes" : "no",
            g_cpu_features.sve_sm4 ? "yes" : "no",
            g_cpu_features.tme ? "yes" : "no",
-           g_cpu_features.trbe ? "yes" : "no");
+           g_cpu_features.trbe ? "yes" : "no",
+           g_cpu_features.mixed_endian_support ? "yes" : "no",
+           g_cpu_features.granule_16k_supported ? "yes" : "no",
+           g_cpu_features.granule_64k_supported ? "yes" : "no");
 }
 
 void cpu_init() {
     collect_cpu_features();
     print_cpu_features();
+
+#if defined(AARCH64_USE_16K_PAGES)
+    assert_msg(g_cpu_features.granule_16k_supported,
+               "cpu: machine doesn't support 16kib pages");
+#endif /* defined(AARCH64_USE_16K_PAGES) */
 
     g_base_cpu_info.mpidr = read_mpidr_el1();
     g_base_cpu_info.mpidr &= ~(1ull << 31);

@@ -18,6 +18,29 @@ __hidden uint64_t PAGE_END = 0;
 
 __hidden
 struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
+#if defined(AARCH64_USE_16K_PAGES)
+    [LARGEPAGE_LEVEL_32MIB - 1] = {
+        .order = 13,
+        .largepage_order = 0,
+        .level = LARGEPAGE_LEVEL_32MIB,
+        .size = PAGE_SIZE_32MIB,
+        .is_supported = true
+    },
+    [LARGEPAGE_LEVEL_64GIB - 1] = {
+        .order = 24,
+        .largepage_order = 1,
+        .level = LARGEPAGE_LEVEL_64GIB,
+        .size = PAGE_SIZE_64GIB,
+        .is_supported = true
+    },
+    [LARGEPAGE_LEVEL_128TIB - 1] = {
+        .order = 36,
+        .largepage_order = 2,
+        .level = LARGEPAGE_LEVEL_128TIB,
+        .size = PAGE_SIZE_128TIB,
+        .is_supported = true
+    }
+#else
     [LARGEPAGE_LEVEL_2MIB - 1] = {
         .order = 9,
         .largepage_order = 0,
@@ -39,6 +62,7 @@ struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
         .size = PAGE_SIZE_512GIB,
         .is_supported = true
     }
+#endif /* defined(AARCH64_USE_16K_PAGES) */
 };
 
 __optimize(3) pgt_level_t pgt_get_top_level() {

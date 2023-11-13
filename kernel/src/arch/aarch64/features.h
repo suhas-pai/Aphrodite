@@ -393,6 +393,10 @@ struct cpu_features {
     bool sve_sm4 : 1;      // SVE SM4 instructions
     bool tme : 1;          // Transactional Memory Extension
     bool trbe : 1;         // Trace Buffer Extension
+
+    bool mixed_endian_support : 1;
+    bool granule_16k_supported : 1;
+    bool granule_64k_supported : 1;
 };
 
 const struct cpu_features *cpu_get_features();

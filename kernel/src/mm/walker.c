@@ -349,7 +349,7 @@ ptwalker_next_with_options(struct pt_walker *const walker,
     pgt_index_t *indices_ptr = &walker->indices[level - 1];
     pgt_index_t index = ++*indices_ptr;
 
-    if (index < PGT_PTE_COUNT) {
+    if (index < PGT_PTE_COUNT(level)) {
         if (level == 1) {
             return E_PT_WALKER_OK;
         }
@@ -396,7 +396,7 @@ ptwalker_next_with_options(struct pt_walker *const walker,
         }
 
         index = ++*indices_ptr;
-        if (index == PGT_PTE_COUNT) {
+        if (index == PGT_PTE_COUNT(level)) {
             tables_ptr++;
             continue;
         }
@@ -506,7 +506,7 @@ ptwalker_prev_with_options(struct pt_walker *const walker,
     }
 
     pte_t **tables_ptr = &walker->tables[level];
-    *indices_ptr = PGT_PTE_COUNT - 1;
+    *indices_ptr = PGT_PTE_COUNT(level) - 1;
 
     const pgt_level_t orig_level = level;
 
@@ -525,7 +525,7 @@ ptwalker_prev_with_options(struct pt_walker *const walker,
 
         index = *indices_ptr;
         if (index == 0) {
-            *indices_ptr = PGT_PTE_COUNT - 1;
+            *indices_ptr = PGT_PTE_COUNT(level) - 1;
             tables_ptr++;
 
             continue;

@@ -36,7 +36,11 @@ static void hcf(void) {
 
 static void test_alloc_largepage() {
     struct page *const largepage =
+#if defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES)
+        alloc_large_page(__ALLOC_ZERO, LARGEPAGE_LEVEL_32MIB);
+#else
         alloc_large_page(__ALLOC_ZERO, LARGEPAGE_LEVEL_1GIB);
+#endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
 
     if (largepage != NULL) {
         printk(LOGLEVEL_INFO,
@@ -46,7 +50,11 @@ static void test_alloc_largepage() {
         free_large_page(largepage);
         printk(LOGLEVEL_INFO, "kernel: freed largepage\n");
     } else {
+#if defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES)
+        printk(LOGLEVEL_WARN, "kernel: failed to allocate a 32mib page\n");
+#else
         printk(LOGLEVEL_WARN, "kernel: failed to allocate a 1gib page\n");
+#endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
     }
 }
 
