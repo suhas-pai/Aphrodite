@@ -80,7 +80,7 @@ run-hdd-x86_64: ovmf $(IMAGE_NAME).hdd
 .PHONY: run-aarch64
 run-aarch64: QEMU_RUN = 1
 run-aarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-aarch64 -M virt -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd -device virtio-scsi-pci,id=scsi -device scsi-cd,drive=cd0 -drive id=cd0,if=none,format=raw,file=$(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-aarch64 -M virt -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-aarch64
 run-hdd-aarch64: QEMU_RUN = 1

@@ -15,7 +15,7 @@
 #include "mm/mmio.h"
 #include "sys/pic.h"
 
-void
+__optimize(3) void
 lapic_timer_irq_callback(const uint64_t int_no, irq_context_t *const frame) {
     (void)int_no;
     (void)frame;

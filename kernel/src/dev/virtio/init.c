@@ -276,7 +276,9 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
     virt_device.pci.pci_device = pci_device;
     virt_device.is_pci = true;
 
-    pci_device_enable_privl(pci_device, __PCI_DEVICE_PRIVL_BUS_MASTER);
+    pci_device_enable_privl(pci_device,
+                            __PCI_DEVICE_PRIVL_BUS_MASTER |
+                            __PCI_DEVICE_PRIVL_MEM_ACCESS);
 
 #define pci_read_virtio_cap_field(field) \
     pci_read_with_offset(pci_device, \
@@ -525,7 +527,7 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
     }
 }
 
-static struct pci_driver pci_driver = {
+static const struct pci_driver pci_driver = {
     .vendor = 0x1af4,
     .match = PCI_DRIVER_MATCH_VENDOR,
     .init = init_from_pci

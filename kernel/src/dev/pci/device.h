@@ -8,8 +8,6 @@
 #if defined(__x86_64__)
     #include "cpu/info.h"
     #include "cpu/isr.h"
-
-    #include "lib/bits.h"
 #elif defined(__riscv64)
 #endif /* defined(__x86_64__) */
 
@@ -190,6 +188,7 @@ enum pci_device_privilege {
     __PCI_DEVICE_PRIVL_PIO_ACCESS = 1ull << 0,
     __PCI_DEVICE_PRIVL_MEM_ACCESS = 1ull << 1,
     __PCI_DEVICE_PRIVL_BUS_MASTER = 1ull << 2,
+    __PCI_DEVICE_PRIVL_INTERRUPTS = 1ull << 10
 };
 
 void

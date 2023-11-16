@@ -623,7 +623,11 @@ parse_function(struct pci_domain *const domain,
            PCI_DEVICE_INFO_FMT_ARGS(&info),
            pci_device_get_vendor_name(&info));
 
-    const bool class_is_pci_bridge = info.class == 0x4 && info.subclass == 0x6;
+    const bool class_is_pci_bridge =
+        info.class == PCI_DEVICE_CLASS_BRIDGE_DEVICE &&
+        (info.subclass == PCI_DEVICE_SUBCLASS_PCI_BRIDGE ||
+         info.subclass == PCI_DEVICE_SUBCLASS_PCI_BRIDGE_2);
+
     const bool hdrkind_is_pci_bridge =
         hdrkind == PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE;
 
@@ -636,14 +640,11 @@ parse_function(struct pci_domain *const domain,
 
     // Disable I/O Space and Memory space flags to parse bars. Re-enable after.
     const uint16_t new_command =
-        info.command &
-        (uint16_t)~(__PCI_DEVCMDREG_IOSPACE | __PCI_DEVCMDREG_MEMSPACE);
+        (info.command &
+            (uint16_t)~(__PCI_DEVCMDREG_IOSPACE | __PCI_DEVCMDREG_MEMSPACE)) |
+        __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(&info, struct pci_spec_device_info_base, command, new_command);
-
-    bool has_mmio_bar = false;
-    bool has_io_bar = false;
-
     switch (hdrkind) {
         case PCI_SPEC_DEVHDR_KIND_GENERAL:
             info.max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
@@ -681,12 +682,6 @@ parse_function(struct pci_domain *const domain,
 
                     bar->is_present = false;
                     break;
-                }
-
-                if (bar->is_mmio) {
-                    has_mmio_bar = true;
-                } else {
-                    has_io_bar = true;
                 }
 
                 printk(LOGLEVEL_INFO,
@@ -741,12 +736,6 @@ parse_function(struct pci_domain *const domain,
                     break;
                 }
 
-                if (bar->is_mmio) {
-                    has_mmio_bar = true;
-                } else {
-                    has_io_bar = true;
-                }
-
                 printk(LOGLEVEL_INFO,
                        "\t\tbridge bar %" PRIu8 " %s: " RANGE_FMT ", %s, %s"
                        "size: %" PRIu64 "\n",
@@ -773,15 +762,6 @@ parse_function(struct pci_domain *const domain,
             printk(LOGLEVEL_INFO,
                    "pcie: cardbus bridge not supported. ignoring");
             break;
-    }
-
-    // Enable writing to mmio and io space (when necessary).
-    if (has_mmio_bar) {
-        info.command |= __PCI_DEVCMDREG_MEMSPACE;
-    }
-
-    if (has_io_bar) {
-        info.command |= __PCI_DEVCMDREG_IOSPACE;
     }
 
     pci_write(&info, struct pci_spec_device_info_base, command, info.command);
@@ -881,7 +861,7 @@ void pci_init_drivers() {
             continue;
         }
 
-        struct pci_driver *const pci_driver = driver->pci;
+        const struct pci_driver *const pci_driver = driver->pci;
         struct pci_device_info *device = NULL;
 
         list_foreach(device, &g_device_list, list_in_devices) {

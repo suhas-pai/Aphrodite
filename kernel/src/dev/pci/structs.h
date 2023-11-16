@@ -17,6 +17,55 @@
 
 #define PCI_READ_FAIL (uint32_t)-1
 
+enum pci_device_class_code {
+    PCI_DEVICE_CLASS_NONE,
+    PCI_DEVICE_CLASS_MASS_STORAGE_CONTROLLER,
+    PCI_DEVICE_CLASS_NETWORK_CONTROLLER,
+    PCI_DEVICE_CLASS_DISPLAY_CONTROLLER,
+    PCI_DEVICE_CLASS_MULTIMEDIA_CONTROLLER,
+    PCI_DEVICE_CLASS_MEMORY_CONTROLLER,
+    PCI_DEVICE_CLASS_BRIDGE_DEVICE,
+    PCI_DEVICE_CLASS_SIMPLE_COMMUNICATION_CONTROLLER,
+    PCI_DEVICE_CLASS_GENERIC_SYSTEM_PERIPHERAL,
+    PCI_DEVICE_CLASS_INPUT_DEVICE,
+    PCI_DEVICE_CLASS_DOCKING_STATION,
+    PCI_DEVICE_CLASS_PROCESSOR,
+    PCI_DEVICE_CLASS_SERIAL_BUS_CONTROLLER,
+    PCI_DEVICE_CLASS_WIRELESS_CONTROLLER,
+    PCI_DEVICE_CLASS_INTELLIGENT_IO_CONTROLLER,
+    PCI_DEVICE_CLASS_SATELLITE_COMM_CONTROLLER,
+    PCI_DEVICE_CLASS_ENCRYPT_DECRYPT_CONTROLLER,
+    PCI_DEVICE_CLASS_DATA_ACQ_AND_SIGNAL_PROCESSING_CONTROLLER,
+};
+
+enum pci_device_storage_subclass {
+    PCI_DEVICE_SUBCLASS_SCSI,
+    PCI_DEVICE_SUBCLASS_IDE,
+    PCI_DEVICE_SUBCLASS_FLOPPY,
+    PCI_DEVICE_SUBCLASS_IPI,
+    PCI_DEVICE_SUBCLASS_RAID,
+    PCI_DEVICE_SUBCLASS_ATA,
+    PCI_DEVICE_SUBCLASS_SATA,
+    PCI_DEVICE_SUBCLASS_SAS = 0x06,
+
+    // Technically other non-volatile memory subsystems as well
+    PCI_DEVICE_SUBCLASS_NVME = 0x08
+};
+
+enum pci_device_bridge_subclass {
+    PCI_DEVICE_SUBCLASS_HOST_BRIDGE,
+    PCI_DEVICE_SUBCLASS_ISA_BRIDGE,
+    PCI_DEVICE_SUBCLASS_EISA_BRIDGE,
+    PCI_DEVICE_SUBCLASS_MCA_BRIDGE,
+    PCI_DEVICE_SUBCLASS_PCI_BRIDGE,
+    PCI_DEVICE_SUBCLASS_PCI_MCIA_BRIDGE,
+    PCI_DEVICE_SUBCLASS_NUBUS_BRIDGE,
+    PCI_DEVICE_SUBCLASS_CARDBUS_BRIDGE,
+    PCI_DEVICE_SUBCLASS_RACEWAY_BRIDGE,
+    PCI_DEVICE_SUBCLASS_PCI_BRIDGE_2,
+    PCI_DEVICE_SUBCLASS_INFINIBAND_PCI_HOST_BRIDGE,
+};
+
 enum pci_spec_device_header_kind {
     PCI_SPEC_DEVHDR_KIND_GENERAL,
     PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE,
@@ -33,26 +82,17 @@ enum pci_spec_device_bist_flags {
     __PCI_DEVBIST_CAPABLE = 1ull << 7,
 };
 
-enum pci_spec_device_command_register_flags {
-    /*
-     * If set to 1 the device can respond to I/O Space accesses; otherwise, the
-     * device's response is disabled.
-     */
-
+enum pci_spec_device_cmdreg_flags {
+    // If set to 1 the device can respond to I/O Space accesses; otherwise, the
+    // device's response is disabled.
     __PCI_DEVCMDREG_IOSPACE = 1ull << 0,
 
-    /*
-     * If set to 1 the device can respond to Memory Space accesses; otherwise,
-     * the device's response is disabled.
-     */
-
+    // If set to 1 the device can respond to Memory Space accesses; otherwise,
+    // the device's response is disabled.
     __PCI_DEVCMDREG_MEMSPACE = 1ull << 1,
 
-    /*
-     * If set to 1 the device can behave as a bus master; otherwise, the device
-     * can not generate PCI accesses.
-     */
-
+    // If set to 1 the device can behave as a bus master; otherwise, the device
+    // can not generate PCI accesses.
     __PCI_DEVCMDREG_BUS_MASTER = 1ull << 2,
 
     /*
@@ -62,7 +102,6 @@ enum pci_spec_device_command_register_flags {
      * This bit was originally described in the [PCI]. Its functionality does
      * not apply to PCI Express and the bit must be hardwired to 0b.
      */
-
     __PCI_DEVCMDREG_SPECIAL_CYCLES = 1ull << 3,
 
     /*
@@ -75,7 +114,6 @@ enum pci_spec_device_command_register_flags {
      * hardwired to 0b. For PCI Express to PCI/PCI-X Bridges, refer to the
      * [PCIe-to-PCI-PCI-X-Bridge] for requirements for this register.
      */
-
     __PCI_DEVCMDREG_MEMWRITE_INVALIDATE = 1ull << 4,
 
     /*
@@ -87,35 +125,22 @@ enum pci_spec_device_command_register_flags {
      * [PCI-to-PCI-Bridge]. Its functionality does not apply to PCI Express and
      * the bit must be hardwired to 0b.
      */
-
     __PCI_DEVCMDREG_VGA_PALETTE_SNOOP = 1ull << 5,
 
-    /*
-     * If set to 1 the device can respond to the Parity Error Response command;
-     * otherwise, the device's response is disabled.
-     */
-
+    // If set to 1 the device can respond to the Parity Error Response command;
+    // otherwise, the device's response is disabled.
     __PCI_DEVCMDREG_PAITY_ERR_RESP = 1ull << 6,
 
-    /*
-     * If set to 1 the device can respond to the SERR# Response command;
-     * otherwise, the device's response is disabled.
-     */
-
+    // If set to 1 the device can respond to the SERR# Response command;
+    // otherwise, the device's response is disabled.
     __PCI_DEVCMDREG_SERR_RESP = 1ull << 8,
 
-    /*
-     * If set to 1 the device can respond to the Fast Back-to-Back Capable
-     * command; otherwise, the device's response is disabled.
-     */
-
+    // If set to 1 the device can respond to the Fast Back-to-Back Capable
+    // command; otherwise, the device's response is disabled.
     __PCI_DEVCMDREG_FAST_BACKTOBACK = 1ull << 9,
 
-    /*
-     * If set to 1 the assertion of the devices INTx# signal is disabled;
-     * otherwise, assertion of the signal is enabled.
-     */
-
+    // If set to 1 the assertion of the devices INTx# signal is disabled;
+    // otherwise, assertion of the signal is enabled.
     __PCI_DEVCMDREG_INT_DISABLE = 1ull << 10,
 };
 
@@ -379,7 +404,6 @@ enum pcie_spec_cap_pcie_capability_flags {
      * this Port is connected to a slot (as compared to being connected to an
      * integrated component or being disabled)
      */
-
     __PCIE_SPEC_CAP_PCIE_CAP_SLOT_IMPLED = 1 << 8,
 
     /*
@@ -405,7 +429,6 @@ enum pcie_spec_cap_pcie_capability_flags {
      * detect this condition, and assist the user in finding a suitable slot in
      * which to plug in their Trusted Device.
      */
-
     __PCIE_SPEC_CAP_PCIE_CAP_TCS_ROUTING_SUPPORTED = 1 << 14
 };
 
@@ -429,7 +452,6 @@ enum pci_spec_cap_pcie_devcap_phantom_func_kind {
      * Functions 0, 1, 2, and 3 are permitted to use
      * Function Numbers 4, 5, 6, and 7 respectively as Phantom Functions.
      */
-
     PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_MSB,
 
     /*
@@ -440,7 +462,6 @@ enum pci_spec_cap_pcie_devcap_phantom_func_kind {
      * Functions. Function 1 is permitted to use Function
      * Numbers 3, 5, and 7 as Phantom Functions.
      */
-
     PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_2_MSB,
 
     /*
@@ -448,7 +469,6 @@ enum pci_spec_cap_pcie_devcap_phantom_func_kind {
      * The device must have a single Function 0 that is permitted to use all
      * other Function Numbers as Phantom Functions.
      */
-
     PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_3,
 };
 

@@ -4,31 +4,53 @@
  */
 
 #include "dev/ata/atapi.h"
+#include "dev/ata/defines.h"
 
 #include "dev/printk.h"
 #include "lib/size.h"
-#include "mm/mm_types.h"
 #include "sys/mmio.h"
 
 #include "port.h"
 
 #define AHCI_HBA_PORT_MAX_COUNT mib(4)
 
-void
+__optimize(3)
+static uint8_t find_free_command_header(struct ahci_hba_port *const port) {
+    for (uint8_t index = 0;
+         index != sizeof_bits_field(struct ahci_spec_hba_port, command_issue);
+         index++)
+    {
+        if ((mmio_read(&port->spec->command_issue) & 1ull << index) == 0) {
+            return index;
+        }
+    }
+
+    return UINT8_MAX;
+}
+
+bool
 ahci_hba_port_send_command(struct ahci_hba_port *const port,
                            const enum ahci_hba_port_command_kind command_kind,
                            const uint64_t sector,
-                           const uint16_t count,
-                           const uint8_t slot)
+                           const uint16_t count)
 {
     if (__builtin_expect(count == 0, 0)) {
-        printk(LOGLEVEL_WARN, "ahci-port: got request of 0 bytes\n");
-        return;
+        printk(LOGLEVEL_WARN,
+               "ahci-port: port #%" PRIu8 " got request of 0 bytes\n",
+               port->index);
+
+        return true;
     }
 
-    (void)sector;
+    const uint8_t slot = find_free_command_header(port);
+    if (slot == UINT8_MAX) {
+        printk(LOGLEVEL_WARN,
+               "ahci-port: port #%" PRIu8 " has no free command-headers\n",
+               port->index);
+        return false;
+    }
 
-    struct ahci_spec_port_cmd_header *const cmd_header = port->headers + slot;
+    struct ahci_spec_port_cmd_header *const cmd_header = &port->headers[slot];
     uint16_t flags =
         mmio_read(&cmd_header->flags) |
         __AHCI_PORT_CMDHDR_CLR_BUSY_ON_ROK |
@@ -46,12 +68,8 @@ ahci_hba_port_send_command(struct ahci_hba_port *const port,
     mmio_write(&cmd_header->flags, flags);
     mmio_write(&cmd_header->prdt_length, prdt_count);
 
-    const uint64_t cmd_table_phys =
-        (uint64_t)mmio_read(&cmd_header->cmd_table_base_upper32) << 32 |
-        mmio_read(&cmd_header->cmd_table_base_lower32);
-
     struct ahci_spec_hba_cmd_table *const cmd_table =
-        phys_to_virt(cmd_table_phys);
+        phys_to_virt(port->cmdtable_phys);
     volatile struct ahci_spec_hba_prdt_entry *const entries =
         cmd_table->prdt_entries;
 
@@ -87,7 +105,7 @@ ahci_hba_port_send_command(struct ahci_hba_port *const port,
     h2d_fis->fis_type = AHCI_FIS_KIND_REG_H2D;
     h2d_fis->flags = 0;
     h2d_fis->command =
-        (sector >= (1ull << 48)) ? ATAPI_READ_DMA_EXT : ATAPI_READ_DMA;
+        (sector >= 1ull << 48) ? ATAPI_READ_DMA_EXT : ATAPI_READ_DMA;
 
     h2d_fis->feature_low8 = 0;
     h2d_fis->control = 0;
@@ -97,7 +115,7 @@ ahci_hba_port_send_command(struct ahci_hba_port *const port,
     h2d_fis->lba1 = (uint8_t)(sector >> 8);
     h2d_fis->lba2 = (uint8_t)(sector >> 16);
 
-    h2d_fis->device = 1 << 6;
+    h2d_fis->device = __ATA_USE_LBA_ADDRESSING;
 
     h2d_fis->lba3 = (uint8_t)(sector >> 24);
     h2d_fis->lba4 = (uint8_t)(sector >> 32);
@@ -110,4 +128,5 @@ ahci_hba_port_send_command(struct ahci_hba_port *const port,
     h2d_fis->control = 0;
 
     port->spec->command_issue |= (1ull << slot);
+    return true;
 }

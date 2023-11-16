@@ -176,7 +176,7 @@ void dtb_init_early() {
 
 void
 dtb_init_nodes_for_driver(const void *const dtb,
-                          struct dtb_driver *const driver)
+                          const struct dtb_driver *const driver)
 {
     for (uint32_t i = 0; i != driver->compat_count; i++) {
         const char *const compat = driver->compat_list[i];

@@ -17,7 +17,7 @@
     #define PML4_SHIFT 47
 
     #define PGT_LEVEL_COUNT 4
-    #define PGT_PTE_COUNT(level) (level != 4 ? (uint64_t)2048 : (uint64_t)2)
+    #define PGT_PTE_COUNT(level) ((level) != 4 ? (uint64_t)2048 : (uint64_t)2)
 
     #define PML1_MASK 0xb
     #define PML2_MASK PML1_MASK
@@ -156,8 +156,7 @@ enum pte_flags {
 };
 
 #define PGT_FLAGS (__PTE_VALID | __PTE_TABLE)
-#define PTE_LARGE_FLAGS(level) \
-    ({ (void)(level); __PTE_VALID | __PTE_ACCESS; })
+#define PTE_LARGE_FLAGS(level) ({ (void)(level); __PTE_VALID | __PTE_ACCESS; })
 
 #define PTE_LEAF_FLAGS (__PTE_VALID | __PTE_PML1_PAGE | __PTE_ACCESS)
 

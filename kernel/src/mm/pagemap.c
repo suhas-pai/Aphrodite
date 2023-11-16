@@ -35,23 +35,21 @@ __hidden struct pagemap kernel_pagemap = {
     pagemap_create(pte_t *const lower_root, pte_t *const higher_root) {
         struct pagemap result = {
             .lower_root = lower_root,
-            .higher_root = higher_root
+            .higher_root = higher_root,
+            .addrspace = ADDRSPACE_INIT(result.addrspace)
         };
 
-        result.addrspace = ADDRSPACE_INIT(result.addrspace);
         refcount_init(&result.refcount);
-
         return result;
     }
 #else
     struct pagemap pagemap_create(pte_t *const root) {
         struct pagemap result = {
             .root = root,
+            .addrspace = ADDRSPACE_INIT(result.addrspace)
         };
 
-        result.addrspace = ADDRSPACE_INIT(result.addrspace);
         refcount_init(&result.refcount);
-
         return result;
     }
 #endif /* defined(__aarch64__) */
@@ -148,10 +146,10 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     write_ttbr0_el1(virt_to_phys(pagemap->lower_root));
     write_ttbr1_el1(virt_to_phys(pagemap->higher_root));
 
-#if defined(AARCH64_USE_16K_PAGES)
-    write_tcr_el1((read_tcr_el1() & ~__TCR_GRANULE_SIZE_EL1) |
-                  TCR_GRANULE_16KIB << TCR_GRANULE_SIZE_TTBR1_SHIFT);
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+    #if defined(AARCH64_USE_16K_PAGES)
+        write_tcr_el1((read_tcr_el1() & ~__TCR_TG1) |
+                    TCR_TG1_16KIB << TCR_TG1_SHIFT);
+    #endif /* defined(AARCH64_USE_16K_PAGES) */
 
     asm volatile ("dsb sy; isb" ::: "memory");
 #else

@@ -88,7 +88,7 @@ map_mmio_region(const struct range phys_range,
                           phys_range,
                           virt_addr,
                           prot,
-                          (flags & __VMAP_MMIO_WT) ?
+                          flags & __VMAP_MMIO_WT ?
                             VMA_CACHEKIND_WRITETHROUGH : VMA_CACHEKIND_MMIO,
                           /*is_overwrite=*/false);
 

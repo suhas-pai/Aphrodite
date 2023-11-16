@@ -254,15 +254,21 @@ enum cpu_feat_mtpmu {
 struct cpu_features {
     // 2022 Architecture Extensions
     bool able : 1;                // Address Breakpoint Linking extension
-    bool aderr : 1;               // RASv2 Additional Error syndrome reporting, for Device memory
-    bool anerr : 1;               // RASv2 Additional Error syndrome reporting, for Normal memory
+    // Physical Fault Address Extension [NOTE: not yet listed]
+    bool aderr : 1;
+    // Hardware managed Access Flag for Table descriptors
+    bool anerr : 1;
     bool aie : 1;                 // Memory Attribute Index Enhancement
-    bool b16b16 : 1;              // Non-widening BFloat16 to BFloat16 arithmetic for SVE2.1 and SME2.1
-    bool clrbhb : 1;              // A new instruction CLRBHB is added in HINT space
+    // Imposes restrictions on branch history speculation around exceptions
+    bool b16b16 : 1;
+    // A new instruction CLRBHB is added in HINT space
+    bool clrbhb : 1;
     bool ebep : 1;                // Exception-based event profiling
-    bool ecbhb : 1;               // Imposes restrictions on branch history speculation around exceptions
+    // Non-widening BFloat16 to BFloat16 arithmetic for SVE2.1 and SME2.1
+    bool ecbhb : 1;
     bool gcs : 1;                 // Guarded Control Stack Extension
-    bool haft : 1;                // Hardware managed Access Flag for Table descriptors
+    // RASv2 Additional Error syndrome reporting, for Normal memory
+    bool haft : 1;
     bool ite : 1;                 // Instrumentation trace extension
     bool mec : 1;                 // Memory Encryption Contexts
     bool s1pie : 1;               // Permission model enhancements
@@ -272,7 +278,8 @@ struct cpu_features {
     bool pmuv3_icntr : 1;         // PMU instruction counter
     bool pmuv3_ss : 1;            // PMU snapshot
     bool prfmslc : 1;             // Prefetching enhancements
-    bool pfar : 1;                // Physical Fault Address Extension [NOTE: not yet listed]
+    // RASv2 Additional Error syndrome reporting, for Device memory
+    bool pfar : 1;
     bool sebep : 1;               // Synchronous Exception-based event profiling
     bool spmu : 1;                // System PMU
     bool sysinstr128 : 1;         // 128-bit System instructions
@@ -291,8 +298,11 @@ struct cpu_features {
     // 2020 Architecture Extensions
     bool afp : 1;          // Alternate floating-point behavior
     bool hcx : 1;          // Support for the HCRX_EL2 register
-    bool lpa2 : 1;         // Larger physical address for 4KB and 16KB translation granules
-    bool rpres : 1;        // Increased precision of Reciprocal Estimate and Reciprocal Square Root Estimate
+    // Increased precision of Reciprocal Estimate and Reciprocal Square Root
+    // Estimate
+    bool lpa2 : 1;
+    // Larger physical address for 4KB and 16KB translation granules
+    bool rpres : 1;
     bool rme : 1;          // Realm Management Extension
     bool sme_fa64 : 1;     // Additional instructions for the SME Extension
     bool sme_f64f64 : 1;   // Additional instructions for the SME Extension
@@ -356,21 +366,28 @@ struct cpu_features {
     bool i8mm : 1;          // Int8 Matrix Multiplication
     bool iesb : 1;          // Implicit Error synchronization event
     bool lpa : 1;           // Large PA and IPA support
-    bool lsmaoc : 1;        // Load/Store instruction multiple atomicity and ordering controls
+    // Pointer authentication - IMPLEMENTATION DEFINED algorithm
+    bool lsmaoc : 1;
     bool lva : 1;           // Large VA support
     bool mpam : 1;          // Memory Partitioning and Monitoring
     bool pcsrv8p2 : 1;      // PC Sample-based profiling version 8.2
-    bool sha3 : 1;          // Advanced SIMD EOR3, RAX1, XAR, and BCAX instructions; Split ARMv8.2-SHA into SHA-256, SHA-512 and SHA-3
-    bool sm3 : 1;           // Advanced SIMD SM3 instructions; Split into SM3 and SM4
-    bool sm4 : 1;           // Advanced SIMD SM4 instructions; Split into SM3 and SM4
+    // Execute-never control distinction by Exception level at stage 2
+    bool sha3 : 1;
+    // Advanced SIMD SM4 instructions; Split into SM3 and SM4
+    bool sm3 : 1;
+    // Advanced SIMD SM3 instructions; Split into SM3 and SM4
+    bool sm4 : 1;
     bool ttcnp : 1;         // Common not private translations
-    bool xnx : 1;           // Execute-never control distinction by Exception level at stage 2
+    // Advanced SIMD EOR3, RAX1, XAR, and BCAX instructions; Split ARMv8.2-SHA
+    // into SHA-256, SHA-512 and SHA-3
+    bool xnx : 1;
     bool uao : 1;           // Unprivileged Access Override control
     bool ccidx : 1;         // Extended cache index
     bool fcma : 1;          // Floating-point FCMLA and FCADD instructions
     bool jscvt : 1;         // JavaScript FJCVTS conversion instruction
     bool pacqarma5 : 1;     // Pointer authentication - QARMA5 algorithm
-    bool pacimp : 1;        // Pointer authentication - IMPLEMENTATION DEFINED algorithm
+    // Load/Store instruction multiple atomicity and ordering controls
+    bool pacimp : 1;
     bool dit : 1;           // Data Independent Timing instructions
     bool idst : 1;          // ID space trap handling
     bool lse2 : 1;          // Large System Extensions version 2
@@ -380,14 +397,18 @@ struct cpu_features {
     bool ttl : 1;           // Translation Table Level
     bool ttst : 1;          // Small translation tables
     bool bti : 1;           // Branch target identification
-    bool exs : 1;           // Disabling context synchronizing exception entry and exit
+    // FRINT32Z, FRINT32X, FRINT64Z, and FRINT64X instructions
+    bool exs : 1;
     bool e0pd : 1;          // Preventing EL0 access to halves of address maps
-    bool frintts : 1;       // FRINT32Z, FRINT32X, FRINT64Z, and FRINT64X instructions
+    // Disabling context synchronizing exception entry and exit
+    bool frintts : 1;
     bool rndr : 1;          // Random number generator
     bool twed : 1;          // Delayed trapping of WFE
     // Note: cf. https://developer.arm.com/documentation/ihi0069/h/?lang=en
     bool ete : 1;          // Embedded Trace Extension
-    bool sve_pmull128 : 1; // SVE PMULL instructions; SVE2-AES is split into AES and PMULL support
+
+    // SVE PMULL instructions; SVE2-AES is split into AES and PMULL support
+    bool sve_pmull128 : 1;
     bool sve_bitperm : 1;  // SVE Bit Permute
     bool sve_sha3 : 1;     // SVE SHA-3 instructions
     bool sve_sm4 : 1;      // SVE SM4 instructions

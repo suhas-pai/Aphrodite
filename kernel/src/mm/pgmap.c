@@ -1155,64 +1155,68 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
 
     do {
     start:
-        // Find the largest page-size we can use.
-        uint16_t highest_largepage_level = 0;
-        for (pgt_level_t level = 1; level <= walker->top_level; level++) {
-            if (walker->indices[level - 1] != 0) {
-                // If we don't have a zero at this level, but had one at all the
-                // preceding levels, then this present level is the highest
-                // largepage level.
+        if (supports_largepage_at_level_mask != 0) {
+            // Find the largest page-size we can use.
+            uint16_t highest_largepage_level = 0;
+            for (pgt_level_t level = 1; level <= walker->top_level; level++) {
+                if (walker->indices[level - 1] != 0) {
+                    // If we don't have a zero at this level, but had one at all
+                    // the preceding levels, then this present level is the
+                    // highest largepage level.
 
-                highest_largepage_level = level;
-                break;
+                    highest_largepage_level = level;
+                    break;
+                }
             }
-        }
 
-        if (highest_largepage_level > 1) {
-            for (int16_t index = countof(LARGEPAGE_LEVELS) - 1;
-                 index >= 0;
-                 index--)
-            {
-                // Get index of level - 1 -> level - 2
-                const pgt_level_t level = LARGEPAGE_LEVELS[index];
-                if (level > highest_largepage_level) {
-                    continue;
-                }
-
-                if ((supports_largepage_at_level_mask & (1ull << level)) == 0) {
-                    continue;
-                }
-
-                const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-                if (!has_align(phys_range.front + offset, largepage_size) ||
-                    offset + largepage_size > phys_range.size)
+            if (highest_largepage_level > 1) {
+                for (int16_t index = countof(LARGEPAGE_LEVELS) - 1;
+                    index >= 0;
+                    index--)
                 {
-                    continue;
-                }
+                    // Get index of level - 1 -> level - 2
+                    const pgt_level_t level = LARGEPAGE_LEVELS[index];
+                    if (level > highest_largepage_level) {
+                        continue;
+                    }
 
-                const enum map_result result =
-                    map_large_at_level(walker,
-                                       curr_split,
-                                       pageop,
-                                       phys_range.front,
-                                       virt_begin,
-                                       &offset,
-                                       phys_range.size,
-                                       level,
-                                       options);
+                    if ((supports_largepage_at_level_mask &
+                            (1ull << level)) == 0)
+                    {
+                        continue;
+                    }
 
-                switch (result) {
-                    case MAP_DONE:
-                        finish_split_info(walker,
-                                          curr_split,
-                                          pageop,
-                                          virt_begin + offset,
-                                          options);
-                        return true;
-                    case MAP_CONTINUE:
-                        break;
-                    case MAP_RESTART:
-                        goto start;
+                    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
+                    if (!has_align(phys_range.front + offset, largepage_size) ||
+                        offset + largepage_size > phys_range.size)
+                    {
+                        continue;
+                    }
+
+                    const enum map_result result =
+                        map_large_at_level(walker,
+                                        curr_split,
+                                        pageop,
+                                        phys_range.front,
+                                        virt_begin,
+                                        &offset,
+                                        phys_range.size,
+                                        level,
+                                        options);
+
+                    switch (result) {
+                        case MAP_DONE:
+                            finish_split_info(walker,
+                                            curr_split,
+                                            pageop,
+                                            virt_begin + offset,
+                                            options);
+                            return true;
+                        case MAP_CONTINUE:
+                            break;
+                        case MAP_RESTART:
+                            goto start;
+                    }
                 }
             }
         }
@@ -1448,16 +1452,16 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
 
                 switch (result) {
                     case ALLOC_AND_MAP_ALLOC_PAGE_FAIL:
-                        return E_PGALLOC_MAP_PAGE_ALLOC_FAIL;
+                        return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
                     case ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL:
-                        return E_PGALLOC_MAP_PGTABLE_ALLOC_FAIL;
+                        return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
                     case ALLOC_AND_MAP_DONE:
                         finish_split_info(walker,
                                           curr_split,
                                           pageop,
                                           virt_range.front + offset,
                                           options);
-                        return E_PGALLOC_MAP_OK;
+                        return E_PGMAP_ALLOC_OK;
                     case ALLOC_AND_MAP_CONTINUE:
                         break;
                     case ALLOC_AND_MAP_RESTART:
@@ -1478,16 +1482,16 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
 
         switch (result) {
             case ALLOC_AND_MAP_ALLOC_PAGE_FAIL:
-                return E_PGALLOC_MAP_PAGE_ALLOC_FAIL;
+                return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
             case ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL:
-                return E_PGALLOC_MAP_PGTABLE_ALLOC_FAIL;
+                return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
             case ALLOC_AND_MAP_DONE:
                 finish_split_info(walker,
                                   curr_split,
                                   pageop,
                                   virt_range.front + offset,
                                   options);
-                return E_PGALLOC_MAP_OK;
+                return E_PGMAP_ALLOC_OK;
             case ALLOC_AND_MAP_CONTINUE:
             case ALLOC_AND_MAP_RESTART:
                 continue;
@@ -1500,7 +1504,7 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                       virt_range.front + offset,
                       options);
 
-    return E_PGALLOC_MAP_OK;
+    return E_PGMAP_ALLOC_OK;
 }
 
 enum pgmap_alloc_result
@@ -1578,7 +1582,7 @@ pgmap_alloc_at(struct pagemap *const pagemap,
             }
 
             curr_split.virt_addr = virt_range.front;
-            curr_split.phys_range = RANGE_INIT(0, virt_range.size);
+            curr_split.phys_range = range_create_upto(virt_range.size);
         }
     }
 

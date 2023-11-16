@@ -162,12 +162,12 @@ __optimize(3) bool range_empty(const struct range range) {
 
 __optimize(3)
 bool range_is_loc_above(const struct range range, const uint64_t loc) {
-    return (loc >= range.front && (loc - range.front) >= range.size);
+    return loc >= range.front && (loc - range.front) >= range.size;
 }
 
 __optimize(3)
 bool range_is_loc_below(const struct range range, const uint64_t loc) {
-    return (loc < range.front);
+    return loc < range.front;
 }
 
 __optimize(3)

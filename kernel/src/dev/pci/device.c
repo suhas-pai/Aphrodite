@@ -9,7 +9,15 @@
 #endif /* defined(__x86_64__) */
 
 #include "dev/printk.h"
+#if defined(__x86_64__)
+    #include "lib/bits.h"
+#endif /* defined(__x86_64__) */
+
 #include "lib/util.h"
+#if defined(__x86_64__)
+    #include "mm/mmio.h"
+#endif /* defined(__x86_64__) */
+
 #include "sys/mmio.h"
 
 #include "device.h"
@@ -235,8 +243,10 @@ pci_device_enable_privl(struct pci_device_info *const device,
 {
     const uint16_t old_command =
         pci_read(device, struct pci_spec_device_info_base, command);
+    const enum pci_spec_device_cmdreg_flags flags =
+        (enum pci_spec_device_cmdreg_flags)privl;
     const uint16_t new_command =
-        old_command | (enum pci_spec_device_command_register_flags)privl;
+        (old_command | flags) ^ __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(device, struct pci_spec_device_info_base, command, new_command);
 }

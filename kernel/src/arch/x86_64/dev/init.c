@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "dev/ide/init.h"
 #include "dev/ps2/driver.h"
 
 #include "dev/time/hpet.h"
@@ -13,6 +14,8 @@
 
 #include "dev/printk.h"
 #include "time/kstrftime.h"
+
+extern bool g_found_ide;
 
 void arch_init_dev() {
     const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
@@ -48,5 +51,11 @@ void arch_init_dev() {
                rand);
     } else {
         printk(LOGLEVEL_WARN, "dev: failed to execute rdrand instruction\n");
+    }
+
+    if (!g_found_ide) {
+        ide_init(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
+    } else {
+        printk(LOGLEVEL_INFO, "found ide\n");
     }
 }

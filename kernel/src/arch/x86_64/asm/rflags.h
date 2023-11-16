@@ -25,7 +25,7 @@ enum rflags {
     __RFLAGS_DIRECTION = 1 << 10,
     __RFLAGS_OVERFLOW = 1 << 11,
 
-    __RFLAGS_IO_PRIVILEGE_LEVEL = 1 << 13 | 1 << 12,
+    __RFLAGS_IO_PRIVILEGE_LEVEL = 0b11 << 12,
     __RFLAGS_RESUME = 1 << 16,
     __RFLAGS_VIRTUAL_8086_MODE = 1 << 17,
     __RFLAGS_ALIGNMENT_CHECK = 1 << 18,

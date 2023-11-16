@@ -13,8 +13,7 @@
 __optimize(3) void spin_acquire(struct spinlock *const lock) {
     const uint32_t ticket = atomic_fetch_add(&lock->back, 1);
     while (true) {
-        const uint32_t front = atomic_load(&lock->front);
-        if (front == ticket) {
+        if (atomic_load(&lock->front) == ticket) {
             return;
         }
 

@@ -44,10 +44,10 @@ alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
                        &alloc_options);
 
     switch (map_result) {
-        case E_PGALLOC_MAP_OK:
+        case E_PGMAP_ALLOC_OK:
             break;
-        case E_PGALLOC_MAP_PAGE_ALLOC_FAIL:
-        case E_PGALLOC_MAP_PGTABLE_ALLOC_FAIL:
+        case E_PGMAP_ALLOC_PAGE_ALLOC_FAIL:
+        case E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL:
             panic("mm: ran out of free pages");
     }
 }

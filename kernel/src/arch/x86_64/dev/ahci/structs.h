@@ -3,8 +3,84 @@
  * © suhas pai
  */
 
+#pragma once
+
 #include <stdint.h>
 #include "lib/macros.h"
+
+enum ahci_hba_port_interface_comm_ctrl {
+    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_IDLE,
+    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE,
+    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_PATRIAL,
+    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_SLUMBER = 6,
+    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_DEV_SLEEP = 8
+};
+
+enum ahci_hba_port_cmd_status_shifts {
+    AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT_SHIFT = 8,
+    AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT = 28
+};
+
+enum ahci_hba_port_cmd_status_flags {
+    __AHCI_HBA_PORT_CMDSTATUS_START = 1ull << 0,
+
+    /*
+     * This bit is read/write for HBAs that support staggered spin-up
+     * via CAP.SSS. This bit is read only ‘1’ for HBAs that do not support
+     * staggered spin-up.
+     */
+    __AHCI_HBA_PORT_CMDSTATUS_SPINUP_DEVICE = 1ull << 1,
+
+    /*
+     * This bit is read/write for HBAs that support cold presence detection on
+     * this port as indicated by PxCMD.CPD set to ‘1’.
+     * This bit is read only ‘1’ for HBAs that do not support cold presence
+     * detect.
+     */
+    __AHCI_HBA_PORT_CMDSTATUS_POWERON_DEVICE = 1ull << 2,
+    __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE = 1ull << 3,
+    __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE = 1ull << 4,
+    __AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT =
+        0b11111ull << AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT_SHIFT,
+
+    __AHCI_HBA_PORT_CMDSTATUS_MECH_PRESENCE_SWITCH_STATE = 1ull << 13,
+    __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING = 1ull << 14,
+    __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING = 1ull << 15,
+    __AHCI_HBA_PORT_CMDSTATUS_COLD_PRESENCE_STATE = 1ull << 16,
+    __AHCI_HBA_PORT_CMDSTATUS_PORT_MULTIPLIER_ATTACHED = 1ull << 17,
+    __AHCI_HBA_PORT_CMDSTATUS_HOT_PLUG_CAPABLE = 1ull << 18,
+    __AHCI_HBA_PORT_CMDSTATUS_MECH_PRESENCE_SWITCH_ATTACHED = 1ull << 19,
+    __AHCI_HBA_PORT_CMDSTATUS_COLD_PRESENCE_DETECTION = 1ull << 20,
+    __AHCI_HBA_PORT_CMDSTATUS_EXTERN_SATA_ACCESSIBLE = 1ull << 21,
+    __AHCI_HBA_PORT_CMDSTATUS_FIS_SWITCH_CAPABLE = 1ull << 22,
+    __AHCI_HBA_PORT_CMDSTATUS_AUTO_PARTIAL_TO_SLUMBER_ENABLED = 1ull << 23,
+    __AHCI_HBA_PORT_CMDSTATUS_ATAPI_DEVICE = 1ull << 24,
+    __AHCI_HBA_PORT_CMDSTATUS_DRIVE_LED_ACTIVE_ON_ATAPI_ENABLE = 1ull << 25,
+    __AHCI_HBA_PORT_CMDSTATUS_AGGRESIVE_LINK_PWR_MGMT_ENABLE = 1ull << 26,
+    __AHCI_HBA_PORT_CMDSTATUS_AGGRESIVE_SLUMBER_PARTIAL = 1ull << 27,
+    __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL =
+        0b11111ull << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT,
+};
+
+enum ahci_hba_port_interrupt_enable_flags {
+    __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE = 1ull << 0,
+    __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE = 1ull << 1,
+    __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE = 1ull << 2,
+    __AHCI_HBA_IE_SET_DEV_BITS_FIS_INT_ENABLE = 1ull << 3,
+    __AHCI_HBA_IE_UNKNOWN_FIS_INT_ENABLE = 1ull << 4,
+    __AHCI_HBA_IE_DESC_PROCESSED_INT_ENABLE = 1ull << 5,
+    __AHCI_HBA_IE_PORT_CHANGE_INT_ENABLE = 1ull << 6,
+    __AHCI_HBA_IE_DEV_MECH_PRESENCE_INT_ENABLE = 1ull << 7,
+    __AHCI_HBA_IE_PHYRDY_CHANGE_STATUS = 1ull << 22,
+    __AHCI_HBA_IE_INCORRECT_PORT_MULT_STATUS = 1ull << 23,
+    __AHCI_HBA_IE_OVERFLOW_STATUS = 1ull << 24,
+    __AHCI_HBA_IE_INTERFACE_NOT_FATAL_ERR_STATUS = 1ull << 26,
+    __AHCI_HBA_IE_INTERFACE_FATAL_ERR_STATUS = 1ull << 27,
+    __AHCI_HBA_IE_HOST_BUS_DATA_ERR_STATUS = 1ull << 28,
+    __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS = 1ull << 29,
+    __AHCI_HBA_IE_TASK_FILE_ERR_STATUS = 1ull << 30,
+    __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1ull << 31,
+};
 
 struct ahci_spec_hba_port {
     volatile uint32_t cmd_list_base_phys_lower32; // 1K byte-aligned
@@ -26,30 +102,6 @@ struct ahci_spec_hba_port {
     volatile uint32_t fis_switch_control;
     volatile uint32_t reserved_1[11];
     volatile uint32_t vendor[4];
-};
-
-struct ahci_spec_hba_registers {
-    volatile const uint32_t host_capabilities;
-
-    volatile uint32_t global_host_control;
-    volatile uint32_t interrupt_status;
-
-    volatile const uint32_t port_implemented;
-    volatile const uint32_t version;
-
-    volatile uint32_t command_completion_coalescing_control;
-    volatile uint32_t command_completion_coalescing_ports;
-
-    volatile const uint32_t enclosure_management_location;
-    volatile uint32_t enclosure_management_control;
-
-    volatile const uint32_t host_capabilities_extended;
-    volatile uint32_t bios_os_handoff_ctrl_and_status;
-
-    volatile uint8_t reserved[0xA0-0x2C];
-    volatile uint8_t vendor_registers[0x100-0xA0];
-
-    volatile struct ahci_spec_hba_port ports[32];
 };
 
 enum ahci_hba_interface_speed_support {
@@ -88,6 +140,30 @@ enum ahci_hba_host_capability_flags {
     __AHCI_HBA_HOST_CAP_SUPPORTS_NOTIF_REG = 1ull << 29,
     __AHCI_HBA_HOST_CAP_NATIVE_CMD_QUEUE = 1ull << 30,
     __AHCI_HBA_HOST_CAP_64BIT_DMA = 1ull << 31,
+};
+
+struct ahci_spec_hba_registers {
+    volatile const uint32_t host_capabilities;
+
+    volatile uint32_t global_host_control;
+    volatile uint32_t interrupt_status;
+
+    volatile const uint32_t port_implemented;
+    volatile const uint32_t version;
+
+    volatile uint32_t command_completion_coalescing_control;
+    volatile uint32_t command_completion_coalescing_ports;
+
+    volatile const uint32_t enclosure_management_location;
+    volatile uint32_t enclosure_management_control;
+
+    volatile const uint32_t host_capabilities_extended;
+    volatile uint32_t bios_os_handoff_ctrl_and_status;
+
+    volatile uint8_t reserved[0xA0-0x2C];
+    volatile uint8_t vendor_registers[0x100-0xA0];
+
+    volatile struct ahci_spec_hba_port ports[32];
 };
 
 enum ahci_hba_global_host_control_flags {
@@ -157,78 +233,6 @@ enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
      */
     __AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS =
         0xffffull << AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS_SHIFT
-};
-
-enum ahci_hba_pio_readterface_comm_ctrl {
-    AHCI_HBA_pio_readTERFACE_COMM_CTRL_IDLE,
-    AHCI_HBA_pio_readTERFACE_COMM_CTRL_ACTIVE,
-    AHCI_HBA_pio_readTERFACE_COMM_CTRL_PATRIAL,
-    AHCI_HBA_pio_readTERFACE_COMM_CTRL_SLUMBER = 6,
-    AHCI_HBA_pio_readTERFACE_COMM_CTRL_DEV_SLEEP = 8
-};
-
-enum ahci_hba_port_cmd_status_shifts {
-    AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT_SHIFT = 8,
-};
-
-enum ahci_hba_port_cmd_status_flags {
-    __AHCI_HBA_PORT_CMDSTATUS_START = 1ull << 0,
-
-    /*
-     * This bit is read/write for HBAs that support staggered spin-up
-     * via CAP.SSS. This bit is read only ‘1’ for HBAs that do not support
-     * staggered spin-up.
-     */
-    __AHCI_HBA_PORT_CMDSTATUS_SPINUP_DEVICE = 1ull << 1,
-
-    /*
-     * This bit is read/write for HBAs that support cold presence
-     * detection on this port as indicated by PxCMD.CPD set to ‘1’.
-     * This bit is read only ‘1’ for HBAs that do not support cold presence
-     * detect.
-     */
-    __AHCI_HBA_PORT_CMDSTATUS_POWERON_DEVICE = 1ull << 2,
-    __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE = 1ull << 3,
-    __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE = 1ull << 4,
-    __AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT =
-        0b11111ull << AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT_SHIFT,
-
-    __AHCI_HBA_PORT_CMDSTATUS_MECH_PRESENCE_SWITCH_STATE = 1ull << 13,
-    __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING = 1ull << 14,
-    __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING = 1ull << 15,
-    __AHCI_HBA_PORT_CMDSTATUS_COLD_PRESENCE_STATE = 1ull << 16,
-    __AHCI_HBA_PORT_CMDSTATUS_PORT_MULTIPLIER_ATTACHED = 1ull << 17,
-    __AHCI_HBA_PORT_CMDSTATUS_HOT_PLUG_CAPABLE = 1ull << 18,
-    __AHCI_HBA_PORT_CMDSTATUS_MECH_PRESENCE_SWITCH_ATTACHED = 1ull << 19,
-    __AHCI_HBA_PORT_CMDSTATUS_COLD_PRESENCE_DETECTION = 1ull << 20,
-    __AHCI_HBA_PORT_CMDSTATUS_EXTERN_SATA_ACCESSIBLE = 1ull << 21,
-    __AHCI_HBA_PORT_CMDSTATUS_FIS_SWITCH_CAPABLE = 1ull << 22,
-    __AHCI_HBA_PORT_CMDSTATUS_AUTO_PARTIAL_TO_SLUMBER_ENABLED = 1ull << 23,
-    __AHCI_HBA_PORT_CMDSTATUS_ATAPI_DEVICE = 1ull << 24,
-    __AHCI_HBA_PORT_CMDSTATUS_DRIVE_LED_ACTIVE_ON_ATAPI_ENABLE = 1ull << 25,
-    __AHCI_HBA_PORT_CMDSTATUS_AGGRESIVE_LINK_PWR_MGMT_ENABLE = 1ull << 26,
-    __AHCI_HBA_PORT_CMDSTATUS_AGGRESIVE_SLUMBER_PARTIAL = 1ull << 27,
-    __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL = 0b11111ull << 28,
-};
-
-enum ahci_hba_pio_readterrupt_enable_flags {
-    __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE = 1ull << 0,
-    __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE = 1ull << 1,
-    __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE = 1ull << 2,
-    __AHCI_HBA_IE_SET_DEV_BITS_FIS_INT_ENABLE = 1ull << 3,
-    __AHCI_HBA_IE_UNKNOWN_FIS_INT_ENABLE = 1ull << 4,
-    __AHCI_HBA_IE_DESC_PROCESSED_INT_ENABLE = 1ull << 5,
-    __AHCI_HBA_IE_PORT_CHANGE_INT_ENABLE = 1ull << 6,
-    __AHCI_HBA_IE_DEV_MECH_PRESENCE_INT_ENABLE = 1ull << 7,
-    __AHCI_HBA_IE_PHYRDY_CHANGE_STATUS = 1ull << 22,
-    __AHCI_HBA_IE_INCORRECT_PORT_MULT_STATUS = 1ull << 23,
-    __AHCI_HBA_IE_OVERFLOW_STATUS = 1ull << 24,
-    __AHCI_HBA_IE_INTERFACE_NOT_FATAL_ERR_STATUS = 1ull << 26,
-    __AHCI_HBA_IE_INTERFACE_FATAL_ERR_STATUS = 1ull << 27,
-    __AHCI_HBA_IE_HOST_BUS_DATA_ERR_STATUS = 1ull << 28,
-    __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS = 1ull << 29,
-    __AHCI_HBA_IE_TASK_FILE_ERR_STATUS = 1ull << 30,
-    __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
 
 #define SATA_SIG_ATA 0x00000101 // SATA drive

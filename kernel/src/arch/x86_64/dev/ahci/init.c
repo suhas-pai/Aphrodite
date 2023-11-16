@@ -3,30 +3,107 @@
  * © suhas pai
  */
 
+#include "dev/ata/defines.h"
+#include "asm/pause.h"
+
 #include "dev/driver.h"
+#include "dev/pci/structs.h"
 #include "dev/printk.h"
 
 #include "lib/bits.h"
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
 #include "mm/zone.h"
 
 #include "sys/mmio.h"
-#include "structs.h"
+#include "port.h"
+
+struct ahci_device {
+    struct pci_device_info *device;
+    volatile struct ahci_spec_hba_registers *regs;
+
+    struct ahci_hba_port *port_list;
+
+    bool supports_64bit_dma : 1;
+    bool supports_staggered_spinup : 1;
+};
 
 __optimize(3) static void
-ahci_hba_port_start_running(volatile struct ahci_spec_hba_port *const port) {
+ahci_hba_port_power_on_and_spin_up(
+    volatile struct ahci_spec_hba_port *const port,
+    struct ahci_device *const device,
+    const uint8_t index)
+{
+    const uint32_t cmd_status = mmio_read(&port->command_and_status);
+    if (cmd_status & __AHCI_HBA_PORT_CMDSTATUS_COLD_PRESENCE_DETECTION) {
+        mmio_write(&port->command_and_status,
+                   cmd_status | __AHCI_HBA_PORT_CMDSTATUS_POWERON_DEVICE);
+
+        printk(LOGLEVEL_INFO,
+               "ahci: powering on port #%" PRIu8 "\n",
+               index + 1);
+    } else {
+        printk(LOGLEVEL_WARN,
+               "ahci: port #%" PRIu8 " has no cold-presence detection\n",
+               index + 1);
+    }
+
+    if (device->supports_staggered_spinup) {
+        mmio_write(&port->command_and_status,
+                   cmd_status | __AHCI_HBA_PORT_CMDSTATUS_SPINUP_DEVICE);
+
+        printk(LOGLEVEL_INFO,
+               "ahci: spinning up port #%" PRIu8 "\n",
+               index + 1);
+    }
+}
+
+__optimize(3) static void
+ahci_hba_port_set_state(volatile struct ahci_spec_hba_port *const port,
+                        const enum ahci_hba_port_interface_comm_ctrl ctrl)
+{
+    uint32_t cmd_status = mmio_read(&port->command_and_status);
+
+    cmd_status &= ~__AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL;
+    cmd_status |=
+        ctrl << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT;
+
+    mmio_write(&port->command_and_status, cmd_status);
+}
+
+#define MAX_ATTEMPTS 10
+
+__optimize(3) static bool
+ahci_hba_port_start_running(volatile struct ahci_spec_hba_port *const port,
+                            const uint8_t index)
+{
     const uint32_t flags =
         __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE |
         __AHCI_HBA_PORT_CMDSTATUS_START;
 
     mmio_write(&port->command_and_status,
                mmio_read(&port->command_and_status) | flags);
-}
 
-#define MAX_ATTEMPTS 10
+    const uint32_t tfd_flags = __ATA_STATUS_REG_BSY | __ATA_STATUS_REG_DRQ;
+    for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
+        if ((mmio_read(&port->task_file_data) & tfd_flags) == 0) {
+            printk(LOGLEVEL_WARN,
+                   "ahci: successfully initialized port #%" PRIu8 "\n",
+                   index + 1);
+            return true;
+        }
+
+        cpu_pause();
+    }
+
+    printk(LOGLEVEL_WARN,
+           "ahci: failed to initialize port #%" PRIu8 ", spinup taking too "
+           "long\n",
+           index + 1);
+
+    return false;
+}
 
 __optimize(3) static bool
 ahci_hba_port_stop_running(volatile struct ahci_spec_hba_port *const port) {
@@ -41,6 +118,8 @@ ahci_hba_port_stop_running(volatile struct ahci_spec_hba_port *const port) {
         if ((mmio_read(&port->command_and_status) & flags) == 0) {
             return true;
         }
+
+        cpu_pause();
     }
 
     return false;
@@ -56,28 +135,16 @@ _Static_assert(
     "AHCI_HBA_CMD_TABLE_PAGE_ORDER is too low to fit all "
     "struct ahci_port_command_header entries");
 
-struct ahci_device {
-    struct pci_device_info *device;
-    volatile struct ahci_spec_hba_registers *regs;
-
-    struct page **cmdlist_page_for_ports_list;
-
-    // Each page is allocated with an order of AHCI_HBA_CMD_TABLE_PAGE_ORDER.
-    struct page **cmdtable_pages_for_ports_list;
-    struct mmio_region **regions_for_ports_list;
-
-    bool supports_64bit_dma : 1;
-};
-
 __optimize(3) static void
-ahci_spec_hba_pio_readit(volatile struct ahci_spec_hba_port *const port,
+ahci_spec_hba_port_init(struct ahci_hba_port *const port,
+                        volatile struct ahci_spec_hba_port *const spec,
                         const uint8_t index,
                         struct ahci_device *const device)
 {
-    if (!ahci_hba_port_stop_running(port)) {
+    if (!ahci_hba_port_stop_running(spec)) {
         printk(LOGLEVEL_WARN,
-               "ahci: failed to stop port at index %" PRIu8 " before init\n",
-               index);
+               "ahci: failed to stop port #%" PRIu8 " before init\n",
+               index + 1);
         return;
     }
 
@@ -125,47 +192,62 @@ ahci_spec_hba_pio_readit(volatile struct ahci_spec_hba_port *const port,
         RANGE_INIT(page_to_phys(cmd_table_pages),
                    PAGE_SIZE << AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
-    device->cmdlist_page_for_ports_list[index] = cmd_list_page;
-    device->cmdtable_pages_for_ports_list[index] = cmd_table_pages;
-    device->regions_for_ports_list[index] =
-        vmap_mmio(phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+    const uint64_t cmd_list_phys = page_to_phys(cmd_list_page);
 
-    if (device->regions_for_ports_list[index] == NULL) {
+    mmio_write(&spec->cmd_list_base_phys_lower32, cmd_list_phys);
+    mmio_write(&spec->cmd_list_base_phys_upper32, cmd_list_phys >> 32);
+
+    printk(LOGLEVEL_INFO,
+           "ahci: port #%" PRIu8 " has a cmd-list base at %p\n",
+           index + 1,
+           (void *)phys_range.front);
+
+    volatile struct ahci_spec_port_cmd_header *cmd_header =
+        phys_to_virt(phys_range.front);
+    const uint8_t total_port_count =
+        sizeof_bits_field(struct ahci_spec_hba_registers, port_implemented);
+    const volatile struct ahci_spec_port_cmd_header *const end =
+        cmd_header + total_port_count;
+
+    for (uint64_t phys = phys_range.front; cmd_header != end; cmd_header++) {
+        mmio_write(&cmd_header->flags, __AHCI_PORT_CMDHDR_PREFETCHABLE);
+        mmio_write(&cmd_header->prdt_length, AHCI_HBA_MAX_PRDT_ENTRIES);
+        mmio_write(&cmd_header->prd_byte_count, 0);
+        mmio_write(&cmd_header->cmd_table_base_lower32, phys);
+
+        if (device->supports_64bit_dma) {
+            mmio_write(&cmd_header->cmd_table_base_upper32, phys >> 32);
+        }
+
+        phys += sizeof(*cmd_header);
+    }
+
+    ahci_hba_port_power_on_and_spin_up(spec, device, index);
+    ahci_hba_port_set_state(spec, AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE);
+
+    if (!ahci_hba_port_start_running(spec, index)) {
         free_page(cmd_list_page);
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
         return;
     }
 
-    const uint64_t cmd_list_phys = page_to_phys(cmd_list_page);
+    struct mmio_region *const mmio =
+        vmap_mmio(phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    mmio_write(&port->cmd_list_base_phys_lower32, cmd_list_phys);
-    mmio_write(&port->cmd_list_base_phys_upper32, cmd_list_phys >> 32);
+    if (mmio == NULL) {
+        free_page(cmd_list_page);
+        free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
-    printk(LOGLEVEL_INFO,
-           "ahci: port at index %" PRIu8 " has a cmd-list base at %p\n",
-           index,
-           (void *)phys_range.front);
-
-    volatile struct ahci_spec_port_cmd_header *entry =
-        phys_to_virt(phys_range.front);
-    const volatile struct ahci_spec_port_cmd_header *const end =
-        entry +
-        sizeof_bits_field(struct ahci_spec_hba_registers, port_implemented);
-
-    for (uint64_t phys = phys_range.front; entry != end; entry++) {
-        mmio_write(&entry->prdt_length, AHCI_HBA_MAX_PRDT_ENTRIES);
-        mmio_write(&entry->prd_byte_count, 0);
-        mmio_write(&entry->cmd_table_base_lower32, phys);
-
-        if (device->supports_64bit_dma) {
-            mmio_write(&entry->cmd_table_base_upper32, phys >> 32);
-        }
-
-        phys += sizeof(*entry);
+        return;
     }
 
-    mmio_write(&port->interrupt_enable,
+    port->cmdlist_phys = page_to_phys(cmd_list_page);
+    port->cmdtable_phys = page_to_phys(cmd_table_pages);
+    port->index = index;
+    port->mmio = mmio;
+
+    mmio_write(&spec->interrupt_enable,
                __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE |
                __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE |
                __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE |
@@ -183,8 +265,6 @@ ahci_spec_hba_pio_readit(volatile struct ahci_spec_hba_port *const port,
                __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS |
                __AHCI_HBA_IE_TASK_FILE_ERR_STATUS |
                __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS);
-
-    ahci_hba_port_start_running(port);
 }
 
 __optimize(3) static
@@ -194,8 +274,7 @@ bool ahci_hba_probe_port(volatile struct ahci_spec_hba_port *const port) {
     const enum ahci_hba_port_ipm ipm = (sata_status >> 8) & 0x0F;
     const enum ahci_hba_port_det det = sata_status & 0x0F;
 
-    return (det == AHCI_HBA_PORT_DET_PRESENT &&
-            ipm == AHCI_HBA_PORT_IPM_ACTIVE);
+    return det == AHCI_HBA_PORT_DET_PRESENT && ipm == AHCI_HBA_PORT_IPM_ACTIVE;
 }
 
 static void init_from_pci(struct pci_device_info *const pci_device) {
@@ -232,6 +311,10 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
         return;
     }
 
+    pci_device_enable_privl(pci_device,
+                            __PCI_DEVICE_PRIVL_BUS_MASTER |
+                            __PCI_DEVICE_PRIVL_MEM_ACCESS);
+
     volatile struct ahci_spec_hba_registers *const regs =
         (volatile struct ahci_spec_hba_registers *)bar->mmio->base;
 
@@ -247,7 +330,7 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
                            /*start_index=*/0,
                            /*end_index=*/sizeof_bits(ports_impled));
 
-    if (ports_impled_count == 0) {
+    if (__builtin_expect(ports_impled_count == 0, 0)) {
         printk(LOGLEVEL_WARN, "ahci: no ports are implemented\n");
         return;
     }
@@ -260,38 +343,29 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
     struct ahci_device device = {
         .device = pci_device,
         .regs = regs,
-        .cmdlist_page_for_ports_list =
-            kmalloc(sizeof(struct page *) * ports_impled),
-        .cmdtable_pages_for_ports_list =
-            kmalloc(sizeof(struct page *) * ports_impled),
-        .regions_for_ports_list =
-            kmalloc(sizeof(struct mmio_region *) * ports_impled),
+        .port_list =
+            kmalloc(sizeof(struct ahci_hba_port) * ports_impled),
         .supports_64bit_dma = host_cap & __AHCI_HBA_HOST_CAP_64BIT_DMA,
+        .supports_staggered_spinup =
+            host_cap & __AHCI_HBA_HOST_CAP_SUPPORTS_STAGGERED_SPINUP,
     };
 
-    if (device.cmdlist_page_for_ports_list == NULL) {
+    if (device.port_list == NULL) {
         printk(LOGLEVEL_WARN,
-               "ahci: failed to allocate memory for list of the cmd-list page "
-               "of each port\n");
+               "ahci: failed to allocate memory for port list\n");
         return;
     }
 
-    if (device.cmdtable_pages_for_ports_list == NULL) {
-        printk(LOGLEVEL_WARN,
-               "ahci: failed to allocate memory for list of cmd-table pages of "
-               "each port\n");
-        return;
-    }
-
-    if (device.regions_for_ports_list == NULL) {
-        printk(LOGLEVEL_WARN,
-               "ahci: failed to allocate memory for list of regions of each "
-               "port\n");
-        return;
-    }
-
-    if (!device.supports_64bit_dma) {
+    if (device.supports_64bit_dma) {
+        printk(LOGLEVEL_INFO, "ahci: hba supports 64-bit dma\n");
+    } else {
         printk(LOGLEVEL_WARN, "ahci: hba doesn't support 64-bit dma\n");
+    }
+
+    if (device.supports_staggered_spinup) {
+        printk(LOGLEVEL_INFO, "ahci: hba supports staggered spinup\n");
+    } else {
+        printk(LOGLEVEL_INFO, "ahci: hba doesn't support staggered spinup\n");
     }
 
     uint8_t usable_port_count = 0;
@@ -300,23 +374,25 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
             continue;
         }
 
-        volatile struct ahci_spec_hba_port *const port =
+        volatile struct ahci_spec_hba_port *const spec =
             (volatile struct ahci_spec_hba_port *)&regs->ports[index];
 
-        if (!ahci_hba_probe_port(port)) {
+        if (!ahci_hba_probe_port(spec)) {
             printk(LOGLEVEL_WARN,
-                   "ahci: implemented port at index %" PRIu8 " is either not "
-                   "present or inactive, or both\n",
-                   index);
+                   "ahci: implemented port #%" PRIu8 " is either not present "
+                   "or inactive, or both\n",
+                   index + 1);
             continue;
         }
 
-        ahci_spec_hba_pio_readit(port, index, &device);
+        struct ahci_hba_port *const port = &device.port_list[usable_port_count];
+        ahci_spec_hba_port_init(port, spec, index, &device);
+
         usable_port_count++;
     }
 
     if (usable_port_count == 0) {
-        kfree(device.cmdtable_pages_for_ports_list);
+        kfree(device.port_list);
         printk(LOGLEVEL_WARN,
                "ahci: no implemented ports are both present and active\n");
 
@@ -325,16 +401,17 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
 
     const uint32_t global_host_ctrl =
         mmio_read(&regs->global_host_control) |
-        __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE;
+        __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE |
+        __AHCI_HBA_GLOBAL_HOST_CTRL_AHCI_ENABLE;
 
     mmio_write(&regs->global_host_control, global_host_ctrl);
     printk(LOGLEVEL_INFO, "ahci: fully initialized\n");
 }
 
-static struct pci_driver pci_driver = {
+static const struct pci_driver pci_driver = {
     .vendor = 0x1af4,
-    .class = 0x1,
-    .subclass = 0x6,
+    .class = PCI_DEVICE_CLASS_MASS_STORAGE_CONTROLLER,
+    .subclass = PCI_DEVICE_SUBCLASS_SATA,
     .prog_if = 0x1,
     .match =
         __PCI_DRIVER_MATCH_CLASS |
@@ -343,7 +420,7 @@ static struct pci_driver pci_driver = {
     .init = init_from_pci
 };
 
-__driver struct driver driver = {
+__driver const struct driver driver = {
     .dtb = NULL,
     .pci = &pci_driver
 };

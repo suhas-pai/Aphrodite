@@ -37,9 +37,9 @@ struct pgmap_alloc_options {
 };
 
 enum pgmap_alloc_result {
-    E_PGALLOC_MAP_OK,
-    E_PGALLOC_MAP_PAGE_ALLOC_FAIL,
-    E_PGALLOC_MAP_PGTABLE_ALLOC_FAIL
+    E_PGMAP_ALLOC_OK,
+    E_PGMAP_ALLOC_PAGE_ALLOC_FAIL,
+    E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL
 };
 
 enum pgmap_alloc_result

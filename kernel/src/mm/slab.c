@@ -218,9 +218,7 @@ __optimize(3) uint32_t slab_object_size(void *const mem) {
     struct page *const page = virt_to_page(mem);
     const enum page_state state = page_get_state(page);
 
-    assert(
-        __builtin_expect(state == PAGE_STATE_SLAB_HEAD ||
-                         state == PAGE_STATE_SLAB_TAIL, 1));
+    assert(state == PAGE_STATE_SLAB_HEAD || state == PAGE_STATE_SLAB_TAIL);
 
     struct slab_allocator *const allocator = page->slab.allocator;
     return allocator->object_size;

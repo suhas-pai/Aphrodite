@@ -12,12 +12,12 @@ enum tcr_shifts {
     TCR_INNER_CACHEABILITY_TTBR0_SHIFT = 8,
     TCR_OUTER_CACHEABILITY_TTBR0_SHIFT = 10,
     TCR_SHAREABILITY_ATTR_TTBR0_SHIFT = 12,
-    TCR_GRANULE_SIZE_TTBR0_SHIFT = 14,
+    TCR_TG0_SHIFT = 14,
     TCR_TTBR1_SIZE_OFFSET_SHIFT = 16,
     TCR_INNER_CACHEABILITY_TTBR1_SHIFT = 24,
     TCR_OUTER_CACHEABILITY_TTBR1_SHIFT = 26,
     TCR_SHAREABILITY_ATTR_TTBR1_SHIFT = 28,
-    TCR_GRANULE_SIZE_TTBR1_SHIFT = 30,
+    TCR_TG1_SHIFT = 30,
     TCR_IPS_SHIFT = 30,
 };
 
@@ -41,10 +41,22 @@ enum tcr_shareability_attribute {
     TCR_SHAREABILITY_ATTR_INNER,
 };
 
-enum tcr_granule_size {
-    TCR_GRANULE_16KIB = 1,
-    TCR_GRANULE_4KIB,
-    TCR_GRANULE_64KIB,
+enum tcr_el0_granule_size {
+    TCR_EL0_GRANULE_16KIB = 1,
+    TCR_EL0_GRANULE_4KIB,
+    TCR_EL0_GRANULE_64KIB,
+};
+
+enum tcr_tg0_size {
+    TCR_TG0_4KIB,
+    TCR_TG0_64KIB,
+    TCR_TG0_16KIB,
+};
+
+enum tcr_tg1_size {
+    TCR_TG1_16KIB,
+    TCR_TG1_4KIB,
+    TCR_TG1_64KIB,
 };
 
 enum tcr_phys_addrspace_size {
@@ -70,7 +82,7 @@ enum tcr_flags {
     __TCR_ORGN0 = 0b11ull << TCR_OUTER_CACHEABILITY_TTBR0_SHIFT,
     __TCR_SH0 = 0b11ull << TCR_SHAREABILITY_ATTR_TTBR0_SHIFT,
 
-    __TCR_GRANULE_SIZE_EL0 = 0b11ull << TCR_GRANULE_SIZE_TTBR0_SHIFT,
+    __TCR_TG0 = 0b11ull << TCR_TG0_SHIFT,
 
     // The size offset of the memory region addressed by TTBR1_EL1.
     // The region size is 2^(64-T0SZ) bytes.
@@ -90,7 +102,7 @@ enum tcr_flags {
     __TCR_ORGN1 = 0b11ull << TCR_OUTER_CACHEABILITY_TTBR1_SHIFT,
     __TCR_SH1 = 0b11ull << TCR_SHAREABILITY_ATTR_TTBR1_SHIFT,
 
-    __TCR_GRANULE_SIZE_EL1 = 0b11ull << TCR_GRANULE_SIZE_TTBR1_SHIFT,
+    __TCR_TG1 = 0b11ull << TCR_TG1_SHIFT,
     __TCR_IPS = 0b111ull << 32,
 
     // 16 bit - the upper 16 bits of TTBR0_EL1 and TTBR1_EL1 are used for
