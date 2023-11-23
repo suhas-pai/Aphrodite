@@ -6,7 +6,7 @@
 #include "asm/msr.h"
 #include "lib/macros.h"
 
-__optimize(3) uint64_t read_msr(const enum ia32_msr msr) {
+__optimize(3) uint64_t msr_read(const enum ia32_msr msr) {
     uint32_t eax = 0;
     uint32_t edx = 0;
 
@@ -18,7 +18,7 @@ __optimize(3) uint64_t read_msr(const enum ia32_msr msr) {
     return ((uint64_t)edx << 32 | eax);
 }
 
-__optimize(3) void write_msr(const enum ia32_msr msr, const uint64_t value) {
+__optimize(3) void msr_write(const enum ia32_msr msr, const uint64_t value) {
     uint32_t eax = (uint32_t)value;
     uint32_t edx = value >> 32;
 

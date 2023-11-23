@@ -20,7 +20,6 @@ struct pagemap {
 
     struct list cpu_list;
     struct spinlock cpu_lock;
-
     struct refcount refcount;
 
     struct address_space addrspace;

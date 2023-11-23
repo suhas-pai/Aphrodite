@@ -18,8 +18,8 @@
 #define IDE_ATA 0x00
 #define IDE_ATAPI 0x01
 
-#define ATA_MASTER 0x00
-#define ATA_SLAVE 0x01
+#define ATA_MASTER_DRIVE 0x00
+#define ATA_SLAVE_DRIVE 0x01
 
 #define ATA_PRIMARY 0x00
 #define ATA_SECONDARY 0x01
@@ -272,10 +272,10 @@ ide_init(const uint32_t bar0,
     ide_write(ATA_SECONDARY, ATA_REG_CONTROL, 2);
 
     // 3- Detect ATA-ATAPI Devices:
-    handle_device(&g_devices_list[0], ATA_PRIMARY, ATA_MASTER);
-    handle_device(&g_devices_list[1], ATA_PRIMARY, ATA_SLAVE);
-    handle_device(&g_devices_list[2], ATA_SECONDARY, ATA_MASTER);
-    handle_device(&g_devices_list[3], ATA_SECONDARY, ATA_SLAVE);
+    handle_device(&g_devices_list[0], ATA_PRIMARY, ATA_MASTER_DRIVE);
+    handle_device(&g_devices_list[1], ATA_PRIMARY, ATA_SLAVE_DRIVE);
+    handle_device(&g_devices_list[2], ATA_SECONDARY, ATA_MASTER_DRIVE);
+    handle_device(&g_devices_list[3], ATA_SECONDARY, ATA_SLAVE_DRIVE);
 
     // 4- Print Summary:
     bool found_device = false;

@@ -166,13 +166,12 @@ enum pci_spec_devbar_memspace_kind {
 
 enum pci_spec_device_bar_shifts {
     __PCI_DEVBAR_MEMKIND_SHIFT = 1,
-    __PCI_DEVBAR_PREFETCHABLE_SHIFT = 3
 };
 
 enum pci_spec_device_bar_flags {
     __PCI_DEVBAR_IO = 1ull << 0,
     __PCI_DEVBAR_MEMKIND_MASK = 0b11 << __PCI_DEVBAR_MEMKIND_SHIFT,
-    __PCI_DEVBAR_PREFETCHABLE = 1ull << __PCI_DEVBAR_PREFETCHABLE_SHIFT,
+    __PCI_DEVBAR_PREFETCHABLE = 1ull << 3,
 };
 
 struct pci_vendor_info {

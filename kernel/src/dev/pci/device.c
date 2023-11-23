@@ -5,20 +5,12 @@
 
 #if defined(__x86_64__)
     #include "asm/msr.h"
-    #include "mm/mmio.h"
-#endif /* defined(__x86_64__) */
-
-#include "dev/printk.h"
-#if defined(__x86_64__)
+    #include "dev/printk.h"
     #include "lib/bits.h"
-#endif /* defined(__x86_64__) */
-
-#include "lib/util.h"
-#if defined(__x86_64__)
+    #include "lib/util.h"
     #include "mm/mmio.h"
+    #include "sys/mmio.h"
 #endif /* defined(__x86_64__) */
-
-#include "sys/mmio.h"
 
 #include "device.h"
 #include "structs.h"
@@ -48,10 +40,8 @@ uint32_t pci_device_get_index(const struct pci_device_info *const device) {
         const bool supports_masking =
             msg_control & __PCI_CAPMSI_CTRL_PER_VECTOR_MASK;
 
-        /*
-         * If we're supposed to mask the vector, but masking isn't supported,
-         * then simply bail.
-         */
+        // If we're supposed to mask the vector, but masking isn't supported,
+        // then simply bail.
 
         if (masked && !supports_masking) {
             return;
@@ -215,7 +205,7 @@ uint32_t pci_device_get_index(const struct pci_device_info *const device) {
                                   const bool masked)
     {
         const uint64_t msi_address =
-            (read_msr(IA32_MSR_APIC_BASE) & PAGE_SIZE) | cpu->lapic_id << 12;
+            (msr_read(IA32_MSR_APIC_BASE) & PAGE_SIZE) | cpu->lapic_id << 12;
         switch (device->msi_support) {
             case PCI_DEVICE_MSI_SUPPORT_NONE:
                 printk(LOGLEVEL_WARN,
@@ -239,7 +229,7 @@ uint32_t pci_device_get_index(const struct pci_device_info *const device) {
 
 void
 pci_device_enable_privl(struct pci_device_info *const device,
-                        const enum pci_device_privilege privl)
+                        const uint8_t privl)
 {
     const uint16_t old_command =
         pci_read(device, struct pci_spec_device_info_base, command);

@@ -30,7 +30,14 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
     // To store free_page_objects, every object must be at least 16 bytes.
     // We also make this the required minimum alignment.
 
-    if (!align_up(object_size, /*boundary=*/16, &object_size)) {
+    if (!align_up(object_size, /*boundary=*/16, &object_size) ||
+        object_size > UINT32_MAX)
+    {
+        return false;
+    }
+
+    uint32_t min_size_for_slab = object_size;
+    if (!check_mul(object_size, MIN_OBJ_PER_SLAB, &min_size_for_slab)) {
         return false;
     }
 
@@ -42,9 +49,7 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
     slab_alloc->alloc_flags = alloc_flags;
     slab_alloc->flags = flags;
 
-    uint16_t order = 0;
-    const uint64_t min_size_for_slab = object_size * MIN_OBJ_PER_SLAB;
-
+    uint8_t order = 0;
     for (; (PAGE_SIZE << order) < min_size_for_slab; order++) {}
 
     slab_alloc->slab_order = order;

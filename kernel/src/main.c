@@ -37,9 +37,9 @@ static void hcf(void) {
 static void test_alloc_largepage() {
     struct page *const largepage =
 #if defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES)
-        alloc_large_page(__ALLOC_ZERO, LARGEPAGE_LEVEL_32MIB);
+        alloc_large_page(LARGEPAGE_LEVEL_32MIB, __ALLOC_ZERO);
 #else
-        alloc_large_page(__ALLOC_ZERO, LARGEPAGE_LEVEL_1GIB);
+        alloc_large_page(LARGEPAGE_LEVEL_1GIB, __ALLOC_ZERO);
 #endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
 
     if (largepage != NULL) {
@@ -94,6 +94,6 @@ void _start(void) {
     test_alloc_largepage();
 
     // We're done, just hang...
-    enable_all_interrupts();
+    enable_all_irqs();
     hcf();
 }

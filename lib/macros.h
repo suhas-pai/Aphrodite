@@ -24,7 +24,7 @@
 #endif /* !defined(__printf_format) */
 
 #if !defined(__optimize)
-    #if __has_attribute(optimize) && defined(DEBUG)
+    #if __has_attribute(optimize)
         #define __optimize(n) __attribute__((optimize(n)))
     #else
         #define __optimize(n)

@@ -10,10 +10,11 @@
 
 struct clock_source {
     struct list list;
+    const char *name;
 
-    uint64_t (*read)(struct clock_source *source);
-    void (*enable)(struct clock_source *source);
-    void (*disable)(struct clock_source *source);
+    usec_t (*read)(struct clock_source *source);
+    bool (*enable)(struct clock_source *source);
+    bool (*disable)(struct clock_source *source);
     void (*resume)(struct clock_source *source);
     void (*suspend)(struct clock_source *source);
 };

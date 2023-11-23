@@ -54,7 +54,7 @@ void apic_init(const uint64_t local_apic_base) {
            lapic_regs->version,
            lapic_regs->version & __LAPIC_VERSION_REG_VERION_MASK);
 
-    uint64_t apic_msr = read_msr(IA32_MSR_APIC_BASE);
+    uint64_t apic_msr = msr_read(IA32_MSR_APIC_BASE);
 
     printk(LOGLEVEL_INFO, "apic: msr: 0x%" PRIx64 "\n", apic_msr);
     assert_msg(apic_msr & __IA32_MSR_APIC_BASE_IS_BSP, "apic: cpu is not bsp");
@@ -68,7 +68,7 @@ void apic_init(const uint64_t local_apic_base) {
                "apic: x2apic not supported. reverting to xapic instead\n");
     }
 
-    write_msr(IA32_MSR_APIC_BASE, apic_msr | __IA32_MSR_APIC_BASE_ENABLE);
+    msr_write(IA32_MSR_APIC_BASE, apic_msr | __IA32_MSR_APIC_BASE_ENABLE);
     lapic_init();
 
     isr_set_vector(isr_get_timer_vector(),

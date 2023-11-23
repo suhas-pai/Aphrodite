@@ -3,7 +3,9 @@
  * © suhas pai
  */
 
-#include "acpi/api.h"
+#if defined(__x86_64__)
+    #include "acpi/api.h"
+#endif /* defined(__x86_64__) */
 
 #include "dev/driver.h"
 #include "dev/printk.h"
@@ -97,7 +99,6 @@ pci_bar_parse_size(struct pci_device_info *const dev,
         return E_PARSE_BAR_IGNORE;
     }
 
-    // We use port range to temporarily store the phys range.
     info->port_or_phys_range = RANGE_INIT(base_addr, size);
     info->is_present = true;
 
@@ -175,7 +176,7 @@ bool pci_map_bar(struct pci_device_bar_info *const bar) {
         return false;
     }
 
-    if (bar->is_mapped) {
+    if (bar->mmio != NULL) {
         return true;
     }
 
@@ -184,7 +185,6 @@ bool pci_map_bar(struct pci_device_bar_info *const bar) {
         flags |= __VMAP_MMIO_WT;
     }
 
-    // We use port_range to internally store the phys range.
     const struct range phys_range = bar->port_or_phys_range;
     struct range aligned_range = RANGE_EMPTY();
 
@@ -208,7 +208,6 @@ bool pci_map_bar(struct pci_device_bar_info *const bar) {
 
     bar->mmio = mmio;
     bar->index_in_mmio = index_in_map;
-    bar->is_mapped = true;
 
     return true;
 }
@@ -219,7 +218,8 @@ __optimize(3) bool pci_unmap_bar(struct pci_device_bar_info *const bar) {
         return false;
     }
 
-    if (!bar->is_mapped) {
+    if (bar->mmio == NULL) {
+        printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on unmapped bar\n");
         return true;
     }
 
@@ -227,7 +227,6 @@ __optimize(3) bool pci_unmap_bar(struct pci_device_bar_info *const bar) {
 
     bar->mmio = NULL;
     bar->index_in_mmio = 0;
-    bar->is_mapped = false;
 
     return true;
 }
@@ -236,7 +235,7 @@ __optimize(3) uint8_t
 pci_device_bar_read8(struct pci_device_bar_info *const bar,
                      const uint32_t offset)
 {
-    if (!bar->is_mapped) {
+    if (bar->mmio == NULL) {
         return UINT8_MAX;
     }
 
@@ -250,7 +249,7 @@ __optimize(3) uint16_t
 pci_device_bar_read16(struct pci_device_bar_info *const bar,
                       const uint32_t offset)
 {
-    if (!bar->is_mapped) {
+    if (bar->mmio == NULL) {
         return UINT16_MAX;
     }
 
@@ -264,7 +263,7 @@ __optimize(3) uint32_t
 pci_device_bar_read32(struct pci_device_bar_info *const bar,
                       const uint32_t offset)
 {
-    if (!bar->is_mapped) {
+    if (bar->mmio == NULL) {
         return UINT32_MAX;
     }
 
@@ -280,13 +279,13 @@ pci_device_bar_read64(struct pci_device_bar_info *const bar,
 {
 #if defined(__x86_64__)
     assert(bar->is_mmio);
-    if (!bar->is_mapped) {
+    if (bar->mmio == NULL) {
         return UINT64_MAX;
     }
 
     return mmio_read_64(bar->mmio->base + bar->index_in_mmio + offset);
 #else
-    if (!bar->is_mapped) {
+    if (bar->mmio != NULL) {
         return UINT64_MAX;
     }
 
@@ -544,7 +543,7 @@ static void free_inside_device_info(struct pci_device_info *const device) {
 
     for (uint8_t i = 0; i != bar_count; i++) {
         struct pci_device_bar_info *const bar = &bar_list[i];
-        if (bar->is_mapped) {
+        if (bar->mmio != NULL) {
             vunmap_mmio(bar->mmio);
         }
     }

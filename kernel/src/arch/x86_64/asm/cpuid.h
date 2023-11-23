@@ -72,7 +72,7 @@ enum {
     __CPUID_FEAT_ECX_FMA     = 1ull << 12,
 
     // Supports CMPXCHG16B instruction
-    __CPUID_FEAT_ECX_CX16    = 1ull << 13,
+    __CPUID_FEAT_ECX_CMPXCHG16B = 1ull << 13,
 
     // ETRPD = Extended Topology Enumeration and __CPUID Leaf Identifiers
     __CPUID_FEAT_ECX_ETPRD   = 1ull << 14,
@@ -207,6 +207,8 @@ enum {
     // PBE is a synonym for PSE36.
     __CPUID_FEAT_EDX_PBE = 1ull << 31,
 
+    __CPUID_FEAT_PWR_MGMT_EAX_APIC_TIMER_ALWAYS_RUNNING = 1ull << 2,
+
     // FSGSBASE = FS/GS BASE access instructions
     __CPUID_FEAT_EXT7_ECX0_EBX_FSGSBASE = 1ull << 0,
 
@@ -220,8 +222,7 @@ enum {
     __CPUID_FEAT_EXT7_ECX0_EBX_BMI1 = 1ull << 3,
 
     // Supports Intel® Memory Protection Extensions (Intel® MLE Extensions) if 1
-
-    __CPUID_FEAT_EXT7_ECX0_EBX_HLE = 1ull << 4,
+    __CPUID_FEAT_EXT7_ECX0_EBX_MLE = 1ull << 4,
 
     // Supports Advanced Vector Extensions (AVX) if 1.
     __CPUID_FEAT_EXT7_ECX0_EBX_AVX = 1ull << 5,
@@ -339,11 +340,8 @@ enum {
     // AVX512CD = AVX-512 Conflict Detection
     __CPUID_FEAT_EXT7_ECX0_EBX_AVX512CD = 1ull << 28,
 
-    /*
-     * Supports Intel® Secure Hash Algorithm Extensions (Intel® SHA Extensions)
-     * if 1.
-     */
-
+    // Supports Intel® Secure Hash Algorithm Extensions (Intel® SHA Extensions)
+    // if 1.
     __CPUID_FEAT_EXT7_ECX0_EBX_SHA = 1ull << 29,
 
     // AVX512BW = AVX-512 BW (Byte and Word) Instructions
@@ -384,7 +382,6 @@ enum {
      *   IA32_PL1_SSP
      *   IA32_PL0_SSP.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_CET_SS = 1ull << 7,
 
     // GFNI = Galois Field New Instructions
@@ -403,7 +400,6 @@ enum {
      * VAES is a collection of instructions that operate on 128-bit AES
      * encryption keys.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_VAES = 1ull << 9,
 
     // VPCLMULQDQ = Vector Polynomial Multiplication Quadword
@@ -413,7 +409,6 @@ enum {
      * VPCLMULQDQ is a collection of instructions that operate on 128-bit
      * polynomial multiplications.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_VPCLMULQDQ = 1ull << 10,
 
     // AVX512_VNNI = AVX-512 Vector Neural Network Instructions
@@ -425,7 +420,6 @@ enum {
      * Network Instructions) are a collection of instructions that operate on
      * 128-bit vectors of floating-point values.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_AVX512_VNNI = 1ull << 11,
 
     // AVX512_BITALG = AVX-512 Bit Algorithms
@@ -435,7 +429,6 @@ enum {
      * AVX-512 Bit Algorithms (AVX-512 Bit Algorithms) are a collection of
      * instructions that operate on 128-bit vectors of floating-point values.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_AVX512_BITALG = 1ull << 12,
 
     // Bit 13 is reserved
@@ -447,7 +440,6 @@ enum {
      * AVX-512 VPOPCNTDQ (AVX-512 VPOPCNTDQ) is a collection of instructions
      * that operate on 128-bit vectors of floating-point values.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_AVX512_VPOPCNTDQ = 1ull << 14,
 
     /*
@@ -456,7 +448,6 @@ enum {
      * LA57 is a collection of instructions that operate on 128-bit vectors of
      * floating-point values.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_LA57 = 1ull << 15,
 
     /*
@@ -464,7 +455,6 @@ enum {
      *
      * RDPID is a collection of instructions that provide a processor ID.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_RDPID = 1ull << 22,
 
     /*
@@ -472,7 +462,6 @@ enum {
      *
      * IA32_KL (KL) is a collection of instructions that provide a processor ID.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_KL = 1ull << 23,
 
     // Bit 24 is reserved
@@ -482,7 +471,6 @@ enum {
      *
      * CLDEMOTE is a collection of instructions that demote cache lines.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_CLDEMOTE = 1ull << 25,
 
     // Bit 26 is reserved
@@ -493,7 +481,6 @@ enum {
      * MOVDIRI is a collection of instructions that move directory information
      * from one location to another.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_MOVDIRI = 1ull << 27,
 
     /*
@@ -502,7 +489,6 @@ enum {
      * MOVDIR64B is a collection of instructions that move directory information
      * from one location to another.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_MOVDIR64B = 1ull << 28,
 
     // Bit 29 is reserved
@@ -513,7 +499,6 @@ enum {
      * SGX_LC is a collection of instructions that provide information about
      * the SGX launch configuration.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_SGX_LC = 1ull << 30,
 
     /*
@@ -522,24 +507,17 @@ enum {
      * PKS is a collection of instructions that provide protection keys for
      * supervisor-mode pages.
      */
-
     __CPUID_FEAT_EXT7_ECX0_ECX_PKS = 1ull << 31,
 
     // Bit 0 is unused
     // Bit 1 is reserved
 
-    /*
-     * AVX512_4VNNIW = Vector instructions for deep learning enhanced word
-     * variable precision.
-     */
-
+    // AVX512_4VNNIW = Vector instructions for deep learning enhanced word
+    // variable precision.
     __CPUID_FEAT_EXT7_ECX0_EDX_AVX512_4VNNIW = 1ull << 2,
 
-    /*
-     * AVX512_4FMAPS = Vector instructions for deep learning enhanced word
-     * variable precision.
-     */
-
+    // AVX512_4FMAPS = Vector instructions for deep learning enhanced word
+    // variable precision.
     __CPUID_FEAT_EXT7_ECX0_EDX_AVX512_4FMAPS = 1ull << 3,
 
     /*
@@ -708,7 +686,6 @@ enum {
     __CPUID_FEAT_EXT80000001_EDX_RDTSCP_IA32_TSC_AUX = 1ull << 27,
 
     // Bits 28 reserved
-
     __CPUID_FEAT_EXT80000001_EDX_64B = 1ull << 29,
 
     // Bits 30 through 31 reserved
@@ -717,6 +694,12 @@ enum {
     __CPUID_FEAT_EXT80000007_EDX_TSC_INVARIANT = 1ull << 8,
 
     // Bits 9 through 31 reserved
+
+    __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVEOPT = 1ull << 0,
+    __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVE_COMPACTED = 1ull << 1,
+    __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XGETBV = 1ull << 2,
+    __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVES_XSTORS = 1ull << 3,
+    __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XFD = 1ull << 4
 };
 
 enum cpuid_requests {
@@ -731,19 +714,19 @@ enum cpuid_requests {
     CPUID_GET_FEATURES_EXTENDED_7,
 
     // CPUID 8 is reserved
-
     CPUID_GET_DIRECT_CACHE_ACCESS = 9,
     CPUID_GET_ARCH_PERF_MONITOR,
 
     CPUID_GET_CPU_TOPOLOGY,
     CPUID_GET_FEATURES_XSAVE = 13,
 
-    CPUID_GET_LARGEST_EXTENDED_FUNCTION = 0x80000000,
-    CPUID_GET_FEATURES_EXTENDED,
-
+    CPUID_GET_PROC_FREQ_INFO = 0x16,
     CPUID_GET_EXTENDED_BRAND_STRING,
     CPUID_GET_EXTENDED_BRAND_STRING_MORE,
     CPUID_GET_EXTENDED_BRAND_STRING_END,
+
+    CPUID_GET_LARGEST_EXTENDED_FUNCTION = 0x80000000,
+    CPUID_GET_FEATURES_EXTENDED,
 };
 
 void
@@ -754,4 +737,4 @@ cpuid(uint32_t leaf,
       uint64_t *c,
       uint64_t *d);
 
-int cpuid_string(int code, uint32_t where[static 4]);
+int cpuid_string(int code, char where[static 16]);

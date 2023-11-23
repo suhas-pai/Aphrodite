@@ -193,14 +193,17 @@ ptwalker_create_from_toplevel(struct pt_walker *const walker,
     walker->indices[walker->top_level - 1] = root_index;
 }
 
+static const struct pt_walker_iterate_options default_options = {
+    .alloc_pgtable_cb_info = NULL,
+    .free_pgtable_cb_info = NULL,
+
+    .alloc_parents = true,
+    .alloc_level = true,
+    .should_ref = true,
+};
+
 enum pt_walker_result ptwalker_next(struct pt_walker *const walker) {
-    return ptwalker_next_with_options(walker,
-                                      walker->level,
-                                      /*alloc_parents=*/true,
-                                      /*alloc_level=*/true,
-                                      /*should_ref=*/true,
-                                      /*alloc_pgtable_cb_info=*/NULL,
-                                      /*free_pgtable_cb_info=*/NULL);
+    return ptwalker_next_with_options(walker, walker->level, &default_options);
 }
 
 __optimize(3) static void
@@ -330,13 +333,10 @@ alloc_levels_down_to(struct pt_walker *const walker,
 }
 
 __optimize(3) enum pt_walker_result
-ptwalker_next_with_options(struct pt_walker *const walker,
-                           pgt_level_t level,
-                           const bool alloc_parents,
-                           const bool alloc_level,
-                           const bool should_ref,
-                           void *const alloc_pgtable_cb_info,
-                           void *const free_pgtable_cb_info)
+ptwalker_next_with_options(
+    struct pt_walker *const walker,
+    pgt_level_t level,
+    const struct pt_walker_iterate_options *const options)
 {
     // Bad increment as tables+indices haven't been filled down to the level
     // requested.
@@ -425,7 +425,7 @@ ptwalker_next_with_options(struct pt_walker *const walker,
         return E_PT_WALKER_OK;
     } while (true);
 
-    if (!alloc_parents) {
+    if (!options->alloc_parents) {
         walker->level = level;
         return E_PT_WALKER_OK;
     }
@@ -433,30 +433,21 @@ ptwalker_next_with_options(struct pt_walker *const walker,
     return alloc_levels_down_to(walker,
                                 /*parent_level=*/level,
                                 /*last_level=*/orig_level,
-                                alloc_level,
-                                should_ref,
-                                alloc_pgtable_cb_info,
-                                free_pgtable_cb_info);
+                                level,
+                                options->should_ref,
+                                options->alloc_pgtable_cb_info,
+                                options->free_pgtable_cb_info);
 }
 
 enum pt_walker_result ptwalker_prev(struct pt_walker *const walker) {
-    return ptwalker_prev_with_options(walker,
-                                      /*level=*/1,
-                                      /*alloc_parents=*/true,
-                                      /*alloc_level=*/true,
-                                      /*should_ref=*/true,
-                                      /*alloc_pgtable_cb_info=*/NULL,
-                                      /*free_pgtable_cb_info=*/NULL);
+    return ptwalker_prev_with_options(walker, walker->level, &default_options);
 }
 
 enum pt_walker_result
-ptwalker_prev_with_options(struct pt_walker *const walker,
-                           pgt_level_t level,
-                           const bool alloc_parents,
-                           const bool alloc_level,
-                           const bool should_ref,
-                           void *const alloc_pgtable_cb_info,
-                           void *const free_pgtable_cb_info)
+ptwalker_prev_with_options(
+    struct pt_walker *const walker,
+    pgt_level_t level,
+    const struct pt_walker_iterate_options *const options)
 {
     // Bad increment as tables+indices haven't been filled down to the level
     // requested.
@@ -558,7 +549,7 @@ ptwalker_prev_with_options(struct pt_walker *const walker,
         return E_PT_WALKER_OK;
     } while (true);
 
-    if (!alloc_parents) {
+    if (!options->alloc_parents) {
         walker->level = level;
         return E_PT_WALKER_OK;
     }
@@ -566,10 +557,10 @@ ptwalker_prev_with_options(struct pt_walker *const walker,
     return alloc_levels_down_to(walker,
                                 /*parent_level=*/level,
                                 /*last_level=*/orig_level,
-                                alloc_level,
-                                should_ref,
-                                alloc_pgtable_cb_info,
-                                free_pgtable_cb_info);
+                                level,
+                                options->should_ref,
+                                options->alloc_pgtable_cb_info,
+                                options->free_pgtable_cb_info);
 }
 
 enum pt_walker_result

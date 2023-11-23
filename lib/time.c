@@ -1,5 +1,5 @@
 /*
- * src/lib/time.h
+ * lib/time.c
  * © suhas pai
  */
 

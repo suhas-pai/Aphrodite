@@ -32,7 +32,7 @@ static struct acpi_info g_info = {
 };
 
 __optimize(3) static inline bool has_xsdt() {
-    return (g_info.rsdp->revision >= 2 && g_info.rsdp->v2.xsdt_addr != 0);
+    return g_info.rsdp->revision >= 2 && g_info.rsdp->v2.xsdt_addr != 0;
 }
 
 __optimize(3)

@@ -226,6 +226,7 @@ src/dev/pci/vendors.h:
 	sed -i -e 's/(???)//g' $@
 	sed -i -e s/\"NICEVT\"/\'NICEVT\'/g $@
 	rm src/dev/pci/pci.ids
+	rm $@-e
 
 # Link rules for the final kernel executable.
 bin/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)

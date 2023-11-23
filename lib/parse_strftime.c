@@ -529,10 +529,8 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             RECURSIVE_CALL_FOR_SPEC('d');
             CALL_CALLBACK(SV_STATIC("-"));
 
-            /*
-             * We can't call 'm' specifier here because month has to be padded
-             * by a space 3 times
-             */
+            // We can't call 'm' specifier here because month has to be padded
+            // by a space 3 times
 
             struct string_view month_sv =
                 unsigned_to_string_view(tm_mon_to_month(tm->tm_mon),

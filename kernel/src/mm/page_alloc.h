@@ -41,7 +41,7 @@ alloc_pages_from_zone(struct page_zone *zone,
                       uint8_t order,
                       bool fallback);
 
-struct page *alloc_large_page(uint64_t alloc_flags, pgt_level_t level);
+struct page *alloc_large_page(pgt_level_t level, uint64_t flags);
 struct page *
 alloc_large_page_in_zone(struct page_zone *zone,
                          uint64_t alloc_flags,

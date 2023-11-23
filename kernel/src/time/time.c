@@ -4,8 +4,6 @@
  */
 
 #include "cpu/spinlock.h"
-#include "lib/list.h"
-
 #include "time.h"
 
 static struct list g_clock_list = LIST_INIT(g_clock_list);

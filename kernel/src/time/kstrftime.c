@@ -44,13 +44,17 @@ time_print_format_callback(const struct strftime_spec_info *const spec_info,
     (void)cb_info;
     (void)should_cont_out;
 
-    putk_sv(sv);
+    putk_sv((enum log_level)(uint64_t)cb_info, sv);
     return sv.length;
 }
 
-void printk_strftime(const char *const format, const struct tm *const tm) {
+void
+printk_strftime(const enum log_level level,
+                const char *const format,
+                const struct tm *const tm)
+{
     parse_strftime_format(time_print_format_callback,
-                          /*sv_cb_info=*/NULL,
+                          (void *)level,
                           format,
                           tm);
 }

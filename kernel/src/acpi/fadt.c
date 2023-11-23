@@ -3,6 +3,10 @@
  * © suhas pai
  */
 
+#if defined(__aarch64__)
+    #include "dev/psci.h"
+#endif /* defined(__aarch64__) */
+
 #include "dev/printk.h"
 #include "fadt.h"
 
@@ -10,7 +14,7 @@ void fadt_init(const struct acpi_fadt *const fadt) {
     printk(LOGLEVEL_INFO,
            "fadt: version %" PRIu8 ".%" PRIu8 "\n",
            fadt->sdt.rev,
-           fadt->fadt_minor_version);
+           fadt->minor_version);
 
 #if defined(__x86_64__)
     printk(LOGLEVEL_INFO,
@@ -34,10 +38,14 @@ void fadt_init(const struct acpi_fadt *const fadt) {
 
     if (fadt->arm_boot_arch_flags & __ACPI_FADT_ARM_BOOT_PSCI_COMPLIANT) {
         printk(LOGLEVEL_INFO, "fadt: system is psci compliant\n");
-    }
+        const bool use_hvc =
+            fadt->arm_boot_arch_flags & __ACPI_FADT_ARM_BOOT_PSCI_USE_HVC;
 
-    if (fadt->arm_boot_arch_flags & __ACPI_FADT_ARM_BOOT_PSCI_USE_HVC) {
-        printk(LOGLEVEL_INFO, "fadt: psci needs hvc\n");
+        if (use_hvc) {
+            printk(LOGLEVEL_INFO, "fadt: psci needs hvc\n");
+        }
+
+        psci_init_from_acpi(use_hvc);
     }
 #endif /* defined(__x86_64__) */
 }

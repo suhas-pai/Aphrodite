@@ -29,13 +29,13 @@ struct pl011_device {
     volatile uint32_t dmacr_offset;
 } __packed;
 
-static const uint32_t FR_BUSY = 1 << 3;
+#define FR_BUSY (uint32_t)(1 << 3)
 
-static const uint32_t CR_TXEN = 1 << 8;
-static const uint32_t CR_UARTEN = 1 << 0;
+#define CR_TXEN (uint32_t)(1 << 8)
+#define CR_UARTEN (uint32_t)(1 << 0)
 
-static const uint32_t LCR_FEN = 1 << 4;
-static const uint32_t LCR_STP2 = 1 << 3;
+#define LCR_FEN (uint32_t)(1 << 4)
+#define LCR_STP2 (uint32_t)(1 << 3)
 
 #define MAX_ATTEMPTS 10
 
@@ -95,7 +95,7 @@ pl011_send_sv(struct terminal *const term, const struct string_view sv) {
     wait_tx_complete(device);
 
     sv_foreach(sv, iter) {
-        char ch = *iter;
+        const char ch = *iter;
         if (ch == '\n') {
             mmio_write(&device->dr_offset, '\r');
             wait_tx_complete(device);

@@ -26,10 +26,11 @@ cpuid(const uint32_t leaf,
 }
 
 // Issue a complete request, storing general registers output as a string.
-__optimize(3) int cpuid_string(const int code, uint32_t where[const 4]) {
+__optimize(3) int cpuid_string(const int code, char string[const 16]) {
+    uint32_t *const where = (uint32_t *)(uint64_t)string;
     asm volatile ("cpuid"
-                 : "=a"(*where), "=b"(*(where + 1)),
-                   "=c"(*(where + 2)), "=d"(*(where + 3))
+                 : "=a"(where[0]), "=b"(where[1]),
+                   "=c"(where[2]), "=d"(where[3])
                  : "a"(code));
 
     return (int)where[0];

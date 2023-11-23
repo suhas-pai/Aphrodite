@@ -196,6 +196,13 @@
 
 #define femto_mod_days(femto) ((femto) % FEMTO_IN_DAYS)
 
+typedef uint64_t fsec_t;
+typedef uint64_t psec_t;
+typedef uint64_t nsec_t;
+typedef uint64_t usec_t;
+typedef uint64_t msec_t;
+typedef uint64_t sec_t;
+
 // Stop colliding with Apple's time.h
 #ifndef _TIME_H_
     typedef uint64_t time_t;

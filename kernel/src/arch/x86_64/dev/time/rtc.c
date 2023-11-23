@@ -104,10 +104,8 @@ static inline void read_rtc_cmos_info(struct rtc_cmos_info *const info_out) {
 }
 
 bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out) {
-    /*
-     * Read at least twice (and keep reading until both reads match) to avoid
-     * reading in the middle of an rtc-update.
-     */
+    // Read at least twice (and keep reading until both reads match) to avoid
+    // reading in the middle of an rtc-update.
 
     struct rtc_cmos_info info = RTC_CMOS_INFO_INIT();
     struct rtc_cmos_info check = RTC_CMOS_INFO_INIT();

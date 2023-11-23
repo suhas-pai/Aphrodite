@@ -148,7 +148,7 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 
     #if defined(AARCH64_USE_16K_PAGES)
         write_tcr_el1((read_tcr_el1() & ~__TCR_TG1) |
-                    TCR_TG1_16KIB << TCR_TG1_SHIFT);
+                      TCR_TG1_16KIB << TCR_TG1_SHIFT);
     #endif /* defined(AARCH64_USE_16K_PAGES) */
 
     asm volatile ("dsb sy; isb" ::: "memory");

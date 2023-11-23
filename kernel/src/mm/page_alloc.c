@@ -621,7 +621,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
 }
 
 struct page *
-alloc_large_page(const uint64_t alloc_flags, const pgt_level_t level) {
+alloc_large_page(const pgt_level_t level, const uint64_t alloc_flags) {
     struct page_zone *zone = page_zone_iterstart();
     const struct largepage_level_info *const info =
         &largepage_level_info_list[level - 1];

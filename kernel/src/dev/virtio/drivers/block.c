@@ -69,7 +69,7 @@ virtio_block_driver_init(struct virtio_device *const device,
     printk(LOGLEVEL_INFO,
            "virtio-block: device has the following info:\n"
            "\tcapacity: " SIZE_TO_UNIT_FMT "\n",
-           SIZE_TO_UNIT_FMT_ARGS_ABBREV(capacity));
+           SIZE_TO_UNIT_FMT_ARGS(capacity));
 
     return NULL;
 }

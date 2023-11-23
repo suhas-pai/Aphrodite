@@ -197,7 +197,6 @@ void gdt_load() {
         "mov %%eax, %%fs\n\t"
         "mov %%eax, %%gs\n\t"
         "mov %%eax, %%ss\n\t"
-        :
-        : "m"(g_gdt_reg)
+        :: "m"(g_gdt_reg)
         : "rax", "memory");
 }

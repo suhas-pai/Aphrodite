@@ -24,7 +24,7 @@ static inline void select_cmos_register(enum cmos_register reg) {
 }
 
 uint8_t cmos_read(const enum cmos_register reg) {
-    const bool flag = disable_all_int_if_not();
+    const bool flag = disable_all_irqs_if_not();
 
     // Note: We have to select the cmos register every time as reading/writing
     // from cmos deselects cmos.
@@ -32,15 +32,15 @@ uint8_t cmos_read(const enum cmos_register reg) {
     select_cmos_register(reg);
     const uint8_t result = pio_read8(PIO_PORT_CMOS_REGISTER_READ);
 
-    enable_all_int_if_flag(flag);
+    enable_all_irqs_if_flag(flag);
     return result;
 }
 
 void cmos_write(const enum cmos_register reg, const uint8_t data) {
-    const bool flag = disable_all_int_if_not();
+    const bool flag = disable_all_irqs_if_not();
 
     select_cmos_register((uint8_t)reg);
     pio_write8((uint8_t)reg, data);
 
-    enable_all_int_if_flag(flag);
+    enable_all_irqs_if_flag(flag);
 }

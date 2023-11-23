@@ -596,7 +596,7 @@ struct acpi_fadt {
 
     uint8_t reset_value;
     uint16_t arm_boot_arch_flags;
-    uint8_t fadt_minor_version;
+    uint8_t minor_version;
 
     // Available on ACPI 2.0+
     uint64_t x_firmware_ctrl;

@@ -20,7 +20,8 @@
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
+    .revision = 0,
+    .response = NULL
 };
 
 static volatile struct limine_hhdm_request hhdm_request = {
@@ -49,7 +50,8 @@ static volatile struct limine_paging_mode_request paging_mode_request = {
 
 static volatile struct limine_rsdp_request rsdp_request = {
     .id = LIMINE_RSDP_REQUEST,
-    .revision = 0
+    .revision = 0,
+    .response = NULL,
 };
 
 static volatile struct limine_dtb_request dtb_request = {
@@ -60,10 +62,19 @@ static volatile struct limine_dtb_request dtb_request = {
 
 static volatile struct limine_boot_time_request boot_time_request = {
     .id = LIMINE_BOOT_TIME_REQUEST,
-    .revision = 0
+    .revision = 0,
+    .response = NULL,
+};
+
+static volatile struct limine_smp_request smp_request = {
+    .id = LIMINE_SMP_REQUEST,
+    .revision = 0,
+    .response = NULL,
+    .flags = 0,
 };
 
 static struct limine_framebuffer_response framebuffer_resp = {0};
+struct limine_smp_response *smp_response = NULL;
 
 static struct mm_memmap mm_memmap_list[255] = {0};
 static uint8_t mm_memmap_count = 0;
@@ -125,10 +136,13 @@ void boot_init() {
     assert(kern_addr_request.response != NULL);
     assert(memmap_request.response != NULL);
     assert(paging_mode_request.response != NULL);
+    assert(smp_request.response != NULL);
 
     if (framebuffer_request.response != NULL) {
         framebuffer_resp = *framebuffer_request.response;
     }
+
+    smp_response = smp_request.response;
 
     HHDM_OFFSET = hhdm_request.response->offset;
     KERNEL_BASE = kern_addr_request.response->virtual_base;
@@ -236,6 +250,10 @@ void boot_post_early_init() {
         rsdp = rsdp_request.response->address;
     }
 
+    printk(LOGLEVEL_WARN,
+           "boot: found %" PRIu64 " cpus\n",
+           smp_response->cpu_count);
+
     if (boot_time_request.response == NULL) {
         panic("boot: boot-time not found\n");
     }
@@ -244,7 +262,7 @@ void boot_post_early_init() {
     printk(LOGLEVEL_INFO, "boot: boot timestamp is %" PRIu64 ": ", boot_time);
 
     const struct tm tm = tm_from_stamp((uint64_t)boot_time);
-    printk_strftime("%c\n", &tm);
+    printk_strftime(LOGLEVEL_INFO, "%c\n", &tm);
 }
 
 __optimize(3) void boot_merge_usable_memmaps() {

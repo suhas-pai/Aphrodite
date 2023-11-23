@@ -19,7 +19,7 @@ struct slab_allocator {
     uint32_t object_size;
     uint32_t object_count_per_slab;
     uint32_t alloc_flags;
-    uint16_t slab_order;
+    uint8_t slab_order;
     uint16_t flags;
 
     uint32_t free_obj_count;

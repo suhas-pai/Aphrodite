@@ -10,8 +10,7 @@
 
 #include "ioapic.h"
 
-static struct array g_ioapic_list =
-    ARRAY_INIT(sizeof(struct ioapic_info));
+static struct array g_ioapic_list = ARRAY_INIT(sizeof(struct ioapic_info));
 
 __optimize(3) uint64_t
 create_ioapic_redirect_request(

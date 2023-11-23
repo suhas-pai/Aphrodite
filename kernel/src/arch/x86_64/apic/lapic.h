@@ -169,7 +169,6 @@ enum lapic_timer_mode {
      * register. An interrupt is generated when the timer reaches zero, and
      * the timer remains at its 0 value until reprogrammed.
      */
-
     LAPIC_TIMER_MODE_ONE_SHOT,
 
     /*
@@ -177,7 +176,6 @@ enum lapic_timer_mode {
      * resets back to the value in the init-count register when the timer-value
      * reaches zero.
      */
-
     LAPIC_TIMER_MODE_PERIODIC,
 
     /*
@@ -192,7 +190,6 @@ enum lapic_timer_mode {
      *
      * NOTE: Writing 0 to the msr at *any time* will stop any current timer.
      */
-
     LAPIC_TIMER_MODE_TSC_DEADLINE
 };
 

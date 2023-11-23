@@ -19,12 +19,10 @@ enum ia32_msr {
 
     // IA32_MSR_FMASK is a mask of bits to be removed from RFLAGS
     // In SYSCALL, RFLAGS &= ~IA32_MSR_FMASK
-
     IA32_MSR_FMASK = 0xC0000084,
 
     // IA32_MSR_STAR stores the CS (Code Segment) and SS (Stack Segment) info
     // at bits [47:32] and [63:48] respectively.
-
     IA32_MSR_STAR = 0xC0000081,
     IA32_MSR_TSC_DEADLINE = 0x6E0,
 
@@ -37,7 +35,10 @@ enum ia32_msr {
     IA32_MSR_MTRR_PHYSMASK0 = 0x201,
     IA32_MSR_MTRR_PHYSBASE1 = 0x202,
 
-    IA32_MSR_MISC_ENABLE = 0x1a0
+    IA32_MSR_MISC_ENABLE = 0x1a0,
+    IA32_MSR_XSS = 0xda0,
+    IA32_MSR_XFD = 0x1C4,
+    IA32_MSR_XFD_ERR = 0x1C5
 };
 
 enum ia32_msr_efer_flags {
@@ -104,5 +105,5 @@ enum msr_pat_indexes {
 
 #define MSR_PAT_ENTRY_MASK 0b111ull
 
-uint64_t read_msr(enum ia32_msr msr);
-void write_msr(enum ia32_msr msr, uint64_t value);
+uint64_t msr_read(enum ia32_msr msr);
+void msr_write(enum ia32_msr msr, uint64_t value);

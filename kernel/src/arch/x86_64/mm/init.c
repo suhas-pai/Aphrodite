@@ -214,7 +214,7 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 }
 
 void mm_arch_init() {
-    const uint64_t pat_msr_orig = read_msr(IA32_MSR_PAT);
+    const uint64_t pat_msr_orig = msr_read(IA32_MSR_PAT);
     const uint64_t pat_msr =
         pat_msr_orig |
         (~((MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2) |
@@ -229,7 +229,7 @@ void mm_arch_init() {
     const uint64_t write_combining_mask =
         (uint64_t)MSR_PAT_ENCODING_WRITE_COMBINING << MSR_PAT_INDEX_PAT3;
 
-    write_msr(IA32_MSR_PAT, pat_msr | uncacheable_mask | write_combining_mask);
+    msr_write(IA32_MSR_PAT, pat_msr | uncacheable_mask | write_combining_mask);
 
     uint64_t kernel_memmap_size = 0;
     setup_kernel_pagemap(&kernel_memmap_size);

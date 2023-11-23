@@ -190,27 +190,27 @@ void collect_cpu_features() {
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH_FPACCOMBINE;
     } else if (aa64isar1_el1_apa_support ==
-            ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH2 &&
-        aa64isar1_el1_api_support ==
-            ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH2 &&
-        aa64isar1_el1_apa3_support ==
-            ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH2)
+                    ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH2 &&
+               aa64isar1_el1_api_support ==
+                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH2 &&
+               aa64isar1_el1_apa3_support ==
+                    ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH2)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH2;
     } else if (aa64isar1_el1_apa_support ==
-            ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_EPAC &&
-        aa64isar1_el1_api_support ==
-            ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_EPAC &&
-        aa64isar1_el1_apa3_support ==
-            ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_EPAC)
+                    ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_EPAC &&
+               aa64isar1_el1_api_support ==
+                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_EPAC &&
+               aa64isar1_el1_apa3_support ==
+                    ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_EPAC)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH_EPAC;
     } else if (aa64isar1_el1_apa_support ==
-            ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH &&
-        aa64isar1_el1_api_support ==
-            ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH &&
-        aa64isar1_el1_apa3_support ==
-            ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH)
+               ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH &&
+               aa64isar1_el1_api_support ==
+                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH &&
+               aa64isar1_el1_apa3_support ==
+                    ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH;
     }

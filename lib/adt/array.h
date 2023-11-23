@@ -24,7 +24,7 @@ struct array {
          item++)
 
 #define ARRAY_INIT(size) \
-    ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size)})
+    ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size) })
 
 struct array array_alloc(uint32_t object_size, uint32_t item_capacity);
 

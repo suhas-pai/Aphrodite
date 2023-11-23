@@ -20,10 +20,9 @@
 struct mmio_region *lapic_mmio_region = NULL;
 volatile struct lapic_registers *lapic_regs = NULL;
 
-static struct array g_lapic_list =
-    ARRAY_INIT(sizeof(struct lapic_info));
+static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
 
-static inline uint32_t
+__optimize(3) static inline uint32_t
 setup_timer_register(const enum lapic_timer_mode timer_mode,
                      const bool masked,
                      const uint8_t vector)
@@ -79,24 +78,24 @@ static void calibrate_timer() {
 }
 
 __optimize(3) uint32_t lapic_read(const enum x2apic_lapic_reg reg) {
-    return read_msr(IA32_MSR_X2APIC_BASE + reg);
+    return msr_read(IA32_MSR_X2APIC_BASE + reg);
 }
 
 __optimize(3)
 void lapic_write(const enum x2apic_lapic_reg reg, const uint64_t value) {
-    write_msr(IA32_MSR_X2APIC_BASE + reg, value);
+    msr_write(IA32_MSR_X2APIC_BASE + reg, value);
 }
 
-void adjust_lint_extint_value(uint64_t *const value_in) {
+__optimize(3) void adjust_lint_extint_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_EXTINT << 8;
     const uint64_t remove_mask = 0b111 << 8 | 1 << 12  | 1 << 14  | 1 << 16;
 
     *value_in = (*value_in & ~remove_mask) | add_mask;
 }
 
-void adjust_lint_nmi_value(uint64_t *const value_in) {
+__optimize(3) void adjust_lint_nmi_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_NMI << 8;
-    const uint64_t remove_mask = 0b111 << 8 | (1 << 15);
+    const uint64_t remove_mask = 0b111 << 8 | 1 << 15;
 
     *value_in = (*value_in & ~remove_mask) | add_mask;
 }
@@ -192,7 +191,7 @@ void lapic_timer_one_shot(const uint64_t microseconds) {
     // cycles per microseconds
 
     const uint64_t lapic_timer_freq_in_microseconds =
-        micro_to_seconds(get_cpu_info()->lapic_timer_frequency);
+        get_cpu_info()->lapic_timer_frequency / MICRO_IN_SECONDS;
 
     mmio_write(&lapic_regs->timer_initial_count,
                lapic_timer_freq_in_microseconds * microseconds);

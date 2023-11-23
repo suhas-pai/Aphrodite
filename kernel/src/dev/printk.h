@@ -35,5 +35,5 @@ __printf_format(2, 3)
 void printk(enum log_level loglevel, const char *string, ...);
 void vprintk(enum log_level loglevel, const char *string, va_list list);
 
-void putk(const char *string);
-void putk_sv(struct string_view sv);
+void putk(enum log_level loglevel, const char *string);
+void putk_sv(enum log_level loglevel, struct string_view sv);

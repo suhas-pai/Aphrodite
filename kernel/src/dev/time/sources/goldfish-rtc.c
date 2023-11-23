@@ -47,7 +47,7 @@ static uint64_t goldfish_rtc_read(struct clock_source *const clock_source) {
     const uint64_t lower = mmio_read(&rtc->time_low);
     const uint64_t higher = mmio_read(&rtc->time_high);
 
-    return (higher << 32 | lower);
+    return nano_to_micro(higher << 32 | lower);
 }
 
 static
@@ -107,6 +107,7 @@ bool goldfish_rtc_init_from_dtb(const void *const dtb, const int nodeoff) {
 
     list_init(&clock->clock_source.list);
 
+    clock->clock_source.name = "goldfish-rtc";
     clock->mmio = mmio;
     clock->clock_source.read = goldfish_rtc_read;
 

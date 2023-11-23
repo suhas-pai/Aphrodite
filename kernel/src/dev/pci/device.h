@@ -42,7 +42,6 @@ struct pci_device_bar_info {
     bool is_mmio : 1;
     bool is_prefetchable : 1;
     bool is_64_bit : 1;
-    bool is_mapped : 1;
 };
 
 bool pci_map_bar(struct pci_device_bar_info *bar);
@@ -191,6 +190,4 @@ enum pci_device_privilege {
     __PCI_DEVICE_PRIVL_INTERRUPTS = 1ull << 10
 };
 
-void
-pci_device_enable_privl(struct pci_device_info *device,
-                        enum pci_device_privilege privl);
+void pci_device_enable_privl(struct pci_device_info *device, uint8_t privl);

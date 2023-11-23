@@ -56,6 +56,10 @@ __optimize(3) uint64_t hpet_get_femto() {
     return mmio_read(&addrspace->main_counter_value);
 }
 
+__optimize(3) uint64_t hpet_read() {
+    return femto_to_micro(hpet_get_femto());
+}
+
 void hpet_init(const struct acpi_hpet *const hpet) {
     if (hpet->base_address.addr_space != ACPI_GAS_ADDRSPACE_KIND_SYSMEM) {
         printk(LOGLEVEL_WARN,
@@ -68,7 +72,7 @@ void hpet_init(const struct acpi_hpet *const hpet) {
 
     if (!has_64bit_counter) {
         printk(LOGLEVEL_WARN,
-               "hpet: does not support 64-bit counters. aborting init");
+               "hpet: does not support 64-bit counters. aborting init\n");
         return;
     }
 

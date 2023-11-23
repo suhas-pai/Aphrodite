@@ -413,15 +413,18 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     bool prev_was_at_end =
         walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
 
+    const struct pt_walker_iterate_options iterate_options = {
+        .alloc_pgtable_cb_info = NULL,
+        .free_pgtable_cb_info = NULL,
+
+        .alloc_parents = false,
+        .alloc_level = false,
+        .should_ref = false,
+    };
+
     for (uint64_t i = 0; i < length;) {
         const enum pt_walker_result advance_result =
-            ptwalker_next_with_options(&walker,
-                                       walker.level,
-                                       /*alloc_parents=*/false,
-                                       /*alloc_level=*/false,
-                                       /*should_ref=*/false,
-                                       /*alloc_pgtable_cb_info=*/NULL,
-                                       /*free_pgtable_cb_info=*/NULL);
+            ptwalker_next_with_options(&walker, walker.level, &iterate_options);
 
         if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
             panic("mm: failed to setup kernel pagemap, result=%d\n",
@@ -831,7 +834,7 @@ __optimize(3) static inline void split_sections_for_zones() {
     }
 }
 
-__optimize(3) static void setup_zone_section_list() {
+__optimize(3) static inline void setup_zone_section_list() {
     struct page_section *const begin = mm_get_page_section_list();
     const struct page_section *const end = begin + mm_get_section_count();
 

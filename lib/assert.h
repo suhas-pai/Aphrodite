@@ -14,12 +14,20 @@
     #define assert_msg(cond, msg, ...) \
         if (__builtin_expect(!(cond), 0)) panic(msg "\n", ##__VA_ARGS__)
 
-    #define verify_not_reached() panic("verify_not_reached()\n")
+    #if defined(DEBUG)
+        #define verify_not_reached() panic("verify_not_reached()\n")
+    #else
+        #define verify_not_reached() __builtin_unreachable()
+    #endif /* defined(DEBUG) */
 #elif defined(BUILD_TEST)
     #include <assert.h>
 
     #define assert_msg(cond, msg, ...) assert(cond && (msg))
-    #define verify_not_reached() assert(0 && "verify_not_reached()")
+    #if defined(DEBUG)
+        #define verify_not_reached() assert(0 && "verify_not_reached()")
+    #else
+        #define verify_not_reached() __builtin_unreachable()
+    #endif /* defined(DEBUG) */
 #else
     #include <assert.h>
 #endif

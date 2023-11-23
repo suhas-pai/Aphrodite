@@ -1,5 +1,5 @@
 /*
- * src/kernel/sanitizers/undefined.c
+ * kernel/src/sanitizers/undefined.c
  * © suhas pai
  */
 
