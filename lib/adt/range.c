@@ -129,11 +129,11 @@ bool range_has_index(const struct range range, const uint64_t index) {
 }
 
 __optimize(3) bool range_has_loc(const struct range range, const uint64_t loc) {
-    return (loc >= range.front && (loc - range.front) < range.size);
+    return loc >= range.front && (loc - range.front) < range.size;
 }
 
 __optimize(3) bool range_has_end(const struct range range, const uint64_t end) {
-    return (end > range.front && (end - range.front) <= range.size);
+    return end > range.front && (end - range.front) <= range.size;
 }
 
 __optimize(3)

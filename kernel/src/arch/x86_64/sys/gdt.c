@@ -46,10 +46,10 @@ struct tss_descriptor {
 #define ACC_USER_DATA (ACC_DATA_WRITABLE | ACC_NON_TSS_SEG | ACC_DPL3)
 
 _Static_assert(ACC_KERNEL_CODE == 0b00011010, "ACC_KERNEL_CODE isn't correct");
-_Static_assert(ACC_KERNEL_DATA == 0b00010010, "ACC_KERNEL_CODE isn't correct");
+_Static_assert(ACC_KERNEL_DATA == 0b00010010, "ACC_KERNEL_DATA isn't correct");
 
 _Static_assert(ACC_USER_CODE == 0b01111010, "ACC_USER_CODE isn't correct");
-_Static_assert(ACC_USER_DATA == 0b01110010, "ACC_DATA_CODE isn't correct");
+_Static_assert(ACC_USER_DATA == 0b01110010, "ACC_USER_DATA isn't correct");
 
 #define GRAN_LIMIT_HIGH 0b10001111
 #define GRAN_LONG (1 << 5)

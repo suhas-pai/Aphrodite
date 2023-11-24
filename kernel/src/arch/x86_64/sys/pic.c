@@ -41,8 +41,6 @@ static inline bool is_irq_in_pic_2(const uint8_t irq) {
     return (irq >= 8);
 }
 
-/******* PUBLIC APIs *******/
-
 void pic_send_eoi(const uint8_t irq) {
     if (is_irq_in_pic_2(irq)) {
         pio_write8(PIC2_COMMAND, PIC_EOI);
