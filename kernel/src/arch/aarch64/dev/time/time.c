@@ -3,9 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/printk.h"
-#include "lib/time.h"
-
 #include "sys/boot.h"
 
 uint64_t nsec_since_boot() {

@@ -120,6 +120,10 @@ __optimize(3) uint64_t string_length(const struct string string) {
     return gbuffer_used_size(string.gbuffer);
 }
 
+__optimize(3) void string_reserve(struct string *string, uint32_t capacity) {
+    gbuffer_ensure_can_add_capacity(&string->gbuffer, capacity);
+}
+
 __optimize(3) struct string *
 string_remove_index(struct string *const string, const uint32_t index) {
     gbuffer_remove_index(&string->gbuffer, index);
@@ -174,6 +178,11 @@ __optimize(3) struct string_view string_to_sv(const struct string string) {
     }
 
     return sv_create_nocheck(string.gbuffer.begin, length);
+}
+
+__optimize(3) const char *string_to_cstr(const struct string string) {
+    assert(string.gbuffer.begin != NULL);
+    return string.gbuffer.begin;
 }
 
 __optimize(3) void string_destroy(struct string *const string) {

@@ -173,7 +173,7 @@ __optimize(3) uint64_t early_alloc_page() {
 }
 
 __optimize(3)
-uint64_t early_alloc_large_page(const pgt_level_t level, void *cb_info) {
+uint64_t early_alloc_large_page(const pgt_level_t level, void *const cb_info) {
     (void)cb_info;
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");

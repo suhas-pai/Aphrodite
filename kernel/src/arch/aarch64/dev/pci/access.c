@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "dev/pci/pci.h"
+#include "dev/pci/device.h"
 #include "dev/pci/structs.h"
 
 #include "dev/printk.h"

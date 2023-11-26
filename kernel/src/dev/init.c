@@ -35,8 +35,6 @@ void serial_init() {
                   /*reg_width=*/sizeof(uint8_t),
                   /*reg_shift=*/0);
 #endif
-
-    dtb_init_early();
 }
 
 void arch_init_dev();

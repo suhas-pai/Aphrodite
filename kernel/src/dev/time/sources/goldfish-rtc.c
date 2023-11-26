@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/dtb/dtb.h"
-
 #include "dev/driver.h"
 #include "dev/printk.h"
 
@@ -18,6 +16,7 @@
 #include "time/kstrftime.h"
 #include "time/time.h"
 
+#if 0
 struct goldfish_rtc {
     volatile uint32_t time_low;
     volatile uint32_t time_high;
@@ -140,3 +139,4 @@ __driver static const struct driver driver = {
     .dtb = &dtb_driver,
     .pci = NULL
 };
+#endif

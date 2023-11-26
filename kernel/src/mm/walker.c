@@ -5,7 +5,9 @@
 
 #include "cpu/info.h"
 #include "lib/align.h"
+
 #include "mm/early.h"
+#include "mm/pagemap.h"
 
 #include "page_alloc.h"
 #include "walker.h"

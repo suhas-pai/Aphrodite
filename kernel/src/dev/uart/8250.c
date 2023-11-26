@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/dtb/dtb.h"
 #include "cpu/spinlock.h"
 
 #include "dev/driver.h"
@@ -202,6 +201,7 @@ uart8250_init(const port_t base,
     return true;
 }
 
+#if 0
 bool init_from_dtb(const void *const dtb, const int nodeoff) {
     struct dtb_addr_size_pair base_addr_reg = DTB_ADDR_SIZE_PAIR_INIT();
     uint32_t pair_count = 1;
@@ -253,3 +253,4 @@ __driver static const struct driver uart8250_driver = {
     .dtb = &dtb_driver,
     .pci = NULL
 };
+#endif

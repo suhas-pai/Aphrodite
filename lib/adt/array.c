@@ -111,6 +111,12 @@ array_take_range(struct array *const array,
     gbuffer_remove_range(&array->gbuffer, remove_range);
 }
 
+__optimize(3)
+void array_reserve(struct array *const array, const uint32_t amount) {
+    const uint64_t byte_count = check_mul_assert(amount, array->object_size);
+    gbuffer_ensure_can_add_capacity(&array->gbuffer, byte_count);
+}
+
 __optimize(3) bool array_empty(const struct array array) {
     return gbuffer_empty(array.gbuffer);
 }

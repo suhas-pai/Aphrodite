@@ -285,7 +285,7 @@ pci_device_bar_read64(struct pci_device_bar_info *const bar,
 
     return mmio_read_64(bar->mmio->base + bar->index_in_mmio + offset);
 #else
-    if (bar->mmio != NULL) {
+    if (bar->mmio == NULL) {
         return UINT64_MAX;
     }
 

@@ -478,7 +478,7 @@ alloc_and_map_normal(struct pt_walker *const walker,
                                  curr_split,
                                  pageop,
                                  /*phys_begin=*/0,
-                                 virt_begin,            
+                                 virt_begin,
                                  &offset,
                                  size,
                                  /*level=*/1,
@@ -1195,22 +1195,22 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
 
                     const enum map_result result =
                         map_large_at_level(walker,
-                                        curr_split,
-                                        pageop,
-                                        phys_range.front,
-                                        virt_begin,
-                                        &offset,
-                                        phys_range.size,
-                                        level,
-                                        options);
+                                           curr_split,
+                                           pageop,
+                                           phys_range.front,
+                                           virt_begin,
+                                           &offset,
+                                           phys_range.size,
+                                           level,
+                                           options);
 
                     switch (result) {
                         case MAP_DONE:
                             finish_split_info(walker,
-                                            curr_split,
-                                            pageop,
-                                            virt_begin + offset,
-                                            options);
+                                              curr_split,
+                                              pageop,
+                                              virt_begin + offset,
+                                              options);
                             return true;
                         case MAP_CONTINUE:
                             break;

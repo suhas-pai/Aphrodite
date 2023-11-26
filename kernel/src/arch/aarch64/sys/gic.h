@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include "acpi/structs.h"
 #include "lib/adt/array.h"
+
+#include "acpi/structs.h"
 #include "mm/mmio.h"
 
 #define GIC_SGI_INTERRUPT_START 0
@@ -51,11 +52,30 @@ struct gic_distributor {
 };
 
 struct gic_cpu_interface;
+struct cpu_info;
 
-void gic_cpu_init(volatile struct gic_cpu_interface *cpu);
-void gic_dist_init(const struct acpi_madt_entry_gic_distributor *dist);
+struct gic_cpu_info {
+    volatile struct gic_cpu_interface *interface;
+    struct mmio_region *mmio;
+};
+
+void gic_cpu_init(const struct cpu_info *cpu);
+void gicd_init(const struct acpi_madt_entry_gic_distributor *dist);
 
 struct gic_msi_frame *
-gic_dist_add_msi(const struct acpi_madt_entry_gic_msi_frame *frame);
+gicd_add_msi(const struct acpi_madt_entry_gic_msi_frame *frame);
 
-const struct gic_distributor *get_gic_dist();
+const struct gic_distributor *gic_get_dist();
+
+void gicd_mask_irq(uint8_t irq);
+void gicd_unmask_irq(uint8_t irq);
+
+void gicd_set_irq_affinity(uint8_t irq, uint8_t iface);
+void gicd_set_irq_priority(uint8_t irq, uint8_t priority);
+
+typedef uint16_t irq_number_t;
+
+irq_number_t gic_cpu_get_irq_number(const struct cpu_info *cpu);
+uint32_t gic_cpu_get_irq_priority(const struct cpu_info *cpu);
+
+void gic_cpu_eoi(const struct cpu_info *cpu, irq_number_t number);

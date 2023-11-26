@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/dtb/dtb.h"
 #include "dev/driver.h"
 
 #include "dev/printk.h"
@@ -83,6 +82,7 @@ clint_init(volatile uint64_t *const base,
 #endif
 }
 
+#if 0
 static bool init_from_dtb(const void *const dtb, const int nodeoff) {
     struct dtb_addr_size_pair base_addr_reg = DTB_ADDR_SIZE_PAIR_INIT();
     uint32_t pair_count = 1;
@@ -149,3 +149,4 @@ __driver static const struct driver driver = {
     .dtb = &dtb_driver,
     .pci = NULL
 };
+#endif

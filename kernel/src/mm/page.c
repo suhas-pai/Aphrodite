@@ -44,15 +44,8 @@ __optimize(3) void zero_page(void *page) {
     }
 #elif defined(__riscv64)
     const void *const end = page + PAGE_SIZE;
-    for (void *iter = page; iter != end; iter += (CBO_SIZE * 8)) {
+    for (void *iter = page; iter != end; iter += CBO_SIZE) {
         asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 0)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 1)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 2)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 3)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 4)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 5)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 6)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 7)));
     }
 #else
     const uint64_t *const end = page + PAGE_SIZE;
@@ -93,15 +86,8 @@ __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
     }
 #elif defined(__riscv64)
     const void *const end = page + full_size;
-    for (void *iter = page; iter != end; iter += (CBO_SIZE * 8)) {
+    for (void *iter = page; iter != end; iter += CBO_SIZE) {
         asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 0)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 1)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 2)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 3)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 4)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 5)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 6)));
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 7)));
     }
 #else
     const uint64_t *const end = page + full_size;

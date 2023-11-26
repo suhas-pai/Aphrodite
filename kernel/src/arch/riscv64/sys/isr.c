@@ -39,5 +39,5 @@ isr_assign_irq_to_cpu(struct cpu_info *const cpu,
     (void)vector;
     (void)masked;
 
-    panic("isr: isr_set_vector() but not implemented");
+    panic("isr: isr_assign_irq_to_cpu() but not implemented");
 }

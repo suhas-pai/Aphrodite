@@ -49,3 +49,35 @@ int sv_compare(const struct string_view sv, const struct string_view sv2) {
 
     return strncmp(sv.begin, sv2.begin, sv.length);
 }
+
+__optimize(3)
+bool sv_equals(const struct string_view sv, const struct string_view sv2) {
+    if (sv.length != sv2.length) {
+        return false;
+    }
+
+    // Both svs are empty
+    if (__builtin_expect(sv.length == 0, 0)) {
+        return true;
+    }
+
+    return strncmp(sv.begin, sv2.begin, sv.length) == 0;
+}
+
+__optimize(3) bool
+sv_has_prefix(const struct string_view sv, const struct string_view prefix) {
+    if (__builtin_expect(prefix.length > sv.length, 0)) {
+        return false;
+    }
+
+    return strncmp(sv.begin, prefix.begin, prefix.length) == 0;
+}
+
+bool sv_has_suffix(struct string_view sv, struct string_view suffix) {
+    if (__builtin_expect(suffix.length > sv.length, 0)) {
+        return false;
+    }
+
+    const uint64_t index = sv.length - suffix.length;
+    return strncmp(sv.begin + index, suffix.begin, suffix.length) == 0;
+}

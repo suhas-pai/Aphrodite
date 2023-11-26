@@ -36,7 +36,9 @@ string_append(struct string *string, const struct string *append);
 
 char string_front(struct string string);
 char string_back(struct string string);
+
 uint64_t string_length(struct string string);
+void string_reserve(struct string *string, uint32_t capacity);
 
 struct string *string_remove_index(struct string *string, uint32_t index);
 struct string *string_remove_range(struct string *string, struct range range);
@@ -46,5 +48,7 @@ int64_t string_find_sv(struct string *string, struct string_view sv);
 int64_t string_find_string(struct string *string, const struct string *ch);
 
 struct string_view string_to_sv(struct string string);
+const char *string_to_cstr(struct string string);
+
 void string_destroy(struct string *string);
 

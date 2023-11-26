@@ -68,7 +68,7 @@ bool sv_equals_c_str(const struct string_view sv, const char *const c_str) {
     return sv_compare_c_str(sv, c_str) == 0;
 }
 
-__optimize(3) static inline
-bool sv_equals(const struct string_view sv, const struct string_view sv2) {
-    return sv_compare(sv, sv2) == 0;
-}
+bool sv_equals(struct string_view sv, struct string_view sv2);
+
+bool sv_has_prefix(struct string_view sv, struct string_view prefix);
+bool sv_has_suffix(struct string_view sv, struct string_view suffix);

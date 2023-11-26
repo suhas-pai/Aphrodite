@@ -52,7 +52,7 @@ int strncmp(const char *str1, const char *const str2, const size_t length) {
 
     char ch = *iter, jch = *jter;
     for (size_t i = 0; i != length; i++, ch = iter[i], jch = jter[i]) {
-        if (ch == '\0' || jch == '\0') {
+        if (ch != jch) {
             break;
         }
     }

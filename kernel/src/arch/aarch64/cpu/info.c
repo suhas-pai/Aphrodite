@@ -10,6 +10,7 @@
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
+#include "mm/pagemap.h"
 
 #include "info.h"
 #include "features.h"
@@ -1471,15 +1472,15 @@ cpu_add_gic_interface(
     cpu->spe_overflow_interrupt = intr->spe_overflow_interrupt;
     cpu->mpidr = intr->mpidr;
 
-    cpu->cpu_interface_region =
+    cpu->gic_cpu.mmio =
         vmap_mmio(RANGE_INIT(intr->phys_base_address, PAGE_SIZE),
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
-    assert_msg(cpu->cpu_interface_region != NULL,
+    assert_msg(cpu->gic_cpu.mmio != NULL,
                "cpu: failed to allocate mmio-region for gic-cpu-interface for "
                "cpu with mpidr %" PRIu64 "\n",
                cpu->mpidr);
 
-    cpu->interface = cpu->cpu_interface_region->base;
+    cpu->gic_cpu.interface = cpu->gic_cpu.mmio->base;
 }

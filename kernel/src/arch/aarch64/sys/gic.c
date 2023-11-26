@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <stdatomic.h>
+
 #include "acpi/structs.h"
 #include "cpu/info.h"
 
@@ -60,8 +62,8 @@ struct gicd_registers {
     volatile uint32_t interrupt_set_active_enable[32];
     volatile uint32_t interrupt_clear_active_enable[32];
 
-    volatile uint32_t interrupt_priority[256];
-    volatile uint32_t interrupt_targets[256];
+    volatile _Atomic uint32_t interrupt_priority[256];
+    volatile _Atomic uint32_t interrupt_targets[256];
 
     // Read-only on SGIs
     volatile uint32_t interrupt_config[64];
@@ -118,14 +120,32 @@ enum gic_cpu_interrupt_control_flags {
         __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_1 |
         __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_2 |
         __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_3,
+
+    __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI = 1 << 9,
+};
+
+enum gic_cpu_eoi_shifts {
+    GIC_CPU_EOI_CPU_ID_SHIFT = 10,
+};
+
+enum gic_cpu_eoi_flags {
+    __GIC_CPU_EOI_IRQ_ID = 0x3FF,
+    __GIC_CPU_EOI_CPU_ID = 0b111 << GIC_CPU_EOI_CPU_ID_SHIFT,
 };
 
 struct gic_cpu_interface {
     volatile uint32_t interrupt_control;
     volatile uint32_t priority_mask;
     volatile uint32_t binary_point;
-    volatile uint32_t interrupt_acknowledge;
+    volatile _Atomic uint32_t interrupt_acknowledge;
     volatile uint32_t end_of_interrupt;
+    volatile _Atomic uint32_t running_polarity;
+
+    volatile char reserved[182];
+    volatile uint32_t active_priority_base[4];
+
+    volatile char reserved_2[3872];
+    volatile uint32_t deactivation;
 };
 
 _Static_assert(sizeof(struct gicd_registers) == 0x10000,
@@ -140,26 +160,39 @@ static struct gic_distributor g_dist = {
     .max_impl_lockable_spis = 0
 };
 
+#define GICD_CPU_COUNT 8
+
 static struct mmio_region *g_mmio = NULL;
 static volatile struct gicd_registers *g_regs = NULL;
 static bool g_dist_initialized = false;
 
 static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
-
-    // Enable all global interrupts to be distributed to any cpu.
-    uint8_t mask = 0;
-    struct cpu_info *cpu = NULL;
-
-    list_foreach(cpu, &g_cpu_list, cpu_list) {
-        mask |= 1ull << cpu->mpidr;
+    if (g_dist.version != GICv1) {
+        for (uint16_t i = GIC_SPI_INTERRUPT_START;
+             i < g_dist.interrupt_lines_count;
+             i += 32)
+        {
+            const uint32_t index = i / sizeof(uint32_t);
+            mmio_write(&g_regs->interrupt_clear_enable[index], 0xFFFFFFFF);
+        }
+    } else {
+        for (uint16_t i = GIC_SPI_INTERRUPT_START;
+             i < g_dist.interrupt_lines_count;
+             i += 32)
+        {
+            const uint32_t index = i / sizeof(uint32_t);
+            mmio_write(&g_regs->interrupt_clear_active_enable[index],
+                       0xFFFFFFFF);
+        }
     }
 
+    const uint8_t intr_number = get_cpu_info()->cpu_interface_number;
     const uint32_t mask_four_times =
-        (uint32_t)mask << 24 |
-        (uint32_t)mask << 16 |
-        (uint32_t)mask << 8 |
-        mask;
+        (uint32_t)intr_number |
+        (uint32_t)intr_number << 8 |
+        (uint32_t)intr_number << 16 |
+        (uint32_t)intr_number << 24;
 
     for (uint16_t i = GIC_SPI_INTERRUPT_START;
          i < g_dist.interrupt_lines_count;
@@ -167,64 +200,39 @@ static void init_with_regs() {
     {
         const uint16_t index = i / sizeof(uint32_t);
 
-        mmio_write(&g_regs->interrupt_priority[index], /*value=*/0);
-        mmio_write(&g_regs->interrupt_targets[index],
-                   /*value=*/mask_four_times);
+        mmio_write(&g_regs->interrupt_priority[index], 0xA0A0A0A0);
+        mmio_write(&g_regs->interrupt_targets[index], mask_four_times);
     }
 
-    for (uint16_t i = GIC_SPI_INTERRUPT_START;
-         i < g_dist.interrupt_lines_count;
-         i += 16)
-    {
-        const uint16_t index = i / (4 * sizeof(uint32_t));
-        mmio_write(&g_regs->interrupt_config[index], /*value=*/0);
-    }
-
-    for (uint16_t i = GIC_SPI_INTERRUPT_START;
-         i < g_dist.interrupt_lines_count;
-         i += 32)
-    {
-        const uint16_t index = i / (sizeof(uint32_t) * 8);
-        mmio_write(&g_regs->interrupt_group[index], /*value=*/0);
-    }
-
-    if (g_dist.version != GICv1) {
-        for (uint16_t i = GIC_SPI_INTERRUPT_START;
-             i <  g_dist.interrupt_lines_count;
-             i += 32)
-        {
-            const uint32_t index = i / (2 * sizeof(uint32_t));
-            mmio_write(g_regs->interrupt_clear_enable + index, 0xFFFFFFFF);
-        }
-    } else {
-        for (uint16_t i = GIC_SPI_INTERRUPT_START;
-             i <  g_dist.interrupt_lines_count;
-             i += 32)
-        {
-            const uint32_t index = i / (2 * sizeof(uint32_t));
-            mmio_write(g_regs->interrupt_clear_active_enable + index,
-                       0xFFFFFFFF);
-        }
-    }
-
-    mmio_write(&g_regs->control, 1);
+    mmio_write(&g_regs->control, /*value=*/1);
     printk(LOGLEVEL_INFO, "gic: finished initializing gicd\n");
 }
 
-void gic_cpu_init(volatile struct gic_cpu_interface *const intr) {
+void gic_cpu_init(const struct cpu_info *const cpu) {
     if (g_dist.version == GICv1) {
         mmio_write(g_regs->interrupt_clear_active_enable, 0xFFFFFFFF);
+    } else {
+        mmio_write(&g_regs->interrupt_clear_enable[0], 0xFFFFFFF);
     }
 
-    mmio_write(&g_regs->interrupt_clear_enable[0], 0xFFFF0000);
-    mmio_write(&g_regs->interrupt_set_enable[0], 0x0000FFFF);
-
-    for (uint16_t i = 0; i < 32; i += 4) {
+    for (uint16_t i = 0; i != 32; i += 4) {
         const uint16_t index = i / 4;
         mmio_write(&g_regs->interrupt_priority[index], 0xa0a0a0a0);
     }
 
+    if (g_dist.version == GICv1) {
+        mmio_write(g_regs->interrupt_set_active_enable, 0xFFFFFFFF);
+    } else {
+        mmio_write(&g_regs->interrupt_set_enable[0], 0xFFFFFFF);
+    }
+
+    volatile struct gic_cpu_interface *const intr = cpu->gic_cpu.interface;
+
     mmio_write(&intr->priority_mask, 0xF0);
+    mmio_write(&intr->active_priority_base[0], /*value=*/0);
+    mmio_write(&intr->active_priority_base[1], /*value=*/0);
+    mmio_write(&intr->active_priority_base[2], /*value=*/0);
+    mmio_write(&intr->active_priority_base[3], /*value=*/0);
 
     uint32_t interrupt_control = mmio_read(&intr->interrupt_control);
     if (g_dist.version >= GICv2) {
@@ -232,12 +240,16 @@ void gic_cpu_init(volatile struct gic_cpu_interface *const intr) {
     }
 
     interrupt_control |= __GIC_CPU_INTR_CTRL_ENABLE;
-    mmio_write(&intr->interrupt_control, interrupt_control);
+    if (cpu->gic_cpu.mmio->size > PAGE_SIZE) {
+        printk(LOGLEVEL_INFO, "gic: using split-eoi for cpu %ld\n", cpu->mpidr);
+        interrupt_control |= __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI;
+    }
 
+    mmio_write(&intr->interrupt_control, interrupt_control);
     printk(LOGLEVEL_INFO, "gic: initialized cpu interface\n");
 }
 
-void gic_dist_init(const struct acpi_madt_entry_gic_distributor *const dist) {
+void gicd_init(const struct acpi_madt_entry_gic_distributor *const dist) {
     if (g_dist_initialized) {
         printk(LOGLEVEL_WARN,
                "gic: attempting to initialize multiple gic distributions\n");
@@ -253,7 +265,11 @@ void gic_dist_init(const struct acpi_madt_entry_gic_distributor *const dist) {
         return;
     }
 
-    g_mmio = vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+    g_mmio =
+        vmap_mmio(mmio_range,
+                  PROT_READ | PROT_WRITE | PROT_DEVICE,
+                  /*flags=*/0);
+
     if (g_mmio == NULL) {
         printk(LOGLEVEL_WARN, "gic: failed to mmio-map dist registers\n");
         return;
@@ -305,7 +321,7 @@ void gic_dist_init(const struct acpi_madt_entry_gic_distributor *const dist) {
 }
 
 struct gic_msi_frame *
-gic_dist_add_msi(const struct acpi_madt_entry_gic_msi_frame *const frame) {
+gicd_add_msi(const struct acpi_madt_entry_gic_msi_frame *const frame) {
     if (!has_align(frame->phys_base_address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
                 "madt: gic msi frame's physical base address (%p) is not "
@@ -342,8 +358,77 @@ gic_dist_add_msi(const struct acpi_madt_entry_gic_msi_frame *const frame) {
     return array_back(g_dist.msi_frame_list);
 }
 
-__optimize(3) const struct gic_distributor *get_gic_dist() {
+__optimize(3) const struct gic_distributor *gic_get_dist() {
     assert_msg(g_dist_initialized,
-               "gic: get_gic_dist() called before gic_dist_init()");
+               "gic: gic_get_dist() called before gicd_init()");
     return &g_dist;
+}
+
+__optimize(3) void gicd_mask_irq(const uint8_t irq) {
+    mmio_write(&g_regs->interrupt_clear_enable[irq / sizeof(uint32_t)],
+               1ull << (irq % sizeof(uint32_t)));
+}
+
+__optimize(3) void gicd_unmask_irq(const uint8_t irq) {
+    mmio_write(&g_regs->interrupt_set_enable[irq / sizeof(uint32_t)],
+               1ull << (irq % sizeof(uint32_t)));
+}
+
+__optimize(3)
+void gicd_set_irq_affinity(const uint8_t irq, const uint8_t iface) {
+    const uint8_t index = irq / sizeof(uint32_t);
+    const uint32_t target =
+        atomic_load_explicit(&g_regs->interrupt_targets[index],
+                             memory_order_relaxed);
+
+    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_CPU_COUNT;
+    const uint32_t new_target =
+        (target & (uint32_t)~(0xFF << bit_index)) |
+        (target | (1ull << (iface + bit_index)));
+
+    atomic_store_explicit(&g_regs->interrupt_targets[index],
+                          new_target,
+                          memory_order_relaxed);
+}
+
+__optimize(3)
+void gicd_set_irq_priority(const uint8_t irq, const uint8_t priority) {
+    const uint8_t index = irq / sizeof(uint32_t);
+    const uint32_t irq_priority =
+        atomic_load_explicit(&g_regs->interrupt_priority[index],
+                             memory_order_relaxed);
+
+    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_CPU_COUNT;
+    const uint32_t new_priority =
+        (irq_priority & (uint32_t)~(0xFF << bit_index)) |
+        (irq_priority | (uint32_t)priority << bit_index);
+
+    atomic_store_explicit(&g_regs->interrupt_priority[index],
+                          new_priority,
+                          memory_order_relaxed);
+}
+
+irq_number_t gic_cpu_get_irq_number(const struct cpu_info *const cpu) {
+    const uint64_t ack =
+        atomic_load_explicit(&cpu->gic_cpu.interface->interrupt_acknowledge,
+                             memory_order_relaxed);
+
+    return ack & __GIC_CPU_EOI_IRQ_ID;
+}
+
+uint32_t gic_cpu_get_irq_priority(const struct cpu_info *const cpu) {
+    return atomic_load_explicit(&cpu->gic_cpu.interface->running_polarity,
+                                memory_order_relaxed);
+}
+
+void gic_cpu_eoi(const struct cpu_info *const cpu, const irq_number_t number) {
+    if (cpu->gic_cpu.mmio->size > PAGE_SIZE) {
+        mmio_write(&cpu->gic_cpu.interface->deactivation,
+                   (uint32_t)cpu->cpu_interface_number |
+                   (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
+    } else {
+        mmio_write(&cpu->gic_cpu.interface->end_of_interrupt,
+                   (uint32_t)cpu->cpu_interface_number |
+                   (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
+    }
 }

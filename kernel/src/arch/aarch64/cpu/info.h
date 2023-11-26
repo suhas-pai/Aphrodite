@@ -6,7 +6,7 @@
 #pragma once
 
 #include "acpi/structs.h"
-#include "mm/pagemap.h"
+#include "sys/gic.h"
 
 struct pagemap;
 struct cpu_info {
@@ -23,8 +23,7 @@ struct cpu_info {
     uint16_t spe_overflow_interrupt;
     uint64_t mpidr;
 
-    struct mmio_region *cpu_interface_region;
-    volatile struct gic_cpu_interface *interface;
+    struct gic_cpu_info gic_cpu;
 };
 
 extern struct list g_cpu_list;
