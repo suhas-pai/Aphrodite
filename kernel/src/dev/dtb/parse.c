@@ -210,29 +210,45 @@ parse_status_prop(const char *const string,
                   enum devicetree_prop_status_kind *const kind_out)
 {
     const struct string_view sv = sv_create_length(string, strlen(string));
-    if (sv_equals(sv, SV_STATIC("okay"))) {
-        *kind_out = DEVICETREE_PROP_STATUS_OKAY;
-        return true;
-    }
+    enum devicetree_prop_status_kind kind = DEVICETREE_PROP_STATUS_OKAY;
 
-    if (sv_equals(sv, SV_STATIC("disabled"))) {
-        *kind_out = DEVICETREE_PROP_STATUS_DISABLED;
-        return true;
-    }
+    switch (kind) {
+        case DEVICETREE_PROP_STATUS_OKAY:
+            if (sv_equals(sv, SV_STATIC("okay"))) {
+                *kind_out = DEVICETREE_PROP_STATUS_OKAY;
+                return true;
+            }
 
-    if (sv_equals(sv, SV_STATIC("reserved"))) {
-        *kind_out = DEVICETREE_PROP_STATUS_RESERVED;
-        return true;
-    }
+            /* fallthrough */
+        case DEVICETREE_PROP_STATUS_DISABLED:
+            if (sv_equals(sv, SV_STATIC("disabled"))) {
+                *kind_out = DEVICETREE_PROP_STATUS_DISABLED;
+                return true;
+            }
 
-    if (sv_equals(sv, SV_STATIC("fail"))) {
-        *kind_out = DEVICETREE_PROP_STATUS_FAIL;
-        return true;
-    }
+            /* fallthrough */
+        case DEVICETREE_PROP_STATUS_RESERVED:
+            if (sv_equals(sv, SV_STATIC("reserved"))) {
+                *kind_out = DEVICETREE_PROP_STATUS_RESERVED;
+                return true;
+            }
 
-    if (sv_equals(sv, SV_STATIC("fail-sss"))) {
-        *kind_out = DEVICETREE_PROP_STATUS_FAIL_SSS;
-        return true;
+            /* fallthrough */
+        case DEVICETREE_PROP_STATUS_FAIL:
+            if (sv_equals(sv, SV_STATIC("fail"))) {
+                *kind_out = DEVICETREE_PROP_STATUS_FAIL;
+                return true;
+            }
+
+            /* fallthrough */
+        case DEVICETREE_PROP_STATUS_FAIL_SSS:
+            if (sv_equals(sv, SV_STATIC("fail-sss"))) {
+                *kind_out = DEVICETREE_PROP_STATUS_FAIL_SSS;
+                return true;
+            }
+
+            break;
+
     }
 
     return false;
@@ -347,7 +363,7 @@ parse_int_info(const fdt32_t *const reg,
 static bool
 parse_interrupt_map_prop(const void *const dtb,
                          const struct fdt_property *const fdt_prop,
-                         const int prop_length,
+                         const uint32_t prop_length,
                          const int nodeoff,
                          struct devicetree *const tree,
                          struct array *const array)
@@ -362,7 +378,7 @@ parse_interrupt_map_prop(const void *const dtb,
     const fdt32_t *reg = NULL;
     uint32_t reg_length = 0;
 
-    if (!parse_array_prop(fdt_prop, prop_length, &reg, &reg_length)) {
+    if (!parse_array_prop(fdt_prop, (int)prop_length, &reg, &reg_length)) {
         return false;
     }
 
@@ -1077,7 +1093,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 if (array_empty(list)) {
-                    return true;
+                    break;
                 }
 
                 struct devicetree_prop_specifier_map *const prop =
@@ -1322,7 +1338,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
 
         if (!parse_interrupt_map_prop(dtb,
                                       iter->fdt_prop,
-                                      (int)iter->prop_length,
+                                      iter->prop_length,
                                       iter->node->nodeoff,
                                       tree,
                                       &list))
