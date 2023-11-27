@@ -90,8 +90,8 @@ void _start(void) {
     isr_init();
     dev_init();
 
-    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
     test_alloc_largepage();
+    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
 
     // We're done, just hang...
     enable_all_irqs();
