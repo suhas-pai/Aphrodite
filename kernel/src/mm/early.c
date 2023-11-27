@@ -359,10 +359,9 @@ __optimize(3) void mm_init() {
         }
 
         printk(LOGLEVEL_INFO,
-               "mm: memmap %" PRIu64 ": [%p-%p] %s\n",
+               "mm: memmap %" PRIu64 ": [" RANGE_FMT "] %s\n",
                index + 1,
-               (void *)memmap->range.front,
-               (void *)range_get_end_assert(memmap->range),
+               RANGE_FMT_ARGS(memmap->range),
                type_desc);
     }
 
