@@ -46,4 +46,5 @@ page_section_init(struct page_section *section,
 
 struct page_section *mm_get_page_section_list();
 struct page_section *phys_to_section(uint64_t phys);
+struct page_section *pfn_to_section(uint64_t phys);
 

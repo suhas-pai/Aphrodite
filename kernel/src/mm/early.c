@@ -551,7 +551,7 @@ __optimize(3) void mm_remove_early_identity_map() {
 __optimize(3)
 static void mark_crucial_pages(const struct page_section *const memmap) {
     struct freepages_info *iter = NULL;
-    list_foreach(iter, &g_freepage_list, list) {
+    list_foreach(iter, &g_asc_freelist, asc_list) {
         uint64_t iter_phys = virt_to_phys(iter);
         if (!range_has_loc(memmap->range, iter_phys)) {
             continue;
@@ -638,12 +638,10 @@ set_section_for_pages(const struct page_section *const memmap,
     struct freepages_info *iter = NULL;
     list_foreach(iter, &g_freepage_list, list) {
         uint64_t iter_phys = virt_to_phys(iter);
-        uint64_t page_phys = iter_phys;
+        const uint64_t back_phys =
+            iter_phys + (iter->avail_page_count << PAGE_SHIFT) - PAGE_SIZE;
 
         if (!range_has_loc(memmap->range, iter_phys)) {
-            const uint64_t back_phys =
-                iter_phys + (iter->avail_page_count << PAGE_SHIFT) - PAGE_SIZE;
-
             if (!range_has_loc(memmap->range, back_phys)) {
                 continue;
             }
@@ -655,12 +653,11 @@ set_section_for_pages(const struct page_section *const memmap,
         }
 
         const uint64_t end_phys =
-            min(range_get_end_assert(memmap->range),
-                iter_phys + (iter->avail_page_count << PAGE_SHIFT));
+            min(range_get_end_assert(memmap->range), back_phys + PAGE_SIZE);
 
         // Mark all usable pages that exist from in iter.
-        struct page *page = phys_to_page(page_phys);
-        struct page *const end = phys_to_page(end_phys - PAGE_SIZE) + 1;
+        struct page *page = phys_to_page(iter_phys);
+        const struct page *const end = phys_to_page(end_phys - PAGE_SIZE) + 1;
 
         for (; page != end; page++) {
             page->section = section;
@@ -685,7 +682,7 @@ __optimize(3) static uint64_t free_all_pages() {
         uint64_t avail = iter->avail_page_count;
 
         struct page *page = phys_to_page(phys);
-        struct page_section *const section = page_to_section(page);
+        struct page_section *section = page_to_section(page);
 
         // iorder is log2() of the count of available pages, here we use a for
         // loop to calculate that, but in the future, it may be worth it to
@@ -721,52 +718,30 @@ __optimize(3) static uint64_t free_all_pages() {
                 section->max_order = highest_jorder + 1;
             }
 
-            const uint64_t total_in_section = 1ull << jorder;
-            uint64_t avail_in_section = total_in_section;
+            const uint64_t free_count = 1ull << jorder;
+            early_free_pages_from_section(page, section, (uint8_t)jorder);
 
-            do {
-                early_free_pages_from_section(page, section, (uint8_t)jorder);
-                const uint64_t freed_count = 1ull << jorder;
+            if (section->min_order > (uint8_t)jorder) {
+                section->min_order = (uint8_t)jorder;
+            }
 
-                page += freed_count;
-                avail_in_section -= freed_count;
-
-                if (avail_in_section == 0) {
-                    if (section->min_order > (uint8_t)jorder) {
-                        section->min_order = (uint8_t)jorder;
-                    }
-
-                    break;
-                }
-
-                do {
-                    if (avail_in_section >= (1ull << jorder)) {
-                        break;
-                    }
-
-                    jorder--;
-                    if (jorder < 0) {
-                        goto done;
-                    }
-                } while (true);
-            } while (true);
-
-        done:
             const struct range freed_range =
-                RANGE_INIT(phys, total_in_section << PAGE_SHIFT);
+                RANGE_INIT(phys, free_count << PAGE_SHIFT);
 
             printk(LOGLEVEL_INFO,
                    "mm: freed %" PRIu64 " pages at " RANGE_FMT " to zone %s\n",
-                   total_in_section,
+                   free_count,
                    RANGE_FMT_ARGS(freed_range),
                    section->zone->name);
 
-            avail -= total_in_section;
+            avail -= free_count;
             if (avail == 0) {
                 break;
             }
 
-            phys += total_in_section << PAGE_SHIFT;
+            page += free_count;
+            phys += freed_range.size;
+            section = page_to_section(page);
         } while (true);
 
         list_delete(&iter->list);
@@ -789,6 +764,7 @@ split_section_at_boundary(struct page_section *const section,
 
     section->pfn += PAGE_COUNT(new_section_range.size);
     section->range = range_from_loc(section->range, boundary);
+    section->zone = phys_to_zone(section->range.front);
 
     struct page_section *const new_section = boot_add_section_at(section);
     page_section_init(new_section, zone, new_section_range, new_section_pfn);
@@ -838,7 +814,16 @@ __optimize(3) static inline void setup_zone_section_list() {
     struct page_section *const begin = mm_get_page_section_list();
     const struct page_section *const end = begin + mm_get_section_count();
 
-    for (__auto_type section = begin; section != end; section++) {
+    uint32_t number = 1;
+    for (__auto_type section = begin; section != end; section++, number++) {
+        printk(LOGLEVEL_INFO,
+               "mm: section %" PRIu32 " at range " RANGE_FMT ", "
+               "pfn-range: " RANGE_FMT "\n",
+               number,
+               RANGE_FMT_ARGS(section->range),
+               RANGE_FMT_ARGS(
+                RANGE_INIT(section->pfn, section->range.size >> PAGE_SHIFT)));
+
         list_add(&section->zone->section_list, &section->zone_list);
     }
 }

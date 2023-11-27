@@ -1,5 +1,5 @@
 /*
- * kernel/src/mm/sections.c
+ * kernel/src/mm/section.c
  * © suhas pai
  */
 
@@ -17,7 +17,7 @@ page_section_init(struct page_section *const section,
     section->lock = SPINLOCK_INIT();
     section->pfn = pfn;
     section->range = range;
-    section->min_order = 0;
+    section->min_order = MAX_ORDER;
     section->max_order = 0;
     section->total_free = 0;
 
@@ -35,6 +35,20 @@ __optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
 
     for (struct page_section *iter = begin; iter != end; iter++) {
         if (range_has_loc(iter->range, phys)) {
+            return iter;
+        }
+    }
+
+    verify_not_reached();
+}
+
+__optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
+    struct page_section *const begin = mm_get_page_section_list();
+    struct page_section *const end = begin + mm_get_section_count();
+
+    for (struct page_section *iter = begin; iter != end; iter++) {
+        struct range pfn_range = RANGE_INIT(pfn, iter->range.front / PAGE_SIZE);
+        if (range_has_loc(pfn_range, pfn)) {
             return iter;
         }
     }
@@ -63,4 +77,21 @@ __optimize(3) uint64_t page_to_phys(const struct page *const page) {
     const uint64_t relative_pfn = check_sub_assert(page_pfn, section->pfn);
 
     return section->range.front + (relative_pfn << PAGE_SHIFT);
+}
+
+__optimize(3) uint64_t pfn_to_phys_manual(const uint64_t pfn) {
+    const struct page_section *const begin = mm_get_page_section_list();
+    const struct page_section *const end = begin + mm_get_section_count();
+
+    for (const struct page_section *iter = begin; iter != end; iter++) {
+        const struct range pfn_range =
+            RANGE_INIT(iter->pfn, iter->range.size >> PAGE_SHIFT);
+
+        if (range_has_loc(pfn_range, pfn)) {
+            const uint64_t index = range_index_for_loc(pfn_range, pfn);
+            return iter->range.front + (index << PAGE_SHIFT);
+        }
+    }
+
+    verify_not_reached();
 }

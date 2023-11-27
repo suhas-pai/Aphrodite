@@ -24,6 +24,7 @@
 
 uint64_t phys_to_pfn(uint64_t phys);
 uint64_t page_to_phys(const struct page *page);
+uint64_t pfn_to_phys_manual(uint64_t pfn);
 
 struct page;
 
