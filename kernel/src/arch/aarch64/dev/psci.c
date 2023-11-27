@@ -22,6 +22,33 @@ static uint32_t g_func_to_cmd[] = {
     [PSCI_FUNC_MIGRATE_INFO_UP_CPU] = 0xC4000007,
 };
 
+const char *func_to_string(const enum psci_function method) {
+    switch (method) {
+        case PSCI_FUNC_VERSION:
+            return "psci-version";
+        case PSCI_FUNC_CPU_OFF:
+            return "psci-cpu-off";
+        case PSCI_FUNC_MIGRATE_INFO_TYPE:
+            return "psci-migrate-info";
+        case PSCI_FUNC_SYSTEM_OFF:
+            return "psci-system-off";
+        case PSCI_FUNC_SYSTEM_RESET:
+            return "psci-system-reset";
+        case PSCI_FUNC_CPU_SUSPEND:
+            return "psci-cpu-suspend";
+        case PSCI_FUNC_CPU_ON:
+            return "psci-cpu-on";
+        case PSCI_FUNC_AFFINITY_INFO:
+            return "psci-affinity-info";
+        case PSCI_FUNC_MIGRATE:
+            return "psci-migrate";
+        case PSCI_FUNC_MIGRATE_INFO_UP_CPU:
+            return "psci-migrate-info-up-cpu";
+    }
+
+    verify_not_reached();
+}
+
 enum psci_return_value
 psci_invoke_function(const enum psci_function func,
                      const uint64_t arg1,
@@ -34,6 +61,13 @@ psci_invoke_function(const enum psci_function func,
     register uint64_t cpu asm("x1") = arg1;
     register uint64_t addr asm("x2") = arg2;
     register uint64_t ctx asm("x3") = arg3;
+
+    if (cmd == 0) {
+        printk(LOGLEVEL_WARN,
+               "psci: function %s is missing a cmd-value\n",
+               func_to_string(func));
+        return PSCI_RETVAL_NOT_PRESENT;
+    }
 
     switch (g_invoke_method) {
         case PSCI_INVOKE_METHOD_NONE:
@@ -75,15 +109,23 @@ static bool init_common() {
     return true;
 }
 
-#if 0
-static bool init_from_dtb(const void *const dtb, const int nodeoff) {
-    struct string_view method_sv = SV_EMPTY();
-    if (!dtb_get_string_prop(dtb, nodeoff, "method", &method_sv)) {
-        printk(LOGLEVEL_WARN, "psci: failed to get \"method\" key in dtb\n");
+static bool
+init_from_dtb(struct devicetree *const tree,
+              struct devicetree_node *const node)
+{
+    (void)tree;
+    struct devicetree_prop_other *const method_prop =
+        devicetree_node_get_other_prop(node, SV_STATIC("method"));
+
+    if (method_prop == NULL) {
+        printk(LOGLEVEL_WARN,
+               "psci: dtb node is missing \"method\" prop in dtb\n");
         return false;
     }
 
+    struct string_view method_sv = devicetree_prop_other_get_sv(method_prop);
     enum psci_invoke_method method = PSCI_INVOKE_METHOD_NONE;
+
     if (sv_equals(method_sv, SV_STATIC("hvc"))) {
         method = PSCI_INVOKE_METHOD_HVC;
     } else if (sv_equals(method_sv, SV_STATIC("smc"))) {
@@ -96,8 +138,9 @@ static bool init_from_dtb(const void *const dtb, const int nodeoff) {
         return false;
     }
 
-    static const char *const key_list[] = {
-        "migrate", "cpu_on", "cpu_off", "cpu_suspend"
+    static const struct string_view key_list[] = {
+        SV_STATIC("migrate"), SV_STATIC("cpu_on"), SV_STATIC("cpu_off"),
+        SV_STATIC("cpu_suspend")
     };
 
     static const enum psci_function key_index_to_func[] = {
@@ -106,14 +149,23 @@ static bool init_from_dtb(const void *const dtb, const int nodeoff) {
     };
 
     carr_foreach(key_list, key_iter) {
-        fdt32_t cmd = 0;
-        const bool result = dtb_get_integer_prop(dtb, nodeoff, *key_iter, &cmd);
+        const struct string_view key = *key_iter;
+        struct devicetree_prop_other *const key_prop =
+            devicetree_node_get_other_prop(node, *key_iter);
 
-        if (!result) {
+        if (method_prop == NULL) {
             continue;
         }
 
-        g_func_to_cmd[key_index_to_func[key_iter - key_list]] = cmd;
+        if (key_prop->data_length != sizeof(fdt32_t)) {
+            printk(LOGLEVEL_WARN,
+                   "psci: dtb node \"" SV_FMT "\" has a bad length\n",
+                   SV_FMT_ARGS(key));
+            continue;
+        }
+
+        g_func_to_cmd[key_index_to_func[key_iter - key_list]] =
+            fdt32_to_cpu(*key_prop->data);
     }
 
     if (g_invoke_method != PSCI_INVOKE_METHOD_NONE) {
@@ -134,7 +186,6 @@ static bool init_from_dtb(const void *const dtb, const int nodeoff) {
 
     return true;
 }
-#endif
 
 void psci_init_from_acpi(const bool use_hvc) {
     const enum psci_invoke_method method =
@@ -171,7 +222,6 @@ enum psci_return_value psci_shutdown() {
                                 /*arg3=*/0);
 }
 
-#if 0
 static const char *const compat_list[] = {
     "arm,psci", "arm,psci-1.0", "arm,psci-0.2"
 };
@@ -186,4 +236,3 @@ __driver static const struct driver driver = {
     .dtb = &dtb_driver,
     .pci = NULL
 };
-#endif

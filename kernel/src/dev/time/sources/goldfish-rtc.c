@@ -16,7 +16,6 @@
 #include "time/kstrftime.h"
 #include "time/time.h"
 
-#if 0
 struct goldfish_rtc {
     volatile uint32_t time_low;
     volatile uint32_t time_high;
@@ -49,45 +48,45 @@ static uint64_t goldfish_rtc_read(struct clock_source *const clock_source) {
     return nano_to_micro(higher << 32 | lower);
 }
 
-static
-bool goldfish_rtc_init_from_dtb(const void *const dtb, const int nodeoff) {
-    struct dtb_addr_size_pair base_addr_reg = DTB_ADDR_SIZE_PAIR_INIT();
-    uint32_t pair_count = 1;
+static bool
+goldfish_rtc_init_from_dtb(struct devicetree *const tree,
+                           struct devicetree_node *const node)
+{
+    (void)tree;
+    const struct devicetree_prop_reg *const reg_prop =
+        (const struct devicetree_prop_reg *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    const bool get_base_addr_reg_result =
-        dtb_get_reg_pairs(dtb,
-                          nodeoff,
-                          /*start_index=*/0,
-                          &pair_count,
-                          &base_addr_reg);
-
-    if (!get_base_addr_reg_result) {
-    #if defined(__x86_64__)
-        verify_not_reached();
-    #else
+    if (reg_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "goldfish-rtc: base-addr reg of 'reg' property of "
-               "google,goldfish-rtc dtb-node is malformed\n");
+               "goldfish-rtc: 'reg' property in dtb node is missing\n");
         return false;
-    #endif
     }
 
-    if (!has_align(base_addr_reg.address, PAGE_SIZE)) {
+    if (array_empty(reg_prop->list)) {
+        printk(LOGLEVEL_WARN, "goldfish-rtc: reg property is empty\n");
+        return false;
+    }
+
+    const struct devicetree_prop_reg_info *const reg =
+        (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
+
+    if (!has_align(reg->address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
                "goldfish-rtc: address is not aligned to page-size\n");
         return false;
     }
 
     uint64_t size = 0;
-    if (!align_up(base_addr_reg.size, PAGE_SIZE, &size)) {
+    if (!align_up(reg->size, PAGE_SIZE, &size)) {
         printk(LOGLEVEL_WARN,
                "goldfish-rtc: size (%" PRIu64 ") could not be aligned up to "
                "page-size\n",
-               base_addr_reg.size);
+               reg->size);
         return false;
     }
 
-    const struct range phys_range = RANGE_INIT(base_addr_reg.address, size);
+    const struct range phys_range = RANGE_INIT(reg->address, size);
     struct mmio_region *const mmio =
         vmap_mmio(phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
@@ -139,4 +138,3 @@ __driver static const struct driver driver = {
     .dtb = &dtb_driver,
     .pci = NULL
 };
-#endif

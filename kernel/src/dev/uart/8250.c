@@ -201,42 +201,43 @@ uart8250_init(const port_t base,
     return true;
 }
 
-#if 0
-bool init_from_dtb(const void *const dtb, const int nodeoff) {
-    struct dtb_addr_size_pair base_addr_reg = DTB_ADDR_SIZE_PAIR_INIT();
-    uint32_t pair_count = 1;
+static bool
+init_from_dtb(struct devicetree *const tree,
+              struct devicetree_node *const node)
+{
+    (void)tree;
+    const struct devicetree_prop_reg *const reg_prop =
+        (const struct devicetree_prop_reg *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    const bool get_base_addr_reg_result =
-        dtb_get_reg_pairs(dtb,
-                          nodeoff,
-                          /*start_index=*/0,
-                          &pair_count,
-                          &base_addr_reg);
-
-    if (!get_base_addr_reg_result) {
+    if (reg_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "uart8250: base-addr reg of 'reg' property of serial dtb-node "
-               "is malformed\n");
+               "uart8250: 'reg' property in dtb is missing\n");
         return false;
     }
 
-    struct string_view clock_freq_string = SV_EMPTY();
-    const bool get_clock_freq_result =
-        dtb_get_string_prop(dtb,
-                            nodeoff,
-                            "clock-frequency",
-                            &clock_freq_string);
+    if (array_empty(reg_prop->list)) {
+        printk(LOGLEVEL_WARN, "uart8250: reg property is missing\n");
+        return false;
+    }
 
-    if (!get_clock_freq_result) {
+    const struct devicetree_prop_reg_info *const reg =
+        (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
+
+    const struct devicetree_prop_clock_frequency *const clock_freq_prop =
+        (const struct devicetree_prop_clock_frequency *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+
+    if (clock_freq_prop == NULL) {
         printk(LOGLEVEL_WARN,
                "uart8250: clock-frequency property of serial dtb-node is "
                "missing or malformed");
         return false;
     }
 
-    uart8250_init((port_t)base_addr_reg.address,
+    uart8250_init((port_t)reg->address,
                   /*baudrate=*/115200,
-                  *(const uint32_t *)(uint64_t)clock_freq_string.begin,
+                  clock_freq_prop->frequency,
                   /*reg_width=*/sizeof(uint8_t),
                   /*reg_shift=*/0);
     return true;
@@ -253,4 +254,3 @@ __driver static const struct driver uart8250_driver = {
     .dtb = &dtb_driver,
     .pci = NULL
 };
-#endif
