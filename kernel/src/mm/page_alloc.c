@@ -765,26 +765,28 @@ find_nearby_free_pages(struct page *const page,
             if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
                 (1ull << order) + extra >= (1ull << (order + 1)))
             {
-                take_off_freelist_order(section, order, free_head, order);
+                take_off_freelist_to_add_later(section, order, free_head);
 
                 free_page = free_head;
+                page_pfn -= extra;
                 amount += extra;
 
                 merged_range = true;
             }
         } else if (prev_state == PAGE_STATE_FREE_LIST_HEAD) {
             struct page *const free_head = free_page - 1;
-            const uint8_t order = free_head->freelist_head.order;
+            const uint8_t order = 0;
 
             // Only take off freelist if we can add the combined range to a
             // higher order.
 
-            if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
-                (1ull << order) + 1 >= (1ull << (order + 1)))
-            {
-                take_off_freelist_order(section, order, free_head, order);
+            if ((1ull << order) + 1 >= (1ull << (order + 1))) {
+                take_off_freelist_to_add_later(section, order, free_head);
 
+                free_page = free_head;
+                page_pfn -= 1;
                 amount += 1;
+
                 merged_range = true;
             }
         }
@@ -868,7 +870,7 @@ void free_pages(struct page *const page, const uint8_t order) {
     }
 
     struct page *free_page = page;
-    uint64_t amount = 0;
+    uint64_t amount = 1ull << order;
 
     if (find_nearby_free_pages(free_page, amount, &free_page, &amount)) {
         free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
