@@ -8,6 +8,7 @@
 #include "lib/adt/array.h"
 #include "lib/adt/string_view.h"
 
+#include "fdt/libfdt_env.h"
 #include "lib/list.h"
 
 enum devicetree_prop_kind {
@@ -40,11 +41,6 @@ struct devicetree_prop {
 struct devicetree_prop_compat {
     enum devicetree_prop_kind kind;
     struct string_view string;
-};
-
-struct devicetree_reg_addr_size_pair {
-    uint64_t address;
-    uint64_t size;
 };
 
 struct devicetree_prop_reg_info {
@@ -196,9 +192,12 @@ struct devicetree_prop_current_speed {
 struct devicetree_prop_other {
     struct string_view name;
 
-    const void *data;
+    const fdt32_t *data;
     uint32_t data_length;
 };
+
+struct string_view
+devicetree_prop_other_get_sv(const struct devicetree_prop_other *prop);
 
 struct devicetree_node {
     struct string_view name;

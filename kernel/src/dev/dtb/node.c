@@ -5,6 +5,12 @@
 
 #include "node.h"
 
+__optimize(3) struct string_view
+devicetree_prop_other_get_sv(const struct devicetree_prop_other *const prop) {
+    const char *const ptr = (const char *)prop->data;
+    return sv_create_length(ptr, strnlen(ptr, prop->data_length));
+}
+
 __optimize(3) struct devicetree_prop *
 devicetree_node_get_prop(struct devicetree_node *const node,
                          const enum devicetree_prop_kind kind)
