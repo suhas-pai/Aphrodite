@@ -63,6 +63,8 @@ void devicetree_node_free(struct devicetree_node *const node) {
     array_foreach(&node->known_props, struct devicetree_prop *, iter) {
         struct devicetree_prop *const prop = *iter;
         switch (prop->kind) {
+            case DEVICETREE_PROP_COMPAT:
+                break;
             case DEVICETREE_PROP_REG: {
                 struct devicetree_prop_reg *const reg_prop =
                     (struct devicetree_prop_reg *)(uint64_t)prop;

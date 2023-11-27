@@ -11,6 +11,7 @@
 #include "lib/list.h"
 
 enum devicetree_prop_kind {
+    DEVICETREE_PROP_COMPAT,
     DEVICETREE_PROP_REG,
     DEVICETREE_PROP_RANGES,
     DEVICETREE_PROP_MODEL,
@@ -31,6 +32,11 @@ enum devicetree_prop_kind {
 
 struct devicetree_prop {
     enum devicetree_prop_kind kind;
+};
+
+struct devicetree_prop_compat {
+    enum devicetree_prop_kind kind;
+    struct string_view string;
 };
 
 struct devicetree_reg_addr_size_pair {

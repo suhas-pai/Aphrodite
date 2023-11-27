@@ -582,7 +582,23 @@ parse_node_prop(const void *const dtb,
     const struct string_view name =
         sv_create_length(prop_string, (uint64_t)name_len);
 
-    if (sv_equals(name, SV_STATIC("reg"))) {
+    if (sv_equals(name, SV_STATIC("compatible"))) {
+        struct devicetree_prop_compat *const compat_prop =
+            kmalloc(sizeof(*compat_prop));
+
+        if (compat_prop == NULL) {
+            return false;
+        }
+
+        compat_prop->kind = DEVICETREE_PROP_COMPAT;
+        compat_prop->string =
+            sv_create_length(fdt_prop->data, strlen(fdt_prop->data));
+
+        if (!array_append(&node->known_props, &compat_prop)) {
+            kfree(compat_prop);
+            return false;
+        }
+    } else if (sv_equals(name, SV_STATIC("reg"))) {
         struct array list =
             ARRAY_INIT(sizeof(struct devicetree_prop_reg_info));
 
