@@ -637,7 +637,7 @@ set_section_for_pages(const struct page_section *const memmap,
     struct freepages_info *iter = NULL;
     list_foreach(iter, &g_freepage_list, list) {
         uint64_t iter_phys = virt_to_phys(iter);
-        const uint64_t back_phys =
+        uint64_t back_phys =
             iter_phys + (iter->avail_page_count << PAGE_SHIFT) - PAGE_SIZE;
 
         if (!range_has_loc(memmap->range, iter_phys)) {
@@ -651,12 +651,12 @@ set_section_for_pages(const struct page_section *const memmap,
             iter_phys = memmap->range.front;
         }
 
-        const uint64_t end_phys =
-            min(range_get_end_assert(memmap->range), back_phys + PAGE_SIZE);
+        back_phys =
+            min(range_get_end_assert(memmap->range) - PAGE_SIZE, back_phys);
 
         // Mark all usable pages that exist from in iter.
         struct page *page = phys_to_page(iter_phys);
-        const struct page *const end = phys_to_page(end_phys - PAGE_SIZE) + 1;
+        const struct page *const end = phys_to_page(back_phys) + 1;
 
         for (; page != end; page++) {
             page->section = section;
