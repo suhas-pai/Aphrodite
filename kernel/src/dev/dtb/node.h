@@ -28,6 +28,9 @@ enum devicetree_prop_kind {
     DEVICETREE_PROP_INTERRUPT_MAP_MASK,
     DEVICETREE_PROP_SPECIFIER_MAP,
     DEVICETREE_PROP_SPECIFIER_CELLS,
+
+    DEVICETREE_PROP_SERIAL_CLOCK_FREQ,
+    DEVICETREE_PROP_SERIAL_CURRENT_SPEED
 };
 
 struct devicetree_prop {
@@ -157,7 +160,7 @@ struct devicetree_prop_interrupt_map {
 
 struct devicetree_prop_interrupt_map_mask {
     enum devicetree_prop_kind kind;
-    uint32_t mask;
+    struct array list;
 };
 
 struct devicetree_prop_specifier_map_entry {
@@ -178,6 +181,16 @@ struct devicetree_prop_specifier_cells {
 
     struct string_view name;
     uint32_t cells;
+};
+
+struct devicetree_prop_clock_frequency {
+    enum devicetree_prop_kind kind;
+    uint32_t frequency;
+};
+
+struct devicetree_prop_current_speed {
+    enum devicetree_prop_kind kind;
+    uint32_t speed;
 };
 
 struct devicetree_prop_other {

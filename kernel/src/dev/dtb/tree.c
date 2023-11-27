@@ -103,8 +103,14 @@ void devicetree_node_free(struct devicetree_node *const node) {
             }
             case DEVICETREE_PROP_INTERRUPT_PARENT:
             case DEVICETREE_PROP_INTERRUPT_CELLS:
-            case DEVICETREE_PROP_INTERRUPT_MAP_MASK:
                 break;
+            case DEVICETREE_PROP_INTERRUPT_MAP_MASK: {
+                struct devicetree_prop_specifier_map *const map_prop =
+                    (struct devicetree_prop_specifier_map *)(uint64_t)prop;
+
+                array_destroy(&map_prop->list);
+                break;
+            }
             case DEVICETREE_PROP_SPECIFIER_MAP: {
                 struct devicetree_prop_specifier_map *const map_prop =
                     (struct devicetree_prop_specifier_map *)(uint64_t)prop;
@@ -113,6 +119,8 @@ void devicetree_node_free(struct devicetree_node *const node) {
                 break;
             }
             case DEVICETREE_PROP_SPECIFIER_CELLS:
+            case DEVICETREE_PROP_SERIAL_CLOCK_FREQ:
+            case DEVICETREE_PROP_SERIAL_CURRENT_SPEED:
                 break;
         }
     }
