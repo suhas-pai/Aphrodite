@@ -4,12 +4,10 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
+#include "node.h"
 
 struct dtb_driver {
-    bool (*init)(const void *dtb, int nodeoff);
+    bool (*init)(struct devicetree_node *node);
 
     const char *const *compat_list;
     const uint32_t compat_count;
