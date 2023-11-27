@@ -1136,9 +1136,10 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                                       tree,
                                       &list))
         {
+            array_destroy(&list);
             array_destroy(&int_map_list);
-            devicetree_node_free(tree->root);
 
+            devicetree_node_free(tree->root);
             return false;
         }
 
