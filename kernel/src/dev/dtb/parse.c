@@ -1208,7 +1208,7 @@ parse_node_prop(const void *const dtb,
     }
 
     other_prop->name = name;
-    other_prop->data = &fdt_prop->data;
+    other_prop->data = (const fdt32_t *)(uint64_t)fdt_prop->data;
     other_prop->data_length = (uint32_t)prop_len;
 
     if (!array_append(&node->other_props, &other_prop)) {
