@@ -817,11 +817,12 @@ __optimize(3) static inline void setup_zone_section_list() {
     for (__auto_type section = begin; section != end; section++, number++) {
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
-               "pfn-range: " RANGE_FMT "\n",
+               "pfn-range: " RANGE_FMT ", zone: %s\n",
                number,
                RANGE_FMT_ARGS(section->range),
                RANGE_FMT_ARGS(
-                RANGE_INIT(section->pfn, section->range.size >> PAGE_SHIFT)));
+                RANGE_INIT(section->pfn, section->range.size >> PAGE_SHIFT)),
+               section->zone->name);
 
         list_add(&section->zone->section_list, &section->zone_list);
     }
