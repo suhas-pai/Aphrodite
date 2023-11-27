@@ -26,11 +26,11 @@ struct devicetree *devicetree_alloc() {
     root->name = SV_EMPTY();
     root->parent = NULL;
     root->nodeoff = 0;
-    root->known_props = ARRAY_INIT(sizeof(void *));
+    root->known_props = ARRAY_INIT(sizeof(struct devicetree_prop *));
     root->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
 
     tree->root = root;
-    tree->phandle_list = ARRAY_INIT(sizeof(void *));
+    tree->phandle_list = ARRAY_INIT(sizeof(struct devicetree_prop *));
 
     return tree;
 }

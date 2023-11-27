@@ -653,6 +653,8 @@ parse_node_prop(const void *const dtb,
 
         if (!array_append(&node->known_props, &ranges_prop)) {
             kfree(ranges_prop);
+            array_destroy(&list);
+
             return false;
         }
     } else if (sv_equals(name, SV_STATIC("model"))) {
@@ -789,6 +791,8 @@ parse_node_prop(const void *const dtb,
 
         if (!array_append(&node->known_props, &ranges_prop)) {
             kfree(ranges_prop);
+            array_destroy(&list);
+
             return false;
         }
     } else if (sv_equals(name, SV_STATIC("dma-coherent"))) {
@@ -973,7 +977,7 @@ parse_node_children(const void *const dtb,
 
         node->parent = parent;
         node->nodeoff = nodeoff;
-        node->known_props = ARRAY_INIT(sizeof(void *));
+        node->known_props = ARRAY_INIT(sizeof(struct devicetree_prop *));
         node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
         node->name =
             sv_create_length(fdt_get_name(dtb, nodeoff, &lenp), (uint64_t)lenp);
