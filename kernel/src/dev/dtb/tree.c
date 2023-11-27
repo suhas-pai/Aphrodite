@@ -4,8 +4,9 @@
  */
 
 #include "dev/dtb/node.h"
-#include "mm/kmalloc.h"
+#include "lib/adt/string_view.h"
 
+#include "mm/kmalloc.h"
 #include "tree.h"
 
 struct devicetree *devicetree_alloc() {
@@ -55,6 +56,60 @@ devicetree_get_node_for_phandle(struct devicetree *const tree,
             }
         }
     }
+
+    return NULL;
+}
+
+struct devicetree_node *
+devicetree_get_node_at_path(struct devicetree *const tree,
+                            const struct string_view path)
+{
+    if (__builtin_expect(path.length == 0 || sv_front(path) != '/', 0)) {
+        return NULL;
+    }
+
+    struct devicetree_node *node = tree->root;
+    if (path.length == 1) {
+        return node;
+    }
+
+    if (__builtin_expect(node == NULL, 0)) {
+        return NULL;
+    }
+
+    uint32_t component_begin = 0;
+    do {
+        int64_t component_length = sv_find_char(path, /*index=*/0, '/');
+        if (component_length == -1) {
+            component_length = path.length - component_begin;
+        } else if (__builtin_expect(component_length == 0, 0)) {
+            // We have '//' in the path string, immediately fail.
+            return NULL;
+        }
+
+        const struct string_view component_sv =
+            sv_substring_length(path, component_begin, component_length);
+
+        struct devicetree_node *iter = NULL;
+        bool found = false;
+
+        list_foreach(iter, &node->child_list, sibling_list) {
+            if (sv_equals(iter->name, component_sv)) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return NULL;
+        }
+
+        if (component_begin + component_length == path.length) {
+            return iter;
+        }
+
+        component_begin = component_begin + component_length + 1;
+    } while (true);
 
     return NULL;
 }
