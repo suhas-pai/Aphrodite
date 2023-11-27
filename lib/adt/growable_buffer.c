@@ -68,8 +68,12 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
     uint32_t new_size = check_add_assert(gbuffer_capacity(*gb), add);
     void *const new_alloc = malloc_size(new_size, &new_size);
 
+    if (new_alloc == NULL) {
+        return false;
+    }
+
+    memcpy(new_alloc, gb->begin, gbuffer_used_size(*gb));
     if (gb->is_alloc) {
-        memcpy(new_alloc, gb->begin, gbuffer_used_size(*gb));
         free(gb->begin);
     } else {
         gb->is_alloc = true;

@@ -34,3 +34,100 @@ struct devicetree *devicetree_alloc() {
 
     return tree;
 }
+
+__optimize(3) struct devicetree_node *
+devicetree_get_node_for_phandle(struct devicetree *const tree,
+                                const uint32_t phandle)
+{
+    array_foreach(&tree->phandle_list, struct devicetree_node *, iter) {
+        struct devicetree_node *const node = *iter;
+        array_foreach(&node->known_props, struct devicetree_prop *, prop_iter) {
+            struct devicetree_prop *const prop = *prop_iter;
+            if (prop->kind == DEVICETREE_PROP_PHANDLE) {
+                struct devicetree_prop_phandle *const phandle_prop =
+                    (struct devicetree_prop_phandle *)prop;
+
+                if (phandle_prop->phandle == phandle) {
+                    return node;
+                }
+
+                break;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+void devicetree_node_free(struct devicetree_node *const node) {
+    array_foreach(&node->known_props, struct devicetree_prop *, iter) {
+        struct devicetree_prop *const prop = *iter;
+        switch (prop->kind) {
+            case DEVICETREE_PROP_REG: {
+                struct devicetree_prop_reg *const reg_prop =
+                    (struct devicetree_prop_reg *)(uint64_t)prop;
+
+                array_destroy(&reg_prop->list);
+                break;
+            }
+            case DEVICETREE_PROP_RANGES:
+            case DEVICETREE_PROP_DMA_RANGES: {
+                struct devicetree_prop_ranges *const ranges_prop =
+                    (struct devicetree_prop_ranges *)(uint64_t)prop;
+
+                array_destroy(&ranges_prop->list);
+                break;
+            }
+            case DEVICETREE_PROP_MODEL:
+            case DEVICETREE_PROP_STATUS:
+            case DEVICETREE_PROP_ADDR_SIZE_CELLS:
+            case DEVICETREE_PROP_PHANDLE:
+            case DEVICETREE_PROP_VIRTUAL_REG:
+            case DEVICETREE_PROP_DMA_COHERENT:
+                break;
+            case DEVICETREE_PROP_INTERRUPTS: {
+                struct devicetree_prop_interrupts *const int_prop =
+                    (struct devicetree_prop_interrupts *)(uint64_t)prop;
+
+                array_destroy(&int_prop->list);
+                break;
+            }
+            case DEVICETREE_PROP_INTERRUPT_MAP: {
+                struct devicetree_prop_interrupt_map *const map_prop =
+                    (struct devicetree_prop_interrupt_map *)(uint64_t)prop;
+
+                array_destroy(&map_prop->list);
+                break;
+            }
+            case DEVICETREE_PROP_INTERRUPT_PARENT:
+            case DEVICETREE_PROP_INTERRUPT_CELLS:
+            case DEVICETREE_PROP_INTERRUPT_MAP_MASK:
+                break;
+            case DEVICETREE_PROP_SPECIFIER_MAP: {
+                struct devicetree_prop_specifier_map *const map_prop =
+                    (struct devicetree_prop_specifier_map *)(uint64_t)prop;
+
+                array_destroy(&map_prop->list);
+                break;
+            }
+            case DEVICETREE_PROP_SPECIFIER_CELLS:
+                break;
+        }
+    }
+
+    array_destroy(&node->known_props);
+    array_destroy(&node->other_props);
+
+    struct devicetree_node *iter = NULL;
+    list_foreach(iter, &node->child_list, sibling_list) {
+        devicetree_node_free(iter);
+    }
+}
+
+__optimize(3) void devicetree_free(struct devicetree *const tree) {
+    devicetree_node_free(tree->root);
+    array_destroy(&tree->phandle_list);
+
+    kfree(tree->root);
+    kfree(tree);
+}

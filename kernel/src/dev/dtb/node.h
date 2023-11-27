@@ -15,16 +15,22 @@ enum devicetree_prop_kind {
     DEVICETREE_PROP_RANGES,
     DEVICETREE_PROP_MODEL,
     DEVICETREE_PROP_STATUS,
+    DEVICETREE_PROP_ADDR_SIZE_CELLS,
     DEVICETREE_PROP_PHANDLE,
     DEVICETREE_PROP_VIRTUAL_REG,
     DEVICETREE_PROP_DMA_RANGES,
     DEVICETREE_PROP_DMA_COHERENT,
     DEVICETREE_PROP_INTERRUPTS,
+    DEVICETREE_PROP_INTERRUPT_MAP,
     DEVICETREE_PROP_INTERRUPT_PARENT,
     DEVICETREE_PROP_INTERRUPT_CELLS,
     DEVICETREE_PROP_INTERRUPT_MAP_MASK,
     DEVICETREE_PROP_SPECIFIER_MAP,
     DEVICETREE_PROP_SPECIFIER_CELLS,
+};
+
+struct devicetree_prop {
+    enum devicetree_prop_kind kind;
 };
 
 struct devicetree_reg_addr_size_pair {
@@ -39,7 +45,7 @@ struct devicetree_prop_reg_info {
 
 struct devicetree_prop_reg {
     enum devicetree_prop_kind kind;
-    struct array pair_list;
+    struct array list;
 };
 
 struct devicetree_prop_range_info {
@@ -50,7 +56,7 @@ struct devicetree_prop_range_info {
 
 struct devicetree_prop_ranges {
     enum devicetree_prop_kind kind;
-    struct array range_list;
+    struct array list;
 };
 
 struct devicetree_prop_model {
@@ -166,3 +172,9 @@ struct devicetree_node {
     struct array known_props;
     struct array other_props;
 };
+
+struct devicetree_prop *
+devicetree_node_get_prop(struct devicetree_node *node,
+                         enum devicetree_prop_kind kind);
+
+void devicetree_node_free(struct devicetree_node *const node);
