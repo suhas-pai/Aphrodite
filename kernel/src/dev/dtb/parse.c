@@ -219,28 +219,28 @@ parse_status_prop(const char *const string,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_STATUS_DISABLED:
             if (sv_equals(sv, SV_STATIC("disabled"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_DISABLED;
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_STATUS_RESERVED:
             if (sv_equals(sv, SV_STATIC("reserved"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_RESERVED;
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_STATUS_FAIL:
             if (sv_equals(sv, SV_STATIC("fail"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_FAIL;
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_STATUS_FAIL_SSS:
             if (sv_equals(sv, SV_STATIC("fail-sss"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_FAIL_SSS;
@@ -676,7 +676,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */;
+            [[fallthrough]];
         case DEVICETREE_PROP_REG:
             if (sv_equals(name, SV_STATIC("reg"))) {
                 struct array list =
@@ -713,7 +713,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_RANGES:
             if (sv_equals(name, SV_STATIC("ranges"))) {
                 struct array list = ARRAY_INIT(sizeof(struct range));
@@ -749,7 +749,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_MODEL:
             if (sv_equals(name, SV_STATIC("model"))) {
                 struct string_view manufacturer_sv = SV_EMPTY();
@@ -781,7 +781,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_STATUS:
             if (sv_equals(name, SV_STATIC("status"))) {
                 enum devicetree_prop_status_kind status =
@@ -809,7 +809,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_ADDR_SIZE_CELLS:
             if (sv_equals(name, SV_STATIC("#address-cells"))) {
                 uint32_t addr_cells = 0;
@@ -833,7 +833,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_PHANDLE:
             if (sv_equals(name, SV_STATIC("phandle")) ||
                 sv_equals(name, SV_STATIC("linux,phandle")))
@@ -866,7 +866,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_VIRTUAL_REG:
             if (sv_equals(name, SV_STATIC("virtual-reg"))) {
                 uint32_t address = 0;
@@ -892,7 +892,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_DMA_RANGES:
             if (sv_equals(name, SV_STATIC("dma-ranges"))) {
                 struct array list = ARRAY_INIT(sizeof(struct range));
@@ -928,7 +928,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_DMA_COHERENT:
             if (sv_equals(name, SV_STATIC("dma-coherent"))) {
                 struct devicetree_prop_no_value *const prop =
@@ -947,7 +947,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPTS:
             if (sv_equals(name, SV_STATIC("interrupts"))) {
                 struct array list = ARRAY_INIT(sizeof(uint32_t));
@@ -977,7 +977,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPT_MAP:
             if (sv_equals(name, SV_STATIC("interrupt-map"))) {
                 const struct int_map_info info = {
@@ -993,7 +993,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPT_PARENT:
             if (sv_equals(name, SV_STATIC("interrupt-parent"))) {
                 uint32_t phandle = 0;
@@ -1019,7 +1019,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */;
+            [[fallthrough]];;
         case DEVICETREE_PROP_INTERRUPT_CELLS:
             if (sv_equals(name, SV_STATIC("#interrupt-cells"))) {
                 uint32_t count = 0;
@@ -1045,7 +1045,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPT_MAP_MASK:
             if (sv_equals(name, SV_STATIC("interrupt-map-mask"))) {
                 struct array list = ARRAY_INIT(sizeof(uint32_t));
@@ -1075,7 +1075,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_SPECIFIER_MAP:
             if (sv_has_suffix(name, SV_STATIC("-map"))) {
                 struct array list =
@@ -1118,7 +1118,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_SPECIFIER_CELLS:
             if (sv_has_suffix(name, SV_STATIC("-cells"))) {
                 uint32_t cells = 0;
@@ -1145,7 +1145,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_SERIAL_CLOCK_FREQ:
             if (sv_equals(name, SV_STATIC("clock-frequency"))) {
                 uint32_t frequency = 0;
@@ -1171,7 +1171,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            /* fallthrough */
+            [[fallthrough]];
         case DEVICETREE_PROP_SERIAL_CURRENT_SPEED:
             if (sv_equals(name, SV_STATIC("current-speed"))) {
                 uint32_t speed = 0;
