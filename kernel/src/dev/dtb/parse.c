@@ -571,7 +571,7 @@ parse_specifier_map_prop(const void *const dtb,
 
     const uint32_t shift = sizeof_bits(uint64_t) / entry_size;
     for (uint32_t i = 0; i != entry_count; i++) {
-        struct devicetree_prop_specifier_map_entry info;
+        struct devicetree_prop_spec_map_entry info;
         if (shift != sizeof_bits(uint64_t)) {
             for (int j = 0; j != cells; j++) {
                 info.child_specifier =
@@ -1063,15 +1063,14 @@ parse_node_prop(const void *const dtb,
         case DEVICETREE_PROP_SPECIFIER_MAP:
             if (sv_has_suffix(name, SV_STATIC("-map"))) {
                 struct array list =
-                    ARRAY_INIT(
-                        sizeof(struct devicetree_prop_specifier_map_entry));
+                    ARRAY_INIT(sizeof(struct devicetree_prop_spec_map_entry));
 
                 if (!parse_specifier_map_prop(dtb,
-                                            node,
-                                            fdt_prop,
-                                            prop_len,
-                                            parent_nodeoff,
-                                            &list))
+                                              node,
+                                              fdt_prop,
+                                              prop_len,
+                                              parent_nodeoff,
+                                              &list))
                 {
                     array_destroy(&list);
                     return false;

@@ -163,7 +163,7 @@ struct devicetree_prop_interrupt_map_mask {
     struct array list;
 };
 
-struct devicetree_prop_specifier_map_entry {
+struct devicetree_prop_spec_map_entry {
     uint64_t child_specifier;
     uint32_t specifier_parent;
     uint64_t parent_specifier;
