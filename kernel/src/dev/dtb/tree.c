@@ -105,8 +105,8 @@ void devicetree_node_free(struct devicetree_node *const node) {
             case DEVICETREE_PROP_INTERRUPT_CELLS:
                 break;
             case DEVICETREE_PROP_INTERRUPT_MAP_MASK: {
-                struct devicetree_prop_specifier_map *const map_prop =
-                    (struct devicetree_prop_specifier_map *)(uint64_t)prop;
+                struct devicetree_prop_interrupt_map_mask *const map_prop =
+                    (struct devicetree_prop_interrupt_map_mask *)(uint64_t)prop;
 
                 array_destroy(&map_prop->list);
                 break;
