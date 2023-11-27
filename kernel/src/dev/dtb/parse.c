@@ -302,6 +302,48 @@ fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
     return (int)val;
 }
 
+__optimize(3) static bool
+parse_int_info(const fdt32_t *const reg,
+               struct devicetree_prop_int_map_entry_int_info *const int_info)
+{
+    int_info->is_ppi = fdt32_to_cpu(*reg);
+    int_info->flags = fdt32_to_cpu(reg[2]);
+    int_info->id = fdt32_to_cpu(reg[1]) + (int_info->is_ppi ? 16 : 32);
+
+    switch (int_info->flags & 0xF) {
+        case 1:
+            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH;
+            int_info->trigger_mode =
+                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE;
+
+            return true;
+        case 2:
+            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW;
+            int_info->trigger_mode =
+                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE;
+
+            return true;
+        case 4:
+            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH;
+            int_info->trigger_mode =
+                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL;
+
+            return true;
+        case 8:
+            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW;
+            int_info->trigger_mode =
+                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL;
+
+            return true;
+    }
+
+    printk(LOGLEVEL_WARN,
+           "devicetree: unrecognized polarity/trigger-mode information of "
+           "interrupt\n");
+
+    return false;
+}
+
 static bool
 parse_interrupt_map_prop(const void *const dtb,
                          const struct fdt_property *const fdt_prop,
@@ -334,7 +376,7 @@ parse_interrupt_map_prop(const void *const dtb,
     const uint32_t child_int_shift =
         sizeof_bits(uint64_t) / (uint32_t)child_int_cells;
 
-    while (reg != reg_end) {
+    while (reg < reg_end) {
         struct devicetree_prop_interrupt_map_entry info;
         if (child_unit_addr_shift != sizeof_bits(uint64_t)) {
             if (reg + child_unit_addr_cells >= reg_end) {
@@ -386,8 +428,8 @@ parse_interrupt_map_prop(const void *const dtb,
 
         if (phandle_node == NULL) {
             printk(LOGLEVEL_WARN,
-                   "devicetree: interrupt-map refers to a phandle 0x%" PRIx32
-                   " w/o a corresponding node\n",
+                   "devicetree: interrupt-map refers to a phandle "
+                   "0x%" PRIx32 " w/o a corresponding node\n",
                    info.phandle);
             return false;
         }
@@ -432,36 +474,49 @@ parse_interrupt_map_prop(const void *const dtb,
         if (int_cells_prop == NULL) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map's phandle %" PRIu32 "'s "
-                   "corresponding node is missing the #interrupt-cells"
+                   "corresponding node is missing the #interrupt-cells "
+                   "property\n",
+                   info.phandle);
+            return false;
+        }
+
+        const bool is_parent_int_controller =
+            devicetree_node_get_other_prop(phandle_node,
+                                           SV_STATIC("interrupt-controller"))
+            != NULL;
+
+        if (!is_parent_int_controller) {
+            printk(LOGLEVEL_WARN,
+                   "devicetree: interrupt-map's phandle %" PRIu32 "'s "
+                   "corresponding node is missing the interrupt-controller "
                    "property\n",
                    info.phandle);
             return false;
         }
 
         const uint32_t parent_int_cells = int_cells_prop->count;
-        const uint32_t parent_int_shift =
-            sizeof_bits(uint64_t) / parent_int_cells;
+        if (parent_int_cells != 3) {
+            printk(LOGLEVEL_WARN,
+                   "devicetree: interrupt-map's phandle %" PRIu32 "'s "
+                   "corresponding node #interrupt-cells property doesn't have "
+                   "a value of 3\n",
+                   info.phandle);
+            return false;
+        }
 
-        if (parent_int_shift != sizeof_bits(uint64_t)) {
-            if (reg + parent_int_cells > reg_end) {
-                return false;
-            }
+        if (reg + parent_int_cells > reg_end) {
+            return false;
+        }
 
-            for (uint32_t j = 0; j != parent_int_cells; j++) {
-                info.parent_int_specifier =
-                    info.parent_int_specifier << parent_int_shift |
-                    fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.parent_int_specifier = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_int_info(reg, &info.parent_int_info)) {
+            return false;
         }
 
         if (!array_append(array, &info)) {
             return false;
         }
+
+        reg += parent_int_cells;
     }
 
     return true;

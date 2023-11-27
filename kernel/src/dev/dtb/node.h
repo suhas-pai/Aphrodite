@@ -121,12 +121,33 @@ struct devicetree_prop_interrupt_cells {
     uint32_t count;
 };
 
+enum devicetree_prop_int_polarity {
+    DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW,
+    DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH,
+};
+
+enum devicetree_prop_int_trigger_mode {
+    DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE,
+    DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL,
+};
+
+struct devicetree_prop_int_map_entry_int_info {
+    uint32_t id;
+    uint32_t flags;
+
+    bool is_ppi : 1;
+
+    enum devicetree_prop_int_polarity polarity : 1;
+    enum devicetree_prop_int_trigger_mode trigger_mode : 1;
+};
+
 struct devicetree_prop_interrupt_map_entry {
     uint64_t child_unit_address;
     uint32_t child_int_specifier;
     uint32_t phandle;
     uint64_t parent_unit_address;
-    uint32_t parent_int_specifier;
+
+    struct devicetree_prop_int_map_entry_int_info parent_int_info;
 };
 
 struct devicetree_prop_interrupt_map {
@@ -182,5 +203,9 @@ struct devicetree_node {
 struct devicetree_prop *
 devicetree_node_get_prop(struct devicetree_node *node,
                          enum devicetree_prop_kind kind);
+
+struct devicetree_prop_other *
+devicetree_node_get_other_prop(struct devicetree_node *node,
+                               struct string_view sv);
 
 void devicetree_node_free(struct devicetree_node *const node);

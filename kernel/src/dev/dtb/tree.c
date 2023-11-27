@@ -42,10 +42,10 @@ devicetree_get_node_for_phandle(struct devicetree *const tree,
     array_foreach(&tree->phandle_list, struct devicetree_node *, iter) {
         struct devicetree_node *const node = *iter;
         array_foreach(&node->known_props, struct devicetree_prop *, prop_iter) {
-            struct devicetree_prop *const prop = *prop_iter;
+            const struct devicetree_prop *const prop = *prop_iter;
             if (prop->kind == DEVICETREE_PROP_PHANDLE) {
-                struct devicetree_prop_phandle *const phandle_prop =
-                    (struct devicetree_prop_phandle *)prop;
+                const struct devicetree_prop_phandle *const phandle_prop =
+                    (const struct devicetree_prop_phandle *)prop;
 
                 if (phandle_prop->phandle == phandle) {
                     return node;
