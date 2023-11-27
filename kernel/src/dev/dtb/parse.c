@@ -337,6 +337,10 @@ parse_interrupt_map_prop(const void *const dtb,
     while (reg != reg_end) {
         struct devicetree_prop_interrupt_map_entry info;
         if (child_unit_addr_shift != sizeof_bits(uint64_t)) {
+            if (reg + child_unit_addr_cells >= reg_end) {
+                return false;
+            }
+
             for (int j = 0; j != child_unit_addr_cells; j++) {
                 info.child_unit_address =
                     info.child_unit_address << child_unit_addr_shift |
@@ -347,9 +351,17 @@ parse_interrupt_map_prop(const void *const dtb,
         } else {
             info.child_unit_address = fdt32_to_cpu(*reg);
             reg++;
+
+            if (reg == reg_end) {
+                return false;
+            }
         }
 
         if (child_int_shift != sizeof_bits(uint64_t)) {
+            if (reg + child_int_cells >= reg_end) {
+                return false;
+            }
+
             for (int j = 0; j != child_int_cells; j++) {
                 info.child_int_specifier =
                     info.child_int_specifier << child_int_shift |
@@ -360,6 +372,10 @@ parse_interrupt_map_prop(const void *const dtb,
         } else {
             info.child_int_specifier = fdt32_to_cpu(*reg);
             reg++;
+
+            if (reg == reg_end) {
+                return false;
+            }
         }
 
         info.phandle = fdt32_to_cpu(*reg);
@@ -388,6 +404,10 @@ parse_interrupt_map_prop(const void *const dtb,
             parent_unit_cells != 0 ? sizeof(uint64_t) / parent_unit_cells : 0;
 
         if (parent_unit_addr_shift != sizeof_bits(uint64_t)) {
+            if (reg + parent_unit_cells >= reg_end) {
+                return false;
+            }
+
             for (uint32_t j = 0; j != parent_unit_cells; j++) {
                 info.parent_unit_address =
                     info.parent_unit_address << parent_unit_addr_shift |
@@ -398,6 +418,10 @@ parse_interrupt_map_prop(const void *const dtb,
         } else {
             info.parent_unit_address = fdt32_to_cpu(*reg);
             reg++;
+
+            if (reg == reg_end) {
+                return false;
+            }
         }
 
         struct devicetree_prop_interrupt_cells *const int_cells_prop =
@@ -419,6 +443,10 @@ parse_interrupt_map_prop(const void *const dtb,
             sizeof_bits(uint64_t) / parent_int_cells;
 
         if (parent_int_shift != sizeof_bits(uint64_t)) {
+            if (reg + parent_int_cells > reg_end) {
+                return false;
+            }
+
             for (uint32_t j = 0; j != parent_int_cells; j++) {
                 info.parent_int_specifier =
                     info.parent_int_specifier << parent_int_shift |
