@@ -31,6 +31,7 @@ static struct devicetree g_device_tree = {
 
 static void
 find_nodes_for_driver(const struct dtb_driver *const driver,
+                      struct devicetree *const tree,
                       struct devicetree_node *const node)
 {
     struct devicetree_prop_compat *const compat_prop =
@@ -43,10 +44,10 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
 
     for (uint32_t i = 0; i != driver->compat_count; i++) {
         if (fdt_stringlist_contains(compat_prop->string.begin,
-                                    compat_prop->string.length,
+                                    (int)compat_prop->string.length,
                                     driver->compat_list[i]))
         {
-            driver->init(node);
+            driver->init(tree, node);
             break;
         }
     }
@@ -54,7 +55,7 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
 next:
     struct devicetree_node *iter = NULL;
     list_foreach(iter, &node->child_list, sibling_list) {
-        find_nodes_for_driver(driver, node);
+        find_nodes_for_driver(driver, tree, iter);
     }
 }
 
@@ -65,7 +66,7 @@ static void dtb_initialize_drivers() {
             continue;
         }
 
-        find_nodes_for_driver(dtb, &g_device_tree_root);
+        find_nodes_for_driver(dtb, &g_device_tree, &g_device_tree_root);
     }
 }
 
