@@ -3,7 +3,17 @@
  * © suhas pai
  */
 
+#include "lib/util.h"
 #include "string_view.h"
+
+__optimize(3) struct string_view
+sv_substring_length(const struct string_view sv,
+                    const uint32_t index,
+                    const uint32_t length)
+{
+    assert(sv_has_index_range(sv, RANGE_INIT(index, length)));
+    return sv_create_length(sv.begin + index, length);
+}
 
 __optimize(3) struct string_view sv_drop_front(const struct string_view sv) {
     if (sv.length != 0) {
@@ -48,6 +58,41 @@ int sv_compare(const struct string_view sv, const struct string_view sv2) {
     }
 
     return strncmp(sv.begin, sv2.begin, sv.length);
+}
+
+__optimize(3)
+bool sv_has_index(const struct string_view sv, const uint32_t index) {
+    return index_in_bounds(index, sv.length);
+}
+
+__optimize(3)
+bool sv_has_index_range(const struct string_view sv, const struct range range) {
+    return index_range_in_bounds(range, sv.length);
+}
+
+__optimize(3) char sv_front(const struct string_view sv) {
+    assert(sv.length != 0);
+    return sv.begin[0];
+}
+
+__optimize(3) char sv_back(const struct string_view sv) {
+    assert(sv.length != 0);
+    return sv.begin[sv.length - 1];
+}
+
+__optimize(3)  int64_t
+sv_find_char(const struct string_view sv, const uint32_t index, const char ch) {
+    assert(sv_has_index(sv, index));
+    if (sv.length == 0) {
+        return -1;
+    }
+
+    char *const ptr = strchr(sv.begin + index, ch);
+    if (ptr == NULL) {
+        return -1;
+    }
+
+    return (uint32_t)distance(sv.begin, ptr);
 }
 
 __optimize(3)

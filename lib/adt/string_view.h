@@ -11,9 +11,11 @@
 #include "lib/overflow.h"
 #include "lib/string.h"
 
+#include "range.h"
+
 struct string_view {
     const char *begin;
-    uint64_t length;
+    uint32_t length;
 };
 
 #define SV_EMPTY() \
@@ -55,7 +57,13 @@ sv_create_length(const char *const c_str, const uint64_t length) {
     return sv_create_nocheck(c_str, length);
 }
 
+__optimize(3) struct string_view
+sv_substring_length(struct string_view sv, uint32_t index, uint32_t length);
+
 struct string_view sv_drop_front(struct string_view sv);
+
+bool sv_has_index(struct string_view sv, uint32_t index);
+bool sv_has_index_range(struct string_view sv, struct range range);
 
 char *sv_get_begin_mut(struct string_view sv);
 const char *sv_get_end(struct string_view sv);
@@ -68,6 +76,10 @@ bool sv_equals_c_str(const struct string_view sv, const char *const c_str) {
     return sv_compare_c_str(sv, c_str) == 0;
 }
 
+char sv_front(struct string_view sv);
+char sv_back(struct string_view sv);
+
+int64_t sv_find_char(struct string_view sv, uint32_t index, char ch);
 bool sv_equals(struct string_view sv, struct string_view sv2);
 
 bool sv_has_prefix(struct string_view sv, struct string_view prefix);
