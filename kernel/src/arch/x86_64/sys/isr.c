@@ -33,12 +33,20 @@ __optimize(3) isr_vector_t isr_get_spur_vector() {
     return g_spur_vector;
 }
 
+extern void handle_exception(const uint64_t vector, irq_context_t *const frame);
+
 __optimize(3)
 void isr_handle_interrupt(const uint64_t vector, irq_context_t *const frame) {
     if (g_funcs[vector] != NULL) {
         g_funcs[vector](vector, frame);
     } else {
-        printk(LOGLEVEL_INFO, "Got unhandled interrupt %" PRIu64 "\n", vector);
+        if (vector == 14) {
+            handle_exception(vector, frame);
+        } else {
+            printk(LOGLEVEL_INFO,
+                   "Got unhandled interrupt %" PRIu64 "\n",
+                   vector);
+        }
     }
 }
 
