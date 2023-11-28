@@ -789,8 +789,9 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
 }
 
 __optimize(3) static inline void split_sections_for_zones() {
+    struct page_section *const section_list = mm_get_page_section_list();
     for (uint8_t i = 0; i != mm_get_section_count(); i++) {
-        struct page_section *const section = mm_get_page_section_list() + i;
+        struct page_section *const section = section_list + i;
 
         struct page_zone *const begin_zone = phys_to_zone(section->range.front);
         struct page_zone *const back_zone =
