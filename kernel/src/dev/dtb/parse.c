@@ -315,6 +315,23 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
+__optimize(3) static inline bool
+parse_range_prop(const struct fdt_property *const fdt_prop,
+                 const int prop_length,
+                 struct range *const range_out)
+{
+    if (prop_length != (sizeof(fdt32_t) * 2)) {
+        return false;
+    }
+
+    fdt32_t *const data = (fdt32_t *)(uint64_t)fdt_prop->data;
+
+    range_out->front = fdt32_to_cpu(data[0]);
+    range_out->size = fdt32_to_cpu(data[1]);
+
+    return true;
+}
+
 __optimize(3) static inline int
 fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
     const fdt32_t *c;
@@ -1188,6 +1205,32 @@ parse_node_prop(const void *const dtb,
 
                 prop->kind = DEVICETREE_PROP_SERIAL_CURRENT_SPEED;
                 prop->speed = speed;
+
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
+                    return false;
+                }
+
+                return true;
+            }
+
+            [[fallthrough]];
+        case DEVICETREE_PROP_PCI_BUS_RANGE:
+            if (sv_equals(name, SV_STATIC("bus-range"))) {
+                struct range bus_range = RANGE_EMPTY();
+                if (!parse_range_prop(fdt_prop, prop_len, &bus_range)) {
+                    return false;
+                }
+
+                struct devicetree_prop_bus_range *const prop =
+                    kmalloc(sizeof(*prop));
+
+                if (prop == NULL) {
+                    return false;
+                }
+
+                prop->kind = DEVICETREE_PROP_PCI_BUS_RANGE;
+                prop->range = bus_range;
 
                 if (!array_append(&node->known_props, &prop)) {
                     kfree(prop);

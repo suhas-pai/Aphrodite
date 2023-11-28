@@ -177,6 +177,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
             case DEVICETREE_PROP_SPECIFIER_CELLS:
             case DEVICETREE_PROP_SERIAL_CLOCK_FREQ:
             case DEVICETREE_PROP_SERIAL_CURRENT_SPEED:
+            case DEVICETREE_PROP_PCI_BUS_RANGE:
                 break;
         }
     }

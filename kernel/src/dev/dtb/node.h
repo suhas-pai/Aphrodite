@@ -32,7 +32,9 @@ enum devicetree_prop_kind {
     DEVICETREE_PROP_SPECIFIER_CELLS,
 
     DEVICETREE_PROP_SERIAL_CLOCK_FREQ,
-    DEVICETREE_PROP_SERIAL_CURRENT_SPEED
+    DEVICETREE_PROP_SERIAL_CURRENT_SPEED,
+
+    DEVICETREE_PROP_PCI_BUS_RANGE,
 };
 
 struct devicetree_prop {
@@ -193,6 +195,11 @@ struct devicetree_prop_clock_frequency {
 struct devicetree_prop_current_speed {
     enum devicetree_prop_kind kind;
     uint32_t speed;
+};
+
+struct devicetree_prop_bus_range {
+    enum devicetree_prop_kind kind;
+    struct range range;
 };
 
 struct devicetree_prop_other {
