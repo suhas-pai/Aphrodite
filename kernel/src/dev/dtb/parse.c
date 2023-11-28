@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/dtb/node.h"
 #include "lib/adt/string.h"
 
 #include "dev/printk.h"
@@ -676,19 +675,17 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_reg *const reg_prop =
-                    kmalloc(sizeof(*reg_prop));
-
-                if (reg_prop == NULL) {
+                struct devicetree_prop_reg *const prop = kmalloc(sizeof(*prop));
+                if (prop == NULL) {
                     array_destroy(&list);
                     return false;
                 }
 
-                reg_prop->kind = DEVICETREE_PROP_REG;
-                reg_prop->list = list;
+                prop->kind = DEVICETREE_PROP_REG;
+                prop->list = list;
 
-                if (!array_append(&node->known_props, &reg_prop)) {
-                    kfree(reg_prop);
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
                     array_destroy(&list);
 
                     return false;
@@ -714,19 +711,19 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_ranges *const ranges_prop =
-                    kmalloc(sizeof(*ranges_prop));
+                struct devicetree_prop_ranges *const prop =
+                    kmalloc(sizeof(*prop));
 
-                if (ranges_prop == NULL) {
+                if (prop == NULL) {
                     array_destroy(&list);
                     return false;
                 }
 
-                ranges_prop->kind = DEVICETREE_PROP_RANGES;
-                ranges_prop->list = list;
+                prop->kind = DEVICETREE_PROP_RANGES;
+                prop->list = list;
 
-                if (!array_append(&node->known_props, &ranges_prop)) {
-                    kfree(ranges_prop);
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
                     array_destroy(&list);
 
                     return false;
@@ -745,19 +742,19 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_model *const model_prop =
-                    kmalloc(sizeof(*model_prop));
+                struct devicetree_prop_model *const prop =
+                    kmalloc(sizeof(*prop));
 
-                if (model_prop == NULL) {
+                if (prop == NULL) {
                     return false;
                 }
 
-                model_prop->kind = DEVICETREE_PROP_MODEL;
-                model_prop->manufacturer = manufacturer_sv;
-                model_prop->model = model_sv;
+                prop->kind = DEVICETREE_PROP_MODEL;
+                prop->manufacturer = manufacturer_sv;
+                prop->model = model_sv;
 
-                if (!array_append(&node->known_props, &model_prop)) {
-                    kfree(model_prop);
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
                     return false;
                 }
 
@@ -826,23 +823,23 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_phandle *const phandle_prop =
-                    kmalloc(sizeof(*phandle_prop));
+                struct devicetree_prop_phandle *const prop =
+                    kmalloc(sizeof(*prop));
 
-                if (phandle_prop == NULL) {
+                if (prop == NULL) {
                     return false;
                 }
 
-                phandle_prop->kind = DEVICETREE_PROP_PHANDLE;
-                phandle_prop->phandle = phandle;
+                prop->kind = DEVICETREE_PROP_PHANDLE;
+                prop->phandle = phandle;
 
-                if (!array_append(&node->known_props, &phandle_prop)) {
-                    kfree(phandle_prop);
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
                     return false;
                 }
 
                 if (!array_append(&tree->phandle_list, &node)) {
-                    kfree(phandle_prop);
+                    kfree(prop);
                     return false;
                 }
 
@@ -857,18 +854,18 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_virtual_reg *const virt_reg_prop =
-                    kmalloc(sizeof(*virt_reg_prop));
+                struct devicetree_prop_virtual_reg *const prop =
+                    kmalloc(sizeof(*prop));
 
-                if (virt_reg_prop == NULL) {
+                if (prop == NULL) {
                     return false;
                 }
 
-                virt_reg_prop->kind = DEVICETREE_PROP_VIRTUAL_REG;
-                virt_reg_prop->address = address;
+                prop->kind = DEVICETREE_PROP_VIRTUAL_REG;
+                prop->address = address;
 
-                if (!array_append(&node->known_props, &virt_reg_prop)) {
-                    kfree(virt_reg_prop);
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
                     return false;
                 }
 
@@ -878,7 +875,9 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_DMA_RANGES:
             if (sv_equals(name, SV_STATIC("dma-ranges"))) {
-                struct array list = ARRAY_INIT(sizeof(struct range));
+                struct array list =
+                    ARRAY_INIT(sizeof(struct devicetree_prop_range_info));
+
                 if (!parse_ranges_prop(dtb,
                                        fdt_prop,
                                        prop_len,
@@ -890,19 +889,19 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_ranges *const ranges_prop =
-                    kmalloc(sizeof(*ranges_prop));
+                struct devicetree_prop_ranges *const prop =
+                    kmalloc(sizeof(*prop));
 
-                if (ranges_prop == NULL) {
+                if (prop == NULL) {
                     array_destroy(&list);
                     return false;
                 }
 
-                ranges_prop->kind = DEVICETREE_PROP_DMA_RANGES;
-                ranges_prop->list = list;
+                prop->kind = DEVICETREE_PROP_DMA_RANGES;
+                prop->list = list;
 
-                if (!array_append(&node->known_props, &ranges_prop)) {
-                    kfree(ranges_prop);
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
                     array_destroy(&list);
 
                     return false;
@@ -933,30 +932,18 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_DEVICE_TYPE:
             if (sv_equals(name, SV_STATIC("device_type"))) {
-                struct array list = ARRAY_INIT(sizeof(uint32_t));
-                if (!parse_integer_list_prop(fdt_prop, prop_len, &list)) {
-                    array_destroy(&list);
-                    return false;
-                }
-
                 struct devicetree_prop_device_type *const prop =
                     kmalloc(sizeof(*prop));
 
                 if (prop == NULL) {
-                    array_destroy(&list);
                     return false;
                 }
 
-                const struct string_view device_type_sv =
-                    get_prop_data_sv(fdt_prop);
-
                 prop->kind = DEVICETREE_PROP_DEVICE_TYPE;
-                prop->name = device_type_sv;
+                prop->name = get_prop_data_sv(fdt_prop);;
 
                 if (!array_append(&node->known_props, &prop)) {
                     kfree(prop);
-                    array_destroy(&list);
-
                     return false;
                 }
 
