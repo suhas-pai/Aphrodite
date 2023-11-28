@@ -814,6 +814,8 @@ find_nearby_free_pages(struct page *const page,
 }
 
 __optimize(3) void free_amount_of_pages(struct page *page, uint64_t amount) {
+    assert(amount != 0);
+
     find_nearby_free_pages(page, amount, &page, &amount);
     free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
 }
