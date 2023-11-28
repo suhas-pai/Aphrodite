@@ -100,7 +100,10 @@ void acpi_init(void) {
         g_info.rsdt = phys_to_virt(g_info.rsdp->rsdt_addr);
     }
 
-    printk(LOGLEVEL_INFO, "acpi: revision: %" PRIu8 "\n", g_info.rsdp->revision);
+    printk(LOGLEVEL_INFO,
+           "acpi: revision: %" PRIu8 "\n",
+           g_info.rsdp->revision);
+
     printk(LOGLEVEL_INFO, "acpi: uses xsdt? %s\n", has_xsdt() ? "yes" : "no");
     printk(LOGLEVEL_INFO, "acpi: rsdt at %p\n", g_info.rsdt);
 
