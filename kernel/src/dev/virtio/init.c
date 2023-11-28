@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/virtio/driver.h"
 
 #include "dev/driver.h"
 #include "dev/printk.h"
@@ -17,6 +16,7 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
+#include "driver.h"
 #include "transport.h"
 
 static struct list g_device_list = LIST_INIT(g_device_list);
