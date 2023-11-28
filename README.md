@@ -47,7 +47,9 @@ And more
 
 It is recommended to build this project using a standard Linux distro, using a Clang/LLVM toolchain capable of cross compilation.
 
-This project can be built using the host GCC toolchain on most Linux distros on x86_64 when targetting x86_64 (`ARCH=x86_64`), but it is recommended to set up an `*-elf` [cross compiler](https://wiki.osdev.org/GCC_Cross-Compiler) for the chosen target, or use a native cross toolchain such as Clang/LLVM.
+This project can be built using Clang/LLVM for all architectures.
+
+This project can also be built using the host GCC toolchain on x86_64 when targetting x86_64 (`ARCH=x86_64`), but it is recommended to set up an `*-elf` [cross compiler](https://wiki.osdev.org/GCC_Cross-Compiler) for the chosen target, or use a native cross toolchain such as Clang/LLVM.
 
 The system currently supports the `x86_64`, `aarch64` (`arm64`), and `riscv64` architectures.
 `x86_64` is the most feature complete, while `aarch64` and `riscv64` are catching up
