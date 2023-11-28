@@ -34,27 +34,25 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
                       const struct devicetree *const tree,
                       struct devicetree_node *const node)
 {
-    struct devicetree_prop_compat *const compat_prop =
-        (struct devicetree_prop_compat *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
-
-    if (compat_prop == NULL) {
-        goto next;
-    }
-
     if (driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
-        bool found = false;
-        for (uint32_t i = 0; i != driver->compat_count; i++) {
-            if (fdt_stringlist_contains(compat_prop->string.begin,
-                                        (int)compat_prop->string.length,
-                                        driver->compat_list[i]))
-            {
-                found = true;
-            }
-        }
+        struct devicetree_prop_compat *const compat_prop =
+            (struct devicetree_prop_compat *)(uint64_t)
+                devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
 
-        if (!found) {
-            goto next;
+        if (compat_prop != NULL) {
+            bool found = false;
+            for (uint32_t i = 0; i != driver->compat_count; i++) {
+                if (fdt_stringlist_contains(compat_prop->string.begin,
+                                            (int)compat_prop->string.length,
+                                            driver->compat_list[i]))
+                {
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                goto next;
+            }
         }
     }
 
@@ -63,7 +61,7 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
             (struct devicetree_prop_device_type *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_DEVICE_TYPE);
 
-        if (compat_prop == NULL) {
+        if (device_type_prop == NULL) {
             goto next;
         }
 
@@ -83,7 +81,7 @@ next:
 
 static void dtb_initialize_drivers() {
     driver_foreach(driver) {
-        assert_msg(driver->name != NULL, "driver is missing name");
+        assert_msg(driver->name != NULL, "driver is missing a name");
 
         const struct dtb_driver *const dtb = driver->dtb;
         if (dtb == NULL) {
