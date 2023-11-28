@@ -144,9 +144,11 @@ init_from_dtb(struct devicetree *const tree,
 
 static const char *compat_list[] = { "sifive,clint0\0riscv,clint0" };
 static const struct dtb_driver dtb_driver = {
+    .init = init_from_dtb,
+    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
     .compat_list = compat_list,
     .compat_count = countof(compat_list),
-    .init = init_from_dtb
 };
 
 __driver static const struct driver driver = {

@@ -42,15 +42,37 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
         goto next;
     }
 
-    for (uint32_t i = 0; i != driver->compat_count; i++) {
-        if (fdt_stringlist_contains(compat_prop->string.begin,
-                                    (int)compat_prop->string.length,
-                                    driver->compat_list[i]))
-        {
-            driver->init(tree, node);
-            break;
+    if (driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
+        bool found = false;
+        for (uint32_t i = 0; i != driver->compat_count; i++) {
+            if (fdt_stringlist_contains(compat_prop->string.begin,
+                                        (int)compat_prop->string.length,
+                                        driver->compat_list[i]))
+            {
+                found = true;
+            }
+        }
+
+        if (!found) {
+            goto next;
         }
     }
+
+    if (driver->match_flags & __DTB_DRIVER_MATCH_DEVICE_TYPE) {
+        struct devicetree_prop_device_type *const device_type_prop =
+            (struct devicetree_prop_device_type *)(uint64_t)
+                devicetree_node_get_prop(node, DEVICETREE_PROP_DEVICE_TYPE);
+
+        if (compat_prop == NULL) {
+            goto next;
+        }
+
+        if (!sv_equals(device_type_prop->name, driver->device_type)) {
+            goto next;
+        }
+    }
+
+    driver->init(tree, node);
 
 next:
     struct devicetree_node *iter = NULL;
@@ -61,9 +83,29 @@ next:
 
 static void dtb_initialize_drivers() {
     driver_foreach(driver) {
+        assert_msg(driver->name != NULL, "driver is missing name");
+
         const struct dtb_driver *const dtb = driver->dtb;
         if (dtb == NULL) {
             continue;
+        }
+
+        assert_msg(dtb->match_flags != 0,
+                   "driver %s's dtb-driver is missing its match_flags field\n",
+                   driver->name);
+
+        if (dtb->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
+            assert_msg(dtb->compat_list != NULL && dtb->compat_count != 0,
+                       "driver %s's dtb-driver is missing its compat_* "
+                       "fields\n",
+                       driver->name);
+        }
+
+        if (dtb->match_flags & __DTB_DRIVER_MATCH_DEVICE_TYPE) {
+            assert_msg(dtb->device_type.length != 0,
+                       "driver %s's dtb-driver is missing its device_type "
+                       "field\n",
+                       driver->name);
         }
 
         find_nodes_for_driver(dtb, &g_device_tree, &g_device_tree_root);

@@ -227,9 +227,11 @@ static const char *const compat_list[] = {
 };
 
 static const struct dtb_driver dtb_driver = {
+    .init = init_from_dtb,
+    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
     .compat_list = compat_list,
     .compat_count = countof(compat_list),
-    .init = init_from_dtb
 };
 
 __driver static const struct driver driver = {

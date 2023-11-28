@@ -246,6 +246,8 @@ init_from_dtb(struct devicetree *const tree,
 static const char *const dtb_compat_list[] = { "ns16550a" };
 static struct dtb_driver dtb_driver = {
     .init = init_from_dtb,
+    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
     .compat_list = dtb_compat_list,
     .compat_count = countof(dtb_compat_list)
 };

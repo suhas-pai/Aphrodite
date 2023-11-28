@@ -129,9 +129,11 @@ goldfish_rtc_init_from_dtb(struct devicetree *const tree,
 
 static const char *const compat[] = { "google,goldfish-rtc" };
 static struct dtb_driver dtb_driver = {
+    .init = goldfish_rtc_init_from_dtb,
+    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
     .compat_list = compat,
     .compat_count = countof(compat),
-    .init = goldfish_rtc_init_from_dtb
 };
 
 __driver static const struct driver driver = {
