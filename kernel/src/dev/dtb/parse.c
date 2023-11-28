@@ -187,62 +187,69 @@ parse_ranges_prop(const void *const dtb,
     return true;
 }
 
+__optimize(3) static inline
+struct string_view get_prop_data_sv(const struct fdt_property *const fdt_prop) {
+    return
+        sv_create_length((const char *)fdt_prop->data,
+                         strnlen(fdt_prop->data, fdt_prop->len));
+}
+
 static bool
-parse_model_prop(const char *const model,
+parse_model_prop(const struct fdt_property *const fdt_prop,
                  struct string_view *const manufacturer_out,
                  struct string_view *const model_out)
 {
-    const char *const comma = strchr(model, ',');
-    if (comma == NULL) {
+    const struct string_view model_sv = get_prop_data_sv(fdt_prop);
+    const int64_t comma_index = sv_find_char(model_sv, /*index=*/0, ',');
+
+    if (comma_index == -1) {
         return false;
     }
 
-    const char *const end = model + strlen(model);
-
-    *manufacturer_out = sv_create_length(model, distance(model, comma));
-    *model_out = sv_create_length(comma + 1, distance(comma + 1, end));
+    *manufacturer_out = sv_substring_upto(model_sv, comma_index);
+    *model_out = sv_substring_from(model_sv, comma_index + 1);
 
     return true;
 }
 
 static bool
-parse_status_prop(const char *const string,
+parse_status_prop(const struct fdt_property *const fdt_prop,
                   enum devicetree_prop_status_kind *const kind_out)
 {
-    const struct string_view sv = sv_create_length(string, strlen(string));
+    const struct string_view status_sv = get_prop_data_sv(fdt_prop);
     enum devicetree_prop_status_kind kind = DEVICETREE_PROP_STATUS_OKAY;
 
     switch (kind) {
         case DEVICETREE_PROP_STATUS_OKAY:
-            if (sv_equals(sv, SV_STATIC("okay"))) {
+            if (sv_equals(status_sv, SV_STATIC("okay"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_OKAY;
                 return true;
             }
 
             [[fallthrough]];
         case DEVICETREE_PROP_STATUS_DISABLED:
-            if (sv_equals(sv, SV_STATIC("disabled"))) {
+            if (sv_equals(status_sv, SV_STATIC("disabled"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_DISABLED;
                 return true;
             }
 
             [[fallthrough]];
         case DEVICETREE_PROP_STATUS_RESERVED:
-            if (sv_equals(sv, SV_STATIC("reserved"))) {
+            if (sv_equals(status_sv, SV_STATIC("reserved"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_RESERVED;
                 return true;
             }
 
             [[fallthrough]];
         case DEVICETREE_PROP_STATUS_FAIL:
-            if (sv_equals(sv, SV_STATIC("fail"))) {
+            if (sv_equals(status_sv, SV_STATIC("fail"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_FAIL;
                 return true;
             }
 
             [[fallthrough]];
         case DEVICETREE_PROP_STATUS_FAIL_SSS:
-            if (sv_equals(sv, SV_STATIC("fail-sss"))) {
+            if (sv_equals(status_sv, SV_STATIC("fail-sss"))) {
                 *kind_out = DEVICETREE_PROP_STATUS_FAIL_SSS;
                 return true;
             }
@@ -665,8 +672,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 compat_prop->kind = DEVICETREE_PROP_COMPAT;
-                compat_prop->string =
-                    sv_create_length(fdt_prop->data, strlen(fdt_prop->data));
+                compat_prop->string = get_prop_data_sv(fdt_prop);
 
                 if (!array_append(&node->known_props, &compat_prop)) {
                     kfree(compat_prop);
@@ -755,10 +761,7 @@ parse_node_prop(const void *const dtb,
                 struct string_view manufacturer_sv = SV_EMPTY();
                 struct string_view model_sv = SV_EMPTY();
 
-                if (!parse_model_prop(fdt_prop->data,
-                                      &manufacturer_sv,
-                                      &model_sv))
-                {
+                if (!parse_model_prop(fdt_prop, &manufacturer_sv, &model_sv)) {
                     return false;
                 }
 
@@ -787,7 +790,7 @@ parse_node_prop(const void *const dtb,
                 enum devicetree_prop_status_kind status =
                     DEVICETREE_PROP_STATUS_OKAY;
 
-                if (!parse_status_prop(fdt_prop->data, &status)) {
+                if (!parse_status_prop(fdt_prop, &status)) {
                     return false;
                 }
 
@@ -941,6 +944,39 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_DMA_COHERENT;
                 if (!array_append(&node->known_props, &prop)) {
                     kfree(prop);
+                    return false;
+                }
+
+                return true;
+            }
+
+            [[fallthrough]];
+        case DEVICETREE_PROP_DEVICE_TYPE:
+            if (sv_equals(name, SV_STATIC("device_type"))) {
+                struct array list = ARRAY_INIT(sizeof(uint32_t));
+                if (!parse_integer_list_prop(fdt_prop, prop_len, &list)) {
+                    array_destroy(&list);
+                    return false;
+                }
+
+                struct devicetree_prop_device_type *const prop =
+                    kmalloc(sizeof(*prop));
+
+                if (prop == NULL) {
+                    array_destroy(&list);
+                    return false;
+                }
+
+                const struct string_view device_type_sv =
+                    get_prop_data_sv(fdt_prop);
+
+                prop->kind = DEVICETREE_PROP_DEVICE_TYPE;
+                prop->name = device_type_sv;
+
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
+                    array_destroy(&list);
+
                     return false;
                 }
 

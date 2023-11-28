@@ -22,6 +22,7 @@ enum devicetree_prop_kind {
     DEVICETREE_PROP_VIRTUAL_REG,
     DEVICETREE_PROP_DMA_RANGES,
     DEVICETREE_PROP_DMA_COHERENT,
+    DEVICETREE_PROP_DEVICE_TYPE,
     DEVICETREE_PROP_INTERRUPTS,
     DEVICETREE_PROP_INTERRUPT_MAP,
     DEVICETREE_PROP_INTERRUPT_PARENT,
@@ -103,6 +104,11 @@ struct devicetree_prop_addr_size_cells {
 
 struct devicetree_prop_no_value {
     enum devicetree_prop_kind kind;
+};
+
+struct devicetree_prop_device_type {
+    enum devicetree_prop_kind kind;
+    struct string_view name;
 };
 
 struct devicetree_prop_interrupts {

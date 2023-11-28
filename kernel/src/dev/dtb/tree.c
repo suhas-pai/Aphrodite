@@ -141,6 +141,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
             case DEVICETREE_PROP_PHANDLE:
             case DEVICETREE_PROP_VIRTUAL_REG:
             case DEVICETREE_PROP_DMA_COHERENT:
+            case DEVICETREE_PROP_DEVICE_TYPE:
                 break;
             case DEVICETREE_PROP_INTERRUPTS: {
                 struct devicetree_prop_interrupts *const int_prop =
