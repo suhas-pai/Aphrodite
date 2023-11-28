@@ -528,9 +528,9 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
 }
 
 static const struct pci_driver pci_driver = {
-    .vendor = 0x1af4,
+    .init = init_from_pci,
     .match = PCI_DRIVER_MATCH_VENDOR,
-    .init = init_from_pci
+    .vendor = 0x1af4,
 };
 
 __driver static const struct driver driver = {

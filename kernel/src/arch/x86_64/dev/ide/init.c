@@ -335,10 +335,11 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
 }
 
 static const struct pci_driver pci_driver = {
+    .init = init_from_pci,
+    .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
+
     .class = PCI_DEVICE_CLASS_MASS_STORAGE_CONTROLLER,
     .subclass = PCI_DEVICE_SUBCLASS_IDE,
-    .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
-    .init = init_from_pci
 };
 
 __driver static const struct driver driver = {

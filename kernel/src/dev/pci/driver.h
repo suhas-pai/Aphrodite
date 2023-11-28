@@ -18,8 +18,8 @@ enum pci_driver_match {
 struct pci_driver {
     void (*init)(struct pci_device_info *device);
 
-    uint16_t vendor;
     uint8_t match;
+    uint16_t vendor;
 
     uint8_t class;
     uint8_t subclass;
