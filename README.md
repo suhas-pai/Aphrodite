@@ -13,7 +13,7 @@ The kernel has the following implemented:
 * General memory allocation with kmalloc() using a slab allocator
 * RTC (google,goldfish-rtc on riscv64) and LAPIC Timer, HPET on x86_64
 * Keyboard (ps2) driver
-* Parsing ACPI Tables and Flattened Device Tree (when available)
+* Parsing ACPI Tables and DTB (Flattened Device Tree) (when available)
 * Local APIC and I/O APIC
 * PCI(e) Device Initialization with drivers
 
@@ -50,15 +50,17 @@ It is recommended to build this project using a standard Linux distro, using a C
 This project can be built using the host GCC toolchain on most Linux distros on x86_64 when targetting x86_64 (`ARCH=x86_64`), but it is recommended to set up an `*-elf` [cross compiler](https://wiki.osdev.org/GCC_Cross-Compiler) for the chosen target, or use a native cross toolchain such as Clang/LLVM.
 
 The system currently supports the `x86_64`, `aarch64` (`arm64`), and `riscv64` architectures.
-`x86_64` is the most feature complete, while `arm64` and `riscv64` are catching up
+`x86_64` is the most feature complete, while `aarch64` and `riscv64` are catching up
 
 Several variables are available to configure launching in QEMU:
-  * `MEM` to configure memory size (in QEMU units) (By Default `4G`)
-  * `SMP` to configure amount of cpus (By Default `4`)
-  * `DEBUG=1` to allow starting in QEMU's debugger mode (By default `0`)
-  * `CONSOLE=1` to allow starting in QEMU's console mode (By default `0`)
+  * `MEM=` to configure memory size (in QEMU units) (By default `4G`)
+  * `SMP=` to configure amount of cpus (By default `4`)
+  * `DEBUG=1` to build in debug mode and to start in QEMU in debugger mode (By default `0`)
+  * `RELEASE=1` to build in release mode with full optimizations (though `ubsan` is still enabled) (By default `0`)
+  * `CONSOLE=1` to start in QEMU's console mode (By default `0`)
+  * `DISABLE_ACPI=1` to start QEMU's machine without ACPI, relying exclusively on the DTB (Flattened Device Tree) (by default `0`)
 
-The all target (the default one) builds the system for the given architecture, creating a bootable .iso image containing the built system.
+The all target (default target) builds the system for the given architecture, creating a bootable .iso image containing the built system.
 The all-hdd target builds a flat hard disk/USB image instead.
 
 Here's an example command:
