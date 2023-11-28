@@ -9,6 +9,8 @@
 #include "pci/driver.h"
 
 struct driver {
+    const char *name;
+
     const struct dtb_driver *dtb;
     const struct pci_driver *pci;
 };

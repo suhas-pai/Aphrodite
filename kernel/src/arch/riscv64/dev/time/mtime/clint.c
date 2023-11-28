@@ -150,6 +150,7 @@ static const struct dtb_driver dtb_driver = {
 };
 
 __driver static const struct driver driver = {
+    .name = "riscv64-clint-driver",
     .dtb = &dtb_driver,
     .pci = NULL
 };
