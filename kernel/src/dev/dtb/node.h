@@ -225,12 +225,12 @@ struct devicetree_node {
     struct array other_props;
 };
 
-struct devicetree_prop *
-devicetree_node_get_prop(struct devicetree_node *node,
+const struct devicetree_prop *
+devicetree_node_get_prop(const struct devicetree_node *node,
                          enum devicetree_prop_kind kind);
 
-struct devicetree_prop_other *
-devicetree_node_get_other_prop(struct devicetree_node *node,
+const struct devicetree_prop_other *
+devicetree_node_get_other_prop(const struct devicetree_node *node,
                                struct string_view sv);
 
 void devicetree_node_free(struct devicetree_node *const node);

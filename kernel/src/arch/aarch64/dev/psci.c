@@ -110,10 +110,11 @@ static bool init_common() {
 }
 
 static bool
-init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
+init_from_dtb(const struct devicetree *const tree,
+              const struct devicetree_node *const node)
 {
     (void)tree;
-    struct devicetree_prop_other *const method_prop =
+    const struct devicetree_prop_other *const method_prop =
         devicetree_node_get_other_prop(node, SV_STATIC("method"));
 
     if (method_prop == NULL) {
@@ -149,7 +150,7 @@ init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
 
     carr_foreach(key_list, key_iter) {
         const struct string_view key = *key_iter;
-        struct devicetree_prop_other *const key_prop =
+        const struct devicetree_prop_other *const key_prop =
             devicetree_node_get_other_prop(node, *key_iter);
 
         if (method_prop == NULL) {

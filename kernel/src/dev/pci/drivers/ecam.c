@@ -9,7 +9,8 @@
 #include "../pci.h"
 
 static bool
-init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
+init_from_dtb(const struct devicetree *const tree,
+              const struct devicetree_node *const node)
 {
     (void)tree;
     const struct devicetree_prop_reg *const reg_prop =

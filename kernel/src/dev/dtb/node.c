@@ -11,12 +11,12 @@ devicetree_prop_other_get_sv(const struct devicetree_prop_other *const prop) {
     return sv_create_length(ptr, strnlen(ptr, prop->data_length));
 }
 
-__optimize(3) struct devicetree_prop *
-devicetree_node_get_prop(struct devicetree_node *const node,
+__optimize(3) const struct devicetree_prop *
+devicetree_node_get_prop(const struct devicetree_node *const node,
                          const enum devicetree_prop_kind kind)
 {
-    array_foreach(&node->known_props, struct devicetree_prop *, iter) {
-        struct devicetree_prop *const prop = *iter;
+    array_foreach(&node->known_props, const struct devicetree_prop *, iter) {
+        const struct devicetree_prop *const prop = *iter;
         if (prop->kind == kind) {
             return prop;
         }
@@ -25,12 +25,15 @@ devicetree_node_get_prop(struct devicetree_node *const node,
     return NULL;
 }
 
-__optimize(3) struct devicetree_prop_other *
-devicetree_node_get_other_prop(struct devicetree_node *const node,
+__optimize(3) const struct devicetree_prop_other *
+devicetree_node_get_other_prop(const struct devicetree_node *const node,
                                const struct string_view name)
 {
-    array_foreach(&node->other_props, struct devicetree_prop_other *, iter) {
-        struct devicetree_prop_other *const prop = *iter;
+    array_foreach(&node->other_props,
+                  const struct devicetree_prop_other *,
+                  iter)
+    {
+        const struct devicetree_prop_other *const prop = *iter;
         if (sv_equals(prop->name, name)) {
             return prop;
         }

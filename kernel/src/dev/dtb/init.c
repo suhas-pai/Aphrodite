@@ -31,7 +31,7 @@ static struct devicetree g_device_tree = {
 
 static void
 find_nodes_for_driver(const struct dtb_driver *const driver,
-                      struct devicetree *const tree,
+                      const struct devicetree *const tree,
                       struct devicetree_node *const node)
 {
     struct devicetree_prop_compat *const compat_prop =

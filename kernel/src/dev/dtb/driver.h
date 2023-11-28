@@ -12,7 +12,9 @@ enum dtb_driver_match_flags {
 };
 
 struct dtb_driver {
-    bool (*init)(struct devicetree *tree, struct devicetree_node *node);
+    bool
+    (*init)(const struct devicetree *tree, const struct devicetree_node *node);
+
     uint32_t match_flags;
 
     const char *const *compat_list;

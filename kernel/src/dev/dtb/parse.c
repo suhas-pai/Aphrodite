@@ -459,14 +459,13 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        struct devicetree_prop_addr_size_cells *const phandle_addr_size_cells =
-            (struct devicetree_prop_addr_size_cells *)
+        const struct devicetree_prop_addr_size_cells *const phandle_prop_info =
+            (const struct devicetree_prop_addr_size_cells *)
                 devicetree_node_get_prop(phandle_node,
                                          DEVICETREE_PROP_ADDR_SIZE_CELLS);
 
         const uint32_t parent_unit_cells =
-            phandle_addr_size_cells != NULL ?
-                phandle_addr_size_cells->addr_cells : 0;
+            phandle_prop_info != NULL ? phandle_prop_info->addr_cells : 0;
 
         if (!parse_cells_pairs(&data,
                                data_end,
@@ -476,8 +475,8 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        struct devicetree_prop_interrupt_cells *const int_cells_prop =
-            (struct devicetree_prop_interrupt_cells *)
+        const struct devicetree_prop_interrupt_cells *const int_cells_prop =
+            (const struct devicetree_prop_interrupt_cells *)
                 devicetree_node_get_prop(phandle_node,
                                          DEVICETREE_PROP_INTERRUPT_CELLS);
 

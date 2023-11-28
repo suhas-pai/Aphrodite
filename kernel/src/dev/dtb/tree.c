@@ -61,7 +61,7 @@ devicetree_get_node_for_phandle(struct devicetree *const tree,
 }
 
 struct devicetree_node *
-devicetree_get_node_at_path(struct devicetree *const tree,
+devicetree_get_node_at_path(const struct devicetree *const tree,
                             const struct string_view path)
 {
     if (__builtin_expect(path.length == 0 || sv_front(path) != '/', 0)) {
