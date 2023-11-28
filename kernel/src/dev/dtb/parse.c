@@ -24,10 +24,10 @@ parse_array_prop(const struct fdt_property *const fdt_prop,
 }
 
 __optimize(3) static inline bool
-parse_cells_pairs(const fdt32_t **const iter_ptr,
-                  const fdt32_t *const end,
-                  const int cell_count,
-                  uint64_t *const result_out)
+parse_cell_pair(const fdt32_t **const iter_ptr,
+                const fdt32_t *const end,
+                const int cell_count,
+                uint64_t *const result_out)
 {
     const fdt32_t *const iter = *iter_ptr;
     if (iter + cell_count > end) {
@@ -106,11 +106,11 @@ parse_reg_pairs(const void *const dtb,
 
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_reg_info info;
-        if (!parse_cells_pairs(&data, data_end, addr_cells, &info.address)) {
+        if (!parse_cell_pair(&data, data_end, addr_cells, &info.address)) {
             return false;
         }
 
-        if (!parse_cells_pairs(&data, data_end, size_cells, &info.size)) {
+        if (!parse_cell_pair(&data, data_end, size_cells, &info.size)) {
             return false;
         }
 
@@ -166,23 +166,23 @@ parse_ranges_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_range_info info;
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               child_addr_cells,
-                               &info.child_bus_address))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             child_addr_cells,
+                             &info.child_bus_address))
         {
             return false;
         }
 
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               parent_addr_cells,
-                               &info.parent_bus_address))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             parent_addr_cells,
+                             &info.parent_bus_address))
         {
             return false;
         }
 
-        if (!parse_cells_pairs(&data, data_end, size_cells, &info.size)) {
+        if (!parse_cell_pair(&data, data_end, size_cells, &info.size)) {
             return false;
         }
 
@@ -428,18 +428,18 @@ parse_interrupt_map_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
     while (data < data_end) {
         struct devicetree_prop_interrupt_map_entry info;
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               child_unit_addr_cells,
-                               &info.child_unit_address))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             child_unit_addr_cells,
+                             &info.child_unit_address))
         {
             return false;
         }
 
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               child_int_cells,
-                               (uint64_t *)&info.child_int_specifier))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             child_int_cells,
+                             (uint64_t *)&info.child_int_specifier))
         {
             return false;
         }
@@ -466,10 +466,10 @@ parse_interrupt_map_prop(const void *const dtb,
         const uint32_t parent_unit_cells =
             phandle_prop_info != NULL ? phandle_prop_info->addr_cells : 0;
 
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               (int)parent_unit_cells,
-                               (uint64_t *)&info.child_int_specifier))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             (int)parent_unit_cells,
+                             (uint64_t *)&info.child_int_specifier))
         {
             return false;
         }
@@ -580,10 +580,10 @@ parse_specifier_map_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_spec_map_entry info;
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               cells,
-                               &info.child_specifier))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             cells,
+                             &info.child_specifier))
         {
             return false;
         }
@@ -591,10 +591,10 @@ parse_specifier_map_prop(const void *const dtb,
         info.specifier_parent = fdt32_to_cpu(*data);
         data++;
 
-        if (!parse_cells_pairs(&data,
-                               data_end,
-                               cells,
-                               &info.parent_specifier))
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             cells,
+                             &info.parent_specifier))
         {
             return false;
         }
@@ -1281,11 +1281,10 @@ parse_node_children(const void *const dtb,
 
         int prop_off = 0;
         fdt_for_each_property_offset(prop_off, dtb, nodeoff) {
-            const int parent_off = parent->nodeoff;
             if (!parse_node_prop(dtb,
                                  nodeoff,
                                  prop_off,
-                                 parent_off,
+                                 parent->nodeoff,
                                  tree,
                                  node,
                                  int_map_list,
