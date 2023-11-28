@@ -3,10 +3,9 @@
  * © suhas pai
  */
 
-#include "dev/dtb/node.h"
 #include "lib/adt/string_view.h"
-
 #include "mm/kmalloc.h"
+
 #include "tree.h"
 
 struct devicetree *devicetree_alloc() {
