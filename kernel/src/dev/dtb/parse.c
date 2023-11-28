@@ -45,16 +45,14 @@ parse_cells_pairs(const fdt32_t **const iter_ptr,
 
             return true;
         case 2:
-            *result_out =
-                (uint64_t)fdt32_to_cpu(*iter) << 32 |
-                (uint64_t)fdt32_to_cpu(iter[1]);
-
+            *result_out = fdt64_to_cpu(*(const fdt64_t *)(uint64_t)iter);
             *iter_ptr = iter + cell_count;
+
             return true;
         case 3:
             *result_out =
                 (uint64_t)fdt32_to_cpu(*iter) << 32 |
-                (uint64_t)(fdt32_to_cpu(iter[1] << 16 | fdt32_to_cpu(iter[2])));
+                (uint64_t)(fdt32_to_cpu(iter[1]) << 16 | fdt32_to_cpu(iter[2]));
 
             *iter_ptr = iter + cell_count;
             return true;
@@ -280,7 +278,7 @@ parse_integer_prop(const struct fdt_property *const fdt_prop,
         return false;
     }
 
-    *int_out = fdt32_to_cpu(*(uint32_t *)(uint64_t)fdt_prop->data);
+    *int_out = fdt32_to_cpu(*(fdt32_t *)(uint64_t)fdt_prop->data);
     return true;
 }
 
@@ -703,7 +701,9 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_RANGES:
             if (sv_equals(name, SV_STATIC("ranges"))) {
-                struct array list = ARRAY_INIT(sizeof(struct range));
+                struct array list =
+                    ARRAY_INIT(sizeof(struct devicetree_prop_range_info));
+
                 if (!parse_ranges_prop(dtb,
                                        fdt_prop,
                                        prop_len,
