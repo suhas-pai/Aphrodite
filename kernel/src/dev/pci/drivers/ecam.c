@@ -42,8 +42,13 @@ init_from_dtb(const struct devicetree *const tree,
     const struct range bus_range = bus_range_prop->range;
     uint64_t bus_range_end = 0;
 
-    if (!range_get_end(bus_range, &bus_range_end) || bus_range_end > UINT8_MAX)
-    {
+    if (!range_get_end(bus_range, &bus_range_end)) {
+        printk(LOGLEVEL_WARN,
+               "pci-ecam: 'bus-range' provided in dtb node overflows\n");
+        return false;
+    }
+
+    if (bus_range_end > UINT8_MAX) {
         printk(LOGLEVEL_WARN,
                "pci-ecam: 'bus-range' provided in dtb node " RANGE_FMT "is too "
                "wide\n",
@@ -68,12 +73,6 @@ init_from_dtb(const struct devicetree *const tree,
                RANGE_FMT_ARGS(mmio_range));
         return false;
     }
-
-    printk(LOGLEVEL_INFO,
-           "pci-ecam: dtb node has bus range: " RANGE_FMT ", and mmio range: "
-           RANGE_FMT "\n",
-           RANGE_FMT_ARGS(bus_range),
-           RANGE_FMT_ARGS(mmio_range));
 
     pci_add_pcie_domain(bus_range, mmio_range.front, /*segment=*/0);
     return true;
