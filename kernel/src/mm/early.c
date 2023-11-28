@@ -776,7 +776,7 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
     uint64_t search_front = section->range.front;
     uint64_t mid_index = section->range.size / 2;
 
-    while (mid_index > PAGE_SIZE) {
+    while (mid_index != 0) {
         if (phys_to_zone(search_front + mid_index) == zone) {
             // Continue rightward.
             search_front += mid_index;
@@ -858,8 +858,8 @@ void mm_post_arch_init() {
     split_sections_for_zones();
     setup_zone_section_list();
 
-    // Start section-numbers at one so we can see if there's any pages missing a
-    // section, which would have a section of 0.
+    // Start section-numbers at one so we can see if there's any pages missing
+    // a section, which would have a section of 0.
 
     uint64_t number = 1;
     for (__auto_type section = begin; section != end; section++, number++) {
