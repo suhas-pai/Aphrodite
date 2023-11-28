@@ -19,12 +19,13 @@
 
 __optimize(3) static void
 alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
+    const bool supports_1gib = get_cpu_capabilities()->supports_1gib_pages;
     const struct pgmap_options options = {
         .pte_flags = pte_flags,
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,
 
-        .supports_largepage_at_level_mask = 1 << 2 | 1 << 3,
+        .supports_largepage_at_level_mask = 1 << 2 | supports_1gib << 3,
 
         .free_pages = false,
         .is_in_early = true,
