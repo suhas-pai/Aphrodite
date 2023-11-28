@@ -57,8 +57,14 @@ sv_create_length(const char *const c_str, const uint64_t length) {
     return sv_create_nocheck(c_str, length);
 }
 
-__optimize(3) struct string_view
+struct string_view
 sv_substring_length(struct string_view sv, uint32_t index, uint32_t length);
+
+struct string_view
+sv_substring_from(struct string_view sv, uint32_t index);
+
+struct string_view
+sv_substring_upto(struct string_view sv, uint32_t index);
 
 struct string_view sv_drop_front(struct string_view sv);
 

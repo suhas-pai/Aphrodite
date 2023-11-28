@@ -15,6 +15,18 @@ sv_substring_length(const struct string_view sv,
     return sv_create_length(sv.begin + index, length);
 }
 
+__optimize(3) struct string_view
+sv_substring_from(const struct string_view sv, const uint32_t index) {
+    assert(index == sv.length || sv_has_index(sv, index));
+    return sv_create_length(sv.begin + index, sv.length - index);
+}
+
+__optimize(3) struct string_view
+sv_substring_upto(const struct string_view sv, const uint32_t index) {
+    assert(index == sv.length || sv_has_index(sv, index));
+    return sv_create_length(sv.begin, index);
+}
+
 __optimize(3) struct string_view sv_drop_front(const struct string_view sv) {
     if (sv.length != 0) {
         return sv_create_nocheck(sv.begin + 1, sv.length - 1);
