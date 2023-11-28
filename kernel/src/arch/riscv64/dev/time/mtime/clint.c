@@ -142,7 +142,10 @@ init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-static const char *const compat_list[] = { "sifive,clint0\0riscv,clint0" };
+static const struct string_view compat_list[] = {
+    SV_STATIC("sifive,clint0"), SV_STATIC("riscv,clint0")
+};
+
 static const struct dtb_driver dtb_driver = {
     .init = init_from_dtb,
     .match_flags = __DTB_DRIVER_MATCH_COMPAT,

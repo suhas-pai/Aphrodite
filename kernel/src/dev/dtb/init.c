@@ -8,7 +8,6 @@
 #include "dev/driver.h"
 #include "dev/printk.h"
 
-#include "fdt/libfdt.h"
 #include "sys/boot.h"
 
 static struct devicetree_node g_device_tree_root = {
@@ -29,6 +28,28 @@ static struct devicetree g_device_tree = {
     .phandle_list = ARRAY_INIT(sizeof(struct devicetree_prop *))
 };
 
+static bool
+fdt_stringlist_contains_sv(const char *strlist,
+                           int listlen,
+                           const struct string_view sv)
+{
+    while (listlen >= (int)sv.length) {
+        if (memcmp(sv.begin, strlist, (size_t)sv.length + 1) == 0) {
+            return true;
+        }
+
+        const char *const p = memchr(strlist, '\0', (size_t)listlen);
+        if (!p) {
+            return false; /* malformed strlist.. */
+        }
+
+        listlen -= distance(strlist, p) + 1;
+        strlist = p + 1;
+    }
+
+    return false;
+}
+
 static void
 find_nodes_for_driver(const struct dtb_driver *const driver,
                       const struct devicetree *const tree,
@@ -39,20 +60,22 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
             (struct devicetree_prop_compat *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
 
-        if (compat_prop != NULL) {
-            bool found = false;
-            for (uint32_t i = 0; i != driver->compat_count; i++) {
-                if (fdt_stringlist_contains(compat_prop->string.begin,
-                                            (int)compat_prop->string.length,
-                                            driver->compat_list[i]))
-                {
-                    found = true;
-                }
-            }
+        if (compat_prop == NULL) {
+            goto next;
+        }
 
-            if (!found) {
-                goto next;
+        bool found = false;
+        for (uint32_t i = 0; i != driver->compat_count; i++) {
+            if (fdt_stringlist_contains_sv(compat_prop->string.begin,
+                                           (int)compat_prop->string.length,
+                                           driver->compat_list[i]))
+            {
+                found = true;
             }
+        }
+
+        if (!found) {
+            goto next;
         }
     }
 

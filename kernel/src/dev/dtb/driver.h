@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include "lib/adt/string_view.h"
 #include "tree.h"
 
 enum dtb_driver_match_flags {
@@ -17,7 +18,7 @@ struct dtb_driver {
 
     uint32_t match_flags;
 
-    const char *const *compat_list;
+    const struct string_view *const compat_list;
     const uint32_t compat_count;
 
     const struct string_view device_type;

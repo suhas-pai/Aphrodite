@@ -222,8 +222,8 @@ enum psci_return_value psci_shutdown() {
                                 /*arg3=*/0);
 }
 
-static const char *const compat_list[] = {
-    "arm,psci", "arm,psci-1.0", "arm,psci-0.2"
+static const struct string_view compat_list[] = {
+    SV_STATIC("arm,psci"), SV_STATIC("arm,psci-1.0"), SV_STATIC("arm,psci-0.2")
 };
 
 static const struct dtb_driver dtb_driver = {
