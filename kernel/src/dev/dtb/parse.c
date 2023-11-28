@@ -24,6 +24,50 @@ parse_array_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
+__optimize(3) static inline bool
+parse_cells_pairs(const fdt32_t **const iter_ptr,
+                  const fdt32_t *const end,
+                  const int cell_count,
+                  uint64_t *const result_out)
+{
+    const fdt32_t *const iter = *iter_ptr;
+    if (iter + cell_count > end) {
+        return false;
+    }
+
+    switch (cell_count) {
+        case 0:
+            *result_out = 0;
+            return true;
+        case 1:
+            *result_out = fdt32_to_cpu(*iter);
+            *iter_ptr = iter + cell_count;
+
+            return true;
+        case 2:
+            *result_out =
+                (uint64_t)fdt32_to_cpu(*iter) << 32 |
+                (uint64_t)fdt32_to_cpu(iter[1]);
+
+            *iter_ptr = iter + cell_count;
+            return true;
+        case 3:
+            *result_out =
+                (uint64_t)fdt32_to_cpu(*iter) << 32 |
+                (uint64_t)(fdt32_to_cpu(iter[1] << 16 | fdt32_to_cpu(iter[2])));
+
+            *iter_ptr = iter + cell_count;
+            return true;
+    }
+
+    printk(LOGLEVEL_WARN,
+           "devicetree: couldn't parse pairs with an invalid cells count "
+           "of %" PRIu32 "\n",
+           cell_count);
+
+    return false;
+}
+
 static bool
 parse_reg_pairs(const void *const dtb,
                 const struct fdt_property *const fdt_prop,
@@ -38,52 +82,39 @@ parse_reg_pairs(const void *const dtb,
         return false;
     }
 
-    const fdt32_t *reg = NULL;
-    uint32_t reg_length = 0;
+    const fdt32_t *data = NULL;
+    uint32_t data_length = 0;
 
-    if (!parse_array_prop(fdt_prop, prop_length, &reg, &reg_length)) {
+    if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
         return false;
     }
 
-    if (reg_length == 0) {
+    if (data_length == 0) {
         return true;
     }
 
+    const fdt32_t *const data_end = data + data_length;
     const uint32_t entry_size = (uint32_t)(addr_cells + size_cells);
+
     if (entry_size == 0) {
         return false;
     }
 
-    if ((reg_length % entry_size) != 0) {
+    if ((data_length % entry_size) != 0) {
         return false;
     }
 
-    const uint32_t entry_count = reg_length / entry_size;
+    const uint32_t entry_count = data_length / entry_size;
     array_reserve(array, entry_count);
-
-    const uint32_t addr_shift = sizeof_bits(uint64_t) / (uint32_t)addr_cells;
-    const uint32_t size_shift = sizeof_bits(uint64_t) / (uint32_t)size_cells;
 
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_reg_info info;
-        if (addr_shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != addr_cells; j++) {
-                info.address = info.address << addr_shift | fdt32_to_cpu(*reg);
-                reg++;
-            }
-        } else {
-            info.address = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data, data_end, addr_cells, &info.address)) {
+            return false;
         }
 
-        if (size_shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != size_cells; j++) {
-                info.size = info.size << size_shift | fdt32_to_cpu(*reg);
-                reg++;
-            }
-        } else {
-            info.size = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data, data_end, size_cells, &info.size)) {
+            return false;
         }
 
         if (!array_append(array, &info)) {
@@ -110,14 +141,14 @@ parse_ranges_prop(const void *const dtb,
         return false;
     }
 
-    const fdt32_t *reg = NULL;
-    uint32_t reg_length = 0;
+    const fdt32_t *data = NULL;
+    uint32_t data_length = 0;
 
-    if (!parse_array_prop(fdt_prop, prop_length, &reg, &reg_length)) {
+    if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
         return false;
     }
 
-    if (reg_length == 0) {
+    if (data_length == 0) {
         return true;
     }
 
@@ -128,55 +159,34 @@ parse_ranges_prop(const void *const dtb,
         return false;
     }
 
-    if ((reg_length % entry_size) != 0) {
+    if ((data_length % entry_size) != 0) {
         return false;
     }
 
-    const uint32_t entry_count = reg_length / entry_size;
+    const uint32_t entry_count = data_length / entry_size;
     array_reserve(array, entry_count);
 
-    const uint32_t size_shift = sizeof_bits(uint64_t) / (uint32_t)size_cells;
-    const uint32_t child_addr_shift =
-        sizeof_bits(uint64_t) / (uint32_t)child_addr_cells;
-    const uint32_t parent_addr_shift =
-        sizeof_bits(uint64_t) / (uint32_t)parent_addr_cells;
-
+    const fdt32_t *const data_end = data + data_length;
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_range_info info;
-        if (child_addr_shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != child_addr_cells; j++) {
-                info.child_bus_address =
-                    info.child_bus_address << child_addr_shift |
-                    fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.child_bus_address = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               child_addr_cells,
+                               &info.child_bus_address))
+        {
+            return false;
         }
 
-        if (parent_addr_shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != parent_addr_cells; j++) {
-                info.parent_bus_address =
-                    info.parent_bus_address << parent_addr_shift |
-                    fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.parent_bus_address = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               parent_addr_cells,
+                               &info.parent_bus_address))
+        {
+            return false;
         }
 
-        if (size_shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != size_cells; j++) {
-                info.size = info.size << size_shift | fdt32_to_cpu(*reg);
-                reg++;
-            }
-        } else {
-            info.size = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data, data_end, size_cells, &info.size)) {
+            return false;
         }
 
         if (!array_append(array, &info)) {
@@ -194,7 +204,7 @@ struct string_view get_prop_data_sv(const struct fdt_property *const fdt_prop) {
                          strnlen(fdt_prop->data, fdt_prop->len));
 }
 
-static bool
+__optimize(3) static inline bool
 parse_model_prop(const struct fdt_property *const fdt_prop,
                  struct string_view *const manufacturer_out,
                  struct string_view *const model_out)
@@ -212,7 +222,7 @@ parse_model_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-static bool
+__optimize(3) static inline bool
 parse_status_prop(const struct fdt_property *const fdt_prop,
                   enum devicetree_prop_status_kind *const kind_out)
 {
@@ -261,7 +271,7 @@ parse_status_prop(const struct fdt_property *const fdt_prop,
     return false;
 }
 
-static bool
+__optimize(3) static inline bool
 parse_integer_prop(const struct fdt_property *const fdt_prop,
                    const int prop_length,
                    uint32_t *const int_out)
@@ -274,28 +284,28 @@ parse_integer_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-static bool
+__optimize(3) static inline bool
 parse_integer_list_prop(const struct fdt_property *const fdt_prop,
                         const int prop_length,
                         struct array *const array)
 {
-    const fdt32_t *reg = NULL;
-    uint32_t reg_length = 0;
+    const fdt32_t *data = NULL;
+    uint32_t data_length = 0;
 
-    if (!parse_array_prop(fdt_prop, prop_length, &reg, &reg_length)) {
+    if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
         return false;
     }
 
-    if (reg_length == 0) {
+    if (data_length == 0) {
         return true;
     }
 
     const fdt32_t *const num_list = (fdt32_t *)(uint64_t)fdt_prop->data;
 
     *array = ARRAY_INIT(sizeof(uint32_t));
-    array_reserve(array, reg_length);
+    array_reserve(array, data_length);
 
-    for (uint32_t i = 0; i != reg_length; i++) {
+    for (uint32_t i = 0; i != data_length; i++) {
         const uint32_t num = fdt32_to_cpu(num_list[i]);
         if (!array_append(array, &num)) {
             return false;
@@ -305,7 +315,7 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-static int
+__optimize(3) static inline int
 fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
     const fdt32_t *c;
     uint32_t val;
@@ -325,7 +335,7 @@ fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
     return (int)val;
 }
 
-__optimize(3) static bool
+__optimize(3) static inline bool
 parse_int_info(const fdt32_t *const reg,
                struct devicetree_prop_int_map_entry_int_info *const int_info)
 {
@@ -382,69 +392,46 @@ parse_interrupt_map_prop(const void *const dtb,
         return false;
     }
 
-    const fdt32_t *reg = NULL;
-    uint32_t reg_length = 0;
-
-    if (!parse_array_prop(fdt_prop, (int)prop_length, &reg, &reg_length)) {
+    if (child_int_cells > 2) {
+        printk(LOGLEVEL_WARN,
+               "devicetree: couldn't parse child-interrupt pair with an "
+               "invalid #interrupt-cells value of %" PRIu32 "\n",
+               child_int_cells);
         return false;
     }
 
-    if (reg_length == 0) {
+    const fdt32_t *data = NULL;
+    uint32_t data_length = 0;
+
+    if (!parse_array_prop(fdt_prop, (int)prop_length, &data, &data_length)) {
+        return false;
+    }
+
+    if (data_length == 0) {
         return true;
     }
 
-    const fdt32_t *const reg_end = reg + reg_length;
-    const uint32_t child_unit_addr_shift =
-        sizeof_bits(uint64_t) / (uint32_t)child_unit_addr_cells;
-    const uint32_t child_int_shift =
-        sizeof_bits(uint64_t) / (uint32_t)child_int_cells;
-
-    while (reg < reg_end) {
+    const fdt32_t *const data_end = data + data_length;
+    while (data < data_end) {
         struct devicetree_prop_interrupt_map_entry info;
-        if (child_unit_addr_shift != sizeof_bits(uint64_t)) {
-            if (reg + child_unit_addr_cells >= reg_end) {
-                return false;
-            }
-
-            for (int j = 0; j != child_unit_addr_cells; j++) {
-                info.child_unit_address =
-                    info.child_unit_address << child_unit_addr_shift |
-                    fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.child_unit_address = fdt32_to_cpu(*reg);
-            reg++;
-
-            if (reg == reg_end) {
-                return false;
-            }
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               child_unit_addr_cells,
+                               &info.child_unit_address))
+        {
+            return false;
         }
 
-        if (child_int_shift != sizeof_bits(uint64_t)) {
-            if (reg + child_int_cells >= reg_end) {
-                return false;
-            }
-
-            for (int j = 0; j != child_int_cells; j++) {
-                info.child_int_specifier =
-                    info.child_int_specifier << child_int_shift |
-                    fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.child_int_specifier = fdt32_to_cpu(*reg);
-            reg++;
-
-            if (reg == reg_end) {
-                return false;
-            }
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               child_int_cells,
+                               (uint64_t *)&info.child_int_specifier))
+        {
+            return false;
         }
 
-        info.phandle = fdt32_to_cpu(*reg);
-        reg++;
+        info.phandle = fdt32_to_cpu(*data);
+        data++;
 
         struct devicetree_node *const phandle_node =
             devicetree_get_node_for_phandle(tree, info.phandle);
@@ -465,28 +452,13 @@ parse_interrupt_map_prop(const void *const dtb,
         const uint32_t parent_unit_cells =
             phandle_addr_size_cells != NULL ?
                 phandle_addr_size_cells->addr_cells : 0;
-        const uint64_t parent_unit_addr_shift =
-            parent_unit_cells != 0 ? sizeof(uint64_t) / parent_unit_cells : 0;
 
-        if (parent_unit_addr_shift != sizeof_bits(uint64_t)) {
-            if (reg + parent_unit_cells >= reg_end) {
-                return false;
-            }
-
-            for (uint32_t j = 0; j != parent_unit_cells; j++) {
-                info.parent_unit_address =
-                    info.parent_unit_address << parent_unit_addr_shift |
-                    fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.parent_unit_address = fdt32_to_cpu(*reg);
-            reg++;
-
-            if (reg == reg_end) {
-                return false;
-            }
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               (int)parent_unit_cells,
+                               (uint64_t *)&info.child_int_specifier))
+        {
+            return false;
         }
 
         struct devicetree_prop_interrupt_cells *const int_cells_prop =
@@ -527,11 +499,11 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        if (reg + parent_int_cells > reg_end) {
+        if (data + parent_int_cells > data_end) {
             return false;
         }
 
-        if (!parse_int_info(reg, &info.parent_int_info)) {
+        if (!parse_int_info(data, &info.parent_int_info)) {
             return false;
         }
 
@@ -539,7 +511,7 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        reg += parent_int_cells;
+        data += parent_int_cells;
     }
 
     return true;
@@ -569,14 +541,14 @@ parse_specifier_map_prop(const void *const dtb,
         return true;
     }
 
-    const fdt32_t *reg = NULL;
-    uint32_t reg_length = 0;
+    const fdt32_t *data = NULL;
+    uint32_t data_length = 0;
 
-    if (!parse_array_prop(fdt_prop, prop_length, &reg, &reg_length)) {
+    if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
         return false;
     }
 
-    if (reg_length == 0) {
+    if (data_length == 0) {
         return true;
     }
 
@@ -585,41 +557,33 @@ parse_specifier_map_prop(const void *const dtb,
         return false;
     }
 
-    if ((reg_length % entry_size) != 0) {
+    if ((data_length % entry_size) != 0) {
         return false;
     }
 
-    const uint32_t entry_count = reg_length / entry_size;
+    const uint32_t entry_count = data_length / entry_size;
     array_reserve(array, entry_count);
 
-    const uint32_t shift = sizeof_bits(uint64_t) / entry_size;
+    const fdt32_t *const data_end = data + data_length;
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_spec_map_entry info;
-        if (shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != cells; j++) {
-                info.child_specifier =
-                    info.child_specifier << shift | fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.child_specifier = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               cells,
+                               &info.child_specifier))
+        {
+            return false;
         }
 
-        info.specifier_parent = fdt32_to_cpu(*reg);
-        reg++;
+        info.specifier_parent = fdt32_to_cpu(*data);
+        data++;
 
-        if (shift != sizeof_bits(uint64_t)) {
-            for (int j = 0; j != cells; j++) {
-                info.parent_specifier =
-                    info.parent_specifier << shift | fdt32_to_cpu(*reg);
-
-                reg++;
-            }
-        } else {
-            info.parent_specifier = fdt32_to_cpu(*reg);
-            reg++;
+        if (!parse_cells_pairs(&data,
+                               data_end,
+                               cells,
+                               &info.parent_specifier))
+        {
+            return false;
         }
 
         if (!array_append(array, &info)) {
