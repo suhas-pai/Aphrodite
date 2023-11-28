@@ -202,8 +202,7 @@ uart8250_init(const port_t base,
 }
 
 static bool
-init_from_dtb(struct devicetree *const tree,
-              struct devicetree_node *const node)
+init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
 {
     (void)tree;
     const struct devicetree_prop_reg *const reg_prop =

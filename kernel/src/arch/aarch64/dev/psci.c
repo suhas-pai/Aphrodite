@@ -110,8 +110,7 @@ static bool init_common() {
 }
 
 static bool
-init_from_dtb(struct devicetree *const tree,
-              struct devicetree_node *const node)
+init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
 {
     (void)tree;
     struct devicetree_prop_other *const method_prop =

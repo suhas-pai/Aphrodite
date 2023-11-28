@@ -49,8 +49,7 @@ static uint64_t goldfish_rtc_read(struct clock_source *const clock_source) {
 }
 
 static bool
-goldfish_rtc_init_from_dtb(struct devicetree *const tree,
-                           struct devicetree_node *const node)
+init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
 {
     (void)tree;
     const struct devicetree_prop_reg *const reg_prop =
@@ -129,7 +128,7 @@ goldfish_rtc_init_from_dtb(struct devicetree *const tree,
 
 static const char *const compat[] = { "google,goldfish-rtc" };
 static struct dtb_driver dtb_driver = {
-    .init = goldfish_rtc_init_from_dtb,
+    .init = init_from_dtb,
     .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
     .compat_list = compat,

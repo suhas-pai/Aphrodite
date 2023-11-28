@@ -77,8 +77,7 @@ clint_init(volatile uint64_t *const base,
 }
 
 static bool
-init_from_dtb(struct devicetree *const tree,
-              struct devicetree_node *const node)
+init_from_dtb(struct devicetree *const tree, struct devicetree_node *const node)
 {
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
