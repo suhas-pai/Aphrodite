@@ -853,7 +853,7 @@ void free_large_page(struct page *head) {
     spin_release_with_irq(&section->lock, flag);
 }
 
-void free_pages(struct page *const page, const uint8_t order) {
+void free_pages(struct page *page, const uint8_t order) {
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: free_pages() got order >= MAX_ORDER\n");
         return;
@@ -871,10 +871,8 @@ void free_pages(struct page *const page, const uint8_t order) {
         return;
     }
 
-    struct page *free_page = page;
     uint64_t amount = 1ull << order;
-
-    if (find_nearby_free_pages(free_page, amount, &free_page, &amount)) {
+    if (find_nearby_free_pages(page, amount, &page, &amount)) {
         free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
     } else {
         add_to_freelist_order(page_to_section(page), order, page);
