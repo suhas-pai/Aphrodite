@@ -71,6 +71,7 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
                                            driver->compat_list[i]))
             {
                 found = true;
+                break;
             }
         }
 
