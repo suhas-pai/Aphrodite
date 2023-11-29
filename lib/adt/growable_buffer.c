@@ -12,7 +12,7 @@ __optimize(3) struct growable_buffer gbuffer_alloc(const uint32_t capacity) {
     uint32_t size = 0;
     const struct growable_buffer gbuffer = {
         .begin = malloc_size(capacity, &size),
-        .end = gbuffer.begin + size,
+        .capacity = size,
         .is_alloc = true
     };
 
@@ -37,8 +37,8 @@ gbuffer_open(void *const buffer,
 {
     const struct growable_buffer gbuffer = {
         .begin = buffer,
-        .end = buffer + capacity,
         .index = used,
+        .capacity = capacity,
         .is_alloc = is_alloc
     };
 
@@ -65,7 +65,7 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
     // Avoid using realloc() here because by using malloc_size() we know that
     // we've used up all memory that was available to us.
 
-    uint32_t new_size = check_add_assert(gbuffer_capacity(*gb), add);
+    uint32_t new_size = check_add_assert((uint32_t)gb->capacity, add);
     void *const new_alloc = malloc_size(new_size, &new_size);
 
     if (new_alloc == NULL) {
@@ -80,14 +80,14 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
     }
 
     gb->begin = new_alloc;
-    gb->end = new_alloc + new_size;
+    gb->capacity = new_size;
 
     return true;
 }
 
 __optimize(3) struct mutable_buffer
 gbuffer_get_mutable_buffer(const struct growable_buffer gbuffer) {
-    const uint32_t cap = gbuffer_capacity(gbuffer);
+    const uint32_t cap = gbuffer.capacity;
     return mbuffer_open(gbuffer.begin, gbuffer.index, cap);
 }
 
@@ -98,7 +98,7 @@ __optimize(3) void *gbuffer_current_ptr(const struct growable_buffer gbuffer) {
 __optimize(3) void *
 gbuffer_at(const struct growable_buffer gbuffer, const uint32_t byte_index) {
     void *const result = gbuffer.begin + byte_index;
-    const uint32_t capacity = gbuffer_capacity(gbuffer);
+    const uint32_t capacity = gbuffer.capacity;
 
     assert_msg(index_in_bounds(byte_index, capacity),
                "gbuffer: attempting to access past end of buffer, at "
@@ -109,21 +109,21 @@ gbuffer_at(const struct growable_buffer gbuffer, const uint32_t byte_index) {
     return result;
 }
 
+__optimize(3) const void *gbuffer_end(const struct growable_buffer gbuffer) {
+    return gbuffer.begin + gbuffer.capacity;
+}
+
 __optimize(3)
 uint32_t gbuffer_free_space(const struct growable_buffer gbuffer) {
-    return distance(gbuffer.begin + gbuffer.index, gbuffer.end);
+    return gbuffer.capacity - gbuffer.index;
 }
 
 __optimize(3) uint32_t gbuffer_used_size(const struct growable_buffer gbuffer) {
     return gbuffer.index;
 }
 
-__optimize(3) uint32_t gbuffer_capacity(const struct growable_buffer gbuffer) {
-    return distance(gbuffer.begin, gbuffer.end);
-}
-
 __optimize(3) bool gbuffer_empty(const struct growable_buffer gbuffer) {
-    return gbuffer_used_size(gbuffer) == 0;
+    return gbuffer.index == 0;
 }
 
 __optimize(3) uint32_t
@@ -232,7 +232,7 @@ __optimize(3) void *gbuffer_take_data(struct growable_buffer *const gbuffer) {
 
     gbuffer->begin = NULL;
     gbuffer->index = 0;
-    gbuffer->end = NULL;
+    gbuffer->capacity = 0;
     gbuffer->is_alloc = false;
 
     return result;
@@ -247,11 +247,11 @@ __optimize(3) void gbuffer_destroy(struct growable_buffer *const gb) {
         free(gb->begin);
     } else {
         // Even if just a stack buffer, clear out memory for safety
-        bzero(gb->begin, gbuffer_capacity(*gb));
+        bzero(gb->begin, gb->capacity);
     }
 
     gb->begin = NULL;
     gb->index = 0;
-    gb->end = NULL;
+    gb->capacity = 0;
     gb->is_alloc = false;
 }

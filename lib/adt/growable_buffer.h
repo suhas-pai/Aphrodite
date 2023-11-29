@@ -10,9 +10,9 @@
 
 struct growable_buffer {
     void *begin;
-    const void *end;
-
     uint32_t index;
+    uint32_t capacity : 31;
+
     bool is_alloc : 1;
 };
 
@@ -20,7 +20,7 @@ struct growable_buffer {
     ((struct growable_buffer){ \
         .begin = NULL,         \
         .index = 0,            \
-        .end = NULL,           \
+        .capacity = 0,         \
         .is_alloc = false      \
     })
 
@@ -49,9 +49,10 @@ gbuffer_get_mutable_buffer(struct growable_buffer gbuffer);
 void *gbuffer_current_ptr(struct growable_buffer gbuffer);
 void *gbuffer_at(struct growable_buffer gbuffer, uint32_t index);
 
+const void *gbuffer_end(struct growable_buffer gbuffer);
+
 uint32_t gbuffer_free_space(struct growable_buffer gbuffer);
 uint32_t gbuffer_used_size(struct growable_buffer gbuffer);
-uint32_t gbuffer_capacity(struct growable_buffer gbuffer);
 
 bool gbuffer_can_add_size(struct growable_buffer gbuffer, uint32_t size);
 bool gbuffer_empty(struct growable_buffer gbuffer);

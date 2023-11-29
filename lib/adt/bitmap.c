@@ -27,7 +27,7 @@ struct bitmap bitmap_open(void *const buffer, const uint64_t byte_count) {
 }
 
 __optimize(3) uint64_t bitmap_capacity(const struct bitmap *const bitmap) {
-    return bytes_to_bits(gbuffer_capacity(bitmap->gbuffer));
+    return bytes_to_bits(bitmap->gbuffer.capacity);
 }
 
 static inline uint64_t
@@ -37,7 +37,7 @@ find_multiple_unset(struct bitmap *const bitmap,
                     const bool set)
 {
     void *const begin = bitmap->gbuffer.begin;
-    const void *const end = bitmap->gbuffer.end;
+    const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
     start_index = (start_index % sizeof_bits(uint8_t));
@@ -143,7 +143,7 @@ find_multiple_set(struct bitmap *const bitmap,
                   const bool unset)
 {
     void *const begin = bitmap->gbuffer.begin;
-    const void *const end = bitmap->gbuffer.end;
+    const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
     start_index = (start_index % sizeof_bits(uint8_t));
@@ -248,7 +248,7 @@ find_single_unset(struct bitmap *const bitmap,
                   const bool set)
 {
     void *const begin = bitmap->gbuffer.begin;
-    const void *const end = bitmap->gbuffer.end;
+    const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
     start_index = (start_index % sizeof_bits(uint8_t));
@@ -287,7 +287,7 @@ find_single_set(struct bitmap *const bitmap,
                 const bool unset)
 {
     void *const begin = bitmap->gbuffer.begin;
-    const void *const end = bitmap->gbuffer.end;
+    const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
     start_index = (start_index % sizeof_bits(uint8_t));
@@ -350,7 +350,7 @@ find_unset_at_mult(struct bitmap *const bitmap,
                    const bool set)
 {
     void *const begin = bitmap->gbuffer.begin;
-    const void *const end = bitmap->gbuffer.end;
+    const void *const end = gbuffer_end(bitmap->gbuffer);
 
     if (!round_up(start_index, mult, &start_index)) {
         return false;
@@ -466,7 +466,7 @@ find_set_at_mult(struct bitmap *const bitmap,
                  const bool unset)
 {
     void *const begin = bitmap->gbuffer.begin;
-    const void *const end = bitmap->gbuffer.end;
+    const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
     start_index = (start_index % sizeof_bits(uint8_t));
@@ -752,10 +752,10 @@ bitmap_set_range(struct bitmap *const bitmap,
 
 void bitmap_set_all(struct bitmap *const bitmap, const bool value) {
     if (value) {
-        const uint64_t capacity = gbuffer_capacity(bitmap->gbuffer);
+        const uint64_t capacity = bitmap->gbuffer.capacity;
         memset_all_ones(bitmap->gbuffer.begin, capacity);
     } else {
-        bzero(bitmap->gbuffer.begin, gbuffer_capacity(bitmap->gbuffer));
+        bzero(bitmap->gbuffer.begin, bitmap->gbuffer.capacity);
     }
 }
 
