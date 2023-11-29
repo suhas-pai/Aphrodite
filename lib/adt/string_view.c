@@ -130,7 +130,8 @@ sv_has_prefix(const struct string_view sv, const struct string_view prefix) {
     return strncmp(sv.begin, prefix.begin, prefix.length) == 0;
 }
 
-bool sv_has_suffix(struct string_view sv, struct string_view suffix) {
+__optimize(3) bool
+sv_has_suffix(const struct string_view sv, const struct string_view suffix) {
     if (__builtin_expect(suffix.length > sv.length, 0)) {
         return false;
     }
