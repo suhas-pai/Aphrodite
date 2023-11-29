@@ -179,6 +179,8 @@ void devicetree_node_free(struct devicetree_node *const node) {
             case DEVICETREE_PROP_PCI_BUS_RANGE:
                 break;
         }
+
+        kfree(prop);
     }
 
     array_destroy(&node->known_props);
