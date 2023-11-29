@@ -20,7 +20,7 @@
 #include "port.h"
 
 struct ahci_device {
-    struct pci_device_info *device;
+    struct pci_entity_info *device;
     volatile struct ahci_spec_hba_registers *regs;
 
     struct ahci_hba_port *port_list;
@@ -277,16 +277,16 @@ bool ahci_hba_probe_port(volatile struct ahci_spec_hba_port *const port) {
     return det == AHCI_HBA_PORT_DET_PRESENT && ipm == AHCI_HBA_PORT_IPM_ACTIVE;
 }
 
-static void init_from_pci(struct pci_device_info *const pci_device) {
-    if (!index_in_bounds(AHCI_HBA_REGS_BAR_INDEX, pci_device->max_bar_count)) {
+static void init_from_pci(struct pci_entity_info *const pci_entity) {
+    if (!index_in_bounds(AHCI_HBA_REGS_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN,
                "ahci: pci-device has fewer than %" PRIu32 " bars\n",
                AHCI_HBA_REGS_BAR_INDEX);
         return;
     }
 
-    struct pci_device_bar_info *const bar =
-        &pci_device->bar_list[AHCI_HBA_REGS_BAR_INDEX];
+    struct pci_entity_bar_info *const bar =
+        &pci_entity->bar_list[AHCI_HBA_REGS_BAR_INDEX];
 
     if (!bar->is_present) {
         printk(LOGLEVEL_WARN,
@@ -311,9 +311,9 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
         return;
     }
 
-    pci_device_enable_privl(pci_device,
-                            __PCI_DEVICE_PRIVL_BUS_MASTER |
-                            __PCI_DEVICE_PRIVL_MEM_ACCESS);
+    pci_entity_enable_privl(pci_entity,
+                            __PCI_ENTITY_PRIVL_BUS_MASTER |
+                            __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
     volatile struct ahci_spec_hba_registers *const regs =
         (volatile struct ahci_spec_hba_registers *)bar->mmio->base;
@@ -341,7 +341,7 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
 
     const uint64_t host_cap = mmio_read(&regs->host_capabilities);
     struct ahci_device device = {
-        .device = pci_device,
+        .device = pci_entity,
         .regs = regs,
         .port_list =
             kmalloc(sizeof(struct ahci_hba_port) * ports_impled),
@@ -410,8 +410,8 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
 
 static const struct pci_driver pci_driver = {
     .vendor = 0x1af4,
-    .class = PCI_DEVICE_CLASS_MASS_STORAGE_CONTROLLER,
-    .subclass = PCI_DEVICE_SUBCLASS_SATA,
+    .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
+    .subclass = PCI_ENTITY_SUBCLASS_SATA,
     .prog_if = 0x1,
     .match =
         __PCI_DRIVER_MATCH_CLASS |

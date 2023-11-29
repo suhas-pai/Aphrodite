@@ -15,15 +15,9 @@
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
 
-#include "sys/mmio.h"
-#include "sys/pio.h"
-
 #include "structs.h"
 
-static struct list g_domain_list = LIST_INIT(g_domain_list);
-static struct list g_device_list = LIST_INIT(g_device_list);
-
-static uint64_t g_domain_count = 0;
+static struct list g_entity_list = LIST_INIT(g_entity_list);
 
 enum parse_bar_result {
     E_PARSE_BAR_OK,
@@ -35,18 +29,18 @@ enum parse_bar_result {
     E_PARSE_BAR_MMIO_MAP_FAIL
 };
 
-#define read_bar(index) \
-    arch_pci_read(dev,  \
-                  offsetof(struct pci_spec_device_info, bar_list) + \
-                      ((index) * sizeof(uint32_t)),                 \
-                  sizeof(uint32_t))
+#define read_bar(dev, index) \
+    pci_space_read_32((dev)->space, \
+                      &(dev)->loc, \
+                      offsetof(struct pci_spec_entity_info, bar_list) + \
+                        ((index) * sizeof(uint32_t)))
 
-#define write_bar(index, value) \
-    arch_pci_write(dev,         \
-                   offsetof(struct pci_spec_device_info, bar_list) + \
-                       ((index) * sizeof(uint32_t)), \
-                   (value),                          \
-                   sizeof(uint32_t))
+#define write_bar(dev, index, value) \
+    pci_space_write_32((dev)->space, \
+                       &(dev)->loc, \
+                       offsetof(struct pci_spec_entity_info, bar_list) + \
+                        ((index) * sizeof(uint32_t)), \
+                       (value))
 
 enum pci_bar_masks {
     PCI_BAR_32B_ADDR_SIZE_MASK = 0xfffffff0,
@@ -54,8 +48,8 @@ enum pci_bar_masks {
 };
 
 __optimize(3) static enum parse_bar_result
-pci_bar_parse_size(struct pci_device_info *const dev,
-                   struct pci_device_bar_info *const info,
+pci_bar_parse_size(struct pci_entity_info *const dev,
+                   struct pci_entity_bar_info *const info,
                    uint64_t base_addr,
                    const uint32_t bar_0_index,
                    const uint32_t bar_0_orig)
@@ -70,18 +64,18 @@ pci_bar_parse_size(struct pci_device_info *const dev,
      * procedure on both registers for 64-bit.
      */
 
-    write_bar(bar_0_index, UINT32_MAX);
-    const uint32_t bar_0_size = read_bar(bar_0_index);
-    write_bar(bar_0_index, bar_0_orig);
+    write_bar(dev, bar_0_index, UINT32_MAX);
+    const uint32_t bar_0_size = read_bar(dev, bar_0_index);
+    write_bar(dev, bar_0_index, bar_0_orig);
 
     uint64_t size = 0;
     if (info->is_64_bit) {
         const uint32_t bar_1_index = bar_0_index + 1;
-        const uint32_t bar_1_orig = read_bar(bar_1_index);
+        const uint32_t bar_1_orig = read_bar(dev, bar_1_index);
 
-        write_bar(bar_1_index, UINT32_MAX);
-        const uint64_t size_high = read_bar(bar_1_index);
-        write_bar(bar_1_index, bar_1_orig);
+        write_bar(dev, bar_1_index, UINT32_MAX);
+        const uint64_t size_high = read_bar(dev, bar_1_index);
+        write_bar(dev, bar_1_index, bar_1_orig);
 
         size = size_high << 32 | (bar_0_size & PCI_BAR_32B_ADDR_SIZE_MASK);
         size = ~size + 1;
@@ -107,15 +101,15 @@ pci_bar_parse_size(struct pci_device_info *const dev,
 
 // index_in is incremented assuming index += 1 will be called by the caller
 static enum parse_bar_result
-pci_parse_bar(struct pci_device_info *const dev,
+pci_parse_bar(struct pci_entity_info *const dev,
               uint8_t *const index_in,
               const bool is_bridge,
-              struct pci_device_bar_info *const bar)
+              struct pci_entity_bar_info *const bar)
 {
     uint64_t base_addr = 0;
 
     const uint8_t bar_0_index = *index_in;
-    const uint32_t bar_0 = read_bar(bar_0_index);
+    const uint32_t bar_0 = read_bar(dev, bar_0_index);
 
     if (bar_0 & __PCI_DEVBAR_IO) {
         base_addr = bar_0 & PCI_BAR_PORT_ADDR_SIZE_MASK;
@@ -148,7 +142,7 @@ pci_parse_bar(struct pci_device_info *const dev,
         return E_PARSE_BAR_NO_REG_FOR_UPPER32;
     }
 
-    base_addr |= (uint64_t)read_bar(bar_0_index + 1) << 32;
+    base_addr |= (uint64_t)read_bar(dev, bar_0_index + 1) << 32;
     bar->is_64_bit = true;
 
     // Increment once more since we read another register
@@ -170,140 +164,14 @@ mmio_map:
 #undef write_bar
 #undef read_bar
 
-bool pci_map_bar(struct pci_device_bar_info *const bar) {
-    if (!bar->is_mmio) {
-        printk(LOGLEVEL_WARN, "pcie: pci_map_bar() called on non-mmio bar\n");
-        return false;
-    }
-
-    if (bar->mmio != NULL) {
-        return true;
-    }
-
-    uint64_t flags = 0;
-    if (bar->is_prefetchable) {
-        flags |= __VMAP_MMIO_WT;
-    }
-
-    const struct range phys_range = bar->port_or_phys_range;
-    struct range aligned_range = RANGE_EMPTY();
-
-    if (!range_align_out(phys_range, PAGE_SIZE, &aligned_range)) {
-        printk(LOGLEVEL_WARN,
-               "pcie: failed to align mmio bar, range couldn't be aligned\n");
-        return false;
-    }
-
-    struct mmio_region *const mmio =
-        vmap_mmio(aligned_range, PROT_READ | PROT_WRITE, flags);
-
-    if (mmio == NULL) {
-        printk(LOGLEVEL_WARN,
-               "pcie: failed to mmio map bar at phys range: " RANGE_FMT "\n",
-               RANGE_FMT_ARGS(bar->port_or_phys_range));
-        return E_PARSE_BAR_MMIO_MAP_FAIL;
-    }
-
-    const uint64_t index_in_map = phys_range.front - aligned_range.front;
-
-    bar->mmio = mmio;
-    bar->index_in_mmio = index_in_map;
-
-    return true;
-}
-
-__optimize(3) bool pci_unmap_bar(struct pci_device_bar_info *const bar) {
-    if (!bar->is_mmio) {
-        printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on non-mmio bar\n");
-        return false;
-    }
-
-    if (bar->mmio == NULL) {
-        printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on unmapped bar\n");
-        return true;
-    }
-
-    vunmap_mmio(bar->mmio);
-
-    bar->mmio = NULL;
-    bar->index_in_mmio = 0;
-
-    return true;
-}
-
-__optimize(3) uint8_t
-pci_device_bar_read8(struct pci_device_bar_info *const bar,
-                     const uint32_t offset)
-{
-    if (bar->mmio == NULL) {
-        return UINT8_MAX;
-    }
-
-    return
-        bar->is_mmio ?
-            mmio_read_8(bar->mmio->base + bar->index_in_mmio + offset) :
-            pio_read8((port_t)(bar->port_or_phys_range.front + offset));
-}
-
-__optimize(3) uint16_t
-pci_device_bar_read16(struct pci_device_bar_info *const bar,
-                      const uint32_t offset)
-{
-    if (bar->mmio == NULL) {
-        return UINT16_MAX;
-    }
-
-    return
-        bar->is_mmio ?
-            mmio_read_16(bar->mmio->base + bar->index_in_mmio + offset) :
-            pio_read16((port_t)(bar->port_or_phys_range.front + offset));
-}
-
-__optimize(3) uint32_t
-pci_device_bar_read32(struct pci_device_bar_info *const bar,
-                      const uint32_t offset)
-{
-    if (bar->mmio == NULL) {
-        return UINT32_MAX;
-    }
-
-    return
-        bar->is_mmio ?
-            mmio_read_32(bar->mmio->base + bar->index_in_mmio + offset) :
-            pio_read32((port_t)(bar->port_or_phys_range.front + offset));
-}
-
-__optimize(3) uint64_t
-pci_device_bar_read64(struct pci_device_bar_info *const bar,
-                      const uint32_t offset)
-{
-#if defined(__x86_64__)
-    assert(bar->is_mmio);
-    if (bar->mmio == NULL) {
-        return UINT64_MAX;
-    }
-
-    return mmio_read_64(bar->mmio->base + bar->index_in_mmio + offset);
-#else
-    if (bar->mmio == NULL) {
-        return UINT64_MAX;
-    }
-
-    return
-        (bar->is_mmio) ?
-            mmio_read_64(bar->mmio->base + bar->index_in_mmio + offset) :
-            pio_read64((port_t)(bar->port_or_phys_range.front + offset));
-#endif /* defined(__x86_64__) */
-}
-
 static bool
 validate_cap_offset(struct array *const prev_cap_offsets,
                     const uint8_t cap_offset)
 {
-    uint32_t struct_size = offsetof(struct pci_spec_device_info, data);
+    uint32_t struct_size = offsetof(struct pci_spec_entity_info, data);
     if (index_in_bounds(cap_offset, struct_size)) {
         printk(LOGLEVEL_INFO,
-               "\t\tinvalid device. pci capability offset points to "
+               "\t\tinvalid entity. pci capability offset points to "
                "within structure: 0x%" PRIx8 "\n",
                cap_offset);
         return false;
@@ -312,11 +180,11 @@ validate_cap_offset(struct array *const prev_cap_offsets,
     const struct range cap_range =
         RANGE_INIT(cap_offset, sizeof(struct pci_spec_capability));
 
-    if (!range_has_index_range(rangeof_field(struct pci_spec_device_info, data),
+    if (!range_has_index_range(rangeof_field(struct pci_spec_entity_info, data),
                                cap_range))
     {
         printk(LOGLEVEL_INFO,
-               "\t\tinvalid device. pci capability struct is outside device's "
+               "\t\tinvalid entity. pci capability struct is outside entity's "
                "data range: " RANGE_FMT "\n",
                RANGE_FMT_ARGS(cap_range));
         return false;
@@ -344,27 +212,27 @@ validate_cap_offset(struct array *const prev_cap_offsets,
     return true;
 }
 
-static void pci_parse_capabilities(struct pci_device_info *const dev) {
+static void pci_parse_capabilities(struct pci_entity_info *const dev) {
     if ((dev->status & __PCI_DEVSTATUS_CAPABILITIES) == 0) {
         printk(LOGLEVEL_INFO, "\t\thas no capabilities\n");
         return;
     }
 
     uint8_t cap_offset =
-        pci_read(dev, struct pci_spec_device_info, capabilities_offset);
+        pci_read(dev, struct pci_spec_entity_info, capabilities_offset);
 
     if (cap_offset == 0 || cap_offset == (uint8_t)PCI_READ_FAIL) {
         printk(LOGLEVEL_INFO,
-               "\t\thas no capabilities, but pci-device is marked as having "
+               "\t\thas no capabilities, but pci-entity is marked as having "
                "some\n");
         return;
     }
 
-    if (!range_has_index(rangeof_field(struct pci_spec_device_info, data),
+    if (!range_has_index(rangeof_field(struct pci_spec_entity_info, data),
                          cap_offset))
     {
         printk(LOGLEVEL_INFO,
-               "\t\tcapabilities point to within device-info structure\n");
+               "\t\tcapabilities point to within entity-info structure\n");
         return;
     }
 
@@ -383,14 +251,14 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
 #endif
 
 #define pci_read_cap_field(type, field) \
-    pci_read_with_offset(dev, cap_offset, type, field)
+    pci_read_from_base(dev, cap_offset, type, field)
 
     for (uint64_t i = 0; cap_offset != 0 && cap_offset != 0xff; i++) {
         if (i == 128) {
             printk(LOGLEVEL_INFO,
                    "\t\ttoo many capabilities for "
-                   "device " PCI_DEVICE_INFO_FMT "\n",
-                   PCI_DEVICE_INFO_FMT_ARGS(dev));
+                   "entity " PCI_ENTITY_INFO_FMT "\n",
+                   PCI_ENTITY_INFO_FMT_ARGS(dev));
             return;
         }
 
@@ -422,11 +290,11 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
                 }
             #endif /* defined(__x86_64) */
 
-                if (dev->msi_support == PCI_DEVICE_MSI_SUPPORT_MSIX) {
+                if (dev->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
                     break;
                 }
 
-                dev->msi_support = PCI_DEVICE_MSI_SUPPORT_MSI;
+                dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSI;
                 dev->pcie_msi_offset = cap_offset;
 
                 break;
@@ -438,7 +306,7 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
                 }
             #endif /* defined(__x86_64) */
 
-                if (dev->msi_support == PCI_DEVICE_MSI_SUPPORT_MSIX) {
+                if (dev->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
                     printk(LOGLEVEL_WARN,
                            "\t\tfound multiple msix capabilities. ignoring\n");
                     break;
@@ -460,7 +328,7 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
                     break;
                 }
 
-                dev->msi_support = PCI_DEVICE_MSI_SUPPORT_MSIX;
+                dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSIX;
                 dev->msix_table = bitmap;
 
                 break;
@@ -507,8 +375,8 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
                 kind = "secure-device";
                 break;
             case PCI_SPEC_CAP_ID_PCI_EXPRESS:
-                dev->supports_pcie = true;
                 kind = "pci-express";
+                dev->supports_pcie = true;
 
                 break;
             case PCI_SPEC_CAP_ID_ADV_FEATURES:
@@ -535,30 +403,30 @@ static void pci_parse_capabilities(struct pci_device_info *const dev) {
 }
 
 __optimize(3)
-static void free_inside_device_info(struct pci_device_info *const device) {
-    struct pci_device_bar_info *const bar_list = device->bar_list;
+static void free_inside_entity_info(struct pci_entity_info *const entity) {
+    struct pci_entity_bar_info *const bar_list = entity->bar_list;
     const uint8_t bar_count =
-        device->header_kind == PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE  ?
+        entity->header_kind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE  ?
             PCI_BAR_COUNT_FOR_BRIDGE : PCI_BAR_COUNT_FOR_GENERAL;
 
     for (uint8_t i = 0; i != bar_count; i++) {
-        struct pci_device_bar_info *const bar = &bar_list[i];
+        struct pci_entity_bar_info *const bar = &bar_list[i];
         if (bar->mmio != NULL) {
             vunmap_mmio(bar->mmio);
         }
     }
 
-    if (device->msi_support == PCI_DEVICE_MSI_SUPPORT_MSIX) {
-        bitmap_destroy(&device->msix_table);
+    if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
+        bitmap_destroy(&entity->msix_table);
     }
 
-    array_destroy(&device->vendor_cap_list);
+    array_destroy(&entity->vendor_cap_list);
 }
 
 __optimize(3) static inline
-const char *pci_device_get_vendor_name(struct pci_device_info *const device) {
+const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
     carr_foreach(pci_vendor_info_list, iter) {
-        if (device->vendor_id == iter->id) {
+        if (entity->vendor_id == iter->id) {
             return iter->name;
         }
     }
@@ -567,72 +435,69 @@ const char *pci_device_get_vendor_name(struct pci_device_info *const device) {
 }
 
 void
-pci_parse_bus(struct pci_domain *domain,
-              struct pci_config_space *config_space,
+pci_parse_bus(struct pci_space *space,
+              struct pci_space_location *config_space,
               uint8_t bus);
 
 static void
-parse_function(struct pci_domain *const domain,
-               const struct pci_config_space *const config_space)
+parse_function(struct pci_space *const space,
+               const struct pci_space_location *const loc)
 {
-    struct pci_device_info info = {
-        .domain = domain,
-        .config_space = *config_space
+    struct pci_entity_info info = {
+        .space = space,
+        .loc = *loc
     };
 
-    if (domain->mmio->base != NULL) {
-        info.pcie_info = domain->mmio->base + pci_device_get_index(&info);
-    }
-
     const uint16_t vendor_id =
-        pci_read(&info, struct pci_spec_device_info_base, vendor_id);
+        pci_read(&info, struct pci_spec_entity_info_base, vendor_id);
 
     if (vendor_id == (uint16_t)PCI_READ_FAIL) {
         return;
     }
 
     const uint8_t header_kind =
-        pci_read(&info, struct pci_spec_device_info_base, header_kind);
+        pci_read(&info, struct pci_spec_entity_info_base, header_kind);
 
-    const bool is_multi_function = (header_kind & __PCI_DEVHDR_MULTFUNC) != 0;
+    const bool is_multi_function =
+        (header_kind & __PCI_ENTITY_HDR_MULTFUNC) != 0;
 
-    const uint8_t hdrkind = header_kind & (uint8_t)~__PCI_DEVHDR_MULTFUNC;
+    const uint8_t hdrkind = header_kind & (uint8_t)~__PCI_ENTITY_HDR_MULTFUNC;
     const uint8_t irq_pin =
-        hdrkind == PCI_SPEC_DEVHDR_KIND_GENERAL ?
-            pci_read(&info, struct pci_spec_device_info, interrupt_pin) : 0;
+        hdrkind == PCI_SPEC_ENTITY_HDR_KIND_GENERAL ?
+            pci_read(&info, struct pci_spec_entity_info, interrupt_pin) : 0;
 
-    info.id = pci_read(&info, struct pci_spec_device_info_base, device_id);
+    info.id = pci_read(&info, struct pci_spec_entity_info_base, device_id);
     info.vendor_id = vendor_id;
-    info.command = pci_read(&info, struct pci_spec_device_info_base, command);
-    info.status = pci_read(&info, struct pci_spec_device_info_base, status);
+    info.command = pci_read(&info, struct pci_spec_entity_info_base, command);
+    info.status = pci_read(&info, struct pci_spec_entity_info_base, status);
     info.revision_id =
-        pci_read(&info, struct pci_spec_device_info_base, revision_id);
+        pci_read(&info, struct pci_spec_entity_info_base, revision_id);
 
-    info.prog_if = pci_read(&info, struct pci_spec_device_info_base, prog_if);
+    info.prog_if = pci_read(&info, struct pci_spec_entity_info_base, prog_if);
     info.header_kind = hdrkind;
 
-    info.class = pci_read(&info, struct pci_spec_device_info_base, class_code);
-    info.subclass = pci_read(&info, struct pci_spec_device_info_base, subclass);
+    info.class = pci_read(&info, struct pci_spec_entity_info_base, class_code);
+    info.subclass = pci_read(&info, struct pci_spec_entity_info_base, subclass);
     info.irq_pin = irq_pin;
     info.multifunction = is_multi_function;
     info.vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
 
     printk(LOGLEVEL_INFO,
-           "\tdevice: " PCI_DEVICE_INFO_FMT " from %s\n",
-           PCI_DEVICE_INFO_FMT_ARGS(&info),
-           pci_device_get_vendor_name(&info));
+           "\tentity: " PCI_ENTITY_INFO_FMT " from %s\n",
+           PCI_ENTITY_INFO_FMT_ARGS(&info),
+           pci_entity_get_vendor_name(&info));
 
     const bool class_is_pci_bridge =
-        info.class == PCI_DEVICE_CLASS_BRIDGE_DEVICE &&
-        (info.subclass == PCI_DEVICE_SUBCLASS_PCI_BRIDGE ||
-         info.subclass == PCI_DEVICE_SUBCLASS_PCI_BRIDGE_2);
+        info.class == PCI_ENTITY_CLASS_BRIDGE_DEVICE &&
+        (info.subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE ||
+         info.subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
 
     const bool hdrkind_is_pci_bridge =
-        hdrkind == PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE;
+        hdrkind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE;
 
     if (hdrkind_is_pci_bridge != class_is_pci_bridge) {
         printk(LOGLEVEL_WARN,
-               "pcie: invalid device, header-type and class/subclass "
+               "pci: invalid entity, header-type and class/subclass "
                "mismatch\n");
         return;
     }
@@ -643,23 +508,23 @@ parse_function(struct pci_domain *const domain,
             (uint16_t)~(__PCI_DEVCMDREG_IOSPACE | __PCI_DEVCMDREG_MEMSPACE)) |
         __PCI_DEVCMDREG_INT_DISABLE;
 
-    pci_write(&info, struct pci_spec_device_info_base, command, new_command);
+    pci_write(&info, struct pci_spec_entity_info_base, command, new_command);
     switch (hdrkind) {
-        case PCI_SPEC_DEVHDR_KIND_GENERAL:
+        case PCI_SPEC_ENTITY_HDR_KIND_GENERAL:
             info.max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
             info.bar_list =
-                kmalloc(sizeof(struct pci_device_bar_info) *
+                kmalloc(sizeof(struct pci_entity_bar_info) *
                         info.max_bar_count);
 
             if (info.bar_list == NULL) {
                 printk(LOGLEVEL_WARN,
-                       "pcie: failed to allocate memory for bar list\n");
+                       "pci: failed to allocate memory for bar list\n");
                 return;
             }
 
             pci_parse_capabilities(&info);
             for (uint8_t index = 0; index != info.max_bar_count; index++) {
-                struct pci_device_bar_info *bar = &info.bar_list[index];
+                struct pci_entity_bar_info *bar = &info.bar_list[index];
                 const uint8_t bar_index = index;
 
                 const enum parse_bar_result result =
@@ -676,7 +541,7 @@ parse_function(struct pci_domain *const domain,
 
                 if (result != E_PARSE_BAR_OK) {
                     printk(LOGLEVEL_WARN,
-                           "pcie: failed to parse bar %" PRIu8 " for device\n",
+                           "pci: failed to parse bar %" PRIu8 " for entity\n",
                            index);
 
                     bar->is_present = false;
@@ -699,21 +564,21 @@ parse_function(struct pci_domain *const domain,
             }
 
             break;
-        case PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE:
+        case PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE:
             info.max_bar_count = PCI_BAR_COUNT_FOR_BRIDGE;
             info.bar_list =
-                kmalloc(sizeof(struct pci_device_bar_info) *
+                kmalloc(sizeof(struct pci_entity_bar_info) *
                         info.max_bar_count);
 
             if (info.bar_list == NULL) {
                 printk(LOGLEVEL_WARN,
-                       "pcie: failed to allocate memory for bar list\n");
+                       "pci: failed to allocate memory for bar list\n");
                 return;
             }
 
             pci_parse_capabilities(&info);
             for (uint8_t index = 0; index != info.max_bar_count; index++) {
-                struct pci_device_bar_info *bar = &info.bar_list[index];
+                struct pci_entity_bar_info *bar = &info.bar_list[index];
 
                 const uint8_t bar_index = index;
                 const enum parse_bar_result result =
@@ -728,10 +593,10 @@ parse_function(struct pci_domain *const domain,
 
                 if (result != E_PARSE_BAR_OK) {
                     printk(LOGLEVEL_INFO,
-                           "pcie: failed to parse bar %" PRIu8 " for "
-                           "device, " PCI_DEVICE_INFO_FMT "\n",
+                           "pci: failed to parse bar %" PRIu8 " for "
+                           "entity, " PCI_ENTITY_INFO_FMT "\n",
                            index,
-                           PCI_DEVICE_INFO_FMT_ARGS(&info));
+                           PCI_ENTITY_INFO_FMT_ARGS(&info));
                     break;
                 }
 
@@ -752,106 +617,60 @@ parse_function(struct pci_domain *const domain,
 
             const uint8_t secondary_bus_number =
                 pci_read(&info,
-                         struct pci_spec_pci_to_pci_bridge_device_info,
+                         struct pci_spec_pci_to_pci_bridge_entity_info,
                          secondary_bus_number);
 
-            pci_parse_bus(domain, &info.config_space, secondary_bus_number);
+            pci_parse_bus(space, &info.loc, secondary_bus_number);
             break;
-        case PCI_SPEC_DEVHDR_KIND_CARDBUS_BRIDGE:
+        case PCI_SPEC_ENTITY_HDR_KIND_CARDBUS_BRIDGE:
             printk(LOGLEVEL_INFO,
                    "pcie: cardbus bridge not supported. ignoring");
             break;
     }
 
-    pci_write(&info, struct pci_spec_device_info_base, command, info.command);
+    pci_write(&info, struct pci_spec_entity_info_base, command, info.command);
 
-    struct pci_device_info *const info_out = kmalloc(sizeof(*info_out));
+    struct pci_entity_info *const info_out = kmalloc(sizeof(*info_out));
     if (info_out == NULL) {
-        free_inside_device_info(&info);
+        free_inside_entity_info(&info);
         printk(LOGLEVEL_WARN,
-               "pci: failed to allocate pci-device-info struct\n");
+               "pci: failed to allocate pci-entity-info struct\n");
 
         return;
     }
 
     *info_out = info;
 
-    list_add(&domain->device_list, &info_out->list_in_domain);
-    list_add(&g_device_list, &info_out->list_in_devices);
+    list_add(&space->entity_list, &info_out->list_in_space);
+    list_add(&g_entity_list, &info_out->list_in_entities);
 }
 
 void
-pci_parse_bus(struct pci_domain *const domain,
-              struct pci_config_space *const config_space,
+pci_parse_bus(struct pci_space *const space,
+              struct pci_space_location *const loc,
               const uint8_t bus)
 {
-    config_space->bus = bus;
+    loc->bus = bus;
     for (uint8_t slot = 0; slot != PCI_MAX_DEVICE_COUNT; slot++) {
-        config_space->device_slot = slot;
+        loc->slot = slot;
         for (uint8_t func = 0; func != PCI_MAX_FUNCTION_COUNT; func++) {
-            config_space->function = func;
-            parse_function(domain, config_space);
+            loc->function = func;
+            parse_function(space, loc);
         }
     }
 }
 
-void pci_parse_domain(struct pci_domain *const domain) {
-    struct pci_config_space config_space = {
-        .domain_segment = domain->segment,
+void pci_find_entities_in_space(struct pci_space *const space) {
+    struct pci_space_location config_space = {
+        .segment = space->segment,
         .bus = 0,
-        .device_slot = 0,
+        .slot = 0,
         .function = 0,
     };
 
-    static uint64_t index = 0;
-    printk(LOGLEVEL_INFO,
-           "pci: domain #%" PRIu64 ": mmio at %p, first bus=%" PRIu64 ", "
-           "end bus=%" PRIu64 ", segment: %" PRIu32 "\n",
-           index + 1,
-           domain->mmio->base,
-           domain->bus_range.front,
-           range_get_end_assert(domain->bus_range),
-           domain->segment);
-
-    index++;
     for (uint16_t i = 0; i != PCI_MAX_BUS_COUNT; i++) {
-        pci_parse_bus(domain, &config_space, /*bus=*/i);
+        pci_parse_bus(space, &config_space, /*bus=*/i);
     }
-}
-
-struct pci_domain *
-pci_add_pcie_domain(struct range bus_range,
-                    const uint64_t base_addr,
-                    const uint16_t segment)
-{
-    struct pci_domain *const domain = kmalloc(sizeof(*domain));
-    if (domain == NULL) {
-        return NULL;
-    }
-
-    list_init(&domain->list);
-    list_init(&domain->device_list);
-
-    domain->mmio =
-        vmap_mmio(RANGE_INIT(base_addr, bus_range.size << 20),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
-
-    if (domain->mmio == NULL) {
-        kfree(domain);
-        printk(LOGLEVEL_WARN,
-               "pcie: failed to mmio-map pci-domain config-space\n");
-
-        return NULL;
-    }
-
-    domain->bus_range = bus_range;
-    domain->segment = segment;
-
-    list_add(&g_domain_list, &domain->list);
-    g_domain_count++;
-
-    return domain;
 }
 
 void pci_init_drivers() {
@@ -861,89 +680,100 @@ void pci_init_drivers() {
         }
 
         const struct pci_driver *const pci_driver = driver->pci;
-        struct pci_device_info *device = NULL;
+        struct pci_entity_info *entity = NULL;
 
-        list_foreach(device, &g_device_list, list_in_devices) {
+        list_foreach(entity, &g_entity_list, list_in_entities) {
             if (pci_driver->match == PCI_DRIVER_MATCH_VENDOR) {
-                if (device->vendor_id == pci_driver->vendor) {
-                    pci_driver->init(device);
+                if (entity->vendor_id == pci_driver->vendor) {
+                    pci_driver->init(entity);
                 }
 
                 continue;
             }
 
             if (pci_driver->match == PCI_DRIVER_MATCH_VENDOR_DEVICE) {
-                if (device->vendor_id != pci_driver->vendor) {
+                if (entity->vendor_id != pci_driver->vendor) {
                     continue;
                 }
 
                 bool found = false;
                 for (uint8_t i = 0; i != pci_driver->device_count; i++) {
-                    if (pci_driver->devices[i] == device->id) {
+                    if (pci_driver->devices[i] == entity->id) {
                         found = true;
                         break;
                     }
                 }
 
                 if (found) {
-                    pci_driver->init(device);
+                    pci_driver->init(entity);
                 }
 
                 continue;
             }
 
             if (pci_driver->match & __PCI_DRIVER_MATCH_CLASS) {
-                if (device->class != pci_driver->class) {
+                if (entity->class != pci_driver->class) {
                     continue;
                 }
             }
 
             if (pci_driver->match & __PCI_DRIVER_MATCH_SUBCLASS) {
-                if (device->subclass != pci_driver->subclass) {
+                if (entity->subclass != pci_driver->subclass) {
                     continue;
                 }
             }
 
             if (pci_driver->match & __PCI_DRIVER_MATCH_PROGIF) {
-                if (device->prog_if != pci_driver->prog_if) {
+                if (entity->prog_if != pci_driver->prog_if) {
                     continue;
                 }
             }
 
-            pci_driver->init(device);
+            pci_driver->init(entity);
         }
     }
 }
 
 __optimize(3) void pci_init() {
-#if defined(__x86_64__)
-    if (list_empty(&g_domain_list)) {
-        struct pci_domain *const root_domain = kmalloc(sizeof(*root_domain));
-        assert_msg(root_domain != NULL, "failed to allocate pci root domain");
+    int flag = 0;
+    const struct array *const space_array = pci_get_space_list_locked(&flag);
 
-        struct pci_device_info dev_0 = { .domain = root_domain };
+#if defined(__x86_64__)
+    if (array_empty(*space_array)) {
+        struct pci_space *const legacy_space = kmalloc(sizeof(*legacy_space));
+        assert_msg(legacy_space != NULL,
+                   "pci: failed to allocate pci-legacy root space");
+
+        struct pci_entity_info ent_0 = {
+            .space = legacy_space,
+            .loc = {
+                .segment = 0,
+                .bus = 0,
+                .slot = 0,
+                .function = 0
+            }
+        };
+
         const uint32_t dev_0_first_dword =
-            pci_read(&dev_0, struct pci_spec_device_info_base, vendor_id);
+            pci_read(&ent_0, struct pci_spec_entity_info_base, vendor_id);
 
         if (dev_0_first_dword == PCI_READ_FAIL) {
             printk(LOGLEVEL_WARN,
-                   "pci: failed to scan pci bus. aborting init\n");
+                   "pci: failed to find pci bus. aborting init\n");
             return;
         }
 
-        list_init(&root_domain->list);
-        list_init(&root_domain->device_list);
-
-        pci_parse_domain(root_domain);
+        list_init(&legacy_space->entity_list);
+        pci_find_entities_in_space(legacy_space);
     } else {
 #endif /* defined(__x86_64__) */
-        struct pci_domain *domain = NULL;
-        list_foreach(domain, &g_domain_list, list) {
-            pci_parse_domain(domain);
+        array_foreach(space_array, struct pci_space *, iter) {
+            pci_find_entities_in_space(*iter);
         }
 #if defined(__x86_64__)
     }
 #endif /* defined(__x86_64__) */
 
+    pci_release_space_list_lock(flag);
     pci_init_drivers();
 }

@@ -27,7 +27,7 @@ struct virtio_device {
     struct list list;
     union {
         struct {
-            struct pci_device_info *pci_device;
+            struct pci_entity_info *pci_entity;
             volatile struct virtio_pci_common_cfg *common_cfg;
 
             struct range device_cfg;
@@ -59,7 +59,7 @@ struct virtio_device {
 #define VIRTIO_DEVICE_INIT(name, is_pci_) \
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
-        .pci.pci_device = NULL, \
+        .pci.pci_entity = NULL, \
         .pci.common_cfg = NULL, \
         .pci.device_cfg = RANGE_EMPTY(), \
         .pci.notify_queue_select = NULL, \

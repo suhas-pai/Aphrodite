@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "dev/pci/device.h"
+#include "entity.h"
 
 enum pci_driver_match {
     PCI_DRIVER_MATCH_VENDOR_DEVICE,
@@ -16,7 +16,7 @@ enum pci_driver_match {
 };
 
 struct pci_driver {
-    void (*init)(struct pci_device_info *device);
+    void (*init)(struct pci_entity_info *device);
 
     uint8_t match;
     uint16_t vendor;

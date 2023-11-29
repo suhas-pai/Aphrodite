@@ -15,7 +15,7 @@
 #include "dtb/init.h"
 
 #include "dev/printk.h"
-#include "pci/pci.h"
+#include "pci/init.h"
 #include "time/time.h"
 
 void serial_init() {

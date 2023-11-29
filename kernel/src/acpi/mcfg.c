@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "dev/pci/pci.h"
+#include "dev/pci/ecam.h"
 #include "dev/printk.h"
 
 #include "mcfg.h"
@@ -28,6 +28,6 @@ void mcfg_init(const struct acpi_mcfg *const mcfg) {
         const struct range bus_range =
             range_create_end(iter->bus_start_num, iter->bus_end_num);
 
-        pci_add_pcie_domain(bus_range, iter->base_addr, iter->segment_num);
+        pci_add_ecam_space(bus_range, iter->base_addr, iter->segment_num);
     }
 }

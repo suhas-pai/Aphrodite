@@ -17,63 +17,63 @@
 
 #define PCI_READ_FAIL (uint32_t)-1
 
-enum pci_device_class_code {
-    PCI_DEVICE_CLASS_NONE,
-    PCI_DEVICE_CLASS_MASS_STORAGE_CONTROLLER,
-    PCI_DEVICE_CLASS_NETWORK_CONTROLLER,
-    PCI_DEVICE_CLASS_DISPLAY_CONTROLLER,
-    PCI_DEVICE_CLASS_MULTIMEDIA_CONTROLLER,
-    PCI_DEVICE_CLASS_MEMORY_CONTROLLER,
-    PCI_DEVICE_CLASS_BRIDGE_DEVICE,
-    PCI_DEVICE_CLASS_SIMPLE_COMMUNICATION_CONTROLLER,
-    PCI_DEVICE_CLASS_GENERIC_SYSTEM_PERIPHERAL,
-    PCI_DEVICE_CLASS_INPUT_DEVICE,
-    PCI_DEVICE_CLASS_DOCKING_STATION,
-    PCI_DEVICE_CLASS_PROCESSOR,
-    PCI_DEVICE_CLASS_SERIAL_BUS_CONTROLLER,
-    PCI_DEVICE_CLASS_WIRELESS_CONTROLLER,
-    PCI_DEVICE_CLASS_INTELLIGENT_IO_CONTROLLER,
-    PCI_DEVICE_CLASS_SATELLITE_COMM_CONTROLLER,
-    PCI_DEVICE_CLASS_ENCRYPT_DECRYPT_CONTROLLER,
-    PCI_DEVICE_CLASS_DATA_ACQ_AND_SIGNAL_PROCESSING_CONTROLLER,
+enum pci_entity_class_code {
+    PCI_ENTITY_CLASS_NONE,
+    PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
+    PCI_ENTITY_CLASS_NETWORK_CONTROLLER,
+    PCI_ENTITY_CLASS_DISPLAY_CONTROLLER,
+    PCI_ENTITY_CLASS_MULTIMEDIA_CONTROLLER,
+    PCI_ENTITY_CLASS_MEMORY_CONTROLLER,
+    PCI_ENTITY_CLASS_BRIDGE_DEVICE,
+    PCI_ENTITY_CLASS_SIMPLE_COMMUNICATION_CONTROLLER,
+    PCI_ENTITY_CLASS_GENERIC_SYSTEM_PERIPHERAL,
+    PCI_ENTITY_CLASS_INPUT_DEVICE,
+    PCI_ENTITY_CLASS_DOCKING_STATION,
+    PCI_ENTITY_CLASS_PROCESSOR,
+    PCI_ENTITY_CLASS_SERIAL_BUS_CONTROLLER,
+    PCI_ENTITY_CLASS_WIRELESS_CONTROLLER,
+    PCI_ENTITY_CLASS_INTELLIGENT_IO_CONTROLLER,
+    PCI_ENTITY_CLASS_SATELLITE_COMM_CONTROLLER,
+    PCI_ENTITY_CLASS_ENCRYPT_DECRYPT_CONTROLLER,
+    PCI_ENTITY_CLASS_DATA_ACQ_AND_SIGNAL_PROCESSING_CONTROLLER,
 };
 
-enum pci_device_storage_subclass {
-    PCI_DEVICE_SUBCLASS_SCSI,
-    PCI_DEVICE_SUBCLASS_IDE,
-    PCI_DEVICE_SUBCLASS_FLOPPY,
-    PCI_DEVICE_SUBCLASS_IPI,
-    PCI_DEVICE_SUBCLASS_RAID,
-    PCI_DEVICE_SUBCLASS_ATA,
-    PCI_DEVICE_SUBCLASS_SATA,
-    PCI_DEVICE_SUBCLASS_SAS = 0x06,
+enum pci_entity_storage_subclass {
+    PCI_ENTITY_SUBCLASS_SCSI,
+    PCI_ENTITY_SUBCLASS_IDE,
+    PCI_ENTITY_SUBCLASS_FLOPPY,
+    PCI_ENTITY_SUBCLASS_IPI,
+    PCI_ENTITY_SUBCLASS_RAID,
+    PCI_ENTITY_SUBCLASS_ATA,
+    PCI_ENTITY_SUBCLASS_SATA,
+    PCI_ENTITY_SUBCLASS_SAS = 0x06,
 
     // Technically other non-volatile memory subsystems as well
-    PCI_DEVICE_SUBCLASS_NVME = 0x08
+    PCI_ENTITY_SUBCLASS_NVME = 0x08
 };
 
-enum pci_device_bridge_subclass {
-    PCI_DEVICE_SUBCLASS_HOST_BRIDGE,
-    PCI_DEVICE_SUBCLASS_ISA_BRIDGE,
-    PCI_DEVICE_SUBCLASS_EISA_BRIDGE,
-    PCI_DEVICE_SUBCLASS_MCA_BRIDGE,
-    PCI_DEVICE_SUBCLASS_PCI_BRIDGE,
-    PCI_DEVICE_SUBCLASS_PCI_MCIA_BRIDGE,
-    PCI_DEVICE_SUBCLASS_NUBUS_BRIDGE,
-    PCI_DEVICE_SUBCLASS_CARDBUS_BRIDGE,
-    PCI_DEVICE_SUBCLASS_RACEWAY_BRIDGE,
-    PCI_DEVICE_SUBCLASS_PCI_BRIDGE_2,
-    PCI_DEVICE_SUBCLASS_INFINIBAND_PCI_HOST_BRIDGE,
+enum pci_entity_bridge_subclass {
+    PCI_ENTITY_SUBCLASS_HOST_BRIDGE,
+    PCI_ENTITY_SUBCLASS_ISA_BRIDGE,
+    PCI_ENTITY_SUBCLASS_EISA_BRIDGE,
+    PCI_ENTITY_SUBCLASS_MCA_BRIDGE,
+    PCI_ENTITY_SUBCLASS_PCI_BRIDGE,
+    PCI_ENTITY_SUBCLASS_PCI_MCIA_BRIDGE,
+    PCI_ENTITY_SUBCLASS_NUBUS_BRIDGE,
+    PCI_ENTITY_SUBCLASS_CARDBUS_BRIDGE,
+    PCI_ENTITY_SUBCLASS_RACEWAY_BRIDGE,
+    PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2,
+    PCI_ENTITY_SUBCLASS_INFINIBAND_PCI_HOST_BRIDGE,
 };
 
-enum pci_spec_device_header_kind {
-    PCI_SPEC_DEVHDR_KIND_GENERAL,
-    PCI_SPEC_DEVHDR_KIND_PCI_BRIDGE,
-    PCI_SPEC_DEVHDR_KIND_CARDBUS_BRIDGE,
+enum pci_spec_entity_header_kind {
+    PCI_SPEC_ENTITY_HDR_KIND_GENERAL,
+    PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE,
+    PCI_SPEC_ENTITY_HDR_KIND_CARDBUS_BRIDGE,
 };
 
 enum pci_spec_device_header_kind_flags {
-    __PCI_DEVHDR_MULTFUNC = 1ull << 7,
+    __PCI_ENTITY_HDR_MULTFUNC = 1ull << 7,
 };
 
 enum pci_spec_device_bist_flags {
@@ -82,7 +82,7 @@ enum pci_spec_device_bist_flags {
     __PCI_DEVBIST_CAPABLE = 1ull << 7,
 };
 
-enum pci_spec_device_cmdreg_flags {
+enum pci_spec_entity_cmdreg_flags {
     // If set to 1 the device can respond to I/O Space accesses; otherwise, the
     // device's response is disabled.
     __PCI_DEVCMDREG_IOSPACE = 1ull << 0,
@@ -185,7 +185,7 @@ static const struct pci_vendor_info pci_vendor_info_list[] = {
 #undef PCI_VENDOR
 };
 
-struct pci_spec_device_info_base {
+struct pci_spec_entity_info_base {
     uint16_t vendor_id;
     uint16_t device_id;
 
@@ -205,8 +205,8 @@ struct pci_spec_device_info_base {
 } __packed;
 
 // Type 0
-struct pci_spec_device_info {
-    struct pci_spec_device_info_base base;
+struct pci_spec_entity_info {
+    struct pci_spec_entity_info_base base;
 
     volatile uint32_t bar_list[6];
     uint32_t cardbus_cis_pointer;
@@ -228,8 +228,8 @@ struct pci_spec_device_info {
 } __packed;
 
 // Type 1
-struct pci_spec_pci_to_pci_bridge_device_info {
-    struct pci_spec_device_info_base base;
+struct pci_spec_pci_to_pci_bridge_entity_info {
+    struct pci_spec_entity_info_base base;
 
     volatile uint32_t bar_list[2];
     uint8_t primary_bus_number;
@@ -257,8 +257,8 @@ struct pci_spec_pci_to_pci_bridge_device_info {
     char data[4036];
 } __packed;
 
-struct pci_spec_pci_to_cardbus_bridge_device_info {
-    struct pci_spec_device_info_base base;
+struct pci_spec_pci_to_cardbus_bridge_entity_info {
+    struct pci_spec_entity_info_base base;
 
     union {
         uint32_t cardbus_socket;

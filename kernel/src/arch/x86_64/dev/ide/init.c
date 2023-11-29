@@ -300,18 +300,18 @@ ide_init(const uint32_t bar0,
 
 bool g_found_ide = false;
 
-static void init_from_pci(struct pci_device_info *const pci_device) {
+static void init_from_pci(struct pci_entity_info *const pci_entity) {
     g_found_ide = true;
 
-    if (!index_in_bounds(PCI_IDE_BAR_INDEX, pci_device->max_bar_count)) {
+    if (!index_in_bounds(PCI_IDE_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN,
                "ide: pci-device has fewer than %" PRIu32 " bars\n",
                PCI_IDE_BAR_INDEX);
         return;
     }
 
-    struct pci_device_bar_info *const bar =
-        &pci_device->bar_list[PCI_IDE_BAR_INDEX];
+    struct pci_entity_bar_info *const bar =
+        &pci_entity->bar_list[PCI_IDE_BAR_INDEX];
 
     if (!bar->is_present) {
         printk(LOGLEVEL_WARN,
@@ -328,9 +328,9 @@ static void init_from_pci(struct pci_device_info *const pci_device) {
         return;
     }
 
-    pci_device_enable_privl(pci_device,
-                            __PCI_DEVICE_PRIVL_BUS_MASTER |
-                            __PCI_DEVICE_PRIVL_PIO_ACCESS);
+    pci_entity_enable_privl(pci_entity,
+                            __PCI_ENTITY_PRIVL_BUS_MASTER |
+                            __PCI_ENTITY_PRIVL_PIO_ACCESS);
 
 }
 
@@ -338,8 +338,8 @@ static const struct pci_driver pci_driver = {
     .init = init_from_pci,
     .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
 
-    .class = PCI_DEVICE_CLASS_MASS_STORAGE_CONTROLLER,
-    .subclass = PCI_DEVICE_SUBCLASS_IDE,
+    .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
+    .subclass = PCI_ENTITY_SUBCLASS_IDE,
 };
 
 __driver static const struct driver driver = {

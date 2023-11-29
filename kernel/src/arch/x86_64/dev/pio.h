@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/port.h
+ * kernel/src/arch/x86_64/dev/pio.h
  * © suhas pai
  */
 
