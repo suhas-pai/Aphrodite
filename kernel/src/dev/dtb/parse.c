@@ -592,22 +592,14 @@ parse_specifier_map_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_spec_map_entry info;
-        if (!parse_cell_pair(&data,
-                             data_end,
-                             cells,
-                             &info.child_specifier))
-        {
+        if (!parse_cell_pair(&data, data_end, cells, &info.child_specifier)) {
             return false;
         }
 
         info.specifier_parent = fdt32_to_cpu(*data);
         data++;
 
-        if (!parse_cell_pair(&data,
-                             data_end,
-                             cells,
-                             &info.parent_specifier))
-        {
+        if (!parse_cell_pair(&data, data_end, cells, &info.parent_specifier)) {
             return false;
         }
 
@@ -1408,8 +1400,8 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             array_destroy(&list);
             array_destroy(&int_map_list);
 
-            kfree(map_prop);
             devicetree_node_free(tree->root);
+            kfree(map_prop);
 
             return false;
         }
