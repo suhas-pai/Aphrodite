@@ -142,9 +142,40 @@ membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
     return true;
 }
 
-__optimize(3) bool
-membuf32_is_all(uint32_t *const buf, const uint64_t count, const uint32_t c) {
+__optimize(3)
+bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
     const uint32_t *const end = buf + count;
+#if defined(__aarch64__)
+    if (count >= 2) {
+        uint32_t left = 0;
+        uint32_t right = 0;
+
+        do {
+            asm volatile ("ldp %w0, %w1, [%2]"
+                          : "+r"(left), "+r"(right)
+                          : "r"(buf)
+                          : "memory");
+
+            if (left != c || right != c) {
+                return false;
+            }
+
+            buf += 2;
+            count -= 2;
+
+            if (count >= 2) {
+                continue;
+            }
+
+            if (count != 0) {
+                return *buf == c;
+            }
+
+            return true;
+        } while (true);
+    }
+#endif /* defined(__aarch64__)*/
+
     for (uint32_t *iter = buf; iter != end; iter++) {
         if (*iter != c) {
             return false;
@@ -154,8 +185,39 @@ membuf32_is_all(uint32_t *const buf, const uint64_t count, const uint32_t c) {
     return true;
 }
 
-__optimize(3) bool
-membuf64_is_all(uint64_t *const buf, const uint64_t count, const uint64_t c) {
+__optimize(3)
+bool membuf64_is_all(uint64_t *buf, uint64_t count, const uint64_t c) {
+#if defined(__aarch64__)
+    if (count >= 2) {
+        uint64_t left = 0;
+        uint64_t right = 0;
+
+        do {
+            asm volatile ("ldp %0, %1, [%2]"
+                          : "+r"(left), "+r"(right)
+                          : "r"(buf)
+                          : "memory");
+
+            if (left != c || right != c) {
+                return false;
+            }
+
+            buf += 2;
+            count -= 2;
+
+            if (count >= 2) {
+                continue;
+            }
+
+            if (count != 0) {
+                return *buf == c;
+            }
+
+            return true;
+        } while (true);
+    }
+#endif /* defined(__aarch64__)*/
+
     const uint64_t *const end = buf + count;
     for (uint64_t *iter = buf; iter != end; iter++) {
         if (*iter != c) {
