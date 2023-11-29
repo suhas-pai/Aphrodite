@@ -58,8 +58,8 @@ parse_cell_pair(const fdt32_t **const iter_ptr,
     }
 
     printk(LOGLEVEL_WARN,
-           "devicetree: couldn't parse pairs with an invalid cells count "
-           "of %" PRIu32 "\n",
+           "devicetree: couldn't parse pairs with an invalid cell count of "
+           "%" PRIu32 "\n",
            cell_count);
 
     return false;
@@ -262,8 +262,11 @@ parse_status_prop(const struct fdt_property *const fdt_prop,
             }
 
             break;
-
     }
+
+    printk(LOGLEVEL_WARN,
+           "devicetree: status prop has an unknown value: " SV_FMT "\n",
+           SV_FMT_ARGS(status_sv));
 
     return false;
 }
@@ -350,12 +353,29 @@ fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
 }
 
 __optimize(3) static inline bool
-parse_int_info(const fdt32_t *const reg,
+parse_int_info(const fdt32_t **const data_ptr,
+               const fdt32_t *const data_end,
+               const uint32_t parent_int_cells,
+               const uint32_t phandle,
                struct devicetree_prop_int_map_entry_int_info *const int_info)
 {
-    int_info->is_ppi = fdt32_to_cpu(*reg);
-    int_info->flags = fdt32_to_cpu(reg[2]);
-    int_info->id = fdt32_to_cpu(reg[1]) + (int_info->is_ppi ? 16 : 32);
+    if (parent_int_cells != 3) {
+        printk(LOGLEVEL_WARN,
+                "devicetree: interrupt-map's phandle %" PRIu32 "'s "
+                "corresponding node #interrupt-cells property doesn't have "
+                "a value of 3\n",
+                phandle);
+        return false;
+    }
+
+    const fdt32_t *const data = *data_ptr;
+    if (data + parent_int_cells > data_end) {
+        return false;
+    }
+
+    int_info->is_ppi = fdt32_to_cpu(data[0]);
+    int_info->flags = fdt32_to_cpu(data[2]);
+    int_info->id = fdt32_to_cpu(data[1]) + (int_info->is_ppi ? 16 : 32);
 
     switch (int_info->flags & 0xF) {
         case 1:
@@ -363,24 +383,28 @@ parse_int_info(const fdt32_t *const reg,
             int_info->trigger_mode =
                 DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE;
 
+            *data_ptr = data + parent_int_cells;
             return true;
         case 2:
             int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW;
             int_info->trigger_mode =
                 DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE;
 
+            *data_ptr = data + parent_int_cells;
             return true;
         case 4:
             int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH;
             int_info->trigger_mode =
                 DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL;
 
+            *data_ptr = data + parent_int_cells;
             return true;
         case 8:
             int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW;
             int_info->trigger_mode =
                 DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL;
 
+            *data_ptr = data + parent_int_cells;
             return true;
     }
 
@@ -463,15 +487,14 @@ parse_interrupt_map_prop(const void *const dtb,
                 devicetree_node_get_prop(phandle_node,
                                          DEVICETREE_PROP_ADDR_SIZE_CELLS);
 
-        const uint32_t parent_unit_cells =
-            phandle_prop_info != NULL ? phandle_prop_info->addr_cells : 0;
-
-        if (!parse_cell_pair(&data,
-                             data_end,
-                             (int)parent_unit_cells,
-                             (uint64_t *)&info.child_int_specifier))
-        {
-            return false;
+        if (phandle_prop_info != NULL) {
+            if (!parse_cell_pair(&data,
+                                data_end,
+                                (int)phandle_prop_info->addr_cells,
+                                (uint64_t *)&info.child_int_specifier))
+            {
+                return false;
+            }
         }
 
         const struct devicetree_prop_interrupt_cells *const int_cells_prop =
@@ -502,29 +525,18 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        const uint32_t parent_int_cells = int_cells_prop->count;
-        if (parent_int_cells != 3) {
-            printk(LOGLEVEL_WARN,
-                   "devicetree: interrupt-map's phandle %" PRIu32 "'s "
-                   "corresponding node #interrupt-cells property doesn't have "
-                   "a value of 3\n",
-                   info.phandle);
-            return false;
-        }
-
-        if (data + parent_int_cells > data_end) {
-            return false;
-        }
-
-        if (!parse_int_info(data, &info.parent_int_info)) {
+        if (!parse_int_info(&data,
+                            data_end,
+                            /*parent_int_cells=*/int_cells_prop->count,
+                            info.phandle,
+                            &info.parent_int_info))
+        {
             return false;
         }
 
         if (!array_append(array, &info)) {
             return false;
         }
-
-        data += parent_int_cells;
     }
 
     return true;
