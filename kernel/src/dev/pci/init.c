@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/pci.c
+ * kernel/src/dev/pci/init.c
  * © suhas pai
  */
 
