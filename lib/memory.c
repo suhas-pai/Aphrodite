@@ -45,14 +45,14 @@ uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
         do {
             asm volatile ("stp %w0, %w0, [%1]" :: "r"(c), "r"(buf));
 
-            buf += 2;
             count -= 2;
-
             if (count >= 2) {
+                buf += 2;
                 continue;
             }
 
             if (count != 0) {
+                buf += 2;
                 *buf = c;
             }
 
@@ -90,14 +90,14 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
         do {
             asm volatile ("stp %0, %0, [%1]" :: "r"(c), "r"(buf));
 
-            buf += 2;
             count -= 2;
-
             if (count >= 2) {
+                buf += 2;
                 continue;
             }
 
             if (count != 0) {
+                buf += 2;
                 *buf = c;
             }
 
@@ -161,13 +161,13 @@ bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
             }
 
             buf += 2;
-            count -= 2;
-
             if (count >= 2) {
+                count -= 2;
                 continue;
             }
 
             if (count != 0) {
+                count -= 2;
                 return *buf == c;
             }
 
@@ -202,14 +202,14 @@ bool membuf64_is_all(uint64_t *buf, uint64_t count, const uint64_t c) {
                 return false;
             }
 
-            buf += 2;
             count -= 2;
-
             if (count >= 2) {
+                buf += 2;
                 continue;
             }
 
             if (count != 0) {
+                buf += 2;
                 return *buf == c;
             }
 
