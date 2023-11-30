@@ -11,7 +11,7 @@
 
 #include "parse.h"
 
-bool
+__optimize(3) static inline bool
 parse_array_prop(const struct fdt_property *const fdt_prop,
                  const int prop_length,
                  const fdt32_t **const data_out,
@@ -361,10 +361,10 @@ parse_int_info(const fdt32_t **const data_ptr,
 {
     if (parent_int_cells != 3) {
         printk(LOGLEVEL_WARN,
-                "devicetree: interrupt-map's phandle %" PRIu32 "'s "
-                "corresponding node #interrupt-cells property doesn't have "
-                "a value of 3\n",
-                phandle);
+               "devicetree: interrupt-map's phandle %" PRIu32 "'s "
+               "corresponding node #interrupt-cells property doesn't have "
+               "a value of 3\n",
+               phandle);
         return false;
     }
 
