@@ -267,4 +267,4 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -f src/limine.h
-	rm -rf src/dev/pci/vendors.h
+	rm -f src/dev/pci/vendors.h
