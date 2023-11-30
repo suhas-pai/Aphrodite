@@ -9,7 +9,7 @@
 #include "lib/macros.h"
 
 #define PCI_MAX_BUS_COUNT 255 // Maximum number of PCI Buses
-#define PCI_MAX_DEVICE_COUNT 32 // Each bus has upto 32 devices
+#define PCI_MAX_ENTITY_COUNT 32 // Each bus has upto 32 devices
 #define PCI_MAX_FUNCTION_COUNT 8 // Each device has upto 8 functions
 
 #define PCI_BAR_COUNT_FOR_GENERAL 6

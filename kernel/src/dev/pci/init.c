@@ -651,9 +651,20 @@ pci_parse_bus(struct pci_space *const space,
               const uint8_t bus)
 {
     loc->bus = bus;
-    for (uint8_t slot = 0; slot != PCI_MAX_DEVICE_COUNT; slot++) {
+    for (uint8_t slot = 0; slot != PCI_MAX_ENTITY_COUNT; slot++) {
         loc->slot = slot;
-        for (uint8_t func = 0; func != PCI_MAX_FUNCTION_COUNT; func++) {
+
+        const uint8_t header_kind =
+            pci_space_read_8(space,
+                             loc,
+                             offsetof(struct pci_spec_entity_info_base,
+                                      header_kind));
+
+        const uint8_t function_count =
+            header_kind & __PCI_ENTITY_HDR_MULTFUNC ?
+                PCI_MAX_FUNCTION_COUNT : 1;
+
+        for (uint8_t func = 0; func != function_count; func++) {
             loc->function = func;
             parse_function(space, loc);
         }
@@ -661,7 +672,7 @@ pci_parse_bus(struct pci_space *const space,
 }
 
 void pci_find_entities_in_space(struct pci_space *const space) {
-    struct pci_space_location config_space = {
+    struct pci_space_location loc = {
         .segment = space->segment,
         .bus = 0,
         .slot = 0,
@@ -669,7 +680,7 @@ void pci_find_entities_in_space(struct pci_space *const space) {
     };
 
     for (uint16_t i = 0; i != PCI_MAX_BUS_COUNT; i++) {
-        pci_parse_bus(space, &config_space, /*bus=*/i);
+        pci_parse_bus(space, &loc, /*bus=*/i);
     }
 }
 
