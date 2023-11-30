@@ -412,7 +412,9 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_entry_gic_msi_frame *const frame =
                     (const struct acpi_madt_entry_gic_msi_frame *)iter;
 
-                struct gic_msi_frame *const gic_frame = gicd_add_msi(frame);
+                struct gic_msi_frame *const gic_frame =
+                    gicd_add_msi(frame->phys_base_address);
+
                 printk(LOGLEVEL_INFO,
                        "madt: found msi-frame\n"
                        "\tmsi frame id: %" PRIu32 "\n"
@@ -495,7 +497,7 @@ void madt_init(const struct acpi_madt *const madt) {
 #elif defined(__aarch64__)
     assert_msg(gic_dist != NULL, "madt: failed to find gic-distributor");
 
-    gicd_init(gic_dist);
+    gicd_init(gic_dist->phys_base_address, gic_dist->gic_version);;
     gic_cpu_init(get_cpu_info());
 #endif /* defined(__x86_64__) */
 }

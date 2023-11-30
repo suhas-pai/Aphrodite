@@ -30,17 +30,9 @@ enum gic_version {
 struct gic_msi_frame {
     struct mmio_region *mmio;
     uint32_t id;
-
-    uint16_t spi_base;
-    uint16_t spi_count;
-
-    bool use_msi_typer : 1;
 };
 
 struct gic_distributor {
-    uint32_t hardware_id;
-    uint32_t sys_vector_base;
-
     struct array msi_frame_list;
     enum gic_version version;
 
@@ -60,10 +52,9 @@ struct gic_cpu_info {
 };
 
 void gic_cpu_init(const struct cpu_info *cpu);
-void gicd_init(const struct acpi_madt_entry_gic_distributor *dist);
+void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 
-struct gic_msi_frame *
-gicd_add_msi(const struct acpi_madt_entry_gic_msi_frame *frame);
+struct gic_msi_frame *gicd_add_msi(uint64_t phys_base_address);
 
 const struct gic_distributor *gic_get_dist();
 

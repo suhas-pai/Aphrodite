@@ -4,10 +4,9 @@
  */
 
 #include <stdatomic.h>
-
-#include "acpi/structs.h"
 #include "cpu/info.h"
 
+#include "dev/driver.h"
 #include "dev/printk.h"
 #include "lib/align.h"
 #include "mm/mmio.h"
@@ -152,8 +151,6 @@ _Static_assert(sizeof(struct gicd_registers) == 0x10000,
                "struct gicd_registers has an incorrect size");
 
 static struct gic_distributor g_dist = {
-    .hardware_id = 0,
-    .sys_vector_base = 0,
     .msi_frame_list = ARRAY_INIT(sizeof(struct gic_msi_frame)),
     .version = GICv1,
     .impl_cpu_count = 0,
@@ -249,7 +246,7 @@ void gic_cpu_init(const struct cpu_info *const cpu) {
     printk(LOGLEVEL_INFO, "gic: initialized cpu interface\n");
 }
 
-void gicd_init(const struct acpi_madt_entry_gic_distributor *const dist) {
+void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
     if (g_dist_initialized) {
         printk(LOGLEVEL_WARN,
                "gic: attempting to initialize multiple gic distributions\n");
@@ -257,7 +254,7 @@ void gicd_init(const struct acpi_madt_entry_gic_distributor *const dist) {
     }
 
     struct range mmio_range =
-        RANGE_INIT(dist->phys_base_address, sizeof(struct gicd_registers));
+        RANGE_INIT(phys_base_address, sizeof(struct gicd_registers));
 
     if (!range_align_out(mmio_range, PAGE_SIZE, &mmio_range)) {
         printk(LOGLEVEL_WARN,
@@ -276,10 +273,7 @@ void gicd_init(const struct acpi_madt_entry_gic_distributor *const dist) {
     }
 
     g_regs = g_mmio->base;
-
-    g_dist.hardware_id = dist->gic_hardware_id;
-    g_dist.sys_vector_base = dist->sys_vector_base;
-    g_dist.version = dist->gic_version;
+    g_dist.version = gic_version;
 
     assert_msg(g_dist.version >= GICv1 &&
                 g_dist.version <= GIC_VERSION_BACK,
@@ -301,15 +295,11 @@ void gicd_init(const struct acpi_madt_entry_gic_distributor *const dist) {
 
     printk(LOGLEVEL_INFO,
            "gic initialized\n"
-           "\thardware-id: %" PRIu32 "\n"
-           "\tSystem Vector Base: %" PRIu32 "\n"
            "\tVersion: %" PRIu8 "\n"
            "\tInterrupt Line Count: %" PRIu16 "\n"
            "\tImplemented CPU count: %" PRIu32 "\n"
            "\tMax Implemented Lockable Sets: %" PRIu32 "\n"
            "\tSupports Security Extensions: %s\n",
-           g_dist.hardware_id,
-           g_dist.sys_vector_base,
            g_dist.version,
            g_dist.interrupt_lines_count,
            g_dist.impl_cpu_count,
@@ -320,36 +310,31 @@ void gicd_init(const struct acpi_madt_entry_gic_distributor *const dist) {
     g_dist_initialized = true;
 }
 
-struct gic_msi_frame *
-gicd_add_msi(const struct acpi_madt_entry_gic_msi_frame *const frame) {
-    if (!has_align(frame->phys_base_address, PAGE_SIZE)) {
+struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
+    if (!has_align(phys_base_address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
                 "madt: gic msi frame's physical base address (%p) is not "
                 "aligned to the page-size (%" PRIu32 ")\n",
-                (void *)frame->phys_base_address,
+                (void *)phys_base_address,
                 (uint32_t)PAGE_SIZE);
         return NULL;
     }
 
     const struct range mmio_range =
-        RANGE_INIT(frame->phys_base_address, PAGE_SIZE);
+        RANGE_INIT(phys_base_address, PAGE_SIZE);
     struct mmio_region *const mmio =
         vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
     if (mmio == NULL) {
         printk(LOGLEVEL_WARN,
                "madt: failed to mmio-map msi-frame at phys address %p\n",
-               (void *)frame->phys_base_address);
+               (void *)phys_base_address);
         return NULL;
     }
 
     const struct gic_msi_frame msi_frame = {
         .mmio = mmio,
-        .id = frame->msi_frame_id,
-        .spi_base = frame->spi_base,
-        .spi_count = frame->spi_count,
-        .use_msi_typer =
-            frame->flags & __ACPI_MADT_GICMSI_FRAME_OVERR_MSI_TYPERR
+        .id = array_item_count(g_dist.msi_frame_list),
     };
 
     assert_msg(array_append(&g_dist.msi_frame_list, &msi_frame),
@@ -432,3 +417,126 @@ void gic_cpu_eoi(const struct cpu_info *const cpu, const irq_number_t number) {
                    (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
     }
 }
+
+static bool
+init_from_dtb(const struct devicetree *const tree,
+              const struct devicetree_node *const node)
+{
+    (void)tree;
+    const struct devicetree_prop *const int_controller_node =
+        devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPT_CONTROLLER);
+
+    if (int_controller_node == NULL) {
+        printk(LOGLEVEL_WARN,
+               "gic: dtb-node is missing interrupt-controller property\n");
+
+        return true;
+    }
+
+    const struct devicetree_prop_reg *const reg_prop =
+        (const struct devicetree_prop_reg *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+
+    if (reg_prop == NULL) {
+        printk(LOGLEVEL_WARN, "gic: dtb-node is missing reg property\n");
+        return false;
+    }
+
+    if (array_item_count(reg_prop->list) != 2) {
+        printk(LOGLEVEL_WARN,
+               "gic: reg prop of dtb node is of the incorrect length\n");
+
+        return false;
+    }
+
+    struct devicetree_prop_reg_info *const dist_reg_info =
+        array_front(reg_prop->list);
+
+    if (dist_reg_info->size != 0x1000) {
+        printk(LOGLEVEL_INFO,
+               "gic: reg of dtb node has a size other than 0x1000\n");
+        return false;
+    }
+
+    gicd_init(dist_reg_info->address, /*gic_version=*/2);
+
+    const struct devicetree_node *child_node = NULL;
+    list_foreach(child_node, &node->child_list, sibling_list) {
+        const struct devicetree_prop_compat *const compat_prop =
+            (const struct devicetree_prop_compat *)(uint64_t)
+                devicetree_node_get_prop(child_node, DEVICETREE_PROP_COMPAT);
+
+        if (compat_prop == NULL) {
+            continue;
+        }
+
+        if (!devicetree_prop_compat_has_sv(compat_prop,
+                                           SV_STATIC("arm,gic-v2m-frame")))
+        {
+            continue;
+        }
+
+        const struct devicetree_prop_no_value *const msi_controller_prop =
+            (const struct devicetree_prop_no_value *)(uint64_t)
+                devicetree_node_get_prop(child_node,
+                                         DEVICETREE_PROP_MSI_CONTROLLER);
+
+        if (msi_controller_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "gic: msi child of interrupt-controller dtb node is missing "
+                   "msi-controller property\n");
+
+            return true;
+        }
+
+        const struct devicetree_prop_reg *const msi_reg_prop =
+            (const struct devicetree_prop_reg *)(uint64_t)
+                devicetree_node_get_prop(child_node, DEVICETREE_PROP_REG);
+
+        if (msi_reg_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "gic: msi dtb-node is missing reg property\n");
+
+            return false;
+        }
+
+        if (array_item_count(msi_reg_prop->list) != 1) {
+            printk(LOGLEVEL_WARN,
+                   "gic: reg prop of msi dtb node is of the incorrect "
+                   "length\n");
+
+            return false;
+        }
+
+        struct devicetree_prop_reg_info *const msi_reg_info =
+            array_front(msi_reg_prop->list);
+
+        if (msi_reg_info->size != 0x1000) {
+            printk(LOGLEVEL_INFO,
+                   "gic: msi-reg of dtb node has a size other than 0x1000\n");
+            return false;
+        }
+
+        gicd_add_msi(msi_reg_info->address);
+    }
+
+    return true;
+}
+
+static const struct string_view compat_list[] = {
+    SV_STATIC("arm,gic-400"), SV_STATIC("arm,cortex-a15-gic")
+};
+
+static const struct dtb_driver dtb_driver = {
+    .init = init_from_dtb,
+    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+    .compat_list = compat_list,
+    .compat_count = countof(compat_list),
+};
+
+__driver static const struct driver driver = {
+    .name = "gicv2-driver",
+    .dtb = &dtb_driver,
+    .pci = NULL
+};
