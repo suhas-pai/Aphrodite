@@ -167,6 +167,8 @@ void devicetree_node_free(struct devicetree_node *const node) {
                 array_destroy(&map_prop->list);
                 break;
             }
+            case DEVICETREE_PROP_MSI_CONTROLLER:
+                break;
             case DEVICETREE_PROP_SPECIFIER_MAP: {
                 struct devicetree_prop_specifier_map *const map_prop =
                     (struct devicetree_prop_specifier_map *)(uint64_t)prop;

@@ -1102,6 +1102,25 @@ parse_node_prop(const void *const dtb,
             }
 
             [[fallthrough]];
+        case DEVICETREE_PROP_MSI_CONTROLLER:
+            if (sv_equals(name, SV_STATIC("msi-controller"))) {
+                struct devicetree_prop_no_value *const prop =
+                    kmalloc(sizeof(*prop));
+
+                if (prop == NULL) {
+                    return false;
+                }
+
+                prop->kind = DEVICETREE_PROP_MSI_CONTROLLER;
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
+                    return false;
+                }
+
+                return true;
+            }
+
+            [[fallthrough]];
         case DEVICETREE_PROP_SPECIFIER_MAP:
             if (sv_has_suffix(name, SV_STATIC("-map"))) {
                 struct array list =
