@@ -524,6 +524,8 @@ __optimize(3) void mm_remove_early_identity_map() {
         return;
     }
 
+    // Temporarily disable freeing early-alloced tables
+#if 0
     struct pt_walker walker;
     ptwalker_create_from_root_phys(&walker,
                                    g_mapped_early_root_phys,
@@ -545,6 +547,7 @@ __optimize(3) void mm_remove_early_identity_map() {
 
         free_page(page);
     }
+#endif
 }
 
 __optimize(3)
