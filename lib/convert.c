@@ -621,8 +621,8 @@ signed_to_string_view(int64_t number,
             break;
     }
 
-    // Subtract one because our macro below will add a null-terminator,
-    // so we want to be pointing one before the last index.
+    // Subtract one because our macro below will add a null-terminator, so we
+    // want to be pointing one before the last index.
 
     uint8_t i = final_index - 1;
     LOOP_OVER_SIGNED_INT(base, {
