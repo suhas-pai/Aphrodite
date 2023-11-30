@@ -765,10 +765,10 @@ __optimize(3) void pci_init() {
             }
         };
 
-        const uint32_t dev_0_first_dword =
+        const uint32_t ent_0_first_dword =
             pci_read(&ent_0, struct pci_spec_entity_info_base, vendor_id);
 
-        if (dev_0_first_dword == PCI_READ_FAIL) {
+        if (ent_0_first_dword == PCI_READ_FAIL) {
             printk(LOGLEVEL_WARN,
                    "pci: failed to find pci bus. aborting init\n");
             return;
