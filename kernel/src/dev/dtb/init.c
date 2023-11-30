@@ -28,28 +28,6 @@ static struct devicetree g_device_tree = {
     .phandle_list = ARRAY_INIT(sizeof(struct devicetree_prop *))
 };
 
-static bool
-fdt_stringlist_contains_sv(const char *strlist,
-                           int listlen,
-                           const struct string_view sv)
-{
-    while (listlen >= (int)sv.length) {
-        if (memcmp(sv.begin, strlist, (size_t)sv.length + 1) == 0) {
-            return true;
-        }
-
-        const char *const p = memchr(strlist, '\0', (size_t)listlen);
-        if (!p) {
-            return false; /* malformed strlist.. */
-        }
-
-        listlen -= (int)distance(strlist, p) + 1;
-        strlist = p + 1;
-    }
-
-    return false;
-}
-
 static void
 find_nodes_for_driver(const struct dtb_driver *const driver,
                       const struct devicetree *const tree,
@@ -66,9 +44,8 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
 
         bool found = false;
         for (uint32_t i = 0; i != driver->compat_count; i++) {
-            if (fdt_stringlist_contains_sv(compat_prop->string.begin,
-                                           (int)compat_prop->string.length,
-                                           driver->compat_list[i]))
+            if (devicetree_prop_compat_has_sv(compat_prop,
+                                              driver->compat_list[i]))
             {
                 found = true;
                 break;
