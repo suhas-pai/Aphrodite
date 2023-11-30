@@ -169,10 +169,6 @@ __optimize(3) static inline struct page *slab_head_of(const void *const mem) {
         return page;
     }
 
-    assert_msg(state == PAGE_STATE_SLAB_TAIL,
-               "mm: page: %p, page state is %d\n",
-               page,
-               state);
     return page->slab.tail.head;
 }
 
