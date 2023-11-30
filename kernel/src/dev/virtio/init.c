@@ -19,7 +19,7 @@
 #include "driver.h"
 #include "transport.h"
 
-static struct list g_entity_list = LIST_INIT(g_entity_list);
+static struct list g_device_list = LIST_INIT(g_device_list);
 static uint64_t g_device_count = 0;
 
 struct virtio_driver_info {
@@ -197,7 +197,7 @@ struct virtio_device *virtio_pci_init(struct virtio_device *const device) {
         return NULL;
     }
 
-    list_add(&g_entity_list, &ret_device->list);
+    list_add(&g_device_list, &ret_device->list);
     g_device_count++;
 
     return ret_device;
@@ -521,7 +521,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 #undef pci_read_virtio_cap_field
     struct virtio_device *const device = virtio_pci_init(&virt_device);
     if (device != NULL) {
-        list_add(&g_entity_list, &device->list);
+        list_add(&g_device_list, &device->list);
         g_device_count++;
     }
 }
