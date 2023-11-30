@@ -273,7 +273,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     virt_device.kind = device_kind;
     virt_device.is_transitional = is_trans;
-    virt_device.pci.pci_entity = pci_entity;
+    virt_device.pci.entity = pci_entity;
     virt_device.is_pci = true;
 
     pci_entity_enable_privl(pci_entity,
@@ -438,7 +438,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                 const struct virtio_device_shmem_region region = {
                     .phys_range = RANGE_INIT(offset, length),
                     .id = pci_read_virtio_cap_field(cap.id),
-                    .mapped = false
                 };
 
                 if (!array_append(&virt_device.shmem_regions, &region)) {
