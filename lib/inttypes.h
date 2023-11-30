@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#if !defined(_INTTYPES_H_)
 
 #define PRIb8 "b"
 #define PRIB8 "B"
@@ -35,3 +36,5 @@
 #define PRIu64 __PRI64_LEN_MODIFIER__ "u"
 #define PRIx64 __PRI64_LEN_MODIFIER__ "x"
 #define PRIX64 __PRI64_LEN_MODIFIER__ "X"
+
+#endif /* !defined(_INTTYPES_H_) */
