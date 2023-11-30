@@ -684,10 +684,10 @@ __optimize(3) static uint64_t free_all_pages() {
         struct page_section *section = page_to_section(page);
 
         // iorder is log2() of the count of available pages, here we use a for
-        // loop to calculate that, but in the future, it may be worth it to
+        // loop to calculate log2(), but in the future, it may be worth it to
         // directly use log2() if available.
-        // Because the count of available pages only decreases, we keep iorder
-        // out of the loop to minimize log2() calculation.
+        // Because the count of available pages only decreases, we only perform
+        // a log2() operation once.
 
         int8_t iorder = MAX_ORDER - 1;
 
@@ -699,8 +699,6 @@ __optimize(3) static uint64_t free_all_pages() {
             }
 
             // jorder is the order of pages that all fit in the same zone.
-            // jorder should be equal to iorder in most cases, except in the
-            // case where a section crosses the boundary of two zones.
 
             int8_t jorder = iorder;
             for (; jorder >= 0; jorder--) {
