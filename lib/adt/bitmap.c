@@ -164,74 +164,81 @@ find_multiple_set(struct bitmap *const bitmap,
     uint64_t current_range_zero_count = 0;
 
 #define LOOP_OVER_RANGES_FOR_TYPE(type)                                        \
-    for (uint64_t i = 0;                                                       \
-         distance(ptr, end) >= sizeof(type);                                   \
-         ptr += sizeof(type), bit_index_of_ptr += sizeof_bits(type),           \
-         start_index = 0, i++)                                                 \
-    {                                                                          \
-        const type word = *(type *)ptr;                                        \
-        if (current_range_zero_count != 0) {                                   \
-            const uint8_t lsb_zero_count =                                     \
-                min(sizeof_bits(type),                                         \
-                    count_lsb_zero_bits(word, /*start_index=*/0));             \
+    if (has_align((uint64_t)ptr, sizeof(type))) {                              \
+        for (uint64_t i = 0;                                                   \
+             distance(ptr, end) >= sizeof(type);                               \
+             ptr += sizeof(type), bit_index_of_ptr += sizeof_bits(type),       \
+             start_index = 0, i++)                                             \
+        {                                                                      \
+            const type word = *(type *)ptr;                                    \
+            if (current_range_zero_count != 0) {                               \
+                const uint8_t lsb_zero_count =                                 \
+                    min(sizeof_bits(type),                                     \
+                        count_lsb_zero_bits(word, /*start_index=*/0));         \
                                                                                \
-            if (current_range_zero_count + lsb_zero_count >= count) {          \
+                if (current_range_zero_count + lsb_zero_count >= count) {      \
+                    if (unset) {                                               \
+                        bitmap_set_range(bitmap,                               \
+                                         RANGE_INIT(start_index, count),       \
+                                         /*value=*/false);                     \
+                    }                                                          \
+                                                                               \
+                    return current_range_start_index;                          \
+                }                                                              \
+                                                                               \
+                if (lsb_zero_count == sizeof_bits(type)) {                     \
+                    current_range_zero_count += lsb_zero_count;                \
+                    continue;                                                  \
+                }                                                              \
+                                                                               \
+                /*
+                 * If the lsb sequence of zeroes plus the msb zeros of the last
+                 * word wasn't long enough, the lsb sequence isn't long enough
+                 * by itself.
+                 *
+                 * Avoid re-finding this same sequence of lsb zeros by pointing
+                 * start_index to the sequence's end.
+                 */                                                            \
+                                                                               \
+                start_index = lsb_zero_count;                                  \
+                current_range_start_index = 0;                                 \
+                current_range_zero_count = 0;                                  \
+            }                                                                  \
+                                                                               \
+            for_every_lsb_zero_bit_rng(word,                                   \
+                                       start_index,                            \
+                                       sizeof_bits(type),                      \
+                                       iter)                                   \
+            {                                                                  \
+                if (iter.size < count) {                                       \
+                    /*
+                     * If the range isn't long enough, but goes to the end of
+                     * the word, then the next word can have the remaining
+                     * zeroes needed in its lsb.
+                     */                                                        \
+                                                                               \
+                    if (range_get_end_assert(iter) == sizeof_bits(type)) {     \
+                        current_range_start_index =                            \
+                            bit_index_of_ptr + iter.front;                     \
+                                                                               \
+                        current_range_zero_count = iter.size;                  \
+                        break;                                                 \
+                    }                                                          \
+                                                                               \
+                    continue;                                                  \
+                }                                                              \
+                                                                               \
                 if (unset) {                                                   \
                     bitmap_set_range(bitmap,                                   \
                                      RANGE_INIT(start_index, count),           \
                                      /*value=*/false);                         \
                 }                                                              \
                                                                                \
-                return current_range_start_index;                              \
+                return bit_index_of_ptr + iter.front;                          \
             }                                                                  \
                                                                                \
-            if (lsb_zero_count == sizeof_bits(type)) {                         \
-                current_range_zero_count += lsb_zero_count;                    \
-                continue;                                                      \
-            }                                                                  \
-                                                                               \
-            /*
-             * If the lsb sequence of zeroes plus the msb zeros of the last word
-             * wasn't long enough, the lsb sequence isn't long enough by itself.
-             *
-             * Avoid re-finding this same sequence of lsb zeros by pointing
-             * start_index to the sequence's end.
-             */                                                                \
-                                                                               \
-            start_index = lsb_zero_count;                                      \
-            current_range_start_index = 0;                                     \
-            current_range_zero_count = 0;                                      \
+            start_index = 0;                                                   \
         }                                                                      \
-                                                                               \
-        for_every_lsb_zero_bit_rng(word, start_index, sizeof_bits(type), iter) \
-        {                                                                      \
-            if (iter.size < count) {                                           \
-                /*
-                 * If the range isn't long enough, but goes to the end of the
-                 * word, then the next word can have the remaining zeroes needed
-                 * in its lsb.
-                 */                                                            \
-                                                                               \
-                if (range_get_end_assert(iter) == sizeof_bits(type)) {         \
-                    current_range_start_index = bit_index_of_ptr + iter.front; \
-                    current_range_zero_count = iter.size;                      \
-                                                                               \
-                    break;                                                     \
-                }                                                              \
-                                                                               \
-                continue;                                                      \
-            }                                                                  \
-                                                                               \
-            if (unset) {                                                       \
-                bitmap_set_range(bitmap,                                       \
-                                 RANGE_INIT(start_index, count),               \
-                                 /*value=*/false);                             \
-            }                                                                  \
-                                                                               \
-            return bit_index_of_ptr + iter.front;                              \
-        }                                                                      \
-                                                                               \
-        start_index = 0;                                                       \
     }
 
     LOOP_OVER_RANGES_FOR_TYPE(uint64_t);
