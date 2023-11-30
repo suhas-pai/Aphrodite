@@ -37,7 +37,7 @@ $(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
 override DEFAULT_CFLAGS :=
 $(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
 
-override CFLAGS += -g3 -DBUILD_TEST -I../ -fno-stack-protector
+override CFLAGS += -g3 -DBUILD_TEST -I../ -fno-stack-protector -fsanitize=undefined -fsanitize=address
 
 all: test
 test: $(CFILES)
