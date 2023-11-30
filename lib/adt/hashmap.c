@@ -25,7 +25,9 @@ static inline uint32_t hash_of(struct hashmap *const hashmap, void *const key) {
 }
 
 bool
-hashmap_add(struct hashmap *const hashmap, void *const key, void *const object)
+hashmap_add(struct hashmap *const hashmap,
+            void *const key,
+            const void *const object)
 {
     assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
                "hashmap_add(): hashmap not initialized");
@@ -62,6 +64,19 @@ hashmap_add(struct hashmap *const hashmap, void *const key, void *const object)
         }
 
         return false;
+    }
+
+    struct hashmap_node *iter = NULL;
+    list_foreach(iter, &bucket->node_list, list) {
+        if (iter->key == key) {
+            free(node);
+            if (list_empty(&bucket->node_list)) {
+                hashmap->buckets[key_hash] = NULL;
+                free(bucket);
+            }
+
+            return false;
+        }
     }
 
     node->key = key;

@@ -38,7 +38,7 @@ struct hashmap {
         .cb_info = (hash_cb_info) \
     })
 
-bool hashmap_add(struct hashmap *hashmap, void *key, void *object);
+bool hashmap_add(struct hashmap *hashmap, void *key, const void *object);
 
 void *hashmap_get(struct hashmap *hashmap, void *key);
 bool hashmap_remove(struct hashmap *hashmap, void *key, void *object_ptr);

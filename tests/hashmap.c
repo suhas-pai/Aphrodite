@@ -12,6 +12,7 @@ uint32_t hasher(void *const key, struct hashmap *const hashmap) {
 
 void test_add_and_get(struct hashmap *const hashmap, int object) {
     assert(hashmap_add(hashmap, (void *)(uint64_t)object, &object));
+    assert(!hashmap_add(hashmap, (void *)(uint64_t)object, &object));
 
     void *const hm_object = hashmap_get(hashmap, (void *)(uint64_t)object);
 
@@ -19,7 +20,7 @@ void test_add_and_get(struct hashmap *const hashmap, int object) {
     assert(*(int *)hm_object == object);
 }
 
-void test_get(struct hashmap *const hashmap, int object) {
+void test_get(struct hashmap *const hashmap, const int object) {
     void *const hm_object = hashmap_get(hashmap, (void *)(uint64_t)object);
 
     assert(hm_object != NULL);
