@@ -157,6 +157,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
                 break;
             }
             case DEVICETREE_PROP_INTERRUPT_PARENT:
+            case DEVICETREE_PROP_INTERRUPT_CONTROLLER:
             case DEVICETREE_PROP_INTERRUPT_CELLS:
                 break;
             case DEVICETREE_PROP_INTERRUPT_MAP_MASK: {

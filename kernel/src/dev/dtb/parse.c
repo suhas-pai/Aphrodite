@@ -512,8 +512,8 @@ parse_interrupt_map_prop(const void *const dtb,
         }
 
         const bool is_parent_int_controller =
-            devicetree_node_get_other_prop(phandle_node,
-                                           SV_STATIC("interrupt-controller"))
+            devicetree_node_get_prop(phandle_node,
+                                     DEVICETREE_PROP_INTERRUPT_CONTROLLER)
             != NULL;
 
         if (!is_parent_int_controller) {
@@ -1018,6 +1018,25 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_INTERRUPT_PARENT;
                 prop->phandle = phandle;
 
+                if (!array_append(&node->known_props, &prop)) {
+                    kfree(prop);
+                    return false;
+                }
+
+                return true;
+            }
+
+            [[fallthrough]];;
+        case DEVICETREE_PROP_INTERRUPT_CONTROLLER:
+            if (sv_equals(name, SV_STATIC("interrupt-controller"))) {
+                struct devicetree_prop_no_value *const prop =
+                    kmalloc(sizeof(*prop));
+
+                if (prop == NULL) {
+                    return false;
+                }
+
+                prop->kind = DEVICETREE_PROP_INTERRUPT_CONTROLLER;
                 if (!array_append(&node->known_props, &prop)) {
                     kfree(prop);
                     return false;
