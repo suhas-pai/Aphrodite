@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "lib/align.h"
 #include "lib/bits.h"
 #include "lib/math.h"
 #include "lib/memory.h"
@@ -257,17 +258,19 @@ find_single_unset(struct bitmap *const bitmap,
     uint64_t bit_index_of_ptr = bytes_to_bits(distance(begin, ptr));
 
 #define ITERATE_FOR_TYPE(type)                                                 \
-    for (;                                                                     \
-         distance(ptr, end) >= sizeof(type); start_index = 0,                  \
-         ptr += sizeof(type), bit_index_of_ptr += sizeof_bits(type))           \
-    {                                                                          \
-        bit_index_in_word = find_lsb_zero_bit(*(type *)ptr, start_index);      \
-        if (bit_index_in_word < sizeof_bits(type)) {                           \
-            if (set) {                                                         \
-                *(type *)ptr |= (type)1 << bit_index_in_word;                  \
-            }                                                                  \
+    if (has_align((uint64_t)ptr, sizeof(type))) {                               \
+        for (;                                                                 \
+            distance(ptr, end) >= sizeof(type); start_index = 0,               \
+            ptr += sizeof(type), bit_index_of_ptr += sizeof_bits(type))        \
+        {                                                                      \
+            bit_index_in_word = find_lsb_zero_bit(*(type *)ptr, start_index);  \
+            if (bit_index_in_word < sizeof_bits(type)) {                       \
+                if (set) {                                                     \
+                    *(type *)ptr |= (type)1 << bit_index_in_word;              \
+                }                                                              \
                                                                                \
-            goto done;                                                         \
+                goto done;                                                     \
+            }                                                                  \
         }                                                                      \
     }
 

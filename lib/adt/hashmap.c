@@ -10,7 +10,7 @@
 #include "hashmap.h"
 
 bool hashmap_alloc(struct hashmap *const hashmap, const uint32_t bucket_count) {
-    hashmap->buckets = malloc(sizeof(struct hashmap_bucket *) * bucket_count);
+    hashmap->buckets = calloc(bucket_count, sizeof(struct hashmap_bucket *));
     if (hashmap->buckets == NULL) {
         return false;
     }
@@ -32,7 +32,7 @@ hashmap_add(struct hashmap *const hashmap, void *const key, void *const object)
 
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
         hashmap->buckets =
-            malloc(sizeof(struct hashmap_bucket *) * hashmap->bucket_count);
+            calloc(hashmap->bucket_count, sizeof(struct hashmap_bucket *));
 
         if (hashmap->buckets == NULL) {
             return false;
@@ -43,7 +43,7 @@ hashmap_add(struct hashmap *const hashmap, void *const key, void *const object)
     struct hashmap_bucket *bucket = hashmap->buckets[key_hash];
 
     if (bucket == NULL) {
-        bucket = malloc(sizeof(struct hashmap_bucket));
+        bucket = calloc(1, sizeof(struct hashmap_bucket));
         if (bucket == NULL) {
             return false;
         }
@@ -53,7 +53,7 @@ hashmap_add(struct hashmap *const hashmap, void *const key, void *const object)
     }
 
     struct hashmap_node *const node =
-        malloc(sizeof(*node) + hashmap->object_size);
+        calloc(1, sizeof(*node) + hashmap->object_size);
 
     if (node == NULL) {
         if (list_empty(&bucket->node_list)) {
@@ -151,7 +151,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
                "use hashmap_destroy() instead");
 
     struct hashmap_bucket **const buckets =
-        malloc(sizeof(struct hashmap_bucket *) * bucket_count);
+        calloc(bucket_count, sizeof(struct hashmap_bucket *));
 
     if (buckets == NULL) {
         return false;
