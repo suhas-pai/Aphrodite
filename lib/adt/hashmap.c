@@ -120,21 +120,23 @@ hashmap_remove(struct hashmap *const hashmap,
     struct list *prev = &bucket->node_list;
 
     list_foreach(iter, &bucket->node_list, list) {
-        if (iter->key == key) {
-            prev->next = iter->list.next;
-            if (list_empty(&bucket->node_list)) {
-                hashmap->buckets[key_hash] = NULL;
-                free(bucket);
-            }
-
-            if (object_ptr != NULL) {
-                memcpy(object_ptr, iter->data, hashmap->object_size);
-            }
-
-            return iter;
+        if (iter->key != key) {
+            prev = iter->list.next;
+            continue;
         }
 
-        prev = iter->list.next;
+        prev->next = iter->list.next;
+        if (list_empty(&bucket->node_list)) {
+            hashmap->buckets[key_hash] = NULL;
+            free(bucket);
+        }
+
+        if (object_ptr != NULL) {
+            memcpy(object_ptr, iter->data, hashmap->object_size);
+        }
+
+        free(iter);
+        return true;
     }
 
     return false;
