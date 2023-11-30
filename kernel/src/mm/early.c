@@ -699,6 +699,8 @@ __optimize(3) static uint64_t free_all_pages() {
             }
 
             // jorder is the order of pages that all fit in the same zone.
+            // jorder should be equal to iorder in most cases, except in the
+            // case where a section crosses the boundary of two zones.
 
             int8_t jorder = iorder;
             for (; jorder >= 0; jorder--) {
