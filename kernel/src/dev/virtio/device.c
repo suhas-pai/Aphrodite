@@ -9,7 +9,7 @@
 bool
 virtio_device_shmem_region_map(struct virtio_device_shmem_region *const region)
 {
-    if (region->mapped) {
+    if (region->mmio != NULL) {
         return true;
     }
 
@@ -23,8 +23,6 @@ virtio_device_shmem_region_map(struct virtio_device_shmem_region *const region)
     }
 
     region->mmio = mmio;
-    region->mapped = true;
-
     return true;
 }
 
@@ -32,14 +30,12 @@ void
 virtio_device_shmem_region_unmap(
     struct virtio_device_shmem_region *const region)
 {
-    if (!region->mapped) {
+    if (region->mmio == NULL) {
         return;
     }
 
     vunmap_mmio(region->mmio);
-
     region->mmio = NULL;
-    region->mapped = false;
 
     return;
 }

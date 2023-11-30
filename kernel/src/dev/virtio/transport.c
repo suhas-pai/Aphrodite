@@ -100,7 +100,7 @@ virtio_pci_write_device_info(struct virtio_device *const device,
 
 void
 virtio_pci_select_queue(struct virtio_device *const device,
-                       const uint16_t queue)
+                        const uint16_t queue)
 {
     mmio_write(&device->pci.common_cfg->queue_select, le_to_cpu(queue));
 }
@@ -111,7 +111,7 @@ uint16_t virtio_pci_selected_queue_max_size(struct virtio_device *const device) 
 
 void
 virtio_pci_set_selected_queue_size(struct virtio_device *const device,
-                                  const uint16_t size)
+                                   const uint16_t size)
 {
     mmio_write(&device->pci.common_cfg->queue_size, cpu_to_le(size));
 }

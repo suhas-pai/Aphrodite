@@ -15,7 +15,6 @@ struct virtio_device_shmem_region {
     struct range phys_range;
 
     uint8_t id;
-    bool mapped : 1;
 };
 
 bool virtio_device_shmem_region_map(struct virtio_device_shmem_region *region);
@@ -27,7 +26,7 @@ struct virtio_device {
     struct list list;
     union {
         struct {
-            struct pci_entity_info *pci_entity;
+            struct pci_device_info *pci_device;
             volatile struct virtio_pci_common_cfg *common_cfg;
 
             struct range device_cfg;
@@ -59,7 +58,7 @@ struct virtio_device {
 #define VIRTIO_DEVICE_INIT(name, is_pci_) \
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
-        .pci.pci_entity = NULL, \
+        .pci.pci_device = NULL, \
         .pci.common_cfg = NULL, \
         .pci.device_cfg = RANGE_EMPTY(), \
         .pci.notify_queue_select = NULL, \
