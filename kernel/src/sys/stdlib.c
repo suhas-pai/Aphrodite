@@ -53,11 +53,11 @@ int strncmp(const char *str1, const char *const str2, const size_t length) {
     char ch = *iter, jch = *jter;
     for (size_t i = 0; i != length; i++, ch = iter[i], jch = jter[i]) {
         if (ch != jch) {
-            break;
+            return ch - jch;
         }
     }
 
-    return ch - jch;
+    return 0;
 }
 
 __optimize(3) char *strchr(const char *const str, const int ch) {
