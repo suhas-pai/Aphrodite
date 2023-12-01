@@ -51,6 +51,7 @@ struct acpi_info {
 #endif /* defined(__x86_64__) */
 };
 
+void acpi_parse_tables();
 void acpi_init();
 
 struct acpi_sdt *acpi_lookup_sdt(const char signature[static 4]);

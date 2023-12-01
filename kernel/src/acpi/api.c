@@ -82,7 +82,7 @@ static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
     }
 }
 
-void acpi_init(void) {
+void acpi_parse_tables() {
     g_info.rsdp = boot_get_rsdp();
     if (g_info.rsdp == NULL) {
         return;
@@ -108,6 +108,9 @@ void acpi_init(void) {
     printk(LOGLEVEL_INFO, "acpi: rsdt at %p\n", g_info.rsdt);
 
     acpi_recurse(acpi_init_each_sdt);
+}
+
+void acpi_init(void) {
     if (get_acpi_info()->madt != NULL) {
         madt_init(get_acpi_info()->madt);
     }

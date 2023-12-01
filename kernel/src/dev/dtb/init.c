@@ -3,12 +3,11 @@
  * © suhas pai
  */
 
-#include "dev/dtb/parse.h"
-
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "sys/boot.h"
+#include "parse.h"
 
 static struct devicetree_node g_device_tree_root;
 static struct devicetree g_device_tree;
@@ -96,7 +95,7 @@ static void dtb_initialize_drivers() {
     }
 }
 
-void dtb_init() {
+void dtb_parse_main_tree() {
     const void *const dtb = boot_get_dtb();
     if (dtb == NULL) {
         printk(LOGLEVEL_WARN, "dev: dtb not found\n");
@@ -114,6 +113,14 @@ void dtb_init() {
         return;
     }
 
-    printk(LOGLEVEL_INFO, "dtb: finished initializing\n");
+    printk(LOGLEVEL_INFO, "dtb: parsed main tree\n");
+}
+
+void dtb_init() {
     dtb_initialize_drivers();
+    printk(LOGLEVEL_INFO, "dtb: finished initializing\n");
+}
+
+__optimize(3) struct devicetree *dtb_get_tree() {
+    return &g_device_tree;
 }

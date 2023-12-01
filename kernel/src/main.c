@@ -4,7 +4,9 @@
  */
 
 #include <limine.h>
+#include "dev/dtb/init.h"
 
+#include "acpi/api.h"
 #include "asm/irqs.h"
 #include "cpu/isr.h"
 
@@ -86,6 +88,9 @@ void _start(void) {
 
     arch_init();
     arch_post_mm_init();
+
+    dtb_parse_main_tree();
+    acpi_parse_tables();
 
     isr_init();
     dev_init();
