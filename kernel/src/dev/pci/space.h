@@ -9,7 +9,9 @@
 #include "lib/list.h"
 
 enum pci_space_kind {
+#if defined(__x86_64__)
     PCI_SPACE_LEGACY,
+#endif /* defined(__x86_64__) */
     PCI_SPACE_ECAM
 };
 

@@ -63,12 +63,10 @@ pci_space_read_8(struct pci_space *const obj,
                  const uint16_t offset)
 {
     switch (obj->kind) {
+    #if defined(__x86_64__)
         case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
             return pci_legacy_space_read(loc, offset, sizeof(uint8_t));
-        #else
-            return UINT8_MAX;
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             return pci_ecam_read_8((struct pci_ecam_space *)obj, loc, offset);
@@ -83,12 +81,10 @@ pci_space_read_16(struct pci_space *const obj,
                   const uint16_t offset)
 {
     switch (obj->kind) {
+    #if defined(__x86_64__)
         case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
             return pci_legacy_space_read(loc, offset, sizeof(uint16_t));
-        #else
-            return UINT16_MAX;
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             return pci_ecam_read_16((struct pci_ecam_space *)obj, loc, offset);
@@ -103,12 +99,10 @@ pci_space_read_32(struct pci_space *const obj,
                   const uint16_t offset)
 {
     switch (obj->kind) {
+    #if defined(__x86_64__)
         case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
             return pci_legacy_space_read(loc, offset, sizeof(uint32_t));
-        #else
-            return UINT32_MAX;
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             return pci_ecam_read_32((struct pci_ecam_space *)obj, loc, offset);
@@ -123,12 +117,10 @@ pci_space_read_64(struct pci_space *const obj,
                   const uint16_t offset)
 {
     switch (obj->kind) {
+    #if defined(__x86_64__)
         case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
             return pci_legacy_space_read(loc, offset, sizeof(uint64_t));
-        #else
-            return UINT64_MAX;
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             return pci_ecam_read_64((struct pci_ecam_space *)obj, loc, offset);
@@ -144,13 +136,11 @@ pci_space_write_8(struct pci_space *const obj,
                   const uint8_t value)
 {
     switch (obj->kind) {
-        case PCI_SPACE_LEGACY:
+    case PCI_SPACE_LEGACY:
         #if defined(__x86_64__)
             pci_legacy_space_write(loc, offset, value, sizeof(uint8_t));
             return;
-        #else
-            verify_not_reached();
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             pci_ecam_write_8((struct pci_ecam_space *)obj, loc, offset, value);
@@ -167,13 +157,11 @@ pci_space_write_16(struct pci_space *const obj,
                    const uint16_t value)
 {
     switch (obj->kind) {
-        case PCI_SPACE_LEGACY:
+    case PCI_SPACE_LEGACY:
         #if defined(__x86_64__)
             pci_legacy_space_write(loc, offset, value, sizeof(uint16_t));
             return;
-        #else
-            verify_not_reached();
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             pci_ecam_write_16((struct pci_ecam_space *)obj, loc, offset, value);
@@ -190,13 +178,11 @@ pci_space_write_32(struct pci_space *const obj,
                    const uint32_t value)
 {
     switch (obj->kind) {
+    #if defined(__x86_64__)
         case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
             pci_legacy_space_write(loc, offset, value, sizeof(uint32_t));
             return;
-        #else
-            verify_not_reached();
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             pci_ecam_write_32((struct pci_ecam_space *)obj, loc, offset, value);
@@ -213,13 +199,11 @@ pci_space_write_64(struct pci_space *const obj,
                    const uint64_t value)
 {
     switch (obj->kind) {
+    #if defined(__x86_64__)
         case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
             pci_legacy_space_write(loc, offset, value, sizeof(uint64_t));
             return;
-        #else
-            verify_not_reached();
-        #endif /* defined(__x86_64__) */
+    #endif /* defined(__x86_64__) */
 
         case PCI_SPACE_ECAM:
             pci_ecam_write_64((struct pci_ecam_space *)obj, loc, offset, value);
