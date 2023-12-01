@@ -5,6 +5,14 @@
 
 #include "node.h"
 
+__optimize(3) static inline
+uint32_t prop_hash(const hashmap_key_t key, const struct hashmap *const map) {
+    (void)map;
+    return (uint32_t)(uint64_t)key;
+}
+
+#define DEVICETREE_PROP_MAP_BUCKET_COUNT 6
+
 __optimize(3) void
 devicetree_node_init_fields(struct devicetree_node *node,
                             struct devicetree_node *parent,
@@ -14,7 +22,12 @@ devicetree_node_init_fields(struct devicetree_node *node,
     node->name = name;
     node->parent = parent;
     node->nodeoff = nodeoff;
-    node->known_props = ARRAY_INIT(sizeof(struct devicetree_prop *));
+    node->known_props =
+        HASHMAP_INIT(sizeof(struct devicetree_prop *),
+                     DEVICETREE_PROP_MAP_BUCKET_COUNT,
+                     prop_hash,
+                     /*hash_cb_info=*/NULL);
+
     node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
 }
 
@@ -28,11 +41,11 @@ __optimize(3) const struct devicetree_prop *
 devicetree_node_get_prop(const struct devicetree_node *const node,
                          const enum devicetree_prop_kind kind)
 {
-    array_foreach(&node->known_props, const struct devicetree_prop *, iter) {
-        const struct devicetree_prop *const prop = *iter;
-        if (prop->kind == kind) {
-            return prop;
-        }
+    struct devicetree_prop **const prop_ptr =
+        hashmap_get(&node->known_props, (hashmap_key_t)kind);
+
+    if (prop_ptr != NULL) {
+        return *prop_ptr;
     }
 
     return NULL;

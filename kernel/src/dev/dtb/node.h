@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lib/adt/array.h"
-#include "lib/adt/string_view.h"
+#include "lib/adt/hashmap.h"
 
 #include "fdt/libfdt_env.h"
 #include "lib/list.h"
@@ -223,7 +223,7 @@ struct devicetree_node {
     struct list child_list;
     struct list sibling_list;
 
-    struct array known_props;
+    struct hashmap known_props;
     struct array other_props;
 };
 
