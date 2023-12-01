@@ -42,7 +42,7 @@ struct hashmap {
     })
 
 #define hashmap_foreach_bucket(hashmap, iter) \
-    __auto_type *const h_var(end) = \
+    const __auto_type h_var(end) = \
         (hashmap)->buckets + (hashmap)->bucket_count; \
     for (__auto_type iter = (hashmap)->buckets; iter != h_var(end); iter++) \
 
