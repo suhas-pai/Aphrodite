@@ -95,18 +95,19 @@ static void dtb_initialize_drivers() {
 }
 
 void dtb_parse_main_tree() {
-    const void *const dtb = boot_get_dtb();
-    if (dtb == NULL) {
-        printk(LOGLEVEL_WARN, "dev: dtb not found\n");
-        return;
-    }
-
     devicetree_node_init_fields(&g_device_tree_root,
                                 /*parent=*/NULL,
                                 /*name=*/SV_EMPTY(),
                                 /*nodeoff=*/0);
 
     devicetree_init_fields(&g_device_tree, &g_device_tree_root);
+
+    const void *const dtb = boot_get_dtb();
+    if (dtb == NULL) {
+        printk(LOGLEVEL_WARN, "dev: dtb not found\n");
+        return;
+    }
+
     if (!devicetree_parse(&g_device_tree, dtb)) {
         printk(LOGLEVEL_WARN, "dev: failed to parse dtb\n");
         return;
@@ -116,6 +117,10 @@ void dtb_parse_main_tree() {
 }
 
 void dtb_init() {
+    if (boot_get_dtb() == NULL) {
+        return;
+    }
+
     dtb_initialize_drivers();
     printk(LOGLEVEL_INFO, "dtb: finished initializing\n");
 }
