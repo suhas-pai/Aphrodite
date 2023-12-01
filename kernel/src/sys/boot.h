@@ -13,6 +13,7 @@ uint8_t mm_get_memmap_count();
 uint8_t mm_get_section_count();
 
 const struct limine_framebuffer_response *boot_get_fb();
+const struct limine_smp_response *boot_get_smp();
 
 const void *boot_get_rsdp();
 const void *boot_get_dtb();

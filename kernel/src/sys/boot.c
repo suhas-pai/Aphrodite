@@ -74,7 +74,7 @@ static volatile struct limine_smp_request smp_request = {
 };
 
 static struct limine_framebuffer_response framebuffer_resp = {0};
-struct limine_smp_response *smp_response = NULL;
+static struct limine_smp_response *smp_response = NULL;
 
 static struct mm_memmap mm_memmap_list[255] = {0};
 static uint8_t mm_memmap_count = 0;
@@ -113,6 +113,10 @@ __optimize(3) uint8_t mm_get_section_count() {
 
 __optimize(3) const struct limine_framebuffer_response *boot_get_fb() {
     return &framebuffer_resp;
+}
+
+__optimize(3) const struct limine_smp_response *boot_get_smp() {
+    return smp_response;
 }
 
 __optimize(3) const void *boot_get_rsdp() {
