@@ -429,8 +429,7 @@ init_from_dtb(const struct devicetree *const tree,
     if (int_controller_node == NULL) {
         printk(LOGLEVEL_WARN,
                "gic: dtb-node is missing interrupt-controller property\n");
-
-        return true;
+        return false;
     }
 
     const struct devicetree_prop_reg *const reg_prop =
@@ -445,7 +444,6 @@ init_from_dtb(const struct devicetree *const tree,
     if (array_item_count(reg_prop->list) != 2) {
         printk(LOGLEVEL_WARN,
                "gic: reg prop of dtb node is of the incorrect length\n");
-
         return false;
     }
 
