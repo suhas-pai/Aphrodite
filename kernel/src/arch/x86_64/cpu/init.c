@@ -386,21 +386,20 @@ static void init_cpuid_features() {
     write_cr0(read_cr0() | __CR0_BIT_MP);
 
     const uint64_t cr4_bits =
-        __CR4_BIT_TSD |
-        __CR4_BIT_DE |
-        __CR4_BIT_PGE |
-        __CR4_BIT_OSFXSR |
+        __CR4_BIT_TSD         |
+        __CR4_BIT_DE          |
+        __CR4_BIT_PGE         |
+        __CR4_BIT_OSFXSR      |
         __CR4_BIT_OSXMMEXCPTO |
-        __CR4_BIT_FSGSBASE |
-        __CR4_BIT_SMEP |
-        __CR4_BIT_SMAP |
+        __CR4_BIT_FSGSBASE    |
+        __CR4_BIT_SMEP        |
+        __CR4_BIT_SMAP        |
         __CR4_BIT_OSXSAVE;
 
     write_cr4(read_cr4() | cr4_bits);
 
     // Enable Syscalls
-    msr_write(IA32_MSR_EFER,
-              (msr_read(IA32_MSR_EFER) | __IA32_MSR_EFER_BIT_SCE));
+    msr_write(IA32_MSR_EFER, msr_read(IA32_MSR_EFER) | __IA32_MSR_EFER_BIT_SCE);
 
     // Setup Syscall MSRs
     msr_write(IA32_MSR_STAR,
