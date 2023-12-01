@@ -14,6 +14,9 @@ struct cpu_info {
     struct list pagemap_node;
 
     uint64_t spur_int_count;
+
+    uint16_t cbo_size;
+    uint16_t cmo_size;
 };
 
 const struct cpu_info *get_base_cpu_info();
