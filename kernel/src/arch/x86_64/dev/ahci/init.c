@@ -421,6 +421,7 @@ static const struct pci_driver pci_driver = {
 };
 
 __driver const struct driver driver = {
+    .name = "x86_64-ahci-driver",
     .dtb = NULL,
     .pci = &pci_driver
 };
