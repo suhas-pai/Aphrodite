@@ -4,9 +4,9 @@
  */
 
 #pragma once
-#include "cpu/spinlock.h"
-
 #include "lib/adt/range.h"
+
+#include "cpu/spinlock.h"
 #include "lib/list.h"
 
 #include "mm/types.h"
