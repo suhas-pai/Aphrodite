@@ -58,8 +58,7 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
     driver->init(tree, node);
 
 next:
-    struct devicetree_node *iter = NULL;
-    list_foreach(iter, &node->child_list, sibling_list) {
+    devicetree_node_foreach_child(node, iter) {
         find_nodes_for_driver(driver, tree, iter);
     }
 }

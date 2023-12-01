@@ -8,6 +8,7 @@
 
 #include "dev/driver.h"
 #include "dev/printk.h"
+
 #include "lib/align.h"
 #include "mm/mmio.h"
 #include "sys/mmio.h"
@@ -451,9 +452,7 @@ init_from_dtb(const struct devicetree *const tree,
         array_front(reg_prop->list);
 
     gicd_init(dist_reg_info->address, /*gic_version=*/2);
-
-    const struct devicetree_node *child_node = NULL;
-    list_foreach(child_node, &node->child_list, sibling_list) {
+    devicetree_node_foreach_child(node, child_node) {
         const struct devicetree_prop_compat *const compat_prop =
             (const struct devicetree_prop_compat *)(uint64_t)
                 devicetree_node_get_prop(child_node, DEVICETREE_PROP_COMPAT);

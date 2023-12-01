@@ -230,6 +230,10 @@ struct devicetree_node {
     struct array other_props;
 };
 
+#define devicetree_node_foreach_child(node, iter) \
+    struct devicetree_node *iter = NULL; \
+    list_foreach(iter, &(node)->child_list, sibling_list)
+
 void
 devicetree_node_init_fields(struct devicetree_node *node,
                             struct devicetree_node *parent,

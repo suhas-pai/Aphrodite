@@ -99,10 +99,8 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
         const struct string_view component_sv =
             sv_substring_length(path, component_begin, component_length);
 
-        struct devicetree_node *iter = NULL;
         bool found = false;
-
-        list_foreach(iter, &node->child_list, sibling_list) {
+        devicetree_node_foreach_child(node, iter) {
             if (sv_equals(iter->name, component_sv)) {
                 found = true;
                 break;
@@ -205,8 +203,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
     hashmap_destroy(&node->known_props);
     array_destroy(&node->other_props);
 
-    struct devicetree_node *iter = NULL;
-    list_foreach(iter, &node->child_list, sibling_list) {
+    devicetree_node_foreach_child(node, iter) {
         devicetree_node_free(iter);
     }
 }
