@@ -83,14 +83,17 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
         return NULL;
     }
 
-    uint32_t component_begin = 0;
+    uint32_t component_begin = 1;
     do {
-        int64_t component_length = sv_find_char(path, /*index=*/0, '/');
-        if (component_length == -1) {
+        int64_t component_length = sv_find_char(path, component_begin, '/');
+        if (component_length != -1) {
+            component_length -= component_begin;
+            if (__builtin_expect(component_length == 0, 0)) {
+                // `//` component found in path string.
+                return NULL;
+            }
+        } else {
             component_length = path.length - component_begin;
-        } else if (__builtin_expect(component_length == 0, 0)) {
-            // We have '//' in the path string, immediately fail.
-            return NULL;
         }
 
         const struct string_view component_sv =
@@ -115,6 +118,7 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
         }
 
         component_begin = component_begin + component_length + 1;
+        node = iter;
     } while (true);
 
     return NULL;
