@@ -21,6 +21,11 @@ static struct spinlock g_ecam_space_lock = SPINLOCK_INIT();
 
 static uint32_t g_ecam_entity_count = 0;
 
+__optimize(3)
+static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
+    return bus_range.size << 20;
+}
+
 struct pci_ecam_space *
 pci_add_ecam_space(const struct range bus_range,
                    const uint64_t base_addr,
@@ -35,7 +40,7 @@ pci_add_ecam_space(const struct range bus_range,
     list_init(&ecam_space->space.entity_list);
 
     ecam_space->mmio =
-        vmap_mmio(RANGE_INIT(base_addr, bus_range.size << 20),
+        vmap_mmio(RANGE_INIT(base_addr, map_size_for_bus_range(bus_range)),
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
@@ -252,7 +257,7 @@ init_from_dtb(const struct devicetree *const tree,
 
     if (!range_has_index_range(mmio_range,
                                RANGE_INIT(bus_range.front,
-                                          bus_range.size << 20)))
+                                          map_size_for_bus_range(bus_range))))
     {
         printk(LOGLEVEL_INFO,
                "pci-ecam: bus-range " RANGE_FMT " of dtb node can't fit in "
