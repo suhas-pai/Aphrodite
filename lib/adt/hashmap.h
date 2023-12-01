@@ -8,10 +8,13 @@
 #include <stdint.h>
 #include "lib/list.h"
 
+typedef void *hashmap_key_t;
+#define hashmap_key_create(key) ((hashmap_key_t)(uint64_t)(key))
+
 struct hashmap_node {
     struct list list;
 
-    void *key;
+    hashmap_key_t key;
     char data[];
 };
 
@@ -25,7 +28,7 @@ struct hashmap {
     uint32_t bucket_count;
     uint32_t object_size;
 
-    uint32_t (*hash)(void *key, struct hashmap *hashmap);
+    uint32_t (*hash)(hashmap_key_t key, struct hashmap *hashmap);
     void *cb_info;
 };
 
@@ -38,10 +41,21 @@ struct hashmap {
         .cb_info = (hash_cb_info) \
     })
 
-bool hashmap_add(struct hashmap *hashmap, void *key, const void *object);
+bool
+hashmap_add(struct hashmap *hashmap, hashmap_key_t key, const void *object);
 
-void *hashmap_get(struct hashmap *hashmap, void *key);
-bool hashmap_remove(struct hashmap *hashmap, void *key, void *object_ptr);
+bool
+hashmap_update(struct hashmap *hashmap,
+               hashmap_key_t key,
+               const void *object,
+               bool add_if_missing);
+
+void *hashmap_get(struct hashmap *hashmap, hashmap_key_t key);
+
+bool
+hashmap_remove(struct hashmap *hashmap,
+               hashmap_key_t key,
+               void *object_ptr);
 
 bool hashmap_resize(struct hashmap *hashmap, uint32_t bucket_count);
 void hashmap_destroy(struct hashmap *hashmap);
