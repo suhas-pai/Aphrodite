@@ -267,8 +267,9 @@ place_head_range_of_free_pages_lower(struct page *page,
     int8_t order = orig_order - 1;
     uint64_t avail = amount;
 
-    for (; order >= 0; order--) {
-        if (avail >= (1ull << order)) {
+    for (uint8_t order_i = 0; order_i <= orig_order; order_i++) {
+        if (avail < (1ull << order_i)) {
+            order = order_i - 1;
             break;
         }
     }
