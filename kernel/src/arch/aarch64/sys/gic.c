@@ -452,12 +452,6 @@ init_from_dtb(const struct devicetree *const tree,
     struct devicetree_prop_reg_info *const dist_reg_info =
         array_front(reg_prop->list);
 
-    if (dist_reg_info->size != 0x1000) {
-        printk(LOGLEVEL_INFO,
-               "gic: reg of dtb node has a size other than 0x1000\n");
-        return false;
-    }
-
     gicd_init(dist_reg_info->address, /*gic_version=*/2);
 
     const struct devicetree_node *child_node = NULL;
