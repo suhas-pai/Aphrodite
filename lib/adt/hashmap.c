@@ -20,7 +20,7 @@ bool hashmap_alloc(struct hashmap *const hashmap, const uint32_t bucket_count) {
 }
 
 __optimize(3) static inline
-uint32_t hash_of(struct hashmap *const hashmap, const hashmap_key_t key) {
+uint32_t hash_of(const struct hashmap *const hashmap, const hashmap_key_t key) {
     return hashmap->hash(key, hashmap) % hashmap->bucket_count;
 }
 
@@ -168,7 +168,8 @@ hashmap_update(struct hashmap *const hashmap,
     return true;
 }
 
-void *hashmap_get(struct hashmap *const hashmap, const hashmap_key_t key) {
+void *
+hashmap_get(const struct hashmap *const hashmap, const hashmap_key_t key) {
     assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
                "hashmap_get(): hashmap not initialized");
 
@@ -289,13 +290,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
 }
 
 void hashmap_destroy(struct hashmap *const hashmap) {
-    struct hashmap_bucket *const *const end =
-        hashmap->buckets + hashmap->bucket_count;
-
-    for (struct hashmap_bucket **iter = hashmap->buckets;
-         iter != end;
-         iter++)
-    {
+    hashmap_foreach_bucket(hashmap, iter) {
         struct hashmap_bucket *const bucket = *iter;
         if (bucket == NULL) {
             continue;

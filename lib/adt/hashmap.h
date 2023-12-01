@@ -28,7 +28,7 @@ struct hashmap {
     uint32_t bucket_count;
     uint32_t object_size;
 
-    uint32_t (*hash)(hashmap_key_t key, struct hashmap *hashmap);
+    uint32_t (*hash)(hashmap_key_t key, const struct hashmap *hashmap);
     void *cb_info;
 };
 
@@ -41,6 +41,15 @@ struct hashmap {
         .cb_info = (hash_cb_info) \
     })
 
+#define hashmap_foreach_bucket(hashmap, iter) \
+    __auto_type *const h_var(end) = \
+        (hashmap)->buckets + (hashmap)->bucket_count; \
+    for (__auto_type iter = (hashmap)->buckets; iter != h_var(end); iter++) \
+
+#define hashmap_bucket_foreach_node(bucket, iter) \
+    struct hashmap_node *iter = NULL; \
+    list_foreach(iter, &(bucket)->node_list, list)
+
 bool
 hashmap_add(struct hashmap *hashmap, hashmap_key_t key, const void *object);
 
@@ -50,7 +59,7 @@ hashmap_update(struct hashmap *hashmap,
                const void *object,
                bool add_if_missing);
 
-void *hashmap_get(struct hashmap *hashmap, hashmap_key_t key);
+void *hashmap_get(const struct hashmap *hashmap, hashmap_key_t key);
 
 bool
 hashmap_remove(struct hashmap *hashmap,

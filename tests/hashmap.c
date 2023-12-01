@@ -5,7 +5,7 @@
 
 #include "lib/adt/hashmap.h"
 
-uint32_t hasher(void *const key, struct hashmap *const hashmap) {
+uint32_t hasher(void *const key, const struct hashmap *const hashmap) {
     (void)hashmap;
     return (uint64_t)key;
 }
