@@ -14,8 +14,8 @@ uint32_t prop_hash(const hashmap_key_t key, const struct hashmap *const map) {
 #define DEVICETREE_PROP_MAP_BUCKET_COUNT 6
 
 __optimize(3) void
-devicetree_node_init_fields(struct devicetree_node *node,
-                            struct devicetree_node *parent,
+devicetree_node_init_fields(struct devicetree_node *const node,
+                            struct devicetree_node *const parent,
                             const struct string_view name,
                             const int nodeoff)
 {
@@ -29,6 +29,11 @@ devicetree_node_init_fields(struct devicetree_node *node,
                      /*hash_cb_info=*/NULL);
 
     node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
+}
+
+__optimize(3) uint32_t
+devicetree_prop_other_get_u32(const struct devicetree_prop_other *const prop) {
+    return fdt32_to_cpu(*prop->data);
 }
 
 __optimize(3) struct string_view
