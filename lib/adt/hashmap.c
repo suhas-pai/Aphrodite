@@ -124,28 +124,32 @@ hashmap_update(struct hashmap *const hashmap,
     }
 
     const uint32_t key_hash = hash_of(hashmap, key);
-    struct hashmap_bucket *const bucket = hashmap->buckets[key_hash];
+    struct hashmap_bucket *bucket = hashmap->buckets[key_hash];
 
     if (bucket == NULL) {
-        if (add_if_missing) {
-            return hashmap_add(hashmap, key, object);
+        if (!add_if_missing) {
+            return false;
         }
 
-        return false;
-    }
-
-    struct hashmap_node *iter = NULL;
-    list_foreach(iter, &bucket->node_list, list) {
-        if (iter->key == key) {
-            memcpy(iter->data, object, hashmap->object_size);
-            return true;
+        bucket = calloc(1, sizeof(struct hashmap_bucket));
+        if (bucket == NULL) {
+            return false;
         }
 
-        return false;
-    }
+        list_init(&bucket->node_list);
+        hashmap->buckets[key_hash] = bucket;
+    } else {
+        struct hashmap_node *iter = NULL;
+        list_foreach(iter, &bucket->node_list, list) {
+            if (iter->key == key) {
+                memcpy(iter->data, object, hashmap->object_size);
+                return true;
+            }
+        }
 
-    if (!add_if_missing) {
-        return false;
+        if (!add_if_missing) {
+            return false;
+        }
     }
 
     struct hashmap_node *const node =
