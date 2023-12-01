@@ -136,8 +136,8 @@ pci_space_write_8(struct pci_space *const obj,
                   const uint8_t value)
 {
     switch (obj->kind) {
-    case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
+    #if defined(__x86_64__)
+        case PCI_SPACE_LEGACY:
             pci_legacy_space_write(loc, offset, value, sizeof(uint8_t));
             return;
     #endif /* defined(__x86_64__) */
@@ -157,8 +157,8 @@ pci_space_write_16(struct pci_space *const obj,
                    const uint16_t value)
 {
     switch (obj->kind) {
-    case PCI_SPACE_LEGACY:
-        #if defined(__x86_64__)
+    #if defined(__x86_64__)
+        case PCI_SPACE_LEGACY:
             pci_legacy_space_write(loc, offset, value, sizeof(uint16_t));
             return;
     #endif /* defined(__x86_64__) */
