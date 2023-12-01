@@ -39,6 +39,7 @@ pci_add_ecam_space(const struct range bus_range,
     list_init(&ecam_space->list);
     list_init(&ecam_space->space.entity_list);
 
+    ecam_space->space.kind = PCI_SPACE_ECAM;
     ecam_space->mmio =
         vmap_mmio(RANGE_INIT(base_addr, map_size_for_bus_range(bus_range)),
                   PROT_READ | PROT_WRITE,
