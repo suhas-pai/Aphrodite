@@ -51,7 +51,7 @@ static struct pl011_device_info early_infos[8] = {0};
 static uint8_t early_info_count = 0;
 
 __optimize(3)
-static void wait_tx_complete(volatile const struct pl011_device *const dev) {
+static void wait_for_tx_complete(volatile const struct pl011_device *const dev) {
     for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
         if ((mmio_read(&dev->fr_offset) & FR_BUSY) == 0) {
             return;
@@ -68,20 +68,20 @@ pl011_send_char(struct terminal *const term,
         container_of(term, struct pl011_device_info, term);
 
     volatile struct pl011_device *const device = info->device;
-    wait_tx_complete(device);
+    wait_for_tx_complete(device);
 
     if (ch == '\n') {
         for (uint64_t i = 0; i != amount; i++) {
             mmio_write(&device->dr_offset, '\r');
-            wait_tx_complete(device);
+            wait_for_tx_complete(device);
 
             mmio_write(&device->dr_offset, ch);
-            wait_tx_complete(device);
+            wait_for_tx_complete(device);
         }
     } else {
         for (uint64_t i = 0; i != amount; i++) {
             mmio_write(&device->dr_offset, ch);
-            wait_tx_complete(device);
+            wait_for_tx_complete(device);
         }
     }
 }
@@ -92,17 +92,17 @@ pl011_send_sv(struct terminal *const term, const struct string_view sv) {
         container_of(term, struct pl011_device_info, term);
 
     volatile struct pl011_device *const device = info->device;
-    wait_tx_complete(device);
+    wait_for_tx_complete(device);
 
     sv_foreach(sv, iter) {
         const char ch = *iter;
         if (ch == '\n') {
             mmio_write(&device->dr_offset, '\r');
-            wait_tx_complete(device);
+            wait_for_tx_complete(device);
         }
 
         mmio_write(&device->dr_offset, ch);
-        wait_tx_complete(device);
+        wait_for_tx_complete(device);
     }
 }
 
@@ -141,7 +141,7 @@ pl011_init(const port_t base,
     mmio_write(&device->cr_offset, cr & CR_UARTEN);
 
     // Wait for any ongoing transmissions to complete
-    wait_tx_complete(device);
+    wait_for_tx_complete(device);
 
     // Flush FIFOs
     mmio_write(&device->lcr_offset, (lcr & ~LCR_FEN));
