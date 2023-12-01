@@ -5,13 +5,18 @@
 
 #pragma once
 #include "dev/dtb/node.h"
+#include "lib/adt/hashmap.h"
 
 struct devicetree {
     struct devicetree_node *root;
-    struct array phandle_list;
+    struct hashmap phandle_map;
 };
 
 struct devicetree *devicetree_alloc();
+
+void
+devicetree_init_fields(struct devicetree *tree, struct devicetree_node *root);
+
 void devicetree_free(struct devicetree *tree);
 
 struct devicetree_node *

@@ -227,6 +227,12 @@ struct devicetree_node {
     struct array other_props;
 };
 
+void
+devicetree_node_init_fields(struct devicetree_node *node,
+                            struct devicetree_node *parent,
+                            struct string_view name,
+                            int nodeoff);
+
 const struct devicetree_prop *
 devicetree_node_get_prop(const struct devicetree_node *node,
                          enum devicetree_prop_kind kind);

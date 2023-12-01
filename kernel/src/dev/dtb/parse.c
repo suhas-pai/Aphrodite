@@ -842,7 +842,10 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                if (!array_append(&tree->phandle_list, &node)) {
+                if (!hashmap_add(&tree->phandle_map,
+                                 hashmap_key_create(phandle),
+                                 &node))
+                {
                     kfree(prop);
                     return false;
                 }

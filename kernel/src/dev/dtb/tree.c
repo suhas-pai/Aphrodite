@@ -8,7 +8,15 @@
 
 #include "tree.h"
 
-struct devicetree *devicetree_alloc() {
+#define DEVICETREE_PHANDLE_MAP_BUCKET_COUNT 10
+
+__optimize(3) static inline
+uint32_t phandle_hash(const hashmap_key_t key, struct hashmap *const map) {
+    (void)map;
+    return (uint32_t)(uint64_t)key;
+}
+
+__optimize(3) struct devicetree *devicetree_alloc() {
     struct devicetree_node *const root = kmalloc(sizeof(*root));
     if (root == NULL) {
         return NULL;
@@ -20,40 +28,39 @@ struct devicetree *devicetree_alloc() {
         return NULL;
     }
 
+    devicetree_node_init_fields(root,
+                                /*parent=*/NULL,
+                                /*name=*/SV_EMPTY(),
+                                /*nodeoff=*/0);
+
+    devicetree_init_fields(tree, root);
+    return tree;
+}
+
+__optimize(3) void
+devicetree_init_fields(struct devicetree *const tree,
+                       struct devicetree_node *const root)
+{
     list_init(&root->child_list);
     list_init(&root->sibling_list);
 
-    root->name = SV_EMPTY();
-    root->parent = NULL;
-    root->nodeoff = 0;
-    root->known_props = ARRAY_INIT(sizeof(struct devicetree_prop *));
-    root->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
-
     tree->root = root;
-    tree->phandle_list = ARRAY_INIT(sizeof(struct devicetree_prop *));
-
-    return tree;
+    tree->phandle_map =
+        HASHMAP_INIT(sizeof(struct devicetree_node *),
+                     DEVICETREE_PHANDLE_MAP_BUCKET_COUNT,
+                     phandle_hash,
+                     /*hash_cb_info=*/NULL);
 }
 
 __optimize(3) struct devicetree_node *
 devicetree_get_node_for_phandle(struct devicetree *const tree,
                                 const uint32_t phandle)
 {
-    array_foreach(&tree->phandle_list, struct devicetree_node *, iter) {
-        struct devicetree_node *const node = *iter;
-        array_foreach(&node->known_props, struct devicetree_prop *, prop_iter) {
-            const struct devicetree_prop *const prop = *prop_iter;
-            if (prop->kind == DEVICETREE_PROP_PHANDLE) {
-                const struct devicetree_prop_phandle *const phandle_prop =
-                    (const struct devicetree_prop_phandle *)prop;
+    struct devicetree_node *const *const node_ptr =
+        hashmap_get(&tree->phandle_map, (hashmap_key_t)(uint64_t)phandle);
 
-                if (phandle_prop->phandle == phandle) {
-                    return node;
-                }
-
-                break;
-            }
-        }
+    if (node_ptr != NULL) {
+        return *node_ptr;
     }
 
     return NULL;
@@ -197,7 +204,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
 
 __optimize(3) void devicetree_free(struct devicetree *const tree) {
     devicetree_node_free(tree->root);
-    array_destroy(&tree->phandle_list);
+    hashmap_destroy(&tree->phandle_map);
 
     kfree(tree->root);
     kfree(tree);

@@ -5,6 +5,19 @@
 
 #include "node.h"
 
+__optimize(3) void
+devicetree_node_init_fields(struct devicetree_node *node,
+                            struct devicetree_node *parent,
+                            const struct string_view name,
+                            const int nodeoff)
+{
+    node->name = name;
+    node->parent = parent;
+    node->nodeoff = nodeoff;
+    node->known_props = ARRAY_INIT(sizeof(struct devicetree_prop *));
+    node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
+}
+
 __optimize(3) struct string_view
 devicetree_prop_other_get_sv(const struct devicetree_prop_other *const prop) {
     const char *const ptr = (const char *)prop->data;

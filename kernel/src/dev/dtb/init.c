@@ -10,23 +10,8 @@
 
 #include "sys/boot.h"
 
-static struct devicetree_node g_device_tree_root = {
-    .name = SV_EMPTY(),
-    .parent = NULL,
-
-    .nodeoff = 0,
-
-    .child_list = LIST_INIT(g_device_tree_root.child_list),
-    .sibling_list = LIST_INIT(g_device_tree_root.sibling_list),
-
-    .known_props = ARRAY_INIT(sizeof(struct devicetree_prop *)),
-    .other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *)),
-};
-
-static struct devicetree g_device_tree = {
-    .root = &g_device_tree_root,
-    .phandle_list = ARRAY_INIT(sizeof(struct devicetree_prop *))
-};
+static struct devicetree_node g_device_tree_root;
+static struct devicetree g_device_tree;
 
 static void
 find_nodes_for_driver(const struct dtb_driver *const driver,
@@ -118,6 +103,12 @@ void dtb_init() {
         return;
     }
 
+    devicetree_node_init_fields(&g_device_tree_root,
+                                /*parent=*/NULL,
+                                /*name=*/SV_EMPTY(),
+                                /*nodeoff=*/0);
+
+    devicetree_init_fields(&g_device_tree, &g_device_tree_root);
     if (!devicetree_parse(&g_device_tree, dtb)) {
         printk(LOGLEVEL_WARN, "dev: failed to parse dtb\n");
         return;
