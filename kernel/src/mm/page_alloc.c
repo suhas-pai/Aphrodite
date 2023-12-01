@@ -158,8 +158,9 @@ free_range_of_pages(struct page *page,
     int8_t order = max_order - 1;
     uint64_t avail = amount;
 
-    for (; order >= 0; order--) {
-        if (avail >= (1ull << order)) {
+    for (uint8_t order_i = 0; order_i <= max_order; order_i++) {
+        if (avail < (1ull << order_i)) {
+            order = order_i - 1;
             break;
         }
     }
