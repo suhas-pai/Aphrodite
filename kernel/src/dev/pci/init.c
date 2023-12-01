@@ -499,6 +499,8 @@ parse_function(struct pci_space *const space,
         printk(LOGLEVEL_WARN,
                "pci: invalid entity, header-type and class/subclass "
                "mismatch\n");
+
+        free_inside_entity_info(&info);
         return;
     }
 
@@ -519,6 +521,8 @@ parse_function(struct pci_space *const space,
             if (info.bar_list == NULL) {
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
+
+                free_inside_entity_info(&info);
                 return;
             }
 
@@ -573,6 +577,8 @@ parse_function(struct pci_space *const space,
             if (info.bar_list == NULL) {
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
+
+                free_inside_entity_info(&info);
                 return;
             }
 
