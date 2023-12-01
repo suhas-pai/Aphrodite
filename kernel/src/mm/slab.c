@@ -158,6 +158,8 @@ void *slab_alloc(struct slab_allocator *const alloc) {
         spin_release_with_irq(&alloc->lock, flag);
     }
 
+    // Zero-out free-block
+    result->next = 0;
     return result;
 }
 
