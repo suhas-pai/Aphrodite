@@ -47,7 +47,7 @@ devicetree_node_get_prop(const struct devicetree_node *const node,
                          const enum devicetree_prop_kind kind)
 {
     struct devicetree_prop **const prop_ptr =
-        hashmap_get(&node->known_props, (hashmap_key_t)kind);
+        hashmap_get(&node->known_props, hashmap_key_create(kind));
 
     if (prop_ptr != NULL) {
         return *prop_ptr;

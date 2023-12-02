@@ -57,7 +57,7 @@ devicetree_get_node_for_phandle(const struct devicetree *const tree,
                                 const uint32_t phandle)
 {
     const struct devicetree_node *const *const node_ptr =
-        hashmap_get(&tree->phandle_map, (hashmap_key_t)(uint64_t)phandle);
+        hashmap_get(&tree->phandle_map, hashmap_key_create(phandle));
 
     if (node_ptr != NULL) {
         return *node_ptr;

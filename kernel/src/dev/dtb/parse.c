@@ -660,7 +660,7 @@ parse_node_prop(const void *const dtb,
                 compat_prop->string = get_prop_data_sv(fdt_prop);
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_COMPAT,
+                                 hashmap_key_create(DEVICETREE_PROP_COMPAT),
                                  &compat_prop))
                 {
                     kfree(compat_prop);
@@ -696,7 +696,7 @@ parse_node_prop(const void *const dtb,
                 prop->list = list;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_REG,
+                                 hashmap_key_create(DEVICETREE_PROP_REG),
                                  &prop))
                 {
                     kfree(prop);
@@ -737,7 +737,7 @@ parse_node_prop(const void *const dtb,
                 prop->list = list;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_RANGES,
+                                 hashmap_key_create(DEVICETREE_PROP_RANGES),
                                  &prop))
                 {
                     kfree(prop);
@@ -771,7 +771,7 @@ parse_node_prop(const void *const dtb,
                 prop->model = model_sv;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_MODEL,
+                                 hashmap_key_create(DEVICETREE_PROP_MODEL),
                                  &prop))
                 {
                     kfree(prop);
@@ -802,7 +802,7 @@ parse_node_prop(const void *const dtb,
                 prop->status = status;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_STATUS,
+                                 hashmap_key_create(DEVICETREE_PROP_STATUS),
                                  &prop))
                 {
                     kfree(prop);
@@ -857,7 +857,7 @@ parse_node_prop(const void *const dtb,
                 prop->phandle = phandle;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_PHANDLE,
+                                 hashmap_key_create(DEVICETREE_PROP_PHANDLE),
                                  &prop))
                 {
                     kfree(prop);
@@ -893,9 +893,10 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_VIRTUAL_REG;
                 prop->address = address;
 
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_VIRTUAL_REG,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_VIRTUAL_REG),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -933,7 +934,7 @@ parse_node_prop(const void *const dtb,
                 prop->list = list;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_DMA_RANGES,
+                                 hashmap_key_create(DEVICETREE_PROP_DMA_RANGES),
                                  &prop))
                 {
                     kfree(prop);
@@ -956,9 +957,10 @@ parse_node_prop(const void *const dtb,
                 }
 
                 prop->kind = DEVICETREE_PROP_DMA_COHERENT;
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_DMA_COHERENT,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_DMA_COHERENT),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -980,9 +982,10 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_DEVICE_TYPE;
                 prop->name = get_prop_data_sv(fdt_prop);;
 
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_DEVICE_TYPE,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_DEVICE_TYPE),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -1012,7 +1015,7 @@ parse_node_prop(const void *const dtb,
                 prop->list = list;
 
                 if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_INTERRUPTS,
+                                 hashmap_key_create(DEVICETREE_PROP_INTERRUPTS),
                                  &prop))
                 {
                     kfree(prop);
@@ -1060,7 +1063,7 @@ parse_node_prop(const void *const dtb,
 
                 if (!hashmap_add(
                         &node->known_props,
-                        (hashmap_key_t)DEVICETREE_PROP_INTERRUPT_PARENT,
+                        hashmap_key_create(DEVICETREE_PROP_INTERRUPT_PARENT),
                         &prop))
                 {
                     kfree(prop);
@@ -1083,7 +1086,8 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_INTERRUPT_CONTROLLER;
                 if (!hashmap_add(
                         &node->known_props,
-                        (hashmap_key_t)DEVICETREE_PROP_INTERRUPT_CONTROLLER,
+                        hashmap_key_create(
+                            DEVICETREE_PROP_INTERRUPT_CONTROLLER),
                         &prop))
                 {
                     kfree(prop);
@@ -1111,9 +1115,10 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_INTERRUPT_CELLS;
                 prop->count = count;
 
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_INTERRUPT_CELLS,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_INTERRUPT_CELLS),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -1144,7 +1149,7 @@ parse_node_prop(const void *const dtb,
 
                 if (!hashmap_add(
                         &node->known_props,
-                        (hashmap_key_t)DEVICETREE_PROP_INTERRUPT_MAP_MASK,
+                        hashmap_key_create(DEVICETREE_PROP_INTERRUPT_MAP_MASK),
                         &prop))
                 {
                     kfree(prop);
@@ -1167,9 +1172,10 @@ parse_node_prop(const void *const dtb,
                 }
 
                 prop->kind = DEVICETREE_PROP_MSI_CONTROLLER;
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_MSI_CONTROLLER,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_MSI_CONTROLLER),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -1211,9 +1217,10 @@ parse_node_prop(const void *const dtb,
                 prop->name = name;
                 prop->list = list;
 
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_SPECIFIER_MAP,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_SPECIFIER_MAP),
+                        &prop))
                 {
                     kfree(prop);
                     array_destroy(&list);
@@ -1243,9 +1250,10 @@ parse_node_prop(const void *const dtb,
                 prop->name = name;
                 prop->cells = cells;
 
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_SPECIFIER_CELLS,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_SPECIFIER_CELLS),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -1274,7 +1282,7 @@ parse_node_prop(const void *const dtb,
 
                 if (!hashmap_add(
                         &node->known_props,
-                        (hashmap_key_t)DEVICETREE_PROP_SERIAL_CLOCK_FREQ,
+                        hashmap_key_create(DEVICETREE_PROP_SERIAL_CLOCK_FREQ),
                         &prop))
                 {
                     kfree(prop);
@@ -1304,7 +1312,8 @@ parse_node_prop(const void *const dtb,
 
                 if (!hashmap_add(
                         &node->known_props,
-                        (hashmap_key_t)DEVICETREE_PROP_SERIAL_CURRENT_SPEED,
+                        hashmap_key_create(
+                            DEVICETREE_PROP_SERIAL_CURRENT_SPEED),
                         &prop))
                 {
                     kfree(prop);
@@ -1332,9 +1341,10 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_PCI_BUS_RANGE;
                 prop->range = bus_range;
 
-                if (!hashmap_add(&node->known_props,
-                                 (hashmap_key_t)DEVICETREE_PROP_PCI_BUS_RANGE,
-                                 &prop))
+                if (!hashmap_add(
+                        &node->known_props,
+                        hashmap_key_create(DEVICETREE_PROP_PCI_BUS_RANGE),
+                        &prop))
                 {
                     kfree(prop);
                     return false;
@@ -1421,9 +1431,10 @@ parse_node_children(const void *const dtb,
                 kmalloc(sizeof(*addr_size_cells));
 
             *addr_size_cells = addr_size_cells_prop;
-            if (!hashmap_add(&node->known_props,
-                             (hashmap_key_t)DEVICETREE_PROP_ADDR_SIZE_CELLS,
-                             &addr_size_cells))
+            if (!hashmap_add(
+                    &node->known_props,
+                    hashmap_key_create(DEVICETREE_PROP_ADDR_SIZE_CELLS),
+                    &addr_size_cells))
             {
                 kfree(addr_size_cells);
                 return false;
@@ -1510,7 +1521,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         map_prop->list = list;
 
         if (!hashmap_add(&iter->node->known_props,
-                         (hashmap_key_t)DEVICETREE_PROP_INTERRUPT_MAP,
+                         hashmap_key_create(DEVICETREE_PROP_INTERRUPT_MAP),
                          &map_prop))
         {
             array_destroy(&list);
