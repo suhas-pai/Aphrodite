@@ -106,10 +106,10 @@ find_multiple_unset(struct bitmap *const bitmap,
             {                                                                  \
                 if (iter.size < count) {                                       \
                     /*
-                    * If the range isn't long enough, but goes to the end of the
-                    * word, then the next word can have the remaining zeroes
-                    * needed in its lsb.
-                    */                                                         \
+                     * If the range isn't long enough, but goes to the end of
+                     * the word, then the next word can have the remaining
+                     * zeroes needed in its lsb.
+                     */                                                        \
                                                                                \
                     if (range_get_end_assert(iter) == sizeof_bits(type)) {     \
                         current_range_start_index =                            \
