@@ -19,8 +19,9 @@ devicetree_init_fields(struct devicetree *tree, struct devicetree_node *root);
 
 void devicetree_free(struct devicetree *tree);
 
-struct devicetree_node *
-devicetree_get_node_for_phandle(struct devicetree *tree, uint32_t phandle);
+const struct devicetree_node *
+devicetree_get_node_for_phandle(const struct devicetree *tree,
+                                uint32_t phandle);
 
 struct devicetree_node *
 devicetree_get_node_at_path(const struct devicetree *tree,

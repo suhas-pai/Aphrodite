@@ -471,7 +471,7 @@ parse_interrupt_map_prop(const void *const dtb,
         info.phandle = fdt32_to_cpu(*data);
         data++;
 
-        struct devicetree_node *const phandle_node =
+        const struct devicetree_node *const phandle_node =
             devicetree_get_node_for_phandle(tree, info.phandle);
 
         if (phandle_node == NULL) {

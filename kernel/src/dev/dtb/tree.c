@@ -52,11 +52,11 @@ devicetree_init_fields(struct devicetree *const tree,
                      /*hash_cb_info=*/NULL);
 }
 
-__optimize(3) struct devicetree_node *
-devicetree_get_node_for_phandle(struct devicetree *const tree,
+__optimize(3) const struct devicetree_node *
+devicetree_get_node_for_phandle(const struct devicetree *const tree,
                                 const uint32_t phandle)
 {
-    struct devicetree_node *const *const node_ptr =
+    const struct devicetree_node *const *const node_ptr =
         hashmap_get(&tree->phandle_map, (hashmap_key_t)(uint64_t)phandle);
 
     if (node_ptr != NULL) {
