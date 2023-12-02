@@ -17,6 +17,10 @@ parse_array_prop(const struct fdt_property *const fdt_prop,
                  const fdt32_t **const data_out,
                  uint32_t *const length_out)
 {
+    if (__builtin_expect((uint32_t)prop_length % sizeof(fdt32_t) != 0, 0)) {
+        return false;
+    }
+
     *data_out = (const fdt32_t *)(uint64_t)fdt_prop->data;
     *length_out = (uint32_t)prop_length / sizeof(fdt32_t);
 
