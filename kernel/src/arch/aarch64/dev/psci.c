@@ -22,7 +22,8 @@ static uint32_t g_func_to_cmd[] = {
     [PSCI_FUNC_MIGRATE_INFO_UP_CPU] = 0xC4000007,
 };
 
-const char *func_to_string(const enum psci_function method) {
+__optimize(3)
+static inline const char *func_to_string(const enum psci_function method) {
     switch (method) {
         case PSCI_FUNC_VERSION:
             return "psci-version";
