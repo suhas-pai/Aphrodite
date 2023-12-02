@@ -12,7 +12,6 @@
 #include "mm/early.h"
 #include "mm/memmap.h"
 #include "mm/pgmap.h"
-#include "mm/walker.h"
 
 #include "sys/boot.h"
 
