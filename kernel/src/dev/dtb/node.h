@@ -211,8 +211,9 @@ struct devicetree_prop_other {
     uint32_t data_length;
 };
 
-uint32_t
-devicetree_prop_other_get_u32(const struct devicetree_prop_other *prop);
+bool
+devicetree_prop_other_get_u32(const struct devicetree_prop_other *prop,
+                              uint32_t *const result_out);
 
 struct string_view
 devicetree_prop_other_get_sv(const struct devicetree_prop_other *prop);

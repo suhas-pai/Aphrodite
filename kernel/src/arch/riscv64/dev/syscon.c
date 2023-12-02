@@ -139,7 +139,14 @@ init_poweroff_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const uint32_t phandle = devicetree_prop_other_get_u32(regmap_prop);
+    uint32_t phandle = 0;
+    if (!devicetree_prop_other_get_u32(regmap_prop, &phandle)) {
+        printk(LOGLEVEL_WARN,
+               "syscon: syscon-poweroff dtb-node has a malformed 'regmap' "
+               "prop\n");
+        return false;
+    }
+
     const struct devicetree_node *const phandle_node =
         devicetree_get_node_for_phandle(tree, phandle);
 
@@ -175,9 +182,23 @@ init_poweroff_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const uint32_t offset = devicetree_prop_other_get_u32(offset_prop);
-    const struct range range = RANGE_INIT(offset, sizeof(uint32_t));
+    uint32_t offset = 0;
+    if (!devicetree_prop_other_get_u32(offset_prop, &offset)) {
+        printk(LOGLEVEL_WARN,
+               "syscon: syscon-poweroff dtb-node has a malformed 'offset' "
+               "prop\n");
+        return false;
+    }
 
+    uint32_t value = 0;
+    if (!devicetree_prop_other_get_u32(offset_prop, &value)) {
+        printk(LOGLEVEL_WARN,
+               "syscon: syscon-poweroff dtb-node has a malformed 'value' "
+               "prop\n");
+        return false;
+    }
+
+    const struct range range = RANGE_INIT(offset, sizeof(uint32_t));
     if (!index_range_in_bounds(range, SYSCON_MMIO_SIZE)) {
         printk(LOGLEVEL_WARN,
                "syscon: syscon-poweroff dtb-node's offset falls outside "
@@ -187,8 +208,7 @@ init_poweroff_dtb(const struct devicetree *const tree,
 
     g_method_info[SYSCON_METH_POWEROFF].phandle = phandle;
     g_method_info[SYSCON_METH_POWEROFF].offset = offset;
-    g_method_info[SYSCON_METH_POWEROFF].value =
-        devicetree_prop_other_get_u32(value_prop);
+    g_method_info[SYSCON_METH_POWEROFF].value = value;
 
     return true;
 }
@@ -209,7 +229,14 @@ init_reboot_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const uint32_t phandle = devicetree_prop_other_get_u32(regmap_prop);
+    uint32_t phandle = 0;
+    if (!devicetree_prop_other_get_u32(regmap_prop, &phandle)) {
+        printk(LOGLEVEL_WARN,
+               "syscon: syscon-poweroff dtb-node has a malformed 'regmap' "
+               "prop\n");
+        return false;
+    }
+
     const struct devicetree_node *const phandle_node =
         devicetree_get_node_for_phandle(tree, phandle);
 
@@ -245,9 +272,23 @@ init_reboot_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const uint32_t offset = devicetree_prop_other_get_u32(offset_prop);
-    const struct range range = RANGE_INIT(offset, sizeof(uint32_t));
+    uint32_t offset = 0;
+    if (!devicetree_prop_other_get_u32(offset_prop, &offset)) {
+        printk(LOGLEVEL_WARN,
+               "syscon: syscon-reboot dtb-node has a malformed 'offset' "
+               "prop\n");
+        return false;
+    }
 
+    uint32_t value = 0;
+    if (!devicetree_prop_other_get_u32(offset_prop, &value)) {
+        printk(LOGLEVEL_WARN,
+               "syscon: syscon-reboot dtb-node has a malformed 'value' "
+               "prop\n");
+        return false;
+    }
+
+    const struct range range = RANGE_INIT(offset, sizeof(uint32_t));
     if (!index_range_in_bounds(range, SYSCON_MMIO_SIZE)) {
         printk(LOGLEVEL_WARN,
                "syscon: syscon-reboot dtb-node's offset falls outside "
@@ -257,8 +298,7 @@ init_reboot_dtb(const struct devicetree *const tree,
 
     g_method_info[SYSCON_METH_REBOOT].phandle = phandle;
     g_method_info[SYSCON_METH_REBOOT].offset = offset;
-    g_method_info[SYSCON_METH_REBOOT].value =
-        devicetree_prop_other_get_u32(value_prop);
+    g_method_info[SYSCON_METH_REBOOT].value = value;
 
     return true;
 }

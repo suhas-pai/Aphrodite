@@ -31,9 +31,16 @@ devicetree_node_init_fields(struct devicetree_node *const node,
     node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
 }
 
-__optimize(3) uint32_t
-devicetree_prop_other_get_u32(const struct devicetree_prop_other *const prop) {
-    return fdt32_to_cpu(*prop->data);
+__optimize(3) bool
+devicetree_prop_other_get_u32(const struct devicetree_prop_other *const prop,
+                              uint32_t *const result_out)
+{
+    if (prop->data_length != sizeof(fdt32_t)) {
+        return false;
+    }
+
+    *result_out = fdt32_to_cpu(*prop->data);
+    return true;
 }
 
 __optimize(3) struct string_view

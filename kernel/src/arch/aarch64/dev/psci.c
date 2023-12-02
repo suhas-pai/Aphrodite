@@ -23,8 +23,8 @@ static uint32_t g_func_to_cmd[] = {
 };
 
 __optimize(3)
-static inline const char *func_to_string(const enum psci_function method) {
-    switch (method) {
+static inline const char *func_to_string(const enum psci_function func) {
+    switch (func) {
         case PSCI_FUNC_VERSION:
             return "psci-version";
         case PSCI_FUNC_CPU_OFF:
@@ -158,15 +158,15 @@ init_from_dtb(const struct devicetree *const tree,
             continue;
         }
 
-        if (key_prop->data_length != sizeof(fdt32_t)) {
+        uint32_t *const func_ptr =
+            &g_func_to_cmd[key_index_to_func[key_iter - key_list]];
+
+        if (!devicetree_prop_other_get_u32(key_prop, func_ptr)) {
             printk(LOGLEVEL_WARN,
                    "psci: dtb node \"" SV_FMT "\" has a bad length\n",
                    SV_FMT_ARGS(key));
             continue;
         }
-
-        g_func_to_cmd[key_index_to_func[key_iter - key_list]] =
-            fdt32_to_cpu(*key_prop->data);
     }
 
     if (g_invoke_method != PSCI_INVOKE_METHOD_NONE) {

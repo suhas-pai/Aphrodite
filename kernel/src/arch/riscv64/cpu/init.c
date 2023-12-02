@@ -57,8 +57,15 @@ static void setup_from_dtb(const uint32_t hartid) {
                    "cpu: dtb node of cpu is missing '" SV_FMT "' prop",
                    SV_FMT_ARGS(cmo_sv));
 
-        get_cpu_info_mut()->cbo_size = devicetree_prop_other_get_u32(cbo_prop);
-        get_cpu_info_mut()->cmo_size = devicetree_prop_other_get_u32(cmo_prop);
+        assert_msg(
+            devicetree_prop_other_get_u32(cbo_prop,
+                                          &get_cpu_info_mut()->cbo_size),
+            "cpu: dtb node's cbo-size prop is malformed");
+
+        assert_msg(
+            devicetree_prop_other_get_u32(cmo_prop,
+                                          &get_cpu_info_mut()->cmo_size),
+            "cpu: dtb node's cmo-size prop is malformed");
     }
 }
 
