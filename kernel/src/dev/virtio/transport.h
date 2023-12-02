@@ -94,32 +94,32 @@ virtio_mmio_set_selected_queue_device_phys(struct virtio_device *device,
                                            uint64_t phys);
 
 #define virtio_device_read_status(device) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_read_device_status(device) : \
         virtio_mmio_read_device_status(device))
 
 #define virtio_device_read_features(device) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_read_device_features(device) : \
         virtio_mmio_read_device_features(device))
 
 #define virtio_device_write_status(device, status) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_write_device_status((device), (status)) : \
         virtio_mmio_write_device_status((device), (status)))
 
 #define virtio_device_write_features(device, features) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_write_driver_features((device), (features)) : \
         virtio_mmio_write_driver_features((device), (features)))
 
 #define virtio_device_read_info(device, offset, size, buf) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_read_device_info((device), (offset), (size), (buf)) : \
         virtio_mmio_read_device_info((device), (offset), (size), (buf)))
 
 #define virtio_device_write_info(device, offset, size, buf) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_write_device_info((device), (offset), (size), (buf)) : \
         virtio_mmio_write_device_info((device), (offset), (size), (buf)))
 
@@ -140,34 +140,34 @@ virtio_mmio_set_selected_queue_device_phys(struct virtio_device *device,
                              (value))
 
 #define virtio_device_select_queue(device, index) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_select_queue((device), (index)) : \
         virtio_mmio_select_queue((device), (index)))
 #define virtio_device_selected_queue_max_size(device) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_selected_queue_max_size((device)) : \
         virtio_mmio_selected_queue_max_size((device)))
 #define virtio_device_set_selected_queue_size(device, size) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_set_selected_queue_size((device), (size)) : \
         virtio_mmio_set_selected_queue_size((device), (size)))
 #define virtio_device_notify_queue(device, index) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_notify_queue((device), (index)) : \
         virtio_mmio_notify_queue((device), (index)))
 #define virtio_device_enable_selected_queue(device) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_enable_selected_queue((device)) : \
         virtio_mmio_enable_selected_queue((device)))
 #define virtio_device_set_selected_queue_desc_phys(device, phys) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_set_selected_queue_desc_phys((device), (phys)) : \
         virtio_mmio_set_selected_queue_desc_phys((device), (phys)))
 #define virtio_device_set_selected_queue_driver_phys(device, phys) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_set_selected_queue_driver_phys((device), (phys)) : \
         virtio_mmio_set_selected_queue_driver_phys((device), (phys)))
 #define virtio_device_set_selected_queue_device_phys(device, phys) \
-    ((device)->is_pci ? \
+    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_set_selected_queue_device_phys((device), (phys)) : \
         virtio_mmio_set_selected_queue_device_phys((device), (phys)))

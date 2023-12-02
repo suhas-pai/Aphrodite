@@ -22,6 +22,11 @@ bool virtio_device_shmem_region_map(struct virtio_device_shmem_region *region);
 void
 virtio_device_shmem_region_unmap(struct virtio_device_shmem_region *region);
 
+enum virtio_device_transport_kind {
+    VIRTIO_DEVICE_TRANSPORT_MMIO,
+    VIRTIO_DEVICE_TRANSPORT_PCI,
+};
+
 struct virtio_device {
     struct list list;
     union {
@@ -34,6 +39,10 @@ struct virtio_device {
 
             struct virtio_pci_cfg_cap *pci_cfg;
         } pci;
+        struct {
+            struct mmio_region *region;
+            volatile struct virtio_mmio_device *device;
+        } mmio;
     };
 
     // Array of struct virtio_device_shmem_region
@@ -50,8 +59,8 @@ struct virtio_device {
     } pci_offsets;
 
     bool is_transitional : 1;
-    bool is_pci : 1;
 
+    enum virtio_device_transport_kind transport_kind : 1;
     enum virtio_device_kind kind : 6;
 };
 

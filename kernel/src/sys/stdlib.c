@@ -392,11 +392,21 @@ __optimize(3) void bzero(void *dst, unsigned long n) {
         return;
     }
 #elif defined(__aarch64__)
-    while (n >= (sizeof(uint64_t) * 2)) {
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(dst));
+    if (n >= (sizeof(uint64_t) * 2)) {
+        do {
+            asm volatile ("stp xzr, xzr, [%0]" :: "r"(dst));
 
-        dst += sizeof(uint64_t) * 2;
-        n -= sizeof(uint64_t) * 2;
+            n -= sizeof(uint64_t) * 2;
+            if (n < (sizeof(uint64_t) * 2)) {
+                if (n == 0) {
+                    return;
+                }
+
+                break;
+            }
+
+            dst += (sizeof(uint64_t) * 2);
+        } while (true);
     }
 #elif defined(__riscv64)
     if (has_align((uint64_t)dst, CBO_SIZE)) {
@@ -415,6 +425,10 @@ __optimize(3) void bzero(void *dst, unsigned long n) {
         n -= sizeof(uint64_t);
     }
 
+    if (n == 0) {
+        return;
+    }
+
     while (n >= sizeof(uint32_t)) {
         *(uint32_t *)dst = 0;
 
@@ -422,11 +436,19 @@ __optimize(3) void bzero(void *dst, unsigned long n) {
         n -= sizeof(uint32_t);
     }
 
+    if (n == 0) {
+        return;
+    }
+
     while (n >= sizeof(uint16_t)) {
         *(uint16_t *)dst = 0;
 
         dst += sizeof(uint16_t);
         n -= sizeof(uint16_t);
+    }
+
+    if (n == 0) {
+        return;
     }
 
     while (n >= sizeof(uint8_t)) {

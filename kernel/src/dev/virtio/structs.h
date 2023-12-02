@@ -316,7 +316,7 @@ enum virtio_device_feature_bits {
     __VIRTIO_DEVFEATURES_RESET = 1ull << 39,
 };
 
-#define VIRTIO_DEVICE_MAGIC 0x74726976
+#define VIRTIO_MMIO_DEVICE_MAGIC 0x74726976
 
 struct virtio_mmio_device {
     volatile const uint32_t magic;
