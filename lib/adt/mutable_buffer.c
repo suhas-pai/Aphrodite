@@ -51,7 +51,7 @@ __optimize(3) void *mbuffer_current_ptr(const struct mutable_buffer mbuffer) {
 
 __optimize(3)
 uint32_t mbuffer_free_space(const struct mutable_buffer mbuffer) {
-    return distance(mbuffer.end, mbuffer_current_ptr(mbuffer));
+    return distance(mbuffer_current_ptr(mbuffer), mbuffer.end);
 }
 
 __optimize(3) uint32_t mbuffer_used_size(const struct mutable_buffer mbuffer) {
@@ -59,7 +59,7 @@ __optimize(3) uint32_t mbuffer_used_size(const struct mutable_buffer mbuffer) {
 }
 
 __optimize(3) uint32_t mbuffer_capacity(const struct mutable_buffer mbuffer) {
-    return distance(mbuffer.end, mbuffer.begin);
+    return distance(mbuffer.begin, mbuffer.end);
 }
 
 __optimize(3) bool
