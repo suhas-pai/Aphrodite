@@ -48,8 +48,7 @@ hashmap_add(struct hashmap *const hashmap,
     struct hashmap_bucket *bucket = hashmap->buckets[key_hash];
 
     if (bucket != NULL) {
-        struct hashmap_node *iter = NULL;
-        list_foreach(iter, &bucket->node_list, list) {
+        hashmap_bucket_foreach_node(bucket, iter) {
             if (iter->key != key) {
                 continue;
             }
@@ -139,8 +138,7 @@ hashmap_update(struct hashmap *const hashmap,
         list_init(&bucket->node_list);
         hashmap->buckets[key_hash] = bucket;
     } else {
-        struct hashmap_node *iter = NULL;
-        list_foreach(iter, &bucket->node_list, list) {
+        hashmap_bucket_foreach_node(bucket, iter) {
             if (iter->key == key) {
                 memcpy(iter->data, object, hashmap->object_size);
                 return true;
@@ -188,8 +186,7 @@ hashmap_get(const struct hashmap *const hashmap, const hashmap_key_t key) {
         return NULL;
     }
 
-    struct hashmap_node *iter = NULL;
-    list_foreach(iter, &bucket->node_list, list) {
+    hashmap_bucket_foreach_node(bucket, iter) {
         if (iter->key == key) {
             return iter->data;
         }
@@ -217,10 +214,8 @@ hashmap_remove(struct hashmap *const hashmap,
         return NULL;
     }
 
-    struct hashmap_node *iter = NULL;
     struct list *prev = &bucket->node_list;
-
-    list_foreach(iter, &bucket->node_list, list) {
+    hashmap_bucket_foreach_node(bucket, iter) {
         if (iter->key != key) {
             prev = iter->list.next;
             continue;
@@ -271,8 +266,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
             continue;
         }
 
-        struct hashmap_node *jter = NULL;
-        list_foreach(jter, &bucket->node_list, list) {
+        hashmap_bucket_foreach_node(bucket, jter) {
             if (!hashmap_add(hashmap, jter->key, jter->data)) {
                 hashmap_destroy(hashmap);
 
