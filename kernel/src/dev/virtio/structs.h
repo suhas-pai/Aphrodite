@@ -146,7 +146,6 @@ struct virtio_pci_cfg_cap {
      * At that point, pci_cfg_data will provide a window of size cap.length into
      * the given cap.bar at offset cap.offset.
      */
-
     struct pci_spec_capability cap;
 
     uint8_t cap_len;
@@ -173,16 +172,15 @@ struct virtio_pci_isr_cfg_cap {
      * In this way, driver read of ISR status causes the device to de-assert an
      * interrupt.
      */
-
     volatile uint8_t data[];
 } __packed;
 
 struct virtio_pci_vendor_data_cap {
-    uint8_t cap_vndr;    // Generic PCI field: PCI_CAP_ID_VNDR
-    uint8_t cap_next;    // Generic PCI field: next ptr.
-    uint8_t cap_len;     // Generic PCI field: capability length
-    uint8_t cfg_type;    // Identifies the structure.
-    uint16_t vendor_id;  // Identifies the vendor-specific format.
+    uint8_t cap_vndr;   // Generic PCI field: PCI_CAP_ID_VNDR
+    uint8_t cap_next;   // Generic PCI field: next ptr.
+    uint8_t cap_len;    // Generic PCI field: capability length
+    uint8_t cfg_type;   // Identifies the structure.
+    uint16_t vendor_id; // Identifies the vendor-specific format.
 } __packed;
 
 enum virtio_device_status {
