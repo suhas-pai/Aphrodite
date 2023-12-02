@@ -757,6 +757,9 @@ __optimize(3) void pci_init() {
 
 #if defined(__x86_64__)
     if (array_empty(*space_array)) {
+        pci_release_space_list_lock(flag);
+        printk(LOGLEVEL_INFO, "pci: searching for entities in legacy space\n");
+
         struct pci_space *const legacy_space = kmalloc(sizeof(*legacy_space));
         assert_msg(legacy_space != NULL,
                    "pci: failed to allocate pci-legacy root space");
@@ -776,7 +779,8 @@ __optimize(3) void pci_init() {
 
         if (ent_0_first_dword == PCI_READ_FAIL) {
             printk(LOGLEVEL_WARN,
-                   "pci: failed to find pci bus. aborting init\n");
+                   "pci: failed to find pci bus in legacy space. aborting "
+                   "init\n");
             return;
         }
 
@@ -784,13 +788,15 @@ __optimize(3) void pci_init() {
         pci_find_entities_in_space(legacy_space);
     } else {
 #endif /* defined(__x86_64__) */
+        printk(LOGLEVEL_INFO, "pci: searching for entities in every space\n");
         array_foreach(space_array, struct pci_space *, iter) {
             pci_find_entities_in_space(*iter);
         }
+
+        pci_release_space_list_lock(flag);
 #if defined(__x86_64__)
     }
 #endif /* defined(__x86_64__) */
 
-    pci_release_space_list_lock(flag);
     pci_init_drivers();
 }
