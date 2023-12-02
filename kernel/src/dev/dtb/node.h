@@ -249,6 +249,10 @@ devicetree_node_get_other_prop(const struct devicetree_node *node,
                                struct string_view sv);
 
 bool
+devicetree_node_has_compat_sv(const struct devicetree_node *node,
+                              struct string_view sv);
+
+bool
 devicetree_prop_compat_has_sv(const struct devicetree_prop_compat *node,
                               struct string_view sv);
 

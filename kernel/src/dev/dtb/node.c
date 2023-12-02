@@ -96,6 +96,21 @@ fdt_stringlist_contains_sv(const char *strlist,
 }
 
 bool
+devicetree_node_has_compat_sv(const struct devicetree_node *const node,
+                              const struct string_view sv)
+{
+    const struct devicetree_prop_compat *const compat_prop =
+        (const struct devicetree_prop_compat *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
+
+    if (compat_prop == NULL) {
+        return false;
+    }
+
+    return devicetree_prop_compat_has_sv(compat_prop, sv);
+}
+
+bool
 devicetree_prop_compat_has_sv(const struct devicetree_prop_compat *const prop,
                               const struct string_view sv)
 {
