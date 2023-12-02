@@ -72,6 +72,8 @@ struct virtio_device {
         .pci.device_cfg = RANGE_EMPTY(), \
         .pci.notify_queue_select = NULL, \
         .pci.pci_cfg = NULL, \
+        .mmio.region = NULL, \
+        .mmio.device = NULL, \
         .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
         .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
         .queue_list = NULL, \
