@@ -169,9 +169,9 @@ void madt_init(const struct acpi_madt *const madt) {
                        hdr->source,
                        hdr->gsi,
                        hdr->flags,
-                       (hdr->flags & __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW) != 0 ?
+                       hdr->flags & __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW ?
                         "yes" : "no",
-                       (hdr->flags & __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER) != 0 ?
+                       hdr->flags & __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER ?
                         "yes" : "no");
                 break;
             }
