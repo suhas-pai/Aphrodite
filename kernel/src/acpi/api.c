@@ -138,7 +138,10 @@ struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
 
         for (uint32_t i = 0; i != entry_count; i++) {
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
-            if (memcmp(sdt->signature, signature, 4) == 0) {
+            if (memcmp(sdt->signature,
+                       signature,
+                       sizeof(sdt->signature)) == 0)
+            {
                 return sdt;
             }
         }
@@ -150,7 +153,10 @@ struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
 
         for (uint32_t i = 0; i != entry_count; i++) {
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
-            if (memcmp(sdt->signature, signature, 4) == 0) {
+            if (memcmp(sdt->signature,
+                       signature,
+                       sizeof(sdt->signature)) == 0)
+            {
                 return sdt;
             }
         }
