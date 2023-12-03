@@ -179,13 +179,9 @@ _memcmp_uint64_t(const void *left,
             }
 
             len -= sizeof(uint64_t);
-            if (len < sizeof(uint64_t)) {
-                break;
-            }
-
             left += sizeof(uint64_t);
             right += sizeof(uint64_t);
-        } while (true);
+        } while (len >= sizeof(uint64_t));
 
         *left_out = left;
         *right_out = right;
@@ -391,7 +387,7 @@ _memcpy_bw_uint64_t(void *const dst,
             } while (true);
 
             if (off < sizeof(uint64_t)) {
-                return 0;
+                return off;
             }
         }
     #endif /* defined(__aarch64__) */
@@ -401,7 +397,7 @@ _memcpy_bw_uint64_t(void *const dst,
 
             off -= sizeof(uint64_t);
             if (off < sizeof(uint64_t)) {
-                break;
+                return off;
             }
         } while (n >= sizeof(uint64_t));
     }
