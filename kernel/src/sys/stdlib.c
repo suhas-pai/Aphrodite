@@ -119,10 +119,85 @@ __optimize(3) char *strrchr(const char *const str, const int ch) {
         return 0;                                                              \
     }
 
+__optimize(3) static inline int
+_memcmp_uint64_t(const void *left,
+                 const void *right,
+                 size_t len,
+                 const void **const left_out,
+                 const void **const right_out,
+                 size_t *const len_out)
+{
+    if (len >= sizeof(uint64_t)) {
+    #if defined(__aarch64__)
+        if (len >= (2 * sizeof(uint64_t))) {
+            do {
+                uint64_t left_ch = 0;
+                uint64_t right_ch = 0;
+
+                uint64_t left_ch_2 = 0;
+                uint64_t right_ch_2 = 0;
+
+                asm volatile ("ldp %0, %1, [%2]"
+                              : "+r"(left_ch), "+r"(left_ch_2)
+                              : "r"(left)
+                              : "memory");
+
+                asm volatile ("ldp %0, %1, [%2]"
+                              : "+r"(right_ch), "+r"(right_ch_2)
+                              : "r"(right)
+                              : "memory");
+
+                if (left_ch != right_ch) {
+                    return (int)(left_ch - right_ch);
+                }
+
+                if (left_ch_2 != right_ch_2) {
+                    return (int)(left_ch_2 - right_ch_2);
+                }
+
+                len -= (sizeof(uint64_t) * 2);
+                left += (sizeof(uint64_t) * 2);
+                right += (sizeof(uint64_t) * 2);
+            } while (len >= (2 * sizeof(uint64_t)));
+
+            if (len < sizeof(uint64_t)) {
+                *left_out = left;
+                *right_out = right;
+                *len_out = len;
+
+                return 0;
+            }
+        }
+    #endif /* defined(__aarch64__) */
+
+        do {
+            const uint64_t left_ch = *(const uint64_t *)left;
+            const uint64_t right_ch = *(const uint64_t *)right;
+
+            if (left_ch != right_ch) {
+                return (int)(left_ch - right_ch);
+            }
+
+            len -= sizeof(uint64_t);
+            if (len < sizeof(uint64_t)) {
+                break;
+            }
+
+            left += sizeof(uint64_t);
+            right += sizeof(uint64_t);
+        } while (true);
+
+        *left_out = left;
+        *right_out = right;
+        *len_out = len;
+    }
+
+    return 0;
+}
+
 DECL_MEM_CMP_FUNC(uint8_t)
 DECL_MEM_CMP_FUNC(uint16_t)
 DECL_MEM_CMP_FUNC(uint32_t)
-DECL_MEM_CMP_FUNC(uint64_t)
 
 #define DECL_MEM_COPY_FUNC(type) \
     __optimize(3) static inline unsigned long  \
@@ -149,10 +224,62 @@ DECL_MEM_CMP_FUNC(uint64_t)
         return n;                                                              \
     }
 
+__optimize(3) static inline unsigned long
+_memcpy_uint64_t(void *dst,
+                 const void *src,
+                 unsigned long n,
+                 void **const dst_out,
+                 const void **const src_out)
+{
+    if (n >= sizeof(uint64_t)) {
+    #if defined(__aarch64__)
+        if (n >= (2 * sizeof(uint64_t))) {
+            do {
+                uint64_t left_ch = 0;
+                uint64_t right_ch = 0;
+
+                asm volatile ("ldp %0, %1, [%2]"
+                              : "+r"(left_ch), "+r"(right_ch)
+                              : "r"(src)
+                              : "memory");
+
+                asm volatile ("stp %0, %1, [%2]"
+                              :: "r"(left_ch), "r"(right_ch), "r"(dst));
+
+                dst += (sizeof(uint64_t) * 2);
+                src += (sizeof(uint64_t) * 2);
+
+                n -= (sizeof(uint64_t) * 2);
+            } while (n >= (sizeof(uint64_t) * 2));
+
+            if (n < sizeof(uint64_t)) {
+                *dst_out = dst;
+                *src_out = src;
+
+                return 0;
+            }
+        }
+    #endif /* defined(__aarch64__) */
+
+        do {
+            *(uint64_t *)dst = *(const uint64_t *)src;
+
+            dst += sizeof(uint64_t);
+            src += sizeof(uint64_t);
+
+            n -= sizeof(uint64_t);
+        } while (n >= sizeof(uint64_t));
+
+        *dst_out = dst;
+        *src_out = src;
+    }
+
+    return n;
+}
+
 DECL_MEM_COPY_FUNC(uint8_t)
 DECL_MEM_COPY_FUNC(uint16_t)
 DECL_MEM_COPY_FUNC(uint32_t)
-DECL_MEM_COPY_FUNC(uint64_t)
 
 __optimize(3) int memcmp(const void *left, const void *right, size_t len) {
     int res = _memcmp_uint64_t(left, right, len, &left, &right, &len);
@@ -216,19 +343,14 @@ __optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
 #define DECL_MEM_COPY_BACK_FUNC(type) \
     __optimize(3) static inline unsigned long  \
     VAR_CONCAT(_memcpy_bw_, type)(void *const dst, \
-                                  const void *src, \
-                                  const unsigned long n, \
-                                  void **const dst_out, \
-                                  const void **const src_out) \
+                                  const void *const src, \
+                                  const unsigned long n) \
     {                                                                          \
         if (n >= sizeof(type)) {                                               \
             unsigned long off = n - sizeof(type);                              \
             do {                                                               \
                 *((type *)(dst + off)) = *((const type *)(src + off));         \
                 if (off < sizeof(type)) {                                      \
-                    *dst_out = dst;                                            \
-                    *src_out = src;                                            \
-                                                                               \
                     return off;                                                \
                 }                                                              \
                                                                                \
@@ -239,10 +361,58 @@ __optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
         return n;                                                              \
     }
 
+__optimize(3) static inline unsigned long
+_memcpy_bw_uint64_t(void *const dst,
+                    const void *const src,
+                    const unsigned long n)
+{
+    if (n >= sizeof(uint64_t)) {
+        unsigned long off = n - sizeof(uint64_t);
+    #if defined(__aarch64__)
+        if (n >= (2 * sizeof(uint64_t))) {
+            off -= sizeof(uint64_t);
+            do {
+                uint64_t left_ch = 0;
+                uint64_t right_ch = 0;
+
+                asm volatile ("ldp %0, %1, [%2]"
+                              : "+r"(left_ch), "+r"(right_ch)
+                              : "r"((const uint64_t *)(src + off))
+                              : "memory");
+
+                asm volatile ("stp %0, %1, [%2]"
+                              :: "r"(left_ch), "r"(right_ch),
+                                 "r"((uint64_t *)(dst + off)));
+
+                off -= (sizeof(uint64_t) * 2);
+                if (off < (sizeof(uint64_t) * 2)) {
+                    break;
+                }
+            } while (true);
+
+            if (off < sizeof(uint64_t)) {
+                return 0;
+            }
+        }
+    #endif /* defined(__aarch64__) */
+
+        do {
+            *(uint64_t *)(dst + off) = *(const uint64_t *)(src + off);
+
+            off -= sizeof(uint64_t);
+            if (off < sizeof(uint64_t)) {
+                break;
+            }
+        } while (n >= sizeof(uint64_t));
+    }
+
+    return n;
+}
+
+
 DECL_MEM_COPY_BACK_FUNC(uint8_t)
 DECL_MEM_COPY_BACK_FUNC(uint16_t)
 DECL_MEM_COPY_BACK_FUNC(uint32_t)
-DECL_MEM_COPY_BACK_FUNC(uint64_t)
 
 __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     void *ret = dst;
@@ -287,21 +457,21 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     #endif /* defined(__x86_64__) */
         const uint64_t diff = distance(src, dst);
         if (diff >= sizeof(uint64_t)) {
-            n = _memcpy_bw_uint64_t(dst, src, n, &dst, &src);
-            n = _memcpy_bw_uint32_t(dst, src, n, &dst, &src);
-            n = _memcpy_bw_uint16_t(dst, src, n, &dst, &src);
+            n = _memcpy_bw_uint64_t(dst, src, n);
+            n = _memcpy_bw_uint32_t(dst, src, n);
+            n = _memcpy_bw_uint16_t(dst, src, n);
 
-            _memcpy_bw_uint8_t(dst, src, n, &dst, &src);
+            _memcpy_bw_uint8_t(dst, src, n);
         } else if (diff >= sizeof(uint32_t)) {
-            n = _memcpy_bw_uint32_t(dst, src, n, &dst, &src);
-            n = _memcpy_bw_uint16_t(dst, src, n, &dst, &src);
+            n = _memcpy_bw_uint32_t(dst, src, n);
+            n = _memcpy_bw_uint16_t(dst, src, n);
 
-            _memcpy_bw_uint8_t(dst, src, n, &dst, &src);
+            _memcpy_bw_uint8_t(dst, src, n);
         } else if (diff >= sizeof(uint16_t)) {
-            n = _memcpy_bw_uint16_t(dst, src, n, &dst, &src);
-            _memcpy_bw_uint8_t(dst, src, n, &dst, &src);
+            n = _memcpy_bw_uint16_t(dst, src, n);
+            _memcpy_bw_uint8_t(dst, src, n);
         } else if (diff >= sizeof(uint8_t)) {
-            _memcpy_bw_uint8_t(dst, src, n, &dst, &src);
+            _memcpy_bw_uint8_t(dst, src, n);
         }
     }
 
