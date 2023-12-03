@@ -174,7 +174,7 @@ init_from_dtb(const struct devicetree *const tree,
             g_invoke_method = PSCI_INVOKE_METHOD_NONE;
             printk(LOGLEVEL_WARN,
                    "psci: dtb's psci-invoke method doesn't match method from "
-                   "either other dtb node or from acpi\n");
+                   "either another dtb node or from acpi\n");
 
             return false;
         }
