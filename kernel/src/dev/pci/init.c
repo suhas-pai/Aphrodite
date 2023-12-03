@@ -528,7 +528,7 @@ parse_function(struct pci_space *const space,
 
             pci_parse_capabilities(&info);
             for (uint8_t index = 0; index != info.max_bar_count; index++) {
-                struct pci_entity_bar_info *bar = &info.bar_list[index];
+                struct pci_entity_bar_info *const bar = &info.bar_list[index];
                 const uint8_t bar_index = index;
 
                 const enum parse_bar_result result =
@@ -563,8 +563,6 @@ parse_function(struct pci_space *const space,
                        bar->is_mmio ?
                         bar->is_64_bit ? "64-bit, " : "32-bit, " : "",
                        bar->port_or_phys_range.size);
-
-                bar++;
             }
 
             break;
@@ -584,7 +582,7 @@ parse_function(struct pci_space *const space,
 
             pci_parse_capabilities(&info);
             for (uint8_t index = 0; index != info.max_bar_count; index++) {
-                struct pci_entity_bar_info *bar = &info.bar_list[index];
+                struct pci_entity_bar_info *const bar = &info.bar_list[index];
 
                 const uint8_t bar_index = index;
                 const enum parse_bar_result result =
@@ -617,8 +615,6 @@ parse_function(struct pci_space *const space,
                        bar->is_mmio ?
                         bar->is_64_bit ? "64-bit, " : "32-bit, " : "",
                        bar->port_or_phys_range.size);
-
-                bar++;
             }
 
             const uint8_t secondary_bus_number =
@@ -788,7 +784,11 @@ __optimize(3) void pci_init() {
         pci_find_entities_in_space(legacy_space);
     } else {
 #endif /* defined(__x86_64__) */
-        printk(LOGLEVEL_INFO, "pci: searching for entities in every space\n");
+        if (!array_empty(*space_array)) {
+            printk(LOGLEVEL_INFO,
+                   "pci: searching for entities in every space\n");
+        }
+
         array_foreach(space_array, struct pci_space *, iter) {
             pci_find_entities_in_space(*iter);
         }
