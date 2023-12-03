@@ -453,15 +453,7 @@ init_from_dtb(const struct devicetree *const tree,
 
     gicd_init(dist_reg_info->address, /*gic_version=*/2);
     devicetree_node_foreach_child(node, child_node) {
-        const struct devicetree_prop_compat *const compat_prop =
-            (const struct devicetree_prop_compat *)(uint64_t)
-                devicetree_node_get_prop(child_node, DEVICETREE_PROP_COMPAT);
-
-        if (compat_prop == NULL) {
-            continue;
-        }
-
-        if (!devicetree_prop_compat_has_sv(compat_prop,
+        if (!devicetree_node_has_compat_sv(child_node,
                                            SV_STATIC("arm,gic-v2m-frame")))
         {
             continue;
