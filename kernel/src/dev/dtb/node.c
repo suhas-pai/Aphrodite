@@ -110,19 +110,17 @@ devicetree_node_has_compat_sv(const struct devicetree_node *const node,
         (const struct devicetree_prop_compat *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
 
-    if (compat_prop == NULL) {
-        return false;
+    if (compat_prop != NULL) {
+        return devicetree_prop_compat_has_sv(compat_prop, sv);
     }
 
-    return devicetree_prop_compat_has_sv(compat_prop, sv);
+    return false;
 }
 
 bool
 devicetree_prop_compat_has_sv(const struct devicetree_prop_compat *const prop,
                               const struct string_view sv)
 {
-    const bool result =
-        fdt_stringlist_contains_sv(prop->string.begin, prop->string.length, sv);
-
-    return result;
+    const struct string_view prop_sv = prop->string;
+    return fdt_stringlist_contains_sv(prop_sv.begin, prop_sv.length, sv);
 }
