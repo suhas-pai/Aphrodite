@@ -50,8 +50,8 @@ struct pl011_device_info {
 static struct pl011_device_info early_infos[8] = {0};
 static uint8_t early_info_count = 0;
 
-__optimize(3)
-static void wait_for_tx_complete(volatile const struct pl011_device *const dev) {
+__optimize(3) static
+void wait_for_tx_complete(volatile const struct pl011_device *const dev) {
     for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
         if ((mmio_read(&dev->fr_offset) & FR_BUSY) == 0) {
             return;
