@@ -64,7 +64,7 @@ struct virtio_device {
     enum virtio_device_kind kind : 6;
 };
 
-#define VIRTIO_DEVICE_INIT(name, is_pci_) \
+#define VIRTIO_DEVICE_INIT(name, transport_kind_) \
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
         .pci.pci_device = NULL, \
@@ -81,6 +81,6 @@ struct virtio_device {
         .pci_offsets.pci_cfg = 0, \
         .pci_offsets.isr_cfg = 0, \
         .is_transitional = false, \
-        .is_pci = (is_pci_), \
+        .transport_kind = (transport_kind_), \
         .kind = VIRTIO_DEVICE_KIND_INVALID \
     })
