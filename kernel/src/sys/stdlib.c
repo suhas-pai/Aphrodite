@@ -252,7 +252,7 @@ _memcpy_uint64_t(void *dst,
                 *dst_out = dst;
                 *src_out = src;
 
-                return 0;
+                return n;
             }
         }
     #endif /* defined(__aarch64__) */
