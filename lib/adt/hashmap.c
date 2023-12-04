@@ -238,6 +238,35 @@ hashmap_remove(struct hashmap *const hashmap,
     return false;
 }
 
+static void
+destroy_hashmap_buckets(struct hashmap_bucket ***const buckets_out,
+                        uint32_t *const bucket_count_out)
+{
+    struct hashmap_bucket **const buckets = *buckets_out;
+
+    const __auto_type end = buckets + *bucket_count_out;
+    for (__auto_type iter = buckets; iter != end; iter++) {
+        struct hashmap_bucket *const bucket = *iter;
+        if (bucket == NULL) {
+            continue;
+        }
+
+        struct hashmap_node *jter = NULL;
+        struct hashmap_node *tmp = NULL;
+
+        list_foreach_mut(jter, tmp, &bucket->node_list, list) {
+            free(jter);
+        }
+
+        free(bucket);
+    }
+
+    free(buckets);
+
+    *buckets_out = NULL;
+    *bucket_count_out = 0;
+}
+
 bool
 hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
     assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
@@ -253,8 +282,8 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
         return false;
     }
 
-    struct hashmap_bucket **const old_buckets = hashmap->buckets;
-    const uint32_t old_bucket_count = hashmap->bucket_count;
+    struct hashmap_bucket **old_buckets = hashmap->buckets;
+    uint32_t old_bucket_count = hashmap->bucket_count;
 
     hashmap->buckets = buckets;
     hashmap->bucket_count = bucket_count;
@@ -276,34 +305,19 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
                 return false;
             }
         }
-
-        free(bucket);
     }
 
-    if (__builtin_expect(old_buckets != NULL, 1)) {
-        free(old_buckets);
+    if (old_buckets != NULL) {
+        destroy_hashmap_buckets(&old_buckets, &old_bucket_count);
     }
 
     return true;
 }
 
 void hashmap_destroy(struct hashmap *const hashmap) {
-    hashmap_foreach_bucket(hashmap, iter) {
-        struct hashmap_bucket *const bucket = *iter;
-        if (bucket == NULL) {
-            continue;
-        }
+    destroy_hashmap_buckets(&hashmap->buckets, &hashmap->bucket_count);
 
-        struct hashmap_node *jter = NULL;
-        struct hashmap_node *tmp = NULL;
-
-        list_foreach_mut(jter, tmp, &bucket->node_list, list) {
-            free(jter);
-        }
-
-        free(bucket);
-    }
-
-    free(hashmap->buckets);
-    hashmap->bucket_count = 0;
+    hashmap->hash = NULL;
+    hashmap->object_size = 0;
+    hashmap->cb_info = NULL;
 }
