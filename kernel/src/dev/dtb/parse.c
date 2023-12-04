@@ -980,7 +980,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 prop->kind = DEVICETREE_PROP_DEVICE_TYPE;
-                prop->name = get_prop_data_sv(fdt_prop);;
+                prop->name = get_prop_data_sv(fdt_prop);
 
                 if (!hashmap_add(
                         &node->known_props,
@@ -1073,7 +1073,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            [[fallthrough]];;
+            [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPT_CONTROLLER:
             if (sv_equals(name, SV_STATIC("interrupt-controller"))) {
                 struct devicetree_prop_no_value *const prop =
@@ -1097,7 +1097,7 @@ parse_node_prop(const void *const dtb,
                 return true;
             }
 
-            [[fallthrough]];;
+            [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPT_CELLS:
             if (sv_equals(name, SV_STATIC("#interrupt-cells"))) {
                 uint32_t count = 0;
