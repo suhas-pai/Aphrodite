@@ -4,6 +4,7 @@
  */
 
 #include "dev/printk.h"
+#include "lib/util.h"
 #include "rhct.h"
 
 void
@@ -25,6 +26,57 @@ print_rhct_node(const struct acpi_rhct *const rhct,
                    prefix,
                    prefix, isa_str->isa_length,
                    prefix, SV_FMT_ARGS(isa_sv));
+            break;
+        }
+        case ACPI_RHCT_NODE_KIND_CMO: {
+            struct acpi_rhct_cmo_node *const cmo_node =
+                (struct acpi_rhct_cmo_node *)node;
+
+            if (!index_in_bounds(cmo_node->cbom_size, sizeof_bits(uint64_t)) ||
+                !index_in_bounds(cmo_node->cbop_size, sizeof_bits(uint64_t)) ||
+                !index_in_bounds(cmo_node->cboz_size, sizeof_bits(uint64_t)))
+            {
+                printk(LOGLEVEL_WARN,
+                       "%srhct: cmo-node has invalid fields\n",
+                       prefix);
+                break;
+            }
+
+            printk(LOGLEVEL_INFO,
+                   "%srhct: found cmo node:\n"
+                   "%s\tcbom size: %" PRIu8 "\n"
+                   "%s\tcbop size: %" PRIu8 "\n"
+                   "%s\tcboz size: %" PRIu8 "\n",
+                   prefix,
+                   prefix, cmo_node->cbom_size,
+                   prefix, cmo_node->cbop_size,
+                   prefix, cmo_node->cboz_size);
+
+            break;
+        }
+        case ACPI_RHCT_NODE_KIND_MMU: {
+            struct acpi_rhct_mmu_node *const mmu_node =
+                (struct acpi_rhct_mmu_node *)node;
+
+            const char *mmu_kind = "unknown";
+            switch ((enum acpi_rhct_mmu_kind)mmu_node->mmu_kind) {
+                case ACPI_RHCT_MMU_KIND_SV39:
+                    mmu_kind = "sv39";
+                    break;
+                case ACPI_RHCT_MMU_KIND_SV48:
+                    mmu_kind = "sv48";
+                    break;
+                case ACPI_RHCT_MMU_KIND_SV57:
+                    mmu_kind = "sv57";
+                    break;
+            }
+
+            printk(LOGLEVEL_INFO,
+                   "%srhct: found mmu node:\n"
+                   "%s\tcbom size: %s\n",
+                   prefix,
+                   prefix, mmu_kind);
+
             break;
         }
         case ACPI_RHCT_NODE_KIND_HART_INFO: {

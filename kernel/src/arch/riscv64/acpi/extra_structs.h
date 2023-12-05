@@ -16,7 +16,9 @@ struct acpi_rhct {
 
 enum acpi_rhct_node_kind {
     ACPI_RHCT_NODE_KIND_ISA_STRING,
-    ACPI_RHCT_NODE_KIND_HART_INFO = 65535,
+    ACPI_RHCT_NODE_KIND_CMO,
+    ACPI_RHCT_NODE_KIND_MMU,
+    ACPI_RHCT_NODE_KIND_HART_INFO = 0xFFFF,
 };
 
 struct acpi_rhct_node {
@@ -29,6 +31,28 @@ struct acpi_rhct_isa_string {
     struct acpi_rhct_node node;
     uint16_t isa_length;
     char isa_string[];
+} __packed;
+
+struct acpi_rhct_cmo_node {
+    struct acpi_rhct_node node;
+
+    uint8_t reserved;
+    uint8_t cbom_size;
+    uint8_t cbop_size;
+    uint8_t cboz_size;
+} __packed;
+
+enum acpi_rhct_mmu_kind {
+    ACPI_RHCT_MMU_KIND_SV39,
+    ACPI_RHCT_MMU_KIND_SV48,
+    ACPI_RHCT_MMU_KIND_SV57
+};
+
+struct acpi_rhct_mmu_node {
+    struct acpi_rhct_node node;
+
+    uint8_t reserved;
+    uint8_t mmu_kind;
 } __packed;
 
 struct acpi_rhct_hart_info {
