@@ -579,17 +579,13 @@ __optimize(3) void bzero(void *dst, unsigned long n) {
         do {
             asm volatile ("stp xzr, xzr, [%0]" :: "r"(dst));
 
-            n -= sizeof(uint64_t) * 2;
-            if (n < (sizeof(uint64_t) * 2)) {
-                if (n == 0) {
-                    return;
-                }
-
-                break;
-            }
-
             dst += (sizeof(uint64_t) * 2);
-        } while (true);
+            n -= sizeof(uint64_t) * 2;
+        } while (n >= (sizeof(uint64_t) * 2));
+
+        if (n == 0) {
+            return;
+        }
     }
 #elif defined(__riscv64)
     if (has_align((uint64_t)dst, CBO_SIZE)) {
