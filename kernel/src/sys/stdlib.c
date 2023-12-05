@@ -505,12 +505,29 @@ __optimize(3) void *memset(void *dst, const int val, unsigned long n) {
             (uint64_t)val << 8 |
             (uint64_t)val;
 
-        do {
+    #if defined(__aarch64__)
+        while (n >= (sizeof(uint64_t) * 2)) {
+            asm volatile ("stp %0, %1, [%2]"
+                          :: "r"(value64), "r"(value64), "r"(dst));
+
+            dst += (sizeof(uint64_t) * 2);
+            n -= (sizeof(uint64_t) * 2);
+        }
+
+        while (n >= sizeof(uint64_t))
+    #else
+        do
+    #endif /* defined(__aarch64__) */
+        {
             *(uint64_t *)dst = value64;
 
             dst += sizeof(uint64_t);
             n -= sizeof(uint64_t);
+    #if defined(__aarch64__)
+        }
+    #else
         } while (n >= sizeof(uint64_t));
+    #endif /* defined(__aarch64__) */
 
         while (n >= sizeof(uint32_t)) {
             *(uint32_t *)dst = value64;
