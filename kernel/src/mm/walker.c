@@ -616,6 +616,7 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
     walker->level = level;
 }
 
+// TODO: This is arch-dependent
 uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     uint64_t result = 0;
     for (pgt_level_t level = walker->level; level <= walker->top_level; level++)
