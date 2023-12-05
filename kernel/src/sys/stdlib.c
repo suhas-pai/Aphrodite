@@ -475,7 +475,7 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
 }
 
 #if defined(__x86_64__)
-    #define REP_MIN 16
+    #define REP_MIN 128
 #elif defined(__riscv64)
     // FIXME: 64 is the cbo size in QEMU, read value for dtb instead.
     #define CBO_SIZE 64
