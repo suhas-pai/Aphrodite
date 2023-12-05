@@ -251,11 +251,11 @@ destroy_hashmap_buckets(struct hashmap_bucket ***const buckets_out,
             continue;
         }
 
-        struct hashmap_node *jter = NULL;
+        struct hashmap_node *node = NULL;
         struct hashmap_node *tmp = NULL;
 
-        list_foreach_mut(jter, tmp, &bucket->node_list, list) {
-            free(jter);
+        list_foreach_mut(node, tmp, &bucket->node_list, list) {
+            free(node);
         }
 
         free(bucket);
