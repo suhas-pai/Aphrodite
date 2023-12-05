@@ -339,8 +339,8 @@ void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
 
     __optimize(3) void addrspace_print(struct address_space *const addrspace) {
         avltree_print(&addrspace->avltree,
-                    avlnode_print_node_cb,
-                    avlnode_print_sv_cb,
-                    /*cb_info=*/NULL);
+                      avlnode_print_node_cb,
+                      avlnode_print_sv_cb,
+                      /*cb_info=*/NULL);
     }
 #endif /* defined(BUILD_KERNEL) */
