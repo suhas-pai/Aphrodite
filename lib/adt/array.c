@@ -16,8 +16,7 @@ struct array array_alloc(const uint32_t obj_size, const uint32_t item_cap) {
 
 __optimize(3)
 bool array_append(struct array *const array, const void *const item) {
-    return gbuffer_append_data(&array->gbuffer, item, array->object_size) ==
-           array->object_size;
+    return gbuffer_append_data(&array->gbuffer, item, array->object_size);
 }
 
 __optimize(3)

@@ -145,42 +145,41 @@ gbuffer_decrement_ptr(struct growable_buffer *const gbuffer, const uint32_t amt)
     return delta;
 }
 
-__optimize(3) uint32_t
+__optimize(3) bool
 gbuffer_append_data(struct growable_buffer *const gbuffer,
                     const void *const data,
                     const uint32_t length)
 {
     if (!gbuffer_ensure_can_add_capacity(gbuffer, length)) {
-        return 0;
+        return false;
     }
 
     memcpy(gbuffer_current_ptr(*gbuffer), data, length);
     gbuffer->index += length;
 
-    return length;
+    return true;
 }
 
-__optimize(3) uint32_t
+__optimize(3) bool
 gbuffer_append_byte(struct growable_buffer *const gbuffer,
                     const uint8_t byte,
                     const uint32_t count)
 {
     if (!gbuffer_ensure_can_add_capacity(gbuffer, count)) {
-        return 0;
+        return false;
     }
 
     memset(gbuffer_current_ptr(*gbuffer), byte, count);
     gbuffer->index += count;
 
-    return count;
+    return true;
 }
 
 __optimize(3) bool
 gbuffer_append_gbuffer_data(struct growable_buffer *const gbuffer,
                             const struct growable_buffer *const append)
 {
-    return gbuffer_append_data(gbuffer, append->begin, append->index) ==
-           append->index;
+    return gbuffer_append_data(gbuffer, append->begin, append->index);
 }
 
 __optimize(3) uint32_t

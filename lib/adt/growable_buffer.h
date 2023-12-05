@@ -60,12 +60,12 @@ bool gbuffer_empty(struct growable_buffer gbuffer);
 uint32_t gbuffer_incr_ptr(struct growable_buffer *gbuffer, uint32_t amt);
 uint32_t gbuffer_decr_ptr(struct growable_buffer *gbuffer, uint32_t amt);
 
-uint32_t
+bool
 gbuffer_append_data(struct growable_buffer *gbuffer,
                     const void *data,
                     uint32_t length);
 
-uint32_t
+bool
 gbuffer_append_byte(struct growable_buffer *gbuffer,
                     uint8_t byte,
                     uint32_t count);
