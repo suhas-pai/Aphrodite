@@ -37,9 +37,9 @@ struct acpi_rhct_cmo_node {
     struct acpi_rhct_node node;
 
     uint8_t reserved;
-    uint8_t cbom_size;
-    uint8_t cbop_size;
-    uint8_t cboz_size;
+    uint8_t cbom_shift;
+    uint8_t cbop_shift;
+    uint8_t cboz_shift;
 } __packed;
 
 enum acpi_rhct_mmu_kind {

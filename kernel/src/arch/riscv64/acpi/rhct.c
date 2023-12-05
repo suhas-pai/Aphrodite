@@ -32,9 +32,9 @@ print_rhct_node(const struct acpi_rhct *const rhct,
             struct acpi_rhct_cmo_node *const cmo_node =
                 (struct acpi_rhct_cmo_node *)node;
 
-            if (!index_in_bounds(cmo_node->cbom_size, sizeof_bits(uint64_t)) ||
-                !index_in_bounds(cmo_node->cbop_size, sizeof_bits(uint64_t)) ||
-                !index_in_bounds(cmo_node->cboz_size, sizeof_bits(uint64_t)))
+            if (!index_in_bounds(cmo_node->cbom_shift, sizeof_bits(uint64_t)) ||
+                !index_in_bounds(cmo_node->cbop_shift, sizeof_bits(uint64_t)) ||
+                !index_in_bounds(cmo_node->cboz_shift, sizeof_bits(uint64_t)))
             {
                 printk(LOGLEVEL_WARN,
                        "%srhct: cmo-node has invalid fields\n",
@@ -44,13 +44,13 @@ print_rhct_node(const struct acpi_rhct *const rhct,
 
             printk(LOGLEVEL_INFO,
                    "%srhct: found cmo node:\n"
-                   "%s\tcbom size: %" PRIu8 "\n"
-                   "%s\tcbop size: %" PRIu8 "\n"
-                   "%s\tcboz size: %" PRIu8 "\n",
+                   "%s\tcbom size: %" PRIu64 "\n"
+                   "%s\tcbop size: %" PRIu64 "\n"
+                   "%s\tcboz size: %" PRIu64 "\n",
                    prefix,
-                   prefix, cmo_node->cbom_size,
-                   prefix, cmo_node->cbop_size,
-                   prefix, cmo_node->cboz_size);
+                   prefix, (uint64_t)1ull << cmo_node->cbom_shift,
+                   prefix, (uint64_t)1ull << cmo_node->cbop_shift,
+                   prefix, (uint64_t)1ull << cmo_node->cboz_shift);
 
             break;
         }
