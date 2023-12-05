@@ -196,7 +196,7 @@ DECL_MEM_CMP_FUNC(uint16_t)
 DECL_MEM_CMP_FUNC(uint32_t)
 
 #define DECL_MEM_COPY_FUNC(type) \
-    __optimize(3) static inline unsigned long  \
+    __optimize(3) static inline unsigned long \
     VAR_CONCAT(_memcpy_, type)(void *dst,                  \
                                const void *src,            \
                                unsigned long n,            \
