@@ -282,7 +282,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
             case PCI_SPEC_CAP_ID_SLOT_ID:
                 kind = "slot-identification";
                 break;
-            case PCI_SPEC_CAP_ID_MSI:
+            case PCI_SPEC_CAP_ID_MSI: {
                 kind = "msi";
             #if defined(__x86_64__)
                 if (!supports_msi) {
@@ -294,11 +294,21 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                     break;
                 }
 
+                const struct range msi_range =
+                    RANGE_INIT(cap_offset, sizeof(struct pci_spec_cap_msi));
+
+                if (!index_range_in_bounds(msi_range, PCI_SPACE_MAX_OFFSET)) {
+                    printk(LOGLEVEL_WARN,
+                           "\t\tmsi-cap goes beyond end of pci-space\n");
+                    break;
+                }
+
                 dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSI;
                 dev->pcie_msi_offset = cap_offset;
 
                 break;
-            case PCI_SPEC_CAP_ID_MSI_X:
+            }
+            case PCI_SPEC_CAP_ID_MSI_X: {
                 kind = "msix";
             #if defined(__x86_64__)
                 if (!supports_msi) {
@@ -309,6 +319,15 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                 if (dev->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
                     printk(LOGLEVEL_WARN,
                            "\t\tfound multiple msix capabilities. ignoring\n");
+                    break;
+                }
+
+                const struct range msix_range =
+                    RANGE_INIT(cap_offset, sizeof(struct pci_spec_cap_msix));
+
+                if (!index_range_in_bounds(msix_range, PCI_SPACE_MAX_OFFSET)) {
+                    printk(LOGLEVEL_WARN,
+                           "\t\tmsix-cap goes beyond end of pci-space\n");
                     break;
                 }
 
@@ -332,6 +351,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                 dev->msix_table = bitmap;
 
                 break;
+            }
             case PCI_SPEC_CAP_ID_POWER_MANAGEMENT:
                 kind = "power-management";
                 break;
@@ -374,11 +394,20 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
             case PCI_SPEC_CAP_ID_SECURE_DEVICE:
                 kind = "secure-device";
                 break;
-            case PCI_SPEC_CAP_ID_PCI_EXPRESS:
+            case PCI_SPEC_CAP_ID_PCI_EXPRESS: {
                 kind = "pci-express";
-                dev->supports_pcie = true;
+                const struct range pcie_range =
+                    RANGE_INIT(cap_offset, sizeof(struct pci_spec_cap_pcie));
 
+                if (!index_range_in_bounds(pcie_range, PCI_SPACE_MAX_OFFSET)) {
+                    printk(LOGLEVEL_WARN,
+                           "\t\tpcie-cap goes beyond end of pci-space\n");
+                    break;
+                }
+
+                dev->supports_pcie = true;
                 break;
+            }
             case PCI_SPEC_CAP_ID_ADV_FEATURES:
                 kind = "advanced-features";
                 break;
