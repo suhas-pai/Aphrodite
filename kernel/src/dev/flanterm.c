@@ -79,7 +79,7 @@ void setup_flanterm() {
                              /*margin=*/0);
 
         if (context == NULL) {
-            printk(LOGLEVEL_WARN, "flanterm: failed to init");
+            printk(LOGLEVEL_WARN, "flanterm: failed to init\n");
             continue;
         }
 
