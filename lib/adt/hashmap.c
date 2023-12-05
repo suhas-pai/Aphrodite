@@ -35,7 +35,9 @@ hashmap_add(struct hashmap *const hashmap,
     bool alloced_buckets = false;
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
         hashmap->buckets =
-            calloc(hashmap->bucket_count, sizeof(struct hashmap_bucket *));
+            calloc_size(hashmap->bucket_count,
+                        sizeof(struct hashmap_bucket *),
+                        &hashmap->bucket_count);
 
         if (hashmap->buckets == NULL) {
             return false;
