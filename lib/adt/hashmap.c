@@ -9,14 +9,19 @@
 
 #include "hashmap.h"
 
-bool hashmap_alloc(struct hashmap *const hashmap, const uint32_t bucket_count) {
-    hashmap->buckets = calloc(bucket_count, sizeof(struct hashmap_bucket *));
-    if (hashmap->buckets == NULL) {
-        return false;
+struct hashmap *
+hashmap_alloc(const uint32_t object_size,
+              const uint32_t bucket_count,
+              const hashmap_hash_t hash,
+              void *const cb_info)
+{
+    struct hashmap *const hashmap = malloc(sizeof(*hashmap));
+    if (hashmap == NULL) {
+        return NULL;
     }
 
-    hashmap->bucket_count = bucket_count;
-    return true;
+    *hashmap = HASHMAP_INIT(object_size, bucket_count, hash, cb_info);
+    return hashmap;
 }
 
 __optimize(3) static inline
@@ -322,4 +327,9 @@ void hashmap_destroy(struct hashmap *const hashmap) {
     hashmap->hash = NULL;
     hashmap->object_size = 0;
     hashmap->cb_info = NULL;
+}
+
+void hashmap_free(struct hashmap *const hashmap) {
+    hashmap_destroy(hashmap);
+    free(hashmap);
 }

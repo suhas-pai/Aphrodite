@@ -22,6 +22,10 @@ struct hashmap_bucket {
     struct list node_list;
 };
 
+struct hashmap;
+typedef uint32_t
+(*hashmap_hash_t)(hashmap_key_t key, const struct hashmap *hashmap);
+
 struct hashmap {
     struct hashmap_bucket **buckets;
 
@@ -50,6 +54,12 @@ struct hashmap {
     struct hashmap_node *iter = NULL; \
     list_foreach(iter, &(bucket)->node_list, list)
 
+struct hashmap *
+hashmap_alloc(uint32_t object_size,
+              uint32_t bucket_count,
+              hashmap_hash_t hash,
+              void *cb_info);
+
 bool
 hashmap_add(struct hashmap *hashmap, hashmap_key_t key, const void *object);
 
@@ -67,4 +77,6 @@ hashmap_remove(struct hashmap *hashmap,
                void *object_ptr);
 
 bool hashmap_resize(struct hashmap *hashmap, uint32_t bucket_count);
+
 void hashmap_destroy(struct hashmap *hashmap);
+void hashmap_free(struct hashmap *hashmap);
