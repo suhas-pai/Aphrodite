@@ -226,7 +226,7 @@ typedef uint64_t sec_t;
 
 struct tm tm_from_stamp(const uint64_t timestamp);
 
-static inline struct timespec
+__optimize(3) static inline struct timespec
 timespec_add(struct timespec left, const struct timespec right) {
     if (nano_to_seconds(left.tv_nsec + right.tv_nsec) != 0) {
         left.tv_nsec = nano_mod_seconds(left.tv_nsec + right.tv_nsec);
@@ -239,7 +239,7 @@ timespec_add(struct timespec left, const struct timespec right) {
     return left;
 }
 
-static inline struct timespec
+__optimize(3) static inline struct timespec
 timespec_sub(struct timespec left, const struct timespec right) {
     if (right.tv_nsec > left.tv_nsec) {
         left.tv_nsec = (NANO_IN_SECONDS - 1) - (right.tv_nsec - left.tv_nsec);
