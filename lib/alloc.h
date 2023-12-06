@@ -28,8 +28,9 @@
 #elif defined(BUILD_TEST)
     #include <stdlib.h>
     #define malloc_size(size, out) ({ \
-        *(out) = (size); \
-        malloc(size); \
+        __auto_type __malloc_size__ = (size); \
+        *(out) = __malloc_size__; \
+        malloc(__malloc_size__); \
     })
     #define calloc_size(amt, size, out) ({ \
         __auto_type __calloc_amt__ = (amt); \
