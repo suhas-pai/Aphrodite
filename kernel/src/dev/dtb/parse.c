@@ -554,15 +554,12 @@ parse_specifier_map_prop(const void *const dtb,
                          const int parent_off,
                          struct array *const array)
 {
-    struct string cells_key = STRING_NULL();
-
-    string_reserve(&cells_key, LEN_OF("#-cells") + node->name.length);
-    string_append_char(&cells_key, '#', /*amt=*/1);
-
-    string_append_sv(&cells_key, node->name);
-    string_append_sv(&cells_key, SV_STATIC("-cells"));
+    struct string cells_key =
+        string_format("#" SV_FMT "-cells", SV_FMT_ARGS(node->name));
 
     const int cells = fdt_cells(dtb, parent_off, string_to_cstr(cells_key));
+    string_destroy(&cells_key);
+
     if (cells < 0) {
         // If we don't have a corresponding cells prop, then we assume this
         // isn't a specifier-map prop.
