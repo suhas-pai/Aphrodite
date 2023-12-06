@@ -29,6 +29,23 @@ __optimize(3) struct string string_alloc(const struct string_view sv) {
     return result;
 }
 
+__optimize(3) struct string string_format(const char *const fmt, ...) {
+    va_list list;
+    va_start(list, fmt);
+
+    struct string result = string_vformat(fmt, list);
+
+    va_end(list);
+    return result;
+}
+
+struct string string_vformat(const char *const fmt, va_list list) {
+    struct string result = STRING_NULL();
+    vformat_to_string(&result, fmt, list);
+
+    return result;
+}
+
 __optimize(3)
 static bool prepare_append(struct string *const string, const uint32_t length) {
     return gbuffer_ensure_can_add_capacity(&string->gbuffer, length + 1);
