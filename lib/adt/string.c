@@ -60,7 +60,7 @@ string_append_char(struct string *const string,
         return NULL;
     }
 
-    if (gbuffer_append_byte(&string->gbuffer, ch, amount)) {
+    if (!gbuffer_append_byte(&string->gbuffer, ch, amount)) {
         return NULL;
     }
 
@@ -74,7 +74,7 @@ string_append_sv(struct string *const string, const struct string_view sv) {
         return NULL;
     }
 
-    if (gbuffer_append_sv(&string->gbuffer, sv)) {
+    if (!gbuffer_append_sv(&string->gbuffer, sv)) {
         return NULL;
     }
 
