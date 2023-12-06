@@ -3,15 +3,18 @@
  * © suhas pai
  */
 
+#include "lib/alloc.h"
 #include "lib/util.h"
+
 #include "array.h"
 
 __optimize(3)
-struct array array_alloc(const uint32_t obj_size, const uint32_t item_cap) {
-    return (struct array){
-        .gbuffer = gbuffer_alloc(check_mul_assert(obj_size, item_cap)),
-        .object_size = obj_size
-    };
+struct array *array_alloc(const uint32_t obj_size, const uint32_t item_cap) {
+    struct array *const array = malloc(sizeof(*array));
+    *array = ARRAY_INIT(obj_size);
+
+    array_reserve(array, item_cap);
+    return array;
 }
 
 __optimize(3)
@@ -122,4 +125,9 @@ __optimize(3) bool array_empty(const struct array array) {
 
 __optimize(3) void array_destroy(struct array *const array) {
     gbuffer_destroy(&array->gbuffer);
+}
+
+__optimize(3) void array_free(struct array *const array) {
+    array_destroy(array);
+    free(array);
 }
