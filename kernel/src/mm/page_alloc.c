@@ -802,10 +802,16 @@ find_nearby_free_pages(struct page *const page,
         struct page *const next_page = free_page + amount;
         if (page_get_state(next_page) == PAGE_STATE_FREE_LIST_HEAD) {
             const uint8_t order = next_page->freelist_head.order;
-            take_off_freelist_to_add_later(section, order, next_page);
 
-            amount += 1ull << order;
-            merged_range = true;
+            // Only take off freelist if we can add the combined range to a
+            // higher order.
+
+            if ((1ull << order) + amount >= (1ull << (order + 1))) {
+                take_off_freelist_to_add_later(section, order, next_page);
+
+                amount += 1ull << order;
+                merged_range = true;
+            }
         }
     }
 
