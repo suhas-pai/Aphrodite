@@ -499,10 +499,8 @@ struct virtq_used_elem {
     // Index of start of used descriptor chain.
     le32_t id;
 
-    /*
-     * The number of bytes written into the device writable portion of
-     * the buffer described by the descriptor chain.
-     */
+    // The number of bytes written into the device writable portion of the
+    // buffer described by the descriptor chain.
     le32_t len;
 };
 
@@ -591,10 +589,8 @@ enum virtio_scsi_cmd_response {
     // and the target (severed link).
     VIRTIO_SCSI_CMDRESP_TRANSPORT_FAILURE,
 
-    /*
-     * If the target is suffering a failure and to tell the driver not to retry
-     * on other paths
-     */
+    // If the target is suffering a failure and to tell the driver not to retry
+    // on other paths
     VIRTIO_SCSI_CMDRESP_TARGET_FAILURE,
 
     // If the nexus is suffering a failure but retrying on other paths might
