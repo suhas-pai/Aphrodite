@@ -26,11 +26,11 @@ struct virtio_block_config {
     struct virtio_block_topology {
         // # of logical blocks per physical block (log2)
         uint8_t physical_block_exp;
-        // offset of first aligned logical block
+        // Offset of first aligned logical block
         uint8_t alignment_offset;
-        // suggested minimum I/O size in blocks
+        // Suggested minimum I/O size in blocks
         le16_t min_io_size;
-        // optimal (suggested maximum) I/O size in blocks
+        // Optimal (suggested maximum) I/O size in blocks
         le32_t opt_io_size;
     } topology;
 
