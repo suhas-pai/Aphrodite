@@ -46,7 +46,7 @@ __optimize(3) void *array_begin(const struct array array) {
 }
 
 __optimize(3) const void *array_end(const struct array array) {
-    return array.gbuffer.begin + array.gbuffer.capacity;
+    return array.gbuffer.begin + array.gbuffer.index;
 }
 
 __optimize(3) void *array_at(const struct array array, const uint64_t index) {

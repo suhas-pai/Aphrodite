@@ -15,13 +15,9 @@ struct array {
 
 #define array_foreach(array, type, item) \
     assert(sizeof(type) == (array)->object_size);                              \
-    type *const VAR_CONCAT(__begin__, __LINE__) =                              \
-        (type *)array_begin(*(array));                                         \
-    type *const VAR_CONCAT(__end__, __LINE__) =                                \
-        VAR_CONCAT(__begin__, __LINE__) + array_item_count(*(array));          \
-    for (type *item = VAR_CONCAT(__begin__, __LINE__);                         \
-         item != VAR_CONCAT(__end__, __LINE__);                                \
-         item++)
+    type *const h_var(begin) = (type *)array_begin(*(array));                  \
+    type *const h_var(end) = (type *)(uint64_t)array_end(*(array));            \
+    for (type *item = h_var(begin); item != h_var(end); item++)
 
 #define ARRAY_INIT(size) \
     ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size) })
