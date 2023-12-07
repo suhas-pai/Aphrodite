@@ -1173,8 +1173,8 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
 
             if (highest_largepage_level > 1) {
                 for (int16_t index = countof(LARGEPAGE_LEVELS) - 1;
-                    index >= 0;
-                    index--)
+                     index >= 0;
+                     index--)
                 {
                     const pgt_level_t level = LARGEPAGE_LEVELS[index];
                     if (level > highest_largepage_level) {
@@ -1451,10 +1451,6 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                 }
 
                 switch (result) {
-                    case ALLOC_AND_MAP_ALLOC_PAGE_FAIL:
-                        return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
-                    case ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL:
-                        return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
                     case ALLOC_AND_MAP_DONE:
                         finish_split_info(walker,
                                           curr_split,
@@ -1462,6 +1458,10 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                                           virt_range.front + offset,
                                           options);
                         return E_PGMAP_ALLOC_OK;
+                    case ALLOC_AND_MAP_ALLOC_PAGE_FAIL:
+                        return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
+                    case ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL:
+                        return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
                     case ALLOC_AND_MAP_CONTINUE:
                         break;
                     case ALLOC_AND_MAP_RESTART:
