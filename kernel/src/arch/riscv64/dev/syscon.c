@@ -321,7 +321,6 @@ __driver static const struct driver reboot_driver = {
     .pci = NULL
 };
 
-
 static const struct string_view poweroff_compat_list[] = {
     SV_STATIC("syscon-poweroff")
 };
