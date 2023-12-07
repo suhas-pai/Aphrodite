@@ -73,7 +73,7 @@ print_rhct_node(const struct acpi_rhct *const rhct,
 
             printk(LOGLEVEL_INFO,
                    "%srhct: found mmu node:\n"
-                   "%s\tcbom size: %s\n",
+                   "%s\tmmu kind: %s\n",
                    prefix,
                    prefix, mmu_kind);
 
