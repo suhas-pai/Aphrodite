@@ -50,6 +50,10 @@ ifeq ($(ARCH), riscv64)
     override COMMON_CFLAGS += -D__riscv64
 endif
 
+ifneq ($(ARCH), x86_64)
+    override COMMON_CFLAGS += -DHAS_64B_PORTS
+endif
+
 ifeq ($(IN_QEMU), 1)
     override COMMON_CFLAGS += -DIN_QEMU
 endif
