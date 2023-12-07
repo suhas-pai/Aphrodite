@@ -124,7 +124,7 @@ parse_precision(struct printf_spec_info *const curr_spec,
             iter++;
 
             break;
-        default: {
+        default:
             curr_spec->precision = read_int_from_fmt_string(iter, &iter);
             if (curr_spec->precision == -1) {
                 return false;
@@ -135,7 +135,6 @@ parse_precision(struct printf_spec_info *const curr_spec,
             }
 
             break;
-        }
     }
 
     *iter_out = iter;
@@ -726,18 +725,20 @@ parse_printf(const char *const fmt,
         // We don't write anything if we have a '0' and precision is 0.
 
         const bool should_write_parsed = !(is_zero && curr_spec.precision == 0);
-        if (!should_write_parsed) {
-            parsed_length = 0;
-        } else if (curr_spec.add_base_prefix) {
-            switch (curr_spec.spec) {
-                case 'o':
-                    parsed_length += 1;
-                    break;
-                case 'x':
-                case 'X':
-                    parsed_length += 2;
-                    break;
+        if (should_write_parsed) {
+            if (curr_spec.add_base_prefix) {
+                switch (curr_spec.spec) {
+                    case 'o':
+                        parsed_length += 1;
+                        break;
+                    case 'x':
+                    case 'X':
+                        parsed_length += 2;
+                        break;
+                }
             }
+        } else {
+            parsed_length = 0;
         }
 
         // We have to pad with either spaces or zeroes if we're not wider than
