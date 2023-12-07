@@ -100,13 +100,14 @@ virtio_split_queue_init(struct virtio_device *const device,
     // Outside the loop, set the next index for the last desc to 0.
 
     struct virtq_desc *const begin = page_to_virt(desc_pages);
-    const struct virtq_desc *const end = begin + (desc_count - 1);
+    const struct virtq_desc *const back = begin + (desc_count - 1);
 
     struct virtq_desc *iter = begin;
     uint16_t next_index = 1;
 
-    for (; iter != end; iter++, next_index++) {
+    for (; iter != back; iter++, next_index++) {
         iter->next = next_index;
+        iter->flags |= __VIRTQ_DESC_F_NEXT;
     }
 
     iter->next = 0;
