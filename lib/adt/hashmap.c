@@ -221,14 +221,15 @@ hashmap_remove(struct hashmap *const hashmap,
         return NULL;
     }
 
-    struct list *prev = &bucket->node_list;
-    hashmap_bucket_foreach_node(bucket, iter) {
+    struct hashmap_node *iter = NULL;
+    struct hashmap_node *tmp = NULL;
+
+    list_foreach_mut(iter, tmp, &bucket->node_list, list) {
         if (iter->key != key) {
-            prev = iter->list.next;
             continue;
         }
 
-        prev->next = iter->list.next;
+        list_delete(&iter->list);
         if (list_empty(&bucket->node_list)) {
             hashmap->buckets[key_hash] = NULL;
             free(bucket);

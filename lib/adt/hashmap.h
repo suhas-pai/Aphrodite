@@ -23,6 +23,7 @@ struct hashmap_bucket {
 };
 
 struct hashmap;
+
 typedef uint32_t
 (*hashmap_hash_t)(hashmap_key_t key, const struct hashmap *hashmap);
 
@@ -71,12 +72,8 @@ hashmap_update(struct hashmap *hashmap,
 
 void *hashmap_get(const struct hashmap *hashmap, hashmap_key_t key);
 
-bool
-hashmap_remove(struct hashmap *hashmap,
-               hashmap_key_t key,
-               void *object_ptr);
-
 bool hashmap_resize(struct hashmap *hashmap, uint32_t bucket_count);
+bool hashmap_remove(struct hashmap *hashmap, hashmap_key_t key, void *object);
 
 void hashmap_destroy(struct hashmap *hashmap);
 void hashmap_free(struct hashmap *hashmap);
