@@ -107,10 +107,9 @@ array_take_range(struct array *const array,
     const uint64_t range_size = object_size * range.size;
 
     const void *const src = gbuffer_at(array->gbuffer, byte_index);
-    memcpy(item, src, range_size);
 
-    const struct range remove_range = RANGE_INIT(byte_index, range_size);
-    gbuffer_remove_range(&array->gbuffer, remove_range);
+    memcpy(item, src, range_size);
+    gbuffer_remove_range(&array->gbuffer, RANGE_INIT(byte_index, range_size));
 }
 
 __optimize(3)

@@ -33,7 +33,7 @@ __optimize(3) uint64_t bitmap_capacity(const struct bitmap *const bitmap) {
 
 static inline uint64_t
 find_multiple_unset(struct bitmap *const bitmap,
-                    uint64_t count,
+                    const uint64_t count,
                     uint64_t start_index,
                     const bool set)
 {
@@ -146,7 +146,7 @@ find_multiple_unset(struct bitmap *const bitmap,
 
 static inline uint64_t
 find_multiple_set(struct bitmap *const bitmap,
-                  uint64_t count,
+                  const uint64_t count,
                   uint64_t start_index,
                   const bool unset)
 {
