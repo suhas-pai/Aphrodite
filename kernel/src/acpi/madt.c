@@ -64,11 +64,9 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct lapic_info lapic_info = {
                     .apic_id = hdr->apic_id,
                     .processor_id = hdr->processor_id,
-                    .enabled =
-                        hdr->flags & __ACPI_MADT_ENTRY_CPU_LAPIC_FLAG_ENABLED,
+                    .enabled = hdr->flags & __ACPI_MADT_ENTRY_CPU_LAPIC_ENABLED,
                     .online_capable =
-                        hdr->flags &
-                            __ACPI_MADT_ENTRY_CPU_LAPIC_FLAG_ONLINE_CAPABLE
+                        hdr->flags & __ACPI_MADT_ENTRY_CPU_LAPIC_ONLINE_CAPABLE
                 };
 
                 lapic_add(&lapic_info);

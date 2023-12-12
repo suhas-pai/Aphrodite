@@ -263,11 +263,7 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
         return;
     }
 
-    g_mmio =
-        vmap_mmio(mmio_range,
-                  PROT_READ | PROT_WRITE | PROT_DEVICE,
-                  /*flags=*/0);
-
+    g_mmio = vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
     if (g_mmio == NULL) {
         printk(LOGLEVEL_WARN, "gic: failed to mmio-map dist registers\n");
         return;
@@ -453,9 +449,8 @@ init_from_dtb(const struct devicetree *const tree,
 
     gicd_init(dist_reg_info->address, /*gic_version=*/2);
     devicetree_node_foreach_child(node, child_node) {
-        if (!devicetree_node_has_compat_sv(child_node,
-                                           SV_STATIC("arm,gic-v2m-frame")))
-        {
+        const struct string_view msi_sv = SV_STATIC("arm,gic-v2m-frame");
+        if (!devicetree_node_has_compat_sv(child_node, msi_sv)) {
             continue;
         }
 

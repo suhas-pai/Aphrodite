@@ -4,11 +4,14 @@
  */
 
 #include <limine.h>
+
 #include "dev/dtb/init.h"
 
 #include "acpi/api.h"
 #include "asm/irqs.h"
+
 #include "cpu/isr.h"
+#include "cpu/util.h"
 
 #include "dev/flanterm.h"
 #include "dev/init.h"
@@ -24,17 +27,6 @@
 // See specification for further info.
 
 LIMINE_BASE_REVISION(1)
-
-// Halt and catch fire function.
-static void hcf(void) {
-    for (;;) {
-#if defined (__x86_64__)
-        asm ("hlt");
-#elif defined (__aarch64__) || defined (__riscv)
-        asm ("wfi");
-#endif
-    }
-}
 
 static void test_alloc_largepage() {
     struct page *const largepage =
@@ -70,7 +62,7 @@ void arch_post_mm_init();
 void _start(void) {
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED == false) {
-        hcf();
+        cpu_halt();
     }
 
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
@@ -100,5 +92,5 @@ void _start(void) {
 
     // We're done, just hang...
     enable_all_irqs();
-    hcf();
+    cpu_halt();
 }

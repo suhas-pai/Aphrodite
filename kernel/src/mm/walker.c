@@ -15,7 +15,8 @@
 __optimize(3) static uint64_t
 ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,
                           const pgt_level_t level,
-                          void *const cb_info) {
+                          void *const cb_info)
+{
     (void)walker;
     (void)level;
     (void)cb_info;
@@ -204,6 +205,7 @@ static const struct pt_walker_iterate_options default_options = {
     .should_ref = true,
 };
 
+__optimize(3)
 enum pt_walker_result ptwalker_next(struct pt_walker *const walker) {
     return ptwalker_next_with_options(walker, walker->level, &default_options);
 }
@@ -441,6 +443,7 @@ ptwalker_next_with_options(
                                 options->free_pgtable_cb_info);
 }
 
+__optimize(3)
 enum pt_walker_result ptwalker_prev(struct pt_walker *const walker) {
     return ptwalker_prev_with_options(walker, walker->level, &default_options);
 }

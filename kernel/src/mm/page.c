@@ -45,7 +45,7 @@ __optimize(3) void zero_page(void *page) {
 #elif defined(__riscv64)
     const void *const end = page + PAGE_SIZE;
     for (void *iter = page; iter != end; iter += CBO_SIZE) {
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 0)));
+        asm volatile ("cbo.zero (%0)" :: "r"(iter));
     }
 #else
     const uint64_t *const end = page + PAGE_SIZE;
@@ -87,7 +87,7 @@ __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
 #elif defined(__riscv64)
     const void *const end = page + full_size;
     for (void *iter = page; iter != end; iter += CBO_SIZE) {
-        asm volatile ("cbo.zero (%0)" :: "r"(iter + (CBO_SIZE * 0)));
+        asm volatile ("cbo.zero (%0)" :: "r"(iter));
     }
 #else
     const uint64_t *const end = page + full_size;

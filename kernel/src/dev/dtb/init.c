@@ -28,9 +28,8 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
 
         bool found = false;
         for (uint32_t i = 0; i != driver->compat_count; i++) {
-            if (devicetree_prop_compat_has_sv(compat_prop,
-                                              driver->compat_list[i]))
-            {
+            const struct string_view compat_list = driver->compat_list[i];
+            if (devicetree_prop_compat_has_sv(compat_prop, compat_list)) {
                 found = true;
                 break;
             }
