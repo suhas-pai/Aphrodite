@@ -17,4 +17,8 @@ void arch_init_time() {
     printk(LOGLEVEL_INFO,
            "time: frequency is %" PRIu64 " ticks/ms\n",
            g_frequency);
+
+    // Enable and unmask generic timers
+    asm volatile ("msr cntv_cval_el0, %0" :: "r"(0xFFFFFFFFFFFFFFFF));
+    asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)1));
 }
