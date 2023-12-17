@@ -277,6 +277,8 @@ ide_init(const uint32_t bar0,
     handle_device(&g_devices_list[2], ATA_SECONDARY, ATA_MASTER_DRIVE);
     handle_device(&g_devices_list[3], ATA_SECONDARY, ATA_SLAVE_DRIVE);
 
+    static const char *const device_name_list[] = { "ATA", "ATAPI" };
+
     // 4- Print Summary:
     bool found_device = false;
     for (uint8_t i = 0; i != 4; i++) {
@@ -286,7 +288,7 @@ ide_init(const uint32_t bar0,
 
         printk(LOGLEVEL_INFO,
                "ide: found device %s, drive " SIZE_TO_UNIT_FMT " - %s\n",
-               (const char *[]){"ATA", "ATAPI"}[g_devices_list[i].type],
+               device_name_list[g_devices_list[i].type],
                SIZE_TO_UNIT_FMT_ARGS(g_devices_list[i].size),
                g_devices_list[i].model);
 
