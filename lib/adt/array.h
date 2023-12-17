@@ -23,6 +23,7 @@ struct array {
     ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size) })
 
 struct array *array_alloc(uint32_t object_size, uint32_t item_capacity);
+struct array array_copy(struct array array);
 
 bool array_append(struct array *array, const void *item);
 void array_remove_index(struct array *array, uint32_t index);
