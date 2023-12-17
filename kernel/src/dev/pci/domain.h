@@ -19,8 +19,8 @@ enum pci_domain_kind {
 
 struct pci_domain {
     enum pci_domain_kind kind;
-    uint64_t a;
     uint16_t segment;
+    uint64_t padding;
 };
 
 #define PCI_SPACE_MAX_OFFSET 0x1000

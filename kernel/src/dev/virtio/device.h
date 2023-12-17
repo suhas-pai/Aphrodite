@@ -63,25 +63,6 @@ struct virtio_device {
     enum virtio_device_kind kind : 6;
 };
 
-#define VIRTIO_DEVICE_INIT(name, transport_kind_) \
-    ((struct virtio_device){ \
-        .list = LIST_INIT(name.list), \
-        .pci.entity = NULL, \
-        .pci.common_cfg = NULL, \
-        .pci.device_cfg = RANGE_EMPTY(), \
-        .pci.pci_cfg = NULL, \
-        .pci.offsets.pci_cfg = 0, \
-        .pci.offsets.isr_cfg = 0, \
-        .mmio.region = NULL, \
-        .mmio.header = NULL, \
-        .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
-        .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
-        .queue_list = NULL, \
-        .queue_count = 0, \
-        .transport_kind = (transport_kind_), \
-        .kind = VIRTIO_DEVICE_KIND_INVALID \
-    })
-
 #define VIRTIO_DEVICE_PCI_INIT(name) \
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
