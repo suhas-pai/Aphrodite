@@ -292,11 +292,11 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
 
     printk(LOGLEVEL_INFO,
            "gic initialized\n"
-           "\tVersion: %" PRIu8 "\n"
-           "\tInterrupt Line Count: %" PRIu16 "\n"
-           "\tImplemented CPU count: %" PRIu32 "\n"
-           "\tMax Implemented Lockable Sets: %" PRIu32 "\n"
-           "\tSupports Security Extensions: %s\n",
+           "\tversion: %" PRIu8 "\n"
+           "\tinterrupt line count: %" PRIu16 "\n"
+           "\timplemented cpu count: %" PRIu32 "\n"
+           "\tmax implemented lockable sets: %" PRIu32 "\n"
+           "\tsupports security extensions: %s\n",
            g_dist.version,
            g_dist.interrupt_lines_count,
            g_dist.impl_cpu_count,
