@@ -62,11 +62,14 @@ struct devicetree_prop_range_info {
     uint64_t child_bus_address;
     uint64_t parent_bus_address;
     uint64_t size;
+    uint32_t flags;
 };
 
 struct devicetree_prop_ranges {
     enum devicetree_prop_kind kind;
     struct array list;
+
+    bool has_flags;
 };
 
 struct devicetree_prop_model {
@@ -156,12 +159,17 @@ struct devicetree_prop_interrupt_map_entry {
     uint32_t phandle;
     uint64_t parent_unit_address;
 
+    uint32_t flags;
+    bool has_flags;
+
     struct devicetree_prop_int_map_entry_int_info parent_int_info;
 };
 
 struct devicetree_prop_interrupt_map {
     enum devicetree_prop_kind kind;
     struct array list;
+
+    bool has_flags;
 };
 
 struct devicetree_prop_interrupt_map_mask {

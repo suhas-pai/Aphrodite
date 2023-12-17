@@ -52,10 +52,45 @@ parse_cell_pair(const fdt32_t **const iter_ptr,
             *iter_ptr = iter + cell_count;
 
             return true;
+    }
+
+    printk(LOGLEVEL_WARN,
+           "devicetree: couldn't parse pairs with an invalid cell count of "
+           "%" PRIu32 "\n",
+           cell_count);
+
+    return false;
+}
+
+__optimize(3) static inline bool
+parse_cell_pair_and_flags(const fdt32_t **const iter_ptr,
+                          const fdt32_t *const end,
+                          const int cell_count,
+                          uint64_t *const result_out,
+                          uint32_t *const flags_out)
+{
+    const fdt32_t *const iter = *iter_ptr;
+    if (iter + cell_count > end) {
+        return false;
+    }
+
+    switch (cell_count) {
+        case 0:
+            *result_out = 0;
+            return true;
+        case 1:
+            *result_out = fdt32_to_cpu(*iter);
+            *iter_ptr = iter + cell_count;
+
+            return true;
+        case 2:
+            *result_out = fdt64_to_cpu(*(const fdt64_t *)(uint64_t)iter);
+            *iter_ptr = iter + cell_count;
+
+            return true;
         case 3:
-            *result_out =
-                (uint64_t)fdt32_to_cpu(*iter) << 32 |
-                (uint64_t)(fdt32_to_cpu(iter[1]) << 16 | fdt32_to_cpu(iter[2]));
+            *flags_out = fdt32_to_cpu(*(const fdt32_t *)iter);
+            *result_out = fdt64_to_cpu(*(const fdt64_t *)(uint64_t)(iter + 1));
 
             *iter_ptr = iter + cell_count;
             return true;
@@ -132,7 +167,8 @@ parse_ranges_prop(const void *const dtb,
                   const int prop_length,
                   const int nodeoff,
                   const int parent_off,
-                  struct array *const array)
+                  struct array *const array,
+                  bool *const has_flags_out)
 {
     const int parent_addr_cells = fdt_address_cells(dtb, parent_off);
     const int child_addr_cells = fdt_address_cells(dtb, nodeoff);
@@ -140,6 +176,10 @@ parse_ranges_prop(const void *const dtb,
 
     if (parent_addr_cells < 0 || child_addr_cells < 0 || size_cells < 0) {
         return false;
+    }
+
+    if (child_addr_cells == 3) {
+        *has_flags_out = true;
     }
 
     const fdt32_t *data = NULL;
@@ -170,10 +210,11 @@ parse_ranges_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
     for (uint32_t i = 0; i != entry_count; i++) {
         struct devicetree_prop_range_info info;
-        if (!parse_cell_pair(&data,
-                             data_end,
-                             child_addr_cells,
-                             &info.child_bus_address))
+        if (!parse_cell_pair_and_flags(&data,
+                                       data_end,
+                                       child_addr_cells,
+                                       &info.child_bus_address,
+                                       &info.flags))
         {
             return false;
         }
@@ -425,13 +466,18 @@ parse_interrupt_map_prop(const void *const dtb,
                          const uint32_t prop_length,
                          const int nodeoff,
                          struct devicetree *const tree,
-                         struct array *const array)
+                         struct array *const array,
+                         bool *const has_flags_out)
 {
     const int child_unit_addr_cells = fdt_address_cells(dtb, nodeoff);
     const int child_int_cells = fdt_cells(dtb, nodeoff, "#interrupt-cells");
 
     if (child_unit_addr_cells < 0 || child_int_cells < 0) {
         return false;
+    }
+
+    if (child_unit_addr_cells == 3) {
+        *has_flags_out = true;
     }
 
     if (child_int_cells > 2) {
@@ -456,10 +502,11 @@ parse_interrupt_map_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
     while (data < data_end) {
         struct devicetree_prop_interrupt_map_entry info;
-        if (!parse_cell_pair(&data,
-                             data_end,
-                             child_unit_addr_cells,
-                             &info.child_unit_address))
+        if (!parse_cell_pair_and_flags(&data,
+                                       data_end,
+                                       child_unit_addr_cells,
+                                       &info.child_unit_address,
+                                       &info.flags))
         {
             return false;
         }
@@ -708,6 +755,7 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_RANGES:
             if (sv_equals(name, SV_STATIC("ranges"))) {
+                bool has_flags = false;
                 struct array list =
                     ARRAY_INIT(sizeof(struct devicetree_prop_range_info));
 
@@ -716,7 +764,8 @@ parse_node_prop(const void *const dtb,
                                        prop_len,
                                        nodeoff,
                                        parent_nodeoff,
-                                       &list))
+                                       &list,
+                                       &has_flags))
                 {
                     array_destroy(&list);
                     return false;
@@ -732,6 +781,7 @@ parse_node_prop(const void *const dtb,
 
                 prop->kind = DEVICETREE_PROP_RANGES;
                 prop->list = list;
+                prop->has_flags = has_flags;
 
                 if (!hashmap_add(&node->known_props,
                                  hashmap_key_create(DEVICETREE_PROP_RANGES),
@@ -905,6 +955,7 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_DMA_RANGES:
             if (sv_equals(name, SV_STATIC("dma-ranges"))) {
+                bool has_flags = false;
                 struct array list =
                     ARRAY_INIT(sizeof(struct devicetree_prop_range_info));
 
@@ -913,7 +964,8 @@ parse_node_prop(const void *const dtb,
                                        prop_len,
                                        nodeoff,
                                        parent_nodeoff,
-                                       &list))
+                                       &list,
+                                       &has_flags))
                 {
                     array_destroy(&list);
                     return false;
@@ -929,6 +981,7 @@ parse_node_prop(const void *const dtb,
 
                 prop->kind = DEVICETREE_PROP_DMA_RANGES;
                 prop->list = list;
+                prop->has_flags = has_flags;
 
                 if (!hashmap_add(&node->known_props,
                                  hashmap_key_create(DEVICETREE_PROP_DMA_RANGES),
@@ -1486,6 +1539,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
     }
 
     array_foreach(&int_map_list, struct int_map_info, iter) {
+        bool has_flags = false;
         struct array list =
             ARRAY_INIT(sizeof(struct devicetree_prop_interrupt_map_entry));
 
@@ -1494,7 +1548,8 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                                       iter->prop_length,
                                       iter->node->nodeoff,
                                       tree,
-                                      &list))
+                                      &list,
+                                      &has_flags))
         {
             array_destroy(&list);
             array_destroy(&int_map_list);
@@ -1516,6 +1571,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
 
         map_prop->kind = DEVICETREE_PROP_INTERRUPT_MAP;
         map_prop->list = list;
+        map_prop->has_flags = has_flags;
 
         if (!hashmap_add(&iter->node->known_props,
                          hashmap_key_create(DEVICETREE_PROP_INTERRUPT_MAP),
