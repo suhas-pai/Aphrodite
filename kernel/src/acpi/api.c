@@ -89,11 +89,6 @@ void acpi_parse_tables() {
         return;
     }
 
-    if (g_info.rsdt->sdt.length < sizeof(struct acpi_sdt)) {
-        printk(LOGLEVEL_WARN, "acpi: table-length is too short\n");
-        return;
-    }
-
     const uint64_t oem_id_length =
         strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));
     const struct string_view oem_id =
@@ -104,6 +99,11 @@ void acpi_parse_tables() {
         g_info.rsdt = phys_to_virt(g_info.rsdp->v2.xsdt_addr);
     } else {
         g_info.rsdt = phys_to_virt(g_info.rsdp->rsdt_addr);
+    }
+
+    if (g_info.rsdt->sdt.length < sizeof(struct acpi_sdt)) {
+        printk(LOGLEVEL_WARN, "acpi: table-length is too short\n");
+        return;
     }
 
     printk(LOGLEVEL_INFO,
