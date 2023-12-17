@@ -10,8 +10,6 @@
 #include "mm/page_alloc.h"
 
 #include "../transport.h"
-#include "sys/mmio.h"
-
 #include "split.h"
 
 #define VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER 0
@@ -64,46 +62,6 @@ virtio_split_queue_init(struct virtio_device *const device,
     const uint64_t page_phys = page_to_phys(page);
     const uint32_t desc_table_size = sizeof(struct virtq_desc) * desc_count;
 
-    volatile uint16_t *notify_ptr = NULL;
-    if (device->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI) {
-        const uint16_t notify_offset =
-            le_to_cpu(mmio_read(&device->pci.common_cfg->queue_notify_off));
-        const uint32_t notify_off_multiplier =
-            device->pci.notify_off_multiplier;
-
-        uint16_t full_off = 0;
-        if (!check_mul(notify_off_multiplier, notify_offset, &full_off)) {
-            printk(LOGLEVEL_WARN,
-                   "virtio-pci: notify-cfg has a multipler * offset "
-                   "(%" PRIu32 " * %" PRIu16 ") is beyond end of uint16_t "
-                   "space\n",
-                   notify_off_multiplier,
-                   notify_offset);
-            return false;
-        }
-
-        if (!range_has_index(device->pci.notify_cfg_range, full_off)) {
-            printk(LOGLEVEL_WARN,
-                   "virtio-pci: notify-cfg has a multipler * offset "
-                   "(%" PRIu32 " * %" PRIu16 " = %" PRIu16 ") is beyond end of "
-                   "notify-cfg's config space\n",
-                   notify_off_multiplier,
-                   full_off,
-                   notify_offset);
-            return false;
-        }
-
-        // Check from spec
-        if (device->pci.notify_cfg_range.size < (uint64_t)full_off + 2) {
-            printk(LOGLEVEL_WARN, "\tvirtio-pci: notify-cfg is too short\n");
-            return false;
-        }
-
-        notify_ptr =
-            (volatile uint16_t *)
-                (device->pci.notify_cfg_range.front + full_off);
-    }
-
     virtio_device_set_selected_queue_desc_phys(device, page_phys);
     virtio_device_set_selected_queue_driver_phys(device,
                                                  page_phys + desc_table_size);
@@ -133,7 +91,6 @@ virtio_split_queue_init(struct virtio_device *const device,
     queue->page = page;
     queue->desc_table = desc_table;
     queue->avail_ring = avail_ring;
-    queue->notify_ptr = notify_ptr;
 
     queue->desc_count = desc_count;
     queue->used_ring = used_ring;
@@ -198,15 +155,6 @@ virtio_split_queue_transmit(struct virtio_device *const device,
     // 7. The driver sends an available buffer notification to the device if
     //    such notifications are not suppressed
     if ((queue->used_ring->flags & __VIRTQ_USED_F_NO_NOTIFY) == 0) {
-        switch (device->transport_kind) {
-            case VIRTIO_DEVICE_TRANSPORT_MMIO:
-                virtio_mmio_notify_queue(device, queue->index);
-                break;
-            case VIRTIO_DEVICE_TRANSPORT_PCI:
-                virtio_device_select_queue(device, queue->index);
-                mmio_write(queue->notify_ptr, 1);
-
-                break;
-        }
+        virtio_device_notify_queue(device, queue->index);
     }
 }

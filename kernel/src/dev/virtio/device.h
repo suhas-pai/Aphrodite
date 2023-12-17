@@ -38,6 +38,11 @@ struct virtio_device {
 
             uint32_t notify_off_multiplier;
             struct virtio_pci_cfg_cap *pci_cfg;
+
+            struct {
+                uint8_t pci_cfg;
+                uint8_t isr_cfg;
+            } offsets;
         } pci;
         struct {
             struct mmio_region *region;
@@ -53,10 +58,6 @@ struct virtio_device {
     struct virtio_split_queue *queue_list;
 
     uint8_t queue_count;
-    struct {
-        uint8_t pci_cfg;
-        uint8_t isr_cfg;
-    } pci_offsets;
 
     enum virtio_device_transport_kind transport_kind : 1;
     enum virtio_device_kind kind : 6;
@@ -66,19 +67,49 @@ struct virtio_device {
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
         .pci.entity = NULL, \
-        .pci.v1.common_cfg = NULL, \
-        .pci.v1.device_cfg = RANGE_EMPTY(), \
-        .pci.v1.notify_queue_select = NULL, \
-        .pci.v1.pci_cfg = NULL, \
-        .pci.trans.io_base = 0, \
+        .pci.common_cfg = NULL, \
+        .pci.device_cfg = RANGE_EMPTY(), \
+        .pci.pci_cfg = NULL, \
+        .pci.offsets.pci_cfg = 0, \
+        .pci.offsets.isr_cfg = 0, \
         .mmio.region = NULL, \
         .mmio.header = NULL, \
         .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
         .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
         .queue_list = NULL, \
         .queue_count = 0, \
-        .pci_offsets.pci_cfg = 0, \
-        .pci_offsets.isr_cfg = 0, \
         .transport_kind = (transport_kind_), \
         .kind = VIRTIO_DEVICE_KIND_INVALID \
     })
+
+#define VIRTIO_DEVICE_PCI_INIT(name) \
+    ((struct virtio_device){ \
+        .list = LIST_INIT(name.list), \
+        .pci.entity = NULL, \
+        .pci.common_cfg = NULL, \
+        .pci.device_cfg = RANGE_EMPTY(), \
+        .pci.pci_cfg = NULL, \
+        .pci.offsets.pci_cfg = 0, \
+        .pci.offsets.isr_cfg = 0, \
+        .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
+        .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
+        .queue_list = NULL, \
+        .queue_count = 0, \
+        .transport_kind = VIRTIO_DEVICE_TRANSPORT_PCI, \
+        .kind = VIRTIO_DEVICE_KIND_INVALID \
+    })
+
+#define VIRTIO_DEVICE_MMIO_INIT(name) \
+    ((struct virtio_device){ \
+        .list = LIST_INIT(name.list), \
+        .mmio.region = NULL, \
+        .mmio.header = NULL, \
+        .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
+        .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
+        .queue_list = NULL, \
+        .queue_count = 0, \
+        .transport_kind = VIRTIO_DEVICE_TRANSPORT_MMIO, \
+        .kind = VIRTIO_DEVICE_KIND_INVALID \
+    })
+
+void virtio_device_destroy(struct virtio_device *device);

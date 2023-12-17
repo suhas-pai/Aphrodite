@@ -117,9 +117,21 @@ virtio_pci_set_selected_queue_size(struct virtio_device *const device,
     mmio_write(&device->pci.common_cfg->queue_size, cpu_to_le(size));
 }
 
+void
+virtio_pci_notify_queue(struct virtio_device *const device,
+                        const uint16_t index)
+{
+    const uint32_t offset =
+        device->pci.common_cfg->queue_notify_off *
+        device->pci.notify_off_multiplier;
+    volatile uint16_t *const ptr =
+        (void *)device->pci.notify_cfg_range.front + offset;
+
+    mmio_write(ptr, cpu_to_le(index));
+}
+
 void virtio_pci_enable_selected_queue(struct virtio_device *const device) {
-    mmio_write(&device->pci.common_cfg->queue_enable,
-               /*value=*/cpu16_to_le(1));
+    mmio_write(&device->pci.common_cfg->queue_enable, /*value=*/cpu16_to_le(1));
 }
 
 void

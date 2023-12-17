@@ -84,9 +84,8 @@ init_from_dtb(const struct devicetree *const tree,
     struct mmio_region *const mmio =
         vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    struct virtio_device virt_device;
+    struct virtio_device virt_device = VIRTIO_DEVICE_MMIO_INIT(virt_device);
 
-    virt_device.transport_kind = VIRTIO_DEVICE_TRANSPORT_MMIO;
     virt_device.mmio.region = mmio;
     virt_device.mmio.header =
         mmio->base + (reg_info->address - mmio_range.front);

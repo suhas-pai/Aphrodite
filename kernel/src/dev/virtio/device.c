@@ -39,3 +39,19 @@ virtio_device_shmem_region_unmap(
 
     return;
 }
+
+__optimize(3) void virtio_device_destroy(struct virtio_device *const device) {
+    array_foreach(&device->shmem_regions,
+                  struct virtio_device_shmem_region,
+                  shmem)
+    {
+        virtio_device_shmem_region_unmap(shmem);
+    }
+
+    array_destroy(&device->shmem_regions);
+    array_destroy(&device->vendor_cfg_list);
+
+    if (device->transport_kind == VIRTIO_DEVICE_TRANSPORT_MMIO) {
+        vunmap_mmio(device->mmio.region);
+    }
+}

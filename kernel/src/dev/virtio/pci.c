@@ -79,10 +79,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    struct virtio_device virt_device;
+    struct virtio_device virt_device = VIRTIO_DEVICE_PCI_INIT(virt_device);
 
     virt_device.kind = device_kind;
-    virt_device.transport_kind = VIRTIO_DEVICE_TRANSPORT_PCI;
     virt_device.pci.entity = pci_entity;
 
     uint8_t cap_index = 0;
@@ -206,7 +205,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                     continue;
                 }
 
-                virt_device.pci_offsets.isr_cfg = *iter;
+                virt_device.pci.offsets.isr_cfg = *iter;
                 cfg_kind = "isr-cfg";
 
                 break;
@@ -225,19 +224,18 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                     continue;
                 }
 
-                virt_device.pci_offsets.pci_cfg = *iter;
+                virt_device.pci.offsets.pci_cfg = *iter;
                 cfg_kind = "pci-cfg";
 
                 break;
-            case VIRTIO_PCI_CAP_SHARED_MEMORY_CFG:
-                offset |=
-                    (uint64_t)
-                        le_to_cpu(pci_read_virtio_cap_field(*iter, offset_hi))
-                            << 32;
-                length |=
-                    (uint64_t)
-                        le_to_cpu(pci_read_virtio_cap_field(*iter, length_hi))
-                            << 32;
+            case VIRTIO_PCI_CAP_SHARED_MEMORY_CFG: {
+                const uint32_t offset_hi =
+                    le_to_cpu(pci_read_virtio_cap_field(*iter, offset_hi));
+                const uint32_t length_hi =
+                    le_to_cpu(pci_read_virtio_cap_field(*iter, length_hi));
+
+                offset |= (uint64_t)offset_hi << 32;
+                length |= (uint64_t)length_hi << 32;
 
                 const struct virtio_device_shmem_region region = {
                     .phys_range = RANGE_INIT(offset, length),
@@ -255,6 +253,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
                 cfg_kind = "shared-memory-cfg";
                 break;
+            }
             case VIRTIO_PCI_CAP_VENDOR_CFG:
                 if (!array_append(&virt_device.vendor_cfg_list, iter)) {
                     printk(LOGLEVEL_WARN,
@@ -288,6 +287,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     if (virt_device.pci.common_cfg == NULL) {
         printk(LOGLEVEL_WARN, "virtio-pci: device is missing a common-cfg\n");
+        virtio_device_destroy(&virt_device);
+
         return;
     }
 
@@ -297,12 +298,16 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         if ((dev_features & __VIRTIO_F_VERSION_1) == 0) {
             printk(LOGLEVEL_DEBUG,
                    "virtio-pci: device is legacy and unsupported\n");
+
+            virtio_device_destroy(&virt_device);
             return;
         }
     }
 
 #undef pci_read_virtio_cap_field
-    virtio_device_init(&virt_device);
+    if (virtio_device_init(&virt_device) == NULL) {
+        virtio_device_destroy(&virt_device);
+    }
 }
 
 static const struct pci_driver pci_driver = {

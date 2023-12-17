@@ -15,8 +15,6 @@ struct virtio_split_queue {
     struct virtq_avail *avail_ring;
     struct virtq_used *used_ring;
 
-    volatile uint16_t *notify_ptr;
-
     uint16_t desc_count;
     uint16_t free_index;
     uint16_t chain_count;
