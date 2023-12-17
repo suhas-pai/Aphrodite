@@ -13,14 +13,14 @@
 typedef struct virtio_device *
 (*virtio_driver_init_t)(struct virtio_device *device, uint64_t features);
 
-struct virtio_driver_info {
+struct virtio_driver {
     virtio_driver_init_t init;
 
     uint16_t virtqueue_count;
     uint64_t required_features;
 };
 
-static const struct virtio_driver_info virtio_drivers[] = {
+static const struct virtio_driver virtio_drivers[] = {
     [VIRTIO_DEVICE_KIND_BLOCK_DEVICE] = {
         .init = virtio_block_driver_init,
         .virtqueue_count = 2,

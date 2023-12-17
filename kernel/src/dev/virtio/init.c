@@ -49,9 +49,7 @@ struct virtio_device *virtio_device_init(struct virtio_device *const device) {
         }
     }
 
-    const struct virtio_driver_info *const driver =
-        &virtio_drivers[device->kind];
-
+    const struct virtio_driver *const driver = &virtio_drivers[device->kind];
     if (driver->init == NULL) {
         printk(LOGLEVEL_WARN, "virtio-pci: ignoring device, no driver found\n");
         return NULL;

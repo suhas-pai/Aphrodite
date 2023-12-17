@@ -11,13 +11,12 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
-
 #include "sys/mmio.h"
+
 #include "ecam.h"
 
 static struct list g_ecam_entity_list = LIST_INIT(g_ecam_entity_list);
-static struct spinlock g_ecam_space_lock = SPINLOCK_INIT();
+static struct spinlock g_ecam_domain_lock = SPINLOCK_INIT();
 
 static uint32_t g_ecam_entity_count = 0;
 
@@ -26,129 +25,130 @@ static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
     return bus_range.size << 20;
 }
 
-struct pci_ecam_space *
-pci_add_ecam_space(const struct range bus_range,
+struct pci_ecam_domain *
+pci_add_ecam_domain(const struct range bus_range,
                    const uint64_t base_addr,
                    const uint16_t segment)
 {
-    struct pci_ecam_space *const ecam_space = kmalloc(sizeof(*ecam_space));
-    if (ecam_space == NULL) {
+    struct pci_ecam_domain *const ecam_domain = kmalloc(sizeof(*ecam_domain));
+    if (ecam_domain == NULL) {
         return NULL;
     }
 
-    list_init(&ecam_space->list);
-    list_init(&ecam_space->space.entity_list);
+    list_init(&ecam_domain->list);
 
-    ecam_space->space.kind = PCI_SPACE_ECAM;
-    ecam_space->mmio =
+    ecam_domain->domain.kind = PCI_DOMAIN_ECAM;
+    ecam_domain->mmio =
         vmap_mmio(RANGE_INIT(base_addr, map_size_for_bus_range(bus_range)),
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
-    if (ecam_space->mmio == NULL) {
-        kfree(ecam_space);
-        printk(LOGLEVEL_WARN, "pci-ecam: failed to mmio-map config-space\n");
+    if (ecam_domain->mmio == NULL) {
+        kfree(ecam_domain);
+        printk(LOGLEVEL_WARN, "pci-ecam: failed to mmio-map config-domain\n");
 
         return NULL;
     }
 
-    ecam_space->bus_range = bus_range;
-    ecam_space->space.segment = segment;
+    ecam_domain->bus_range = bus_range;
+    ecam_domain->domain.segment = segment;
 
-    const int flag = spin_acquire_with_irq(&g_ecam_space_lock);
+    const int flag = spin_acquire_with_irq(&g_ecam_domain_lock);
 
-    list_add(&g_ecam_entity_list, &ecam_space->list);
+    list_add(&g_ecam_entity_list, &ecam_domain->list);
     g_ecam_entity_count++;
 
-    spin_release_with_irq(&g_ecam_space_lock, flag);
-    if (!pci_add_space(&ecam_space->space)) {
+    if (!pci_add_domain(&ecam_domain->domain)) {
+        spin_release_with_irq(&g_ecam_domain_lock, flag);
         return NULL;
     }
 
-    return ecam_space;
+    spin_release_with_irq(&g_ecam_domain_lock, flag);
+    return ecam_domain;
 }
 
 __optimize(3)
-bool pci_remove_ecam_space(struct pci_ecam_space *const ecam_space) {
-    if (!pci_remove_space(&ecam_space->space)) {
+bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
+    const int flag = spin_acquire_with_irq(&g_ecam_domain_lock);
+    if (!pci_remove_domain(&ecam_domain->domain)) {
+        spin_release_with_irq(&g_ecam_domain_lock, flag);
         return false;
     }
 
-    vunmap_mmio(ecam_space->mmio);
-    const int flag = spin_acquire_with_irq(&g_ecam_space_lock);
+    vunmap_mmio(ecam_domain->mmio);
+    list_remove(&ecam_domain->list);
 
-    list_remove(&ecam_space->list);
     g_ecam_entity_count--;
 
-    spin_release_with_irq(&g_ecam_space_lock, flag);
+    spin_release_with_irq(&g_ecam_domain_lock, flag);
     return true;
 }
 
 __optimize(3) uint64_t
-pci_ecam_space_loc_get_offset(const struct pci_ecam_space *const space,
-                              const struct pci_space_location *const loc)
+pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
+                              const struct pci_location *const loc)
 {
     return
-        (range_index_for_loc(space->bus_range, loc->bus) << 20) |
+        (range_index_for_loc(domain->bus_range, loc->bus) << 20) |
         (loc->slot << 15) |
         (loc->function << 12);
 }
 
 __optimize(3) uint8_t
-pci_ecam_read_8(struct pci_ecam_space *const space,
-                const struct pci_space_location *const loc,
+pci_ecam_read_8(struct pci_ecam_domain *const domain,
+                const struct pci_location *const loc,
                 const uint16_t off)
 {
     assert(
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint8_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    return mmio_read_8(space->mmio->base + offset);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    return mmio_read_8(domain->mmio->base + offset);
 }
 
 __optimize(3) uint16_t
-pci_ecam_read_16(struct pci_ecam_space *const space,
-                 const struct pci_space_location *const loc,
+pci_ecam_read_16(struct pci_ecam_domain *const domain,
+                 const struct pci_location *const loc,
                  const uint16_t off)
 {
     assert(
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint16_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    return mmio_read_16(space->mmio->base + offset);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    return mmio_read_16(domain->mmio->base + offset);
 }
 
 __optimize(3) uint32_t
-pci_ecam_read_32(struct pci_ecam_space *const space,
-                 const struct pci_space_location *const loc,
+pci_ecam_read_32(struct pci_ecam_domain *const domain,
+                 const struct pci_location *const loc,
                  const uint16_t off)
 {
     assert(
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint32_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    return mmio_read_32(space->mmio->base + offset);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    return mmio_read_32(domain->mmio->base + offset);
 }
 
 __optimize(3) uint64_t
-pci_ecam_read_64(struct pci_ecam_space *const space,
-                 const struct pci_space_location *const loc,
+pci_ecam_read_64(struct pci_ecam_domain *const domain,
+                 const struct pci_location *const loc,
                  const uint16_t off)
 {
     assert(
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint64_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    return mmio_read_64(space->mmio->base + offset);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    return mmio_read_64(domain->mmio->base + offset);
 }
 
 __optimize(3) void
-pci_ecam_write_8(struct pci_ecam_space *const space,
-                 const struct pci_space_location *const loc,
+pci_ecam_write_8(struct pci_ecam_domain *const domain,
+                 const struct pci_location *const loc,
                  const uint16_t off,
                  const uint8_t value)
 {
@@ -156,13 +156,13 @@ pci_ecam_write_8(struct pci_ecam_space *const space,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint8_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    mmio_write_8(space->mmio->base + offset, value);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    mmio_write_8(domain->mmio->base + offset, value);
 }
 
 __optimize(3) void
-pci_ecam_write_16(struct pci_ecam_space *const space,
-                  const struct pci_space_location *const loc,
+pci_ecam_write_16(struct pci_ecam_domain *const domain,
+                  const struct pci_location *const loc,
                   const uint16_t off,
                   const uint16_t value)
 {
@@ -170,13 +170,13 @@ pci_ecam_write_16(struct pci_ecam_space *const space,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint16_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    mmio_write_16(space->mmio->base + offset, value);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    mmio_write_16(domain->mmio->base + offset, value);
 }
 
 __optimize(3) void
-pci_ecam_write_32(struct pci_ecam_space *const space,
-                  const struct pci_space_location *const loc,
+pci_ecam_write_32(struct pci_ecam_domain *const domain,
+                  const struct pci_location *const loc,
                   const uint16_t off,
                   const uint32_t value)
 {
@@ -184,13 +184,13 @@ pci_ecam_write_32(struct pci_ecam_space *const space,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint32_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    mmio_write_32(space->mmio->base + offset, value);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    mmio_write_32(domain->mmio->base + offset, value);
 }
 
 __optimize(3) void
-pci_ecam_write_64(struct pci_ecam_space *const space,
-                  const struct pci_space_location *const loc,
+pci_ecam_write_64(struct pci_ecam_domain *const domain,
+                  const struct pci_location *const loc,
                   const uint16_t off,
                   const uint64_t value)
 {
@@ -198,8 +198,120 @@ pci_ecam_write_64(struct pci_ecam_space *const space,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint64_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_space_loc_get_offset(space, loc) + off;
-    mmio_write_64(space->mmio->base + offset, value);
+    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    mmio_write_64(domain->mmio->base + offset, value);
+}
+
+enum pci_ecam_dtb_range_kind {
+    PCI_ECAM_DTB_RANGE_KIND_IO = 1,
+    PCI_ECAM_DTB_RANGE_KIND_MEM32,
+    PCI_ECAM_DTB_RANGE_KIND_MEM64,
+};
+
+enum pci_ecam_dtb_child_addr_shifts {
+    PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT = 24,
+};
+
+enum pci_ecam_dtb_child_addr_flags {
+    __PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND =
+        0b11 << PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT,
+
+    __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM = 1 << 30
+};
+
+// Not needed so unused
+__unused static bool
+parse_dtb_resources(struct devicetree_node *const node,
+                    struct pci_bus *const root_bus)
+{
+    const struct devicetree_prop_ranges *const ranges_prop =
+        (const struct devicetree_prop_ranges *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_RANGES);
+
+    if (ranges_prop == NULL) {
+        printk(LOGLEVEL_WARN,
+               "pci-ecam: 'ranges' property in dtb node is missing\n");
+        return false;
+    }
+
+    if (!ranges_prop->has_flags) {
+        printk(LOGLEVEL_WARN, "pci-ecam: 'ranges' prop is missing flags\n");
+        return false;
+    }
+
+    uint32_t index = 0;
+    array_foreach(&ranges_prop->list, struct devicetree_prop_range_info, iter) {
+        const enum pci_ecam_dtb_range_kind kind =
+            (iter->flags & __PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND) >>
+                PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT;
+
+        enum pci_bus_resource_kind res_kind = PCI_BUS_RESOURCE_IO;
+        switch (kind) {
+            case PCI_ECAM_DTB_RANGE_KIND_IO:
+                res_kind = PCI_BUS_RESOURCE_IO;
+                break;
+            case PCI_ECAM_DTB_RANGE_KIND_MEM32:
+            case PCI_ECAM_DTB_RANGE_KIND_MEM64:
+                if (iter->flags & __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM) {
+                    res_kind = PCI_BUS_RESOURCE_PREFETCH_MEM;
+                } else {
+                    res_kind = PCI_BUS_RESOURCE_MEM;
+                }
+
+                break;
+            default:
+                verify_not_reached();
+        }
+
+        if (iter->size == 0) {
+            printk(LOGLEVEL_WARN,
+                   "pci-ecam: range #%" PRIu32 " in 'ranges' dtb-node prop has "
+                   "a size of zero\n",
+                   index + 1);
+            continue;
+        }
+
+        const struct range res_range =
+            RANGE_INIT(iter->parent_bus_address, iter->size);
+
+        struct range res_mmio_range = RANGE_EMPTY();
+        if (!range_align_out(res_range, PAGE_SIZE, &res_mmio_range)) {
+            printk(LOGLEVEL_WARN,
+                   "pci-ecam: can't align range #%" PRIu32 " in 'ranges' "
+                   "dtb-node prop has a size of zero\n",
+                   index);
+            continue;
+        }
+
+        struct mmio_region *const mmio =
+            vmap_mmio(res_mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+
+        if (mmio == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "pci-ecam: failed to mmio-map range #%" PRIu32 " in "
+                   "'ranges' dtb-node prop has a size of zero\n",
+                   index);
+            continue;
+        }
+
+        struct pci_bus_resource resource =
+            PCI_BUS_RESOURCE_INIT(res_kind,
+                                  /*host_base=*/iter->parent_bus_address,
+                                  /*child_base=*/iter->child_bus_address,
+                                  iter->size,
+                                  mmio,
+                                  /*is_host_mmio=*/true);
+
+        if (!array_append(&root_bus->resources, &resource)) {
+            printk(LOGLEVEL_INFO,
+                   "pci-ecam: failed to add resource to bus-list\n");
+            return false;
+        }
+
+        index++;
+    }
+
+    return true;
 }
 
 static bool
@@ -268,7 +380,22 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    pci_add_ecam_space(bus_range, mmio_range.front, /*segment=*/0);
+    struct pci_ecam_domain *const ecam_domain =
+        pci_add_ecam_domain(bus_range, mmio_range.front, /*segment=*/0);
+    struct pci_bus *const root_bus =
+        pci_bus_create(&ecam_domain->domain, bus_range.front, /*segment=*/0);
+
+    if (root_bus == NULL) {
+        printk(LOGLEVEL_WARN,
+               "pci-ecam: failed to create root-bus from dtb node\n");
+        return false;
+    }
+
+    if (!pci_add_root_bus(root_bus)) {
+        printk(LOGLEVEL_INFO, "pci-ecam: failed to add bus to root-bus list\n");
+        return false;
+    }
+
     return true;
 }
 

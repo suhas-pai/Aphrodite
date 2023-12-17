@@ -1,9 +1,9 @@
 /*
- * kernel/src/arch/x86_64/dev/pci/read.c
+ * kernel/src/arch/x86_64/dev/pci/legacy.c
  * © suhas pai
  */
 
-#include "dev/pci/space.h"
+#include "dev/pci/location.h"
 #include "lib/align.h"
 
 #include "../pio.h"
@@ -13,7 +13,7 @@ enum pci_config_address_flags {
 };
 
 __optimize(3) static inline void
-seek_to_space_location(const struct pci_space_location *const config_space,
+seek_to_space_location(const struct pci_location *const config_space,
                        const uint32_t offset)
 {
     const uint32_t address =
@@ -28,9 +28,9 @@ seek_to_space_location(const struct pci_space_location *const config_space,
 
 
 __optimize(3) uint32_t
-pci_legacy_space_read(const struct pci_space_location *const loc,
-                      const uint32_t offset,
-                      const uint8_t access_size)
+pci_legacy_domain_read(const struct pci_location *const loc,
+                       const uint32_t offset,
+                       const uint8_t access_size)
 {
     seek_to_space_location(loc, offset);
     switch (access_size) {
@@ -46,10 +46,10 @@ pci_legacy_space_read(const struct pci_space_location *const loc,
 }
 
 __optimize(3) bool
-pci_legacy_space_write(const struct pci_space_location *const loc,
-                       const uint32_t offset,
-                       const uint32_t value,
-                       const uint8_t access_size)
+pci_legacy_domain_write(const struct pci_location *const loc,
+                        const uint32_t offset,
+                        const uint32_t value,
+                        const uint8_t access_size)
 {
     seek_to_space_location(loc, offset);
     switch (access_size) {

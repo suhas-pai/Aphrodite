@@ -5,6 +5,7 @@
 
 #if defined(__x86_64__)
     #include "acpi/api.h"
+    #include "dev/pci/legacy.h"
 #endif /* defined(__x86_64__) */
 
 #include "dev/driver.h"
@@ -30,17 +31,17 @@ enum parse_bar_result {
 };
 
 #define read_bar(dev, index) \
-    pci_space_read_32((dev)->space, \
-                      &(dev)->loc, \
-                      offsetof(struct pci_spec_entity_info, bar_list) + \
-                        ((index) * sizeof(uint32_t)))
-
-#define write_bar(dev, index, value) \
-    pci_space_write_32((dev)->space, \
+    pci_domain_read_32((dev)->bus->domain, \
                        &(dev)->loc, \
                        offsetof(struct pci_spec_entity_info, bar_list) + \
-                        ((index) * sizeof(uint32_t)), \
-                       (value))
+                         ((index) * sizeof(uint32_t)))
+
+#define write_bar(dev, index, value) \
+    pci_domain_write_32((dev)->bus->domain, \
+                        &(dev)->loc, \
+                        offsetof(struct pci_spec_entity_info, bar_list) + \
+                         ((index) * sizeof(uint32_t)), \
+                        (value))
 
 enum pci_bar_masks {
     PCI_BAR_32B_ADDR_SIZE_MASK = 0xfffffff0,
@@ -299,7 +300,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
 
                 if (!index_range_in_bounds(msi_range, PCI_SPACE_MAX_OFFSET)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tmsi-cap goes beyond end of pci-space\n");
+                           "\t\tmsi-cap goes beyond end of pci-domain\n");
                     break;
                 }
 
@@ -327,7 +328,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
 
                 if (!index_range_in_bounds(msix_range, PCI_SPACE_MAX_OFFSET)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tmsix-cap goes beyond end of pci-space\n");
+                           "\t\tmsix-cap goes beyond end of pci-domain\n");
                     break;
                 }
 
@@ -401,7 +402,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
 
                 if (!index_range_in_bounds(pcie_range, PCI_SPACE_MAX_OFFSET)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tpcie-cap goes beyond end of pci-space\n");
+                           "\t\tpcie-cap goes beyond end of pci-domain\n");
                     break;
                 }
 
@@ -464,16 +465,16 @@ const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
 }
 
 void
-pci_parse_bus(struct pci_space *space,
-              struct pci_space_location *config_space,
-              uint8_t bus);
+pci_parse_bus(struct pci_bus *bus,
+              struct pci_location *loc,
+              uint8_t bus_id);
 
 static void
-parse_function(struct pci_space *const space,
-               const struct pci_space_location *const loc)
+parse_function(struct pci_bus *const bus,
+               const struct pci_location *const loc)
 {
     struct pci_entity_info info = {
-        .space = space,
+        .bus = bus,
         .loc = *loc
     };
 
@@ -533,7 +534,7 @@ parse_function(struct pci_space *const space,
         return;
     }
 
-    // Disable I/O Space and Memory space flags to parse bars. Re-enable after.
+    // Disable I/O Space and Memory domain flags to parse bars. Re-enable after.
     const uint16_t new_command =
         (info.command &
             (uint16_t)~(__PCI_DEVCMDREG_IOSPACE | __PCI_DEVCMDREG_MEMSPACE)) |
@@ -651,7 +652,7 @@ parse_function(struct pci_space *const space,
                          struct pci_spec_pci_to_pci_bridge_entity_info,
                          secondary_bus_number);
 
-            pci_parse_bus(space, &info.loc, secondary_bus_number);
+            pci_parse_bus(bus, &info.loc, secondary_bus_number);
             break;
         case PCI_SPEC_ENTITY_HDR_KIND_CARDBUS_BRIDGE:
             printk(LOGLEVEL_INFO,
@@ -671,25 +672,23 @@ parse_function(struct pci_space *const space,
     }
 
     *info_out = info;
-
-    list_add(&space->entity_list, &info_out->list_in_space);
     list_add(&g_entity_list, &info_out->list_in_entities);
 }
 
 void
-pci_parse_bus(struct pci_space *const space,
-              struct pci_space_location *const loc,
-              const uint8_t bus)
+pci_parse_bus(struct pci_bus *const bus,
+              struct pci_location *const loc,
+              const uint8_t bus_id)
 {
-    loc->bus = bus;
+    loc->bus = bus_id;
     for (uint8_t slot = 0; slot != PCI_MAX_ENTITY_COUNT; slot++) {
         loc->slot = slot;
 
         const uint8_t header_kind =
-            pci_space_read_8(space,
-                             loc,
-                             offsetof(struct pci_spec_entity_info_base,
-                                      header_kind));
+            pci_domain_read_8(bus->domain,
+                              loc,
+                              offsetof(struct pci_spec_entity_info_base,
+                                       header_kind));
 
         const uint8_t function_count =
             header_kind & __PCI_ENTITY_HDR_MULTFUNC ?
@@ -697,21 +696,21 @@ pci_parse_bus(struct pci_space *const space,
 
         for (uint8_t func = 0; func != function_count; func++) {
             loc->function = func;
-            parse_function(space, loc);
+            parse_function(bus, loc);
         }
     }
 }
 
-void pci_find_entities_in_space(struct pci_space *const space) {
-    struct pci_space_location loc = {
-        .segment = space->segment,
+void pci_find_entities(struct pci_bus *const bus) {
+    struct pci_location loc = {
+        .segment = bus->segment,
         .bus = 0,
         .slot = 0,
         .function = 0,
     };
 
     for (uint16_t i = 0; i != PCI_MAX_BUS_COUNT; i++) {
-        pci_parse_bus(space, &loc, /*bus=*/i);
+        pci_parse_bus(bus, &loc, /*bus=*/i);
     }
 }
 
@@ -778,54 +777,62 @@ void pci_init_drivers() {
 
 __optimize(3) void pci_init() {
     int flag = 0;
-    const struct array *const space_array = pci_get_space_list_locked(&flag);
+    const struct array *const bus_list = pci_get_root_bus_list_locked(&flag);
 
 #if defined(__x86_64__)
-    if (array_empty(*space_array)) {
-        pci_release_space_list_lock(flag);
-        printk(LOGLEVEL_INFO, "pci: searching for entities in legacy space\n");
+    if (array_empty(*bus_list)) {
+        pci_release_root_bus_list_lock(flag);
+        printk(LOGLEVEL_INFO,
+               "pci: searching for entities in root bus (legacy domain)\n");
 
-        struct pci_space *const legacy_space = kmalloc(sizeof(*legacy_space));
-        assert_msg(legacy_space != NULL,
-                   "pci: failed to allocate pci-legacy root space");
-
-        struct pci_entity_info ent_0 = {
-            .space = legacy_space,
-            .loc = {
-                .segment = 0,
-                .bus = 0,
-                .slot = 0,
-                .function = 0
-            }
+        struct pci_location loc = {
+            .segment = 0,
+            .bus = 0,
+            .slot = 0,
+            .function = 0
         };
 
-        const uint32_t ent_0_first_dword =
-            pci_read(&ent_0, struct pci_spec_entity_info_base, vendor_id);
+        const uint32_t first_dword =
+            pci_legacy_domain_read(
+                &loc,
+                offsetof(struct pci_spec_entity_info_base, vendor_id),
+                sizeof(uint16_t));
 
-        if (ent_0_first_dword == PCI_READ_FAIL) {
+        if (first_dword == PCI_READ_FAIL) {
             printk(LOGLEVEL_WARN,
-                   "pci: failed to find pci bus in legacy space. aborting "
+                   "pci: failed to find pci bus in legacy domain. aborting "
                    "init\n");
             return;
         }
 
-        list_init(&legacy_space->entity_list);
-        pci_find_entities_in_space(legacy_space);
+        struct pci_domain *const legacy_domain =
+            kmalloc(sizeof(*legacy_domain));
+
+        assert_msg(legacy_domain != NULL,
+                   "pci: failed to allocate pci-legacy root domain");
+
+        legacy_domain->kind = PCI_DOMAIN_LEGACY;
+        struct pci_bus *const root_bus =
+            pci_bus_create(legacy_domain, /*bus_id=*/0, /*segment=*/0);
+
+        assert_msg(root_bus != NULL,
+                   "pci: failed to allocate pci-legacy root bus");
+
+        pci_find_entities(root_bus);
     } else {
 #endif /* defined(__x86_64__) */
-        if (!array_empty(*space_array)) {
+        if (!array_empty(*bus_list)) {
             printk(LOGLEVEL_INFO,
-                   "pci: searching for entities in every space\n");
-        }
+                   "pci: searching for entities in every pci-bus\n");
 
-        array_foreach(space_array, struct pci_space *, iter) {
-            pci_find_entities_in_space(*iter);
+            array_foreach(bus_list, struct pci_bus *, iter) {
+                pci_find_entities(*iter);
+            }
         }
-
-        pci_release_space_list_lock(flag);
 #if defined(__x86_64__)
     }
 #endif /* defined(__x86_64__) */
 
+    pci_release_root_bus_list_lock(flag);
     pci_init_drivers();
 }

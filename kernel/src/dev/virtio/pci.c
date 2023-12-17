@@ -11,6 +11,7 @@
 
 #include "driver.h"
 #include "init.h"
+#include "transport.h"
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
     enum virtio_device_kind device_kind = pci_entity->id;
@@ -66,11 +67,12 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         kind = virtio_device_kind_string[device_kind].begin;
     }
 
-    const bool is_trans = pci_entity->revision_id == 0;
-    printk(LOGLEVEL_INFO,
-           "virtio-pci: recognized %s%s\n",
-           kind,
-           is_trans ? " (transitional)" : "");
+    if (pci_entity->max_bar_count == 0) {
+        printk(LOGLEVEL_WARN, "virtio-pci: device has no bars\n");
+        return;
+    }
+
+    printk(LOGLEVEL_INFO, "virtio-pci: recognized %s\n", kind);
 
     const uint8_t cap_count = array_item_count(pci_entity->vendor_cap_list);
     if (cap_count == 0) {
@@ -82,7 +84,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     virt_device.kind = device_kind;
     virt_device.transport_kind = VIRTIO_DEVICE_TRANSPORT_PCI;
-    virt_device.is_transitional = is_trans;
     virt_device.pci.entity = pci_entity;
 
     struct range notify_cfg_range = RANGE_EMPTY();
@@ -94,14 +95,14 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                             __PCI_ENTITY_PRIVL_BUS_MASTER |
                             __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
-#define pci_read_virtio_cap_field(field) \
+#define pci_read_virtio_cap_field(cap, field) \
     pci_read_from_base(pci_entity, \
-                       *iter, \
+                       cap, \
                        struct virtio_pci_cap64, \
                        field)
 
     array_foreach(&pci_entity->vendor_cap_list, uint8_t, iter) {
-        const uint8_t cap_len = pci_read_virtio_cap_field(cap.cap_len);
+        const uint8_t cap_len = pci_read_virtio_cap_field(*iter, cap.cap_len);
         if (cap_len < sizeof(struct virtio_pci_cap)) {
             printk(LOGLEVEL_INFO,
                    "\tvirtio-pci: capability-length (%" PRIu8 ") is too "
@@ -112,7 +113,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             continue;
         }
 
-        const uint8_t bar_index = pci_read_virtio_cap_field(cap.bar);
+        const uint8_t bar_index = pci_read_virtio_cap_field(*iter, cap.bar);
         if (!index_in_bounds(bar_index, pci_entity->max_bar_count)) {
             printk(LOGLEVEL_INFO,
                    "\tvirtio-pci: index of base-address-reg (%" PRIu8 ") bar "
@@ -147,10 +148,12 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             }
         }
 
-        const uint8_t cfg_type = pci_read_virtio_cap_field(cap.cfg_type);
+        const uint8_t cfg_type = pci_read_virtio_cap_field(*iter, cap.cfg_type);
 
-        uint64_t offset = pci_read_virtio_cap_field(cap.offset);
-        uint64_t length = pci_read_virtio_cap_field(cap.length);
+        uint64_t offset =
+            le_to_cpu(pci_read_virtio_cap_field(*iter, cap.offset));
+        uint64_t length =
+            le_to_cpu(pci_read_virtio_cap_field(*iter, cap.length));
 
         const struct range index_range = RANGE_INIT(offset, length);
         const struct range io_range =
@@ -194,10 +197,11 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                 }
 
                 notify_off_multiplier =
-                    pci_read_from_base(pci_entity,
-                                       *iter,
-                                       struct virtio_pci_notify_cfg_cap,
-                                       notify_off_multiplier);
+                    le_to_cpu(
+                        pci_read_from_base(pci_entity,
+                                           *iter,
+                                           struct virtio_pci_notify_cfg_cap,
+                                           notify_off_multiplier));
 
                 notify_cfg_range =
                     RANGE_INIT((uint64_t)bar->mmio->base + offset, length);
@@ -241,12 +245,18 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
                 break;
             case VIRTIO_PCI_CAP_SHARED_MEMORY_CFG:
-                offset |= (uint64_t)pci_read_virtio_cap_field(offset_hi) << 32;
-                length |= (uint64_t)pci_read_virtio_cap_field(length_hi) << 32;
+                offset |=
+                    (uint64_t)
+                        le_to_cpu(pci_read_virtio_cap_field(*iter, offset_hi))
+                            << 32;
+                length |=
+                    (uint64_t)
+                        le_to_cpu(pci_read_virtio_cap_field(*iter, length_hi))
+                            << 32;
 
                 const struct virtio_device_shmem_region region = {
                     .phys_range = RANGE_INIT(offset, length),
-                    .id = pci_read_virtio_cap_field(cap.id),
+                    .id = pci_read_virtio_cap_field(*iter, cap.id),
                 };
 
                 if (!array_append(&virt_device.shmem_regions, &region)) {
@@ -296,9 +306,20 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
+    const bool is_trans = pci_entity->revision_id == 0;
+    if (is_trans) {
+        const uint64_t dev_features = virtio_device_read_features(&virt_device);
+        if ((dev_features & __VIRTIO_F_VERSION_1) == 0) {
+            printk(LOGLEVEL_DEBUG,
+                   "virtio-pci: device is legacy and unsupported\n");
+            return;
+        }
+    }
+
     if (virt_device.pci.notify_queue_select != NULL) {
         const uint16_t notify_offset =
-            le_to_cpu(mmio_read(&virt_device.pci.common_cfg->queue_notify_off));
+            le_to_cpu(
+                mmio_read(&virt_device.pci.common_cfg->queue_notify_off));
 
         uint16_t full_off = 0;
         if (__builtin_expect(

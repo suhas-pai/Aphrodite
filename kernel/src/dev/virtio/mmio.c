@@ -14,7 +14,7 @@ struct virtio_device *virtio_mmio_init(struct virtio_device *const device) {
     // The driver MUST ignore a device with MagicValue which is not 0x74726976,
     // although it MAY report an error.
 
-    volatile struct virtio_mmio_device *const device_hdr = device->mmio.device;
+    volatile struct virtio_mmio_device *const device_hdr = device->mmio.header;
     if (mmio_read(&device_hdr->magic) != VIRTIO_MMIO_DEVICE_MAGIC) {
         printk(LOGLEVEL_WARN,
                "virtio-mmio: device's header has the wrong magic\n");
@@ -66,6 +66,13 @@ init_from_dtb(const struct devicetree *const tree,
     const struct devicetree_prop_reg_info *const reg_info =
         array_front(reg->list);
 
+    if (reg_info->size < sizeof(struct virtio_mmio_device)) {
+        printk(LOGLEVEL_WARN,
+               "virtio-mmio: dtb-node's 'reg' property has a range smaller "
+               "the size of the mmio-header struct\n");
+        return false;
+    }
+
     struct range mmio_range = RANGE_INIT(reg_info->address, reg_info->size);
     if (!range_align_out(mmio_range, PAGE_SIZE, &mmio_range)) {
         printk(LOGLEVEL_WARN,
@@ -80,9 +87,8 @@ init_from_dtb(const struct devicetree *const tree,
     struct virtio_device virt_device;
 
     virt_device.transport_kind = VIRTIO_DEVICE_TRANSPORT_MMIO;
-    virt_device.is_transitional = false;
     virt_device.mmio.region = mmio;
-    virt_device.mmio.device =
+    virt_device.mmio.header =
         mmio->base + (reg_info->address - mmio_range.front);
 
     virtio_mmio_init(&virt_device);

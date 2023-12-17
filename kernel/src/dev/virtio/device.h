@@ -4,10 +4,9 @@
  */
 
 #pragma once
-
 #include "lib/adt/array.h"
-#include "mm/mmio.h"
 
+#include "mm/mmio.h"
 #include "structs.h"
 
 struct virtio_device_shmem_region {
@@ -35,13 +34,16 @@ struct virtio_device {
             volatile struct virtio_pci_common_cfg *common_cfg;
 
             struct range device_cfg;
+            struct range notify_cfg_range;
+
             volatile void *notify_queue_select;
 
+            uint32_t notify_off_multiplier;
             struct virtio_pci_cfg_cap *pci_cfg;
         } pci;
         struct {
             struct mmio_region *region;
-            volatile struct virtio_mmio_device *device;
+            volatile struct virtio_mmio_device *header;
         } mmio;
     };
 
@@ -58,29 +60,31 @@ struct virtio_device {
         uint8_t isr_cfg;
     } pci_offsets;
 
-    bool is_transitional : 1;
-
     enum virtio_device_transport_kind transport_kind : 1;
     enum virtio_device_kind kind : 6;
 };
 
+void
+virtio_device_queue_select_and_notify(struct virtio_device *device,
+                                      uint16_t queue_index);
+
 #define VIRTIO_DEVICE_INIT(name, transport_kind_) \
     ((struct virtio_device){ \
         .list = LIST_INIT(name.list), \
-        .pci.pci_device = NULL, \
-        .pci.common_cfg = NULL, \
-        .pci.device_cfg = RANGE_EMPTY(), \
-        .pci.notify_queue_select = NULL, \
-        .pci.pci_cfg = NULL, \
+        .pci.entity = NULL, \
+        .pci.v1.common_cfg = NULL, \
+        .pci.v1.device_cfg = RANGE_EMPTY(), \
+        .pci.v1.notify_queue_select = NULL, \
+        .pci.v1.pci_cfg = NULL, \
+        .pci.trans.io_base = 0, \
         .mmio.region = NULL, \
-        .mmio.device = NULL, \
+        .mmio.header = NULL, \
         .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
         .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
         .queue_list = NULL, \
         .queue_count = 0, \
         .pci_offsets.pci_cfg = 0, \
         .pci_offsets.isr_cfg = 0, \
-        .is_transitional = false, \
         .transport_kind = (transport_kind_), \
         .kind = VIRTIO_DEVICE_KIND_INVALID \
     })

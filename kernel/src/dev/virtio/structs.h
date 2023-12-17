@@ -61,6 +61,10 @@ enum virtio_device_kind {
     VIRTIO_DEVICE_KIND_RDMA_DEVICE,
 };
 
+enum virtio_features {
+    __VIRTIO_F_VERSION_1 = 1ull << 32
+};
+
 enum virtio_pci_cap_cfg {
     // Common configuration
     VIRTIO_PCI_CAP_COMMON_CFG = 1,
@@ -109,6 +113,31 @@ struct virtio_pci_common_cfg {
     le16_t queue_reset;
 } __packed;
 
+enum virtio_pci_legacy_common_cfg_offsets {
+    // Read-only
+    VIRTIO_PCI_LEGACY_DEV_FEATURES,
+    // Read-write
+    VIRTIO_PCI_LEGACY_DRV_FEATURES = 4,
+    // Read-write
+    VIRTIO_PCI_LEGACY_QUEUE_ADDRESS = 8,
+    // Read-only
+    VIRTIO_PCI_LEGACY_QUEUE_SIZE = 12,
+    // Read-write
+    VIRTIO_PCI_LEGACY_QUEUE_SELECT = 14,
+    // Read-write
+    VIRTIO_PCI_LEGACY_QUEUE_NOTIFY = 16,
+    // Read-write
+    VIRTIO_PCI_LEGACY_DEV_STATUS = 18,
+    // Read-only
+    VIRTIO_PCI_LEGACY_ISR_STATUS = 19,
+
+    // If MSI-X is enabled
+    // Read-write
+    VIRTIO_PCI_LEGACY_CFG_MSIX_VECTOR = 20,
+    // Read-write
+    VIRTIO_PCI_LEGACY_QUEUE_MSIX_VECTOR = 22,
+};
+
 struct virtio_pci_cap {
     struct pci_spec_capability cap;
     uint8_t cap_len;
@@ -116,19 +145,19 @@ struct virtio_pci_cap {
     uint8_t bar; // Where to find it.
     uint8_t id; // Multiple capabilities of the same type
     uint8_t padding[2]; // Pad to full dword.
-    uint32_t offset; // Offset within bar.
-    uint32_t length; // Length of the structure, in bytes.
+    le32_t offset; // Offset within bar.
+    le32_t length; // Length of the structure, in bytes.
 } __packed;
 
 struct virtio_pci_cap64 {
     struct virtio_pci_cap cap;
-    uint32_t offset_hi;
-    uint32_t length_hi;
+    le32_t offset_hi;
+    le32_t length_hi;
 } __packed;
 
 struct virtio_pci_notify_cfg_cap {
     struct virtio_pci_cap cap;
-    uint32_t notify_off_multiplier; // Multiplier for queue_notify_off.
+    le32_t notify_off_multiplier; // Multiplier for queue_notify_off.
 } __packed;
 
 struct virtio_pci_cfg_cap {
@@ -330,11 +359,11 @@ struct virtio_mmio_device {
     _Alignas(16) volatile uint32_t queue_select; // Write-only
 
     volatile const uint32_t queue_num_max;
-    volatile uint32_t queue_num;              // Write-only
+    volatile uint32_t queue_num; // Write-only
     volatile const uint64_t padding_1;
     volatile uint32_t queue_ready;
 
-    _Alignas(16) volatile uint32_t queue_notify;           // Write-only
+    _Alignas(16) volatile uint32_t queue_notify; // Write-only
     _Alignas(16) volatile const uint32_t interrupt_status;
 
     volatile uint32_t interrupt_ack; // Write-only
@@ -476,7 +505,7 @@ struct virtq_desc {
     le16_t next;
 };
 
-#define VIRTQ_MAX_DESC_COUNT 512
+#define VIRTQ_MAX_DESC_COUNT 157
 
 struct virtio_indirect_desc_table {
     struct virtq_desc desc[VIRTQ_MAX_DESC_COUNT];
@@ -488,7 +517,7 @@ enum virtq_avail_flags {
 
 struct virtq_avail {
     le16_t flags;
-    le16_t idx;
+    le16_t index;
     le16_t ring[]; // Queue size
 
     // le16_t used_event; /* Only if VIRTIO_F_EVENT_IDX */

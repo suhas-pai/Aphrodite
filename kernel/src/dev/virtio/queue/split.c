@@ -3,11 +3,18 @@
  * © suhas pai
  */
 
+#include <stdatomic.h>
+
 #include "dev/printk.h"
+#include "lib/align.h"
 #include "mm/page_alloc.h"
 
 #include "../transport.h"
+#include "sys/mmio.h"
+
 #include "split.h"
+
+#define VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER 0
 
 bool
 virtio_split_queue_init(struct virtio_device *const device,
@@ -20,86 +27,97 @@ virtio_split_queue_init(struct virtio_device *const device,
             VIRTQ_MAX_DESC_COUNT);
 
     _Static_assert(
-        sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT <= (PAGE_SIZE << 1),
-        "virtio-queue: desc_pages allocation order needs to be increased");
+        (sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT) // Desc Table
+        + (sizeof(struct virtq_avail) +                    // Avail Ring
+         (sizeof(le16_t) * VIRTQ_MAX_DESC_COUNT))
+        + (sizeof(struct virtq_used) +                     // Used Ring
+         (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))
+            <= (PAGE_SIZE << VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER),
+        "virtio/split-queue: VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER needs to be "
+        "increased");
 
-    _Static_assert(
-        sizeof(uint16_t) * VIRTQ_MAX_DESC_COUNT <= PAGE_SIZE,
-        "virtio-queue: avail_pages allocation order needs to be increased");
+    struct page *const page =
+        alloc_pages(PAGE_STATE_USED,
+                    __ALLOC_ZERO,
+                    VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER);
 
-    _Static_assert(
-        (sizeof(uint16_t) +
-            (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))
-                <= (PAGE_SIZE << 1),
-        "virtio-queue: used_pages allocation order needs to be increased");
-
-    // The max possible size of the descriptor list is actually 8192 bytes.
-    struct page *desc_pages = NULL;
-    uint8_t desc_pages_order = 0;
-
-    if (sizeof(struct virtq_desc) * desc_count > PAGE_SIZE) {
-        desc_pages = alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, /*order=*/1);
-        desc_pages_order = 1;
-    } else {
-        desc_pages = alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
-    }
-
-    if (desc_pages == NULL) {
+    if (page == NULL) {
         printk(LOGLEVEL_WARN,
-               "virtio-queue: failed to allocate desc page for queue at index "
-               "%" PRIu16 "\n",
-               queue_index);
-        return false;
-    }
-
-    // The max possible size of the descriptor list is actually 1030 bytes.
-    struct page *const avail_page = alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
-    if (avail_page == NULL) {
-        free_pages(desc_pages, desc_pages_order);
-        printk(LOGLEVEL_WARN,
-               "virtio-queue: failed to allocate avail page for queue at index "
-               "%" PRIu16 "\n",
-               queue_index);
-        return false;
-    }
-
-    // The max possible used_ring_size should be 4102 bytes.
-    const uint16_t used_ring_size =
-        sizeof(uint16_t) + (sizeof(struct virtq_used_elem) * desc_count);
-
-    uint8_t used_pages_order = 0;
-    if (used_ring_size > PAGE_SIZE) {
-        used_pages_order++;
-    }
-
-    struct page *const used_pages =
-        alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, used_pages_order);
-
-    if (used_pages == NULL) {
-        free_page(avail_page);
-        free_pages(desc_pages, desc_pages_order);
-
-        printk(LOGLEVEL_WARN,
-               "virtio-queue: failed to allocate used page for queue at index "
-               "%" PRIu16 "\n",
+               "virtio/split-queue: failed to allocate buffer for queue at "
+               "index %" PRIu16 "\n",
                queue_index);
 
         return false;
     }
 
-    virtio_device_set_selected_queue_desc_phys(device,
-                                               page_to_phys(desc_pages));
+    void *const page_ptr = page_to_virt(page);
+    struct virtq_desc *const desc_table = page_ptr;
+
+    struct virtq_avail *const avail_ring =
+        (struct virtq_avail *)(desc_table + desc_count);
+
+    const uint32_t avail_ring_size =
+        sizeof(struct virtq_avail) + (sizeof(le16_t) * desc_count);
+    struct virtq_used *const used_ring =
+        (void *)avail_ring + align_up_assert(avail_ring_size, /*boundary=*/4);
+
+    const uint64_t page_phys = page_to_phys(page);
+    const uint32_t desc_table_size = sizeof(struct virtq_desc) * desc_count;
+
+    volatile uint16_t *notify_ptr = NULL;
+    if (device->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI) {
+        const uint16_t notify_offset =
+            le_to_cpu(mmio_read(&device->pci.common_cfg->queue_notify_off));
+        const uint32_t notify_off_multiplier =
+            device->pci.notify_off_multiplier;
+
+        uint16_t full_off = 0;
+        if (!check_mul(notify_off_multiplier, notify_offset, &full_off)) {
+            printk(LOGLEVEL_WARN,
+                   "virtio-pci: notify-cfg has a multipler * offset "
+                   "(%" PRIu32 " * %" PRIu16 ") is beyond end of uint16_t "
+                   "space\n",
+                   notify_off_multiplier,
+                   notify_offset);
+            return false;
+        }
+
+        if (!range_has_index(device->pci.notify_cfg_range, full_off)) {
+            printk(LOGLEVEL_WARN,
+                   "virtio-pci: notify-cfg has a multipler * offset "
+                   "(%" PRIu32 " * %" PRIu16 " = %" PRIu16 ") is beyond end of "
+                   "notify-cfg's config space\n",
+                   notify_off_multiplier,
+                   full_off,
+                   notify_offset);
+            return false;
+        }
+
+        // Check from spec
+        if (device->pci.notify_cfg_range.size < (uint64_t)full_off + 2) {
+            printk(LOGLEVEL_WARN, "\tvirtio-pci: notify-cfg is too short\n");
+            return false;
+        }
+
+        notify_ptr =
+            (volatile uint16_t *)
+                (device->pci.notify_cfg_range.front + full_off);
+    }
+
+    virtio_device_set_selected_queue_desc_phys(device, page_phys);
     virtio_device_set_selected_queue_driver_phys(device,
-                                                 page_to_phys(avail_page));
+                                                 page_phys + desc_table_size);
     virtio_device_set_selected_queue_device_phys(device,
-                                                 page_to_phys(used_pages));
+                                                 page_phys +
+                                                 desc_table_size +
+                                                 avail_ring_size);
 
     virtio_device_enable_selected_queue(device);
 
     // Set the next-indices of each virtio-desc to point to the desc right after
     // Outside the loop, set the next index for the last desc to 0.
 
-    struct virtq_desc *const begin = page_to_virt(desc_pages);
+    struct virtq_desc *const begin = desc_table;
     const struct virtq_desc *const back = begin + (desc_count - 1);
 
     struct virtq_desc *iter = begin;
@@ -112,12 +130,75 @@ virtio_split_queue_init(struct virtio_device *const device,
 
     iter->next = 0;
 
-    queue->desc_pages = desc_pages;
-    queue->avail_page = avail_page;
-    queue->used_pages = used_pages;
+    queue->page = page;
+    queue->desc_table = desc_table;
+    queue->avail_ring = avail_ring;
+    queue->notify_ptr = notify_ptr;
 
-    queue->desc_pages_order = desc_pages_order;
-    queue->used_pages_order = used_pages_order;
+    queue->desc_count = desc_count;
+    queue->used_ring = used_ring;
+    queue->free_index = 0;
+    queue->chain_count = 0;
 
     return true;
+}
+
+void
+virtio_split_queue_add(struct virtio_split_queue *const queue,
+                       struct virtio_queue_request *const req,
+                       const uint32_t count)
+{
+    assert_msg(count != 0, "virtio/split-queue: add() got count=0");
+
+    const uint16_t head_index = queue->free_index;
+    uint16_t free_index = head_index;
+
+    for (uint32_t i = 0; i != count; i++) {
+        struct virtq_desc *const desc = &queue->desc_table[free_index];
+
+        desc->phys_addr = (uint64_t)req->data;
+        desc->len = req->size;
+
+        if (i != count - 1) {
+            desc->flags = __VIRTQ_DESC_F_NEXT;
+        }
+
+        if (req->kind == VIRTIO_QUEUE_REQUEST_WRITE) {
+            desc->flags |= __VIRTQ_DESC_F_WRITE;
+        }
+
+        free_index = desc->next;
+    }
+
+    const uint16_t avail_index =
+        (queue->avail_ring->index + queue->chain_count) % queue->desc_count;
+
+    queue->avail_ring->ring[avail_index] = head_index;
+    queue->chain_count += 1;
+}
+
+void
+virtio_split_queue_transmit(struct virtio_device *const device,
+                            struct virtio_split_queue *const queue)
+{
+    // 4. The driver performs a suitable memory barrier to ensure the device
+    //    sees the updated descriptor table and available ring before the next
+    //    step.
+    atomic_thread_fence(memory_order_seq_cst);
+
+    // 5. The available idx is increased by the number of descriptor chain heads
+    //    added to the available ring.
+    queue->avail_ring->index += queue->chain_count;
+
+    // 6. The driver performs a suitable memory barrier to ensure that it
+    //    updates the idx field before checking for notification suppression.
+    atomic_thread_fence(memory_order_seq_cst);
+
+    // 7. The driver sends an available buffer notification to the device if
+    //    such notifications are not suppressed
+    if ((queue->used_ring->flags & __VIRTQ_USED_F_NO_NOTIFY) == 0) {
+        if (device->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI) {
+
+        }
+    }
 }

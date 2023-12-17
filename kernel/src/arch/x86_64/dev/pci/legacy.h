@@ -4,15 +4,17 @@
  */
 
 #pragma once
-#include "dev/pci/space.h"
+
+#include <stdbool.h>
+#include "dev/pci/location.h"
 
 uint64_t
-pci_legacy_space_read(const struct pci_space_location *loc,
-                      uint32_t offset,
-                      uint8_t access_size);
+pci_legacy_domain_read(const struct pci_location *loc,
+                       uint32_t offset,
+                       uint8_t access_size);
 
 bool
-pci_legacy_space_write(const struct pci_space_location *loc,
-                       uint32_t offset,
-                       uint32_t value,
-                       uint8_t access_size);
+pci_legacy_domain_write(const struct pci_location *loc,
+                        uint32_t offset,
+                        uint32_t value,
+                        uint8_t access_size);

@@ -5,16 +5,15 @@
 
 #pragma once
 
+#include "dev/pci/bus.h"
+#include "lib/adt/bitmap.h"
+
 #if defined(__x86_64__)
     #include "cpu/info.h"
     #include "cpu/isr.h"
-#elif defined(__riscv64)
 #endif /* defined(__x86_64__) */
 
-#include "lib/adt/array.h"
-#include "lib/adt/bitmap.h"
-
-#include "space.h"
+#include "lib/list.h"
 
 #define PCI_ENTITY_MAX_BAR_COUNT 6
 
@@ -33,17 +32,51 @@ struct pci_entity_bar_info {
 bool pci_map_bar(struct pci_entity_bar_info *bar);
 bool pci_unmap_bar(struct pci_entity_bar_info *bar);
 
+struct pci_entity_info;
+
 uint8_t
-pci_entity_bar_read8(struct pci_entity_bar_info *const bar, uint32_t offset);
+pci_entity_bar_read8(struct pci_entity_info *entity,
+                     struct pci_entity_bar_info *const bar,
+                     uint32_t offset);
 
 uint16_t
-pci_entity_bar_read16(struct pci_entity_bar_info *const bar, uint32_t offset);
+pci_entity_bar_read16(struct pci_entity_info *entity,
+                      struct pci_entity_bar_info *const bar,
+                      uint32_t offset);
 
 uint32_t
-pci_entity_bar_read32(struct pci_entity_bar_info *const bar, uint32_t offset);
+pci_entity_bar_read32(struct pci_entity_info *entity,
+                      struct pci_entity_bar_info *const bar,
+                      uint32_t offset);
 
 uint64_t
-pci_entity_bar_read64(struct pci_entity_bar_info *const bar, uint32_t offset);
+pci_entity_bar_read64(struct pci_entity_info *entity,
+                      struct pci_entity_bar_info *const bar,
+                      uint32_t offset);
+
+void
+pci_entity_bar_write8(struct pci_entity_info *entity,
+                      struct pci_entity_bar_info *const bar,
+                      uint32_t offset,
+                      uint8_t value);
+
+void
+pci_entity_bar_write16(struct pci_entity_info *entity,
+                       struct pci_entity_bar_info *const bar,
+                       uint32_t offset,
+                       uint16_t value);
+
+void
+pci_entity_bar_write32(struct pci_entity_info *entity,
+                       struct pci_entity_bar_info *const bar,
+                       uint32_t offset,
+                       uint32_t value);
+
+void
+pci_entity_bar_write64(struct pci_entity_info *entity,
+                       struct pci_entity_bar_info *const bar,
+                       uint32_t offset,
+                       uint64_t value);
 
 enum pci_entity_msi_support {
     PCI_ENTITY_MSI_SUPPORT_NONE,
@@ -53,10 +86,10 @@ enum pci_entity_msi_support {
 
 struct pci_entity_info {
     struct list list_in_entities;
-    struct list list_in_space;
+    struct list list_in_domain;
 
-    struct pci_space *space;
-    struct pci_space_location loc;
+    struct pci_bus *bus;
+    struct pci_location loc;
 
     uint16_t id;
     uint16_t vendor_id;
