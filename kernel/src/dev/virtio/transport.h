@@ -34,8 +34,6 @@ uint16_t virtio_pci_selected_queue_max_size(struct virtio_device *device);
 
 void
 virtio_pci_set_selected_queue_size(struct virtio_device *device, uint16_t size);
-
-void virtio_pci_notify_queue(struct virtio_device *device, uint16_t index);
 void virtio_pci_enable_selected_queue(struct virtio_device *device);
 
 void
@@ -151,10 +149,6 @@ virtio_mmio_set_selected_queue_device_phys(struct virtio_device *device,
     ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_set_selected_queue_size((device), (size)) : \
         virtio_mmio_set_selected_queue_size((device), (size)))
-#define virtio_device_notify_queue(device, index) \
-    ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
-        virtio_pci_notify_queue((device), (index)) : \
-        virtio_mmio_notify_queue((device), (index)))
 #define virtio_device_enable_selected_queue(device) \
     ((device)->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI ? \
         virtio_pci_enable_selected_queue((device)) : \

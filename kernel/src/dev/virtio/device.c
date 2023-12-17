@@ -6,14 +6,6 @@
 #include "dev/printk.h"
 #include "device.h"
 
-void
-virtio_device_queue_select_and_notify(struct virtio_device *const device,
-                                      const uint16_t queue_index)
-{
-    (void)device;
-    (void)queue_index;
-}
-
 bool
 virtio_device_shmem_region_map(struct virtio_device_shmem_region *const region)
 {

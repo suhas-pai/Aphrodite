@@ -36,8 +36,6 @@ struct virtio_device {
             struct range device_cfg;
             struct range notify_cfg_range;
 
-            volatile void *notify_queue_select;
-
             uint32_t notify_off_multiplier;
             struct virtio_pci_cfg_cap *pci_cfg;
         } pci;
@@ -63,10 +61,6 @@ struct virtio_device {
     enum virtio_device_transport_kind transport_kind : 1;
     enum virtio_device_kind kind : 6;
 };
-
-void
-virtio_device_queue_select_and_notify(struct virtio_device *device,
-                                      uint16_t queue_index);
 
 #define VIRTIO_DEVICE_INIT(name, transport_kind_) \
     ((struct virtio_device){ \

@@ -20,6 +20,7 @@ struct virtio_split_queue {
     uint16_t desc_count;
     uint16_t free_index;
     uint16_t chain_count;
+    uint16_t index;
 };
 
 bool

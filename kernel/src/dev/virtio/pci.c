@@ -7,7 +7,6 @@
 #include "dev/printk.h"
 
 #include "lib/util.h"
-#include "sys/mmio.h"
 
 #include "driver.h"
 #include "init.h"
@@ -86,11 +85,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     virt_device.transport_kind = VIRTIO_DEVICE_TRANSPORT_PCI;
     virt_device.pci.entity = pci_entity;
 
-    struct range notify_cfg_range = RANGE_EMPTY();
-
     uint8_t cap_index = 0;
-    uint32_t notify_off_multiplier = 0;
-
     pci_entity_enable_privl(pci_entity,
                             __PCI_ENTITY_PRIVL_BUS_MASTER |
                             __PCI_ENTITY_PRIVL_MEM_ACCESS);
@@ -196,20 +191,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                     continue;
                 }
 
-                notify_off_multiplier =
-                    le_to_cpu(
-                        pci_read_from_base(pci_entity,
-                                           *iter,
-                                           struct virtio_pci_notify_cfg_cap,
-                                           notify_off_multiplier));
-
-                notify_cfg_range =
+                virt_device.pci.notify_cfg_range =
                     RANGE_INIT((uint64_t)bar->mmio->base + offset, length);
 
                 cfg_kind = "notify-cfg";
-                virt_device.pci.notify_queue_select =
-                    (void *)notify_cfg_range.front;
-
                 break;
             }
             case VIRTIO_PCI_CAP_ISR_CFG:
@@ -314,38 +299,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                    "virtio-pci: device is legacy and unsupported\n");
             return;
         }
-    }
-
-    if (virt_device.pci.notify_queue_select != NULL) {
-        const uint16_t notify_offset =
-            le_to_cpu(
-                mmio_read(&virt_device.pci.common_cfg->queue_notify_off));
-
-        uint16_t full_off = 0;
-        if (__builtin_expect(
-                !check_mul(notify_off_multiplier, notify_offset, &full_off), 0))
-        {
-            printk(LOGLEVEL_WARN,
-                   "virtio-pci: notify-cfg has a multipler * offset "
-                   "(%" PRIu32 " * %" PRIu16 ") is beyond end of uint16_t "
-                   "space\n",
-                   notify_off_multiplier,
-                   notify_offset);
-            return;
-        }
-
-        if (!range_has_index(notify_cfg_range, full_off)) {
-            printk(LOGLEVEL_WARN,
-                   "virtio-pci: notify-cfg has a multipler * offset "
-                   "(%" PRIu32 " * %" PRIu16 " = %" PRIu16 ") is beyond end of "
-                   "notify-cfg's config space\n",
-                   notify_off_multiplier,
-                   full_off,
-                   notify_offset);
-            return;
-        }
-
-        virt_device.pci.notify_queue_select += full_off;
     }
 
 #undef pci_read_virtio_cap_field

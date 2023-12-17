@@ -139,6 +139,7 @@ virtio_split_queue_init(struct virtio_device *const device,
     queue->used_ring = used_ring;
     queue->free_index = 0;
     queue->chain_count = 0;
+    queue->index = queue_index;
 
     return true;
 }
@@ -197,8 +198,15 @@ virtio_split_queue_transmit(struct virtio_device *const device,
     // 7. The driver sends an available buffer notification to the device if
     //    such notifications are not suppressed
     if ((queue->used_ring->flags & __VIRTQ_USED_F_NO_NOTIFY) == 0) {
-        if (device->transport_kind == VIRTIO_DEVICE_TRANSPORT_PCI) {
+        switch (device->transport_kind) {
+            case VIRTIO_DEVICE_TRANSPORT_MMIO:
+                virtio_mmio_notify_queue(device, queue->index);
+                break;
+            case VIRTIO_DEVICE_TRANSPORT_PCI:
+                virtio_device_select_queue(device, queue->index);
+                mmio_write(queue->notify_ptr, 1);
 
+                break;
         }
     }
 }
