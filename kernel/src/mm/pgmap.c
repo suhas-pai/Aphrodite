@@ -305,8 +305,10 @@ map_normal(struct pt_walker *const walker,
                         return MAP_DONE;
                 }
 
+                // Only fill in if we can't use largepages at the parent-level
                 const bool should_fill_in =
-                    walker->indices[1] != PGT_PTE_COUNT(2) - 1;
+                    (options->supports_largepage_at_level_mask & (1ull << 2))
+                        == 0;
 
                 iterate_options.alloc_parents = should_fill_in;
                 iterate_options.alloc_level = should_fill_in;
@@ -327,9 +329,6 @@ map_normal(struct pt_walker *const walker,
                 }
 
                 if (walker->indices[0] == 0) {
-                    // Exit if the level above is at index 0, which may mean
-                    // that a large page can be placed at the higher level.
-
                     if (!should_fill_in) {
                         *offset_in = offset;
                         return MAP_RESTART;
@@ -375,8 +374,13 @@ map_normal(struct pt_walker *const walker,
                     }
 
                     walker->indices[0] = PGT_PTE_COUNT(1) - 1;
+
+                    // Only fill in if we can't use largepages at the
+                    // parent-level
+
                     const bool should_fill_in =
-                        walker->indices[1] != PGT_PTE_COUNT(2) - 1;
+                        (options->supports_largepage_at_level_mask &
+                            (1ull << 2)) == 0;
 
                     iterate_options.alloc_parents = should_fill_in;
                     iterate_options.alloc_level = should_fill_in;
@@ -493,8 +497,10 @@ alloc_and_map_normal(struct pt_walker *const walker,
                         return ALLOC_AND_MAP_DONE;
                 }
 
+                // Only fill in if we can't use largepages at the parent-level
                 const bool should_fill_in =
-                    walker->indices[1] != PGT_PTE_COUNT(2) - 1;
+                    (options->supports_largepage_at_level_mask & (1ull << 2))
+                        == 0;
 
                 ptwalker_result =
                     ptwalker_next_with_options(walker,
@@ -562,8 +568,11 @@ alloc_and_map_normal(struct pt_walker *const walker,
                         return ALLOC_AND_MAP_DONE;
                     }
 
+                    // Only fill in if we can't use largepages at the
+                    // parent-level
                     const bool should_fill_in =
-                        walker->indices[1] != PGT_PTE_COUNT(2) - 1;
+                        (options->supports_largepage_at_level_mask &
+                            (1ull << 2)) == 0;
 
                     iterate_options.alloc_level = should_fill_in;
                     iterate_options.alloc_parents = should_fill_in;
@@ -961,8 +970,10 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
 
             pte++;
             if (pte == end) {
+                // Only fill in if we can't use largepages at the parent-level
                 const bool should_fill_in =
-                    walker->indices[level] != PGT_PTE_COUNT(level + 1) - 1;
+                    (options->supports_largepage_at_level_mask &
+                        (1ull << level)) == 0;
 
                 walker->indices[level - 1] = PGT_PTE_COUNT(level) - 1;
                 ptwalker_result =
@@ -1057,8 +1068,10 @@ alloc_and_map_large_at_level_no_overwrite(
 
             pte++;
             if (pte == end) {
+                // Only fill in if we can't use largepages at the parent-level
                 const bool should_fill_in =
-                    walker->indices[level] != PGT_PTE_COUNT(level + 1) - 1;
+                    (options->supports_largepage_at_level_mask &
+                        (1ull << level)) == 0;
 
                 iterate_options.alloc_parents = should_fill_in;
                 iterate_options.alloc_level = should_fill_in;
