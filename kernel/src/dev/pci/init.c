@@ -785,7 +785,7 @@ __optimize(3) void pci_init() {
         printk(LOGLEVEL_INFO,
                "pci: searching for entities in root bus (legacy domain)\n");
 
-        struct pci_location loc = {
+        const struct pci_location loc = {
             .segment = 0,
             .bus = 0,
             .slot = 0,
