@@ -29,6 +29,22 @@ gbuffer_alloc_copy(void *const data, const uint32_t size) {
     return gbuffer;
 }
 
+__optimize(3)
+struct growable_buffer gbuffer_copy(const struct growable_buffer gbuffer) {
+    struct growable_buffer result = GBUFFER_INIT();
+    if (gbuffer_used_size(gbuffer) == 0) {
+        return result;
+    }
+
+    result = gbuffer_alloc(gbuffer_used_size(gbuffer));
+    if (result.begin != NULL) {
+        memcpy(result.begin, gbuffer.begin, gbuffer_used_size(gbuffer));
+        result.index = gbuffer.index;
+    }
+
+    return result;
+}
+
 __optimize(3) struct growable_buffer
 gbuffer_open(void *const buffer,
              const uint32_t used,
