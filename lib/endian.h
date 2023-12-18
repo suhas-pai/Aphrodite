@@ -172,24 +172,28 @@ __optimize(3) static inline le64_t be64_to_le(const be64_t be) {
 
 #define le_to_cpu(num) \
     _Generic((num), \
+        uint8_t: (num), \
         le16_t: le16_to_cpu(num), \
         le32_t: le32_to_cpu(num), \
         le64_t: le64_to_cpu(num))
 
 #define be_to_cpu(num) \
     _Generic((num), \
+        uint8_t: (num), \
         be16_t: be16_to_cpu(num), \
         be32_t: be32_to_cpu(num), \
         be64_t: be64_to_cpu(num))
 
 #define cpu_to_le(num) \
     _Generic((num), \
+        uint8_t: (num), \
         uint16_t: cpu16_to_le(num), \
         uint32_t: cpu32_to_le(num), \
         uint64_t: cpu64_to_le(num))
 
 #define cpu_to_be(num) \
     _Generic((num), \
+        uint8_t: (num), \
         uint16_t: cpu16_to_le(num), \
         uint32_t: cpu32_to_le(num), \
         uint64_t: cpu64_to_le(num))
