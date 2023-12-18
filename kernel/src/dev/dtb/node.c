@@ -80,6 +80,21 @@ devicetree_node_get_other_prop(const struct devicetree_node *const node,
     return NULL;
 }
 
+bool
+devicetree_node_has_compat_sv(const struct devicetree_node *const node,
+                              const struct string_view sv)
+{
+    const struct devicetree_prop_compat *const compat_prop =
+        (const struct devicetree_prop_compat *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
+
+    if (compat_prop != NULL) {
+        return devicetree_prop_compat_has_sv(compat_prop, sv);
+    }
+
+    return false;
+}
+
 static bool
 fdt_stringlist_contains_sv(const char *strlist,
                            uint32_t listlen,
@@ -97,21 +112,6 @@ fdt_stringlist_contains_sv(const char *strlist,
 
         listlen -= distance(strlist, p) + 1;
         strlist = p + 1;
-    }
-
-    return false;
-}
-
-bool
-devicetree_node_has_compat_sv(const struct devicetree_node *const node,
-                              const struct string_view sv)
-{
-    const struct devicetree_prop_compat *const compat_prop =
-        (const struct devicetree_prop_compat *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
-
-    if (compat_prop != NULL) {
-        return devicetree_prop_compat_has_sv(compat_prop, sv);
     }
 
     return false;

@@ -407,8 +407,8 @@ parse_int_info(const fdt32_t **const data_ptr,
     if (parent_int_cells != 3) {
         printk(LOGLEVEL_WARN,
                "devicetree: interrupt-map's phandle %" PRIu32 "'s "
-               "corresponding node #interrupt-cells property doesn't have "
-               "a value of 3\n",
+               "corresponding node #interrupt-cells property doesn't have a "
+               "value of 3\n",
                phandle);
         return false;
     }
@@ -540,9 +540,9 @@ parse_interrupt_map_prop(const void *const dtb,
 
         if (phandle_prop_info != NULL) {
             if (!parse_cell_pair(&data,
-                                data_end,
-                                (int)phandle_prop_info->addr_cells,
-                                (uint64_t *)&info.child_int_specifier))
+                                 data_end,
+                                 (int)phandle_prop_info->addr_cells,
+                                 (uint64_t *)&info.child_int_specifier))
             {
                 return false;
             }
@@ -562,12 +562,11 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        const bool is_parent_int_controller =
+        const struct devicetree_prop *const int_ctrl_prop =
             devicetree_node_get_prop(phandle_node,
-                                     DEVICETREE_PROP_INTERRUPT_CONTROLLER)
-            != NULL;
+                                     DEVICETREE_PROP_INTERRUPT_CONTROLLER);
 
-        if (!is_parent_int_controller) {
+        if (int_ctrl_prop == NULL) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map's phandle 0x%" PRIx32 "'s "
                    "corresponding node is missing the interrupt-controller "
