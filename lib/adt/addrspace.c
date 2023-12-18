@@ -5,6 +5,9 @@
 
 #if defined(BUILD_KERNEL)
     #include "kernel/src/dev/printk.h"
+    #include "mm/mm_types.h"
+#else
+    #define PAGE_SIZE 4096ull
 #endif /* defined(BUILD_KERNEL) */
 
 #include "lib/align.h"
@@ -39,11 +42,12 @@ traverse_tree(const struct address_space *const addrspace,
               const struct range in_range,
               struct addrspace_node *node,
               const uint64_t size,
-              const uint64_t align,
+              const uint8_t pagesize_shift,
               uint64_t *const result_out,
               struct addrspace_node **const node_out,
               struct addrspace_node **const prev_out)
 {
+    const uint64_t align = PAGE_SIZE << pagesize_shift;
     while (true) {
         struct addrspace_node *const prev = addrspace_node_prev(node);
         const uint64_t prev_end =
@@ -58,7 +62,11 @@ traverse_tree(const struct address_space *const addrspace,
             return TRAVERSAL_DONE;
         }
 
-        const uint64_t aligned_front = align_up_assert(prev_end, align);
+        uint64_t aligned_front = 0;
+        if (!align_up(prev_end, align, &aligned_front)) {
+            *result_out = ADDRSPACE_INVALID_ADDR;
+            return TRAVERSAL_DONE;
+        }
 
         const struct range aligned_range = RANGE_INIT(aligned_front, size);
         const struct range hole_range =
@@ -141,13 +149,14 @@ static uint64_t
 find_from_start(const struct address_space *const addrspace,
                 const struct range in_range,
                 const uint64_t size,
-                const uint64_t align,
+                const uint8_t pagesize_shift,
                 struct addrspace_node **const prev_out)
 {
     if (addrspace->avltree.root == NULL) {
-        const uint64_t aligned_front = align_up_assert(in_range.front, align);
-        const struct range aligned_range = RANGE_INIT(aligned_front, size);
+        const uint64_t aligned_front =
+            align_up_assert(in_range.front, PAGE_SIZE << pagesize_shift);
 
+        const struct range aligned_range = RANGE_INIT(aligned_front, size);
         if (!range_has(in_range, aligned_range)) {
             return ADDRSPACE_INVALID_ADDR;
         }
@@ -184,7 +193,7 @@ find_from_start(const struct address_space *const addrspace,
                           in_range,
                           node,
                           size,
-                          align,
+                          pagesize_shift,
                           &result,
                           &node,
                           prev_out);
@@ -243,11 +252,15 @@ uint64_t
 addrspace_find_space_and_add_node(struct address_space *const addrspace,
                                   const struct range in_range,
                                   struct addrspace_node *const node,
-                                  const uint64_t align)
+                                  const uint8_t pagesize_shift)
 {
     struct addrspace_node *prev = NULL;
     const uint64_t addr =
-        find_from_start(addrspace, in_range, node->range.size, align, &prev);
+        find_from_start(addrspace,
+                        in_range,
+                        node->range.size,
+                        pagesize_shift,
+                        &prev);
 
     if (addr == ADDRSPACE_INVALID_ADDR) {
         return ADDRSPACE_INVALID_ADDR;

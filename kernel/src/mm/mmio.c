@@ -4,6 +4,8 @@
  */
 
 #include "dev/printk.h"
+
+#include "lib/align.h"
 #include "lib/size.h"
 
 #include "mm/pgmap.h"
@@ -42,6 +44,30 @@ __optimize(3) static inline enum prot_fail verify_prot(const prot_t prot) {
     return PROT_FAIL_NONE;
 }
 
+static inline void
+fill_aligns_array(const struct range phys_range, uint8_t *const aligns_out) {
+    for (int8_t i = PGT_LEVEL_COUNT - 1; i >= 1; i--) {
+        const struct largepage_level_info *const level_info =
+            &largepage_level_info_list[i];
+
+        if (!level_info->is_supported) {
+            continue;
+        }
+
+        if (phys_range.size < level_info->size) {
+            continue;
+        }
+
+        if (!has_align(phys_range.front, level_info->size)) {
+            continue;
+        }
+
+        aligns_out[PGT_LEVEL_COUNT - 1 - i] = PAGE_SHIFT + level_info->order;
+    }
+
+    aligns_out[PGT_LEVEL_COUNT - 1] = PAGE_SHIFT;
+}
+
 // 16kib of guard pages
 #define GUARD_PAGE_SIZE min(kib(16), PAGE_SIZE)
 
@@ -65,12 +91,27 @@ map_mmio_region(const struct range phys_range,
     mmio->node = ADDRSPACE_NODE_INIT(mmio->node, &mmio_space);
     mmio->node.range.size = phys_range.size + GUARD_PAGE_SIZE;
 
+    uint8_t aligns[PGT_LEVEL_COUNT] = {0};
+    fill_aligns_array(phys_range, aligns);
+
     const int flag = spin_acquire_with_irq(&mmio_space_lock);
-    const uint64_t virt_addr =
-        addrspace_find_space_and_add_node(&mmio_space,
-                                          in_range,
-                                          &mmio->node,
-                                          /*align=*/PAGE_SIZE);
+    uint64_t virt_addr = 0;
+
+    for (uint8_t i = 0; i != PGT_LEVEL_COUNT; i++) {
+        if (aligns[i] == 0) {
+            continue;
+        }
+
+        virt_addr =
+            addrspace_find_space_and_add_node(&mmio_space,
+                                              in_range,
+                                              &mmio->node,
+                                              aligns[i]);
+
+        if (virt_addr != ADDRSPACE_INVALID_ADDR) {
+            break;
+        }
+    }
 
     if (virt_addr == ADDRSPACE_INVALID_ADDR) {
         spin_release_with_irq(&mmio_space_lock, flag);

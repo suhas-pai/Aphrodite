@@ -55,7 +55,7 @@ uint64_t
 addrspace_find_space_and_add_node(struct address_space *addrspace,
                                   struct range in_range,
                                   struct addrspace_node *node,
-                                  uint64_t align);
+                                  uint8_t pagesize_shift);
 
 bool
 addrspace_add_node(struct address_space *addrspace,
