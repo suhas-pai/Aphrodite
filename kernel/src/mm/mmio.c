@@ -106,7 +106,7 @@ map_mmio_region(const struct range phys_range,
             addrspace_find_space_and_add_node(&mmio_space,
                                               in_range,
                                               &mmio->node,
-                                              aligns[i]);
+                                              aligns[i] - PAGE_SHIFT);
 
         if (virt_addr != ADDRSPACE_INVALID_ADDR) {
             break;
