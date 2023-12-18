@@ -37,12 +37,12 @@ struct virtio_device {
             struct range notify_cfg_range;
 
             uint32_t notify_off_multiplier;
-            struct virtio_pci_cfg_cap *pci_cfg;
-
             struct {
                 uint8_t pci_cfg;
                 uint8_t isr_cfg;
             } offsets;
+
+            struct virtio_pci_cfg_cap *pci_cfg;
         } pci;
         struct {
             struct mmio_region *region;
@@ -69,9 +69,9 @@ struct virtio_device {
         .pci.entity = NULL, \
         .pci.common_cfg = NULL, \
         .pci.device_cfg = RANGE_EMPTY(), \
-        .pci.pci_cfg = NULL, \
         .pci.offsets.pci_cfg = 0, \
         .pci.offsets.isr_cfg = 0, \
+        .pci.pci_cfg = NULL, \
         .shmem_regions = ARRAY_INIT(sizeof(struct virtio_device_shmem_region)),\
         .vendor_cfg_list = ARRAY_INIT(sizeof(uint8_t)), \
         .queue_list = NULL, \
