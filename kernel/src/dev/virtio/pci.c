@@ -149,7 +149,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         uint64_t length =
             le_to_cpu(pci_read_virtio_cap_field(*iter, cap.length));
 
-        const struct range index_range = RANGE_INIT(offset, length);
+        struct range index_range = RANGE_INIT(offset, length);
         const struct range io_range =
             bar->is_mmio ?
                 mmio_region_get_range(bar->mmio) : bar->port_or_phys_range;
@@ -237,8 +237,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                 offset |= (uint64_t)offset_hi << 32;
                 length |= (uint64_t)length_hi << 32;
 
+                index_range = RANGE_INIT(offset, length);
                 const struct virtio_device_shmem_region region = {
-                    .phys_range = RANGE_INIT(offset, length),
+                    .phys_range = index_range,
                     .id = pci_read_virtio_cap_field(*iter, cap.id),
                 };
 
