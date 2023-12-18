@@ -52,17 +52,14 @@ find_multiple_unset(struct bitmap *const bitmap,
      *       combined sequence is large enough.
      */
 
-    uint64_t bit_index_of_ptr = bytes_to_bits(distance(begin, ptr));
-
     uint64_t current_range_start_index = 0;
     uint64_t current_range_zero_count = 0;
 
 #define LOOP_OVER_RANGES_FOR_TYPE(type)                                        \
     if (has_align((uint64_t)ptr, sizeof(type))) {                              \
-        for (uint64_t i = 0;                                                   \
+        for (;                                                                 \
              distance(ptr, end) >= sizeof(type);                               \
-             ptr += sizeof(type), bit_index_of_ptr += sizeof_bits(type),       \
-             start_index = 0, i++)                                             \
+             ptr += sizeof(type), start_index = 0)                             \
         {                                                                      \
             const type word = *(type *)ptr;                                    \
             if (current_range_zero_count != 0) {                               \
@@ -113,7 +110,7 @@ find_multiple_unset(struct bitmap *const bitmap,
                                                                                \
                     if (range_get_end_assert(iter) == sizeof_bits(type)) {     \
                         current_range_start_index =                            \
-                            bit_index_of_ptr + iter.front;                     \
+                            bytes_to_bits(distance(begin, ptr)) + iter.front;  \
                                                                                \
                         current_range_zero_count = iter.size;                  \
                         break;                                                 \
@@ -128,7 +125,7 @@ find_multiple_unset(struct bitmap *const bitmap,
                                      /*value=*/true);                          \
                 }                                                              \
                                                                                \
-                return bit_index_of_ptr + iter.front;                          \
+                return bytes_to_bits(distance(begin, ptr)) + iter.front;       \
             }                                                                  \
                                                                                \
             start_index = 0;                                                   \
@@ -165,17 +162,14 @@ find_multiple_set(struct bitmap *const bitmap,
      *       combined sequence is large enough.
      */
 
-    uint64_t bit_index_of_ptr = bytes_to_bits(distance(begin, ptr));
-
     uint64_t current_range_start_index = 0;
     uint64_t current_range_zero_count = 0;
 
 #define LOOP_OVER_RANGES_FOR_TYPE(type)                                        \
     if (has_align((uint64_t)ptr, sizeof(type))) {                              \
-        for (uint64_t i = 0;                                                   \
+        for (;                                                                 \
              distance(ptr, end) >= sizeof(type);                               \
-             ptr += sizeof(type), bit_index_of_ptr += sizeof_bits(type),       \
-             start_index = 0, i++)                                             \
+             ptr += sizeof(type), start_index = 0)                             \
         {                                                                      \
             const type word = *(type *)ptr;                                    \
             if (current_range_zero_count != 0) {                               \
@@ -223,10 +217,9 @@ find_multiple_set(struct bitmap *const bitmap,
                      * the word, then the next word can have the remaining
                      * zeroes needed in its lsb.
                      */                                                        \
-                                                                               \
                     if (range_get_end_assert(iter) == sizeof_bits(type)) {     \
                         current_range_start_index =                            \
-                            bit_index_of_ptr + iter.front;                     \
+                            bytes_to_bits(distance(begin, ptr)) + iter.front;  \
                                                                                \
                         current_range_zero_count = iter.size;                  \
                         break;                                                 \
@@ -241,7 +234,7 @@ find_multiple_set(struct bitmap *const bitmap,
                                      /*value=*/false);                         \
                 }                                                              \
                                                                                \
-                return bit_index_of_ptr + iter.front;                          \
+                return bytes_to_bits(distance(begin, ptr)) + iter.front;       \
             }                                                                  \
                                                                                \
             start_index = 0;                                                   \
