@@ -220,8 +220,8 @@ enum pci_ecam_dtb_child_addr_flags {
 };
 
 // Not needed so unused
-__unused static bool
-parse_dtb_resources(struct devicetree_node *const node,
+static bool
+parse_dtb_resources(const struct devicetree_node *const node,
                     struct pci_bus *const root_bus)
 {
     const struct devicetree_prop_ranges *const ranges_prop =
@@ -391,6 +391,7 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
+    parse_dtb_resources(node, root_bus);
     if (!pci_add_root_bus(root_bus)) {
         printk(LOGLEVEL_INFO, "pci-ecam: failed to add bus to root-bus list\n");
         return false;
