@@ -11,6 +11,7 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
+#include "mm/mmio.h"
 #include "sys/mmio.h"
 
 #include "ecam.h"
@@ -60,6 +61,10 @@ pci_add_ecam_domain(const struct range bus_range,
 
     if (!pci_add_domain(&ecam_domain->domain)) {
         spin_release_with_irq(&g_ecam_domain_lock, flag);
+
+        vunmap_mmio(ecam_domain->mmio);
+        kfree(ecam_domain);
+
         return NULL;
     }
 
