@@ -36,7 +36,7 @@ struct virtio_block_config {
 
     uint8_t writeback;
     uint8_t unused0;
-    uint16_t num_queues;
+    le16_t num_queues;
 
     le32_t max_discard_sectors;
     le32_t max_discard_seg;
@@ -52,6 +52,12 @@ struct virtio_block_config {
     le32_t secure_erase_sector_alignment;
 };
 
+#define virtio_block_read_config_field(device, field) \
+    le_to_cpu( \
+        virtio_device_read_info_field((device), \
+                                      struct virtio_block_config, \
+                                      field))
+
 struct virtio_device *
 virtio_block_driver_init(struct virtio_device *const device,
                          const uint64_t features)
@@ -60,16 +66,31 @@ virtio_block_driver_init(struct virtio_device *const device,
         printk(LOGLEVEL_INFO, "virtio-block: device is readonly\n");
     }
 
-    const le64_t capacity =
-        le_to_cpu(
-            virtio_device_read_info_field(device,
-                                          struct virtio_block_config,
-                                          capacity));
-
+    const uint64_t capacity = virtio_block_read_config_field(device, capacity);
     printk(LOGLEVEL_INFO,
            "virtio-block: device has the following info:\n"
-           "\tcapacity: " SIZE_TO_UNIT_FMT "\n",
-           SIZE_TO_UNIT_FMT_ARGS(capacity));
+           "\tcapacity: " SIZE_TO_UNIT_FMT "\n"
+           "\tgeometry:\n"
+           "\t\tcylinders: %" PRIu16 "\n"
+           "\t\theads: %" PRIu8 "\n"
+           "\t\tsectors: %" PRIu8 "\n"
+           "\tblock-size: %" PRIu32 "\n"
+           "\ttopology:\n"
+           "\t\tphys-block count: %" PRIu8 "\n"
+           "\t\tfirst-align-block offset: 0x%" PRIx8 "\n"
+           "\t\tmin io-size: %" PRIu16 "\n"
+           "\t\toptimal io-size: %" PRIu32 "\n"
+           "\tqueue count: %" PRIu16 "\n",
+           SIZE_TO_UNIT_FMT_ARGS(capacity),
+           virtio_block_read_config_field(device, geometry.cylinders),
+           virtio_block_read_config_field(device, geometry.heads),
+           virtio_block_read_config_field(device, geometry.sectors),
+           virtio_block_read_config_field(device, block_size),
+           virtio_block_read_config_field(device, topology.physical_block_exp),
+           virtio_block_read_config_field(device, topology.alignment_offset),
+           virtio_block_read_config_field(device, topology.min_io_size),
+           virtio_block_read_config_field(device, topology.opt_io_size),
+           virtio_block_read_config_field(device, num_queues));
 
     return NULL;
 }
