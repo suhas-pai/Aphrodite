@@ -44,9 +44,12 @@ __optimize(3) static inline enum prot_fail verify_prot(const prot_t prot) {
     return PROT_FAIL_NONE;
 }
 
-static inline void
-fill_aligns_array(const struct range phys_range, uint8_t *const aligns_out) {
-    for (int8_t i = PGT_LEVEL_COUNT - 1; i >= 1; i--) {
+__optimize(3) static uint64_t
+find_virt_addr(const struct range phys_range,
+               const struct range in_range,
+               struct mmio_region *const mmio)
+{
+    for (int8_t i = PGT_LEVEL_COUNT - 1; i > 1; i--) {
         const struct largepage_level_info *const level_info =
             &largepage_level_info_list[i];
 
@@ -62,10 +65,22 @@ fill_aligns_array(const struct range phys_range, uint8_t *const aligns_out) {
             continue;
         }
 
-        aligns_out[PGT_LEVEL_COUNT - 1 - i] = PAGE_SHIFT + level_info->order;
+        const uint64_t virt_addr =
+            addrspace_find_space_and_add_node(&mmio_space,
+                                              in_range,
+                                              &mmio->node,
+                                              level_info->order);
+
+        if (virt_addr != ADDRSPACE_INVALID_ADDR) {
+            return virt_addr;
+        }
     }
 
-    aligns_out[PGT_LEVEL_COUNT - 1] = PAGE_SHIFT;
+    return
+        addrspace_find_space_and_add_node(&mmio_space,
+                                          in_range,
+                                          &mmio->node,
+                                          /*pagesize_order=*/0);
 }
 
 // 16kib of guard pages
@@ -76,7 +91,7 @@ map_mmio_region(const struct range phys_range,
                 const prot_t prot,
                 const uint64_t flags)
 {
-    struct range in_range =
+    const struct range in_range =
         range_create_end(VMAP_BASE + GUARD_PAGE_SIZE, VMAP_END);
 
     struct mmio_region *const mmio = kmalloc(sizeof(*mmio));
@@ -91,30 +106,13 @@ map_mmio_region(const struct range phys_range,
     mmio->node = ADDRSPACE_NODE_INIT(mmio->node, &mmio_space);
     mmio->node.range.size = phys_range.size + GUARD_PAGE_SIZE;
 
-    uint8_t aligns[PGT_LEVEL_COUNT] = {0};
-    fill_aligns_array(phys_range, aligns);
-
     const int flag = spin_acquire_with_irq(&mmio_space_lock);
-    uint64_t virt_addr = 0;
-
-    for (uint8_t i = 0; i != PGT_LEVEL_COUNT; i++) {
-        if (aligns[i] == 0) {
-            continue;
-        }
-
-        virt_addr =
-            addrspace_find_space_and_add_node(&mmio_space,
-                                              in_range,
-                                              &mmio->node,
-                                              aligns[i] - PAGE_SHIFT);
-
-        if (virt_addr != ADDRSPACE_INVALID_ADDR) {
-            break;
-        }
-    }
+    const uint64_t virt_addr = find_virt_addr(phys_range, in_range, mmio);
 
     if (virt_addr == ADDRSPACE_INVALID_ADDR) {
         spin_release_with_irq(&mmio_space_lock, flag);
+        kfree(mmio);
+
         printk(LOGLEVEL_WARN,
                "vmap_mmio(): failed to find a suitable virtual-address range "
                "to map phys-range " RANGE_FMT "\n",
