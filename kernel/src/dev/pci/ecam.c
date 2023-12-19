@@ -12,8 +12,8 @@
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
-#include "sys/mmio.h"
 
+#include "sys/mmio.h"
 #include "ecam.h"
 
 static struct list g_ecam_entity_list = LIST_INIT(g_ecam_entity_list);
@@ -28,8 +28,8 @@ static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
 
 struct pci_ecam_domain *
 pci_add_ecam_domain(const struct range bus_range,
-                   const uint64_t base_addr,
-                   const uint16_t segment)
+                    const uint64_t base_addr,
+                    const uint16_t segment)
 {
     struct pci_ecam_domain *const ecam_domain = kmalloc(sizeof(*ecam_domain));
     if (ecam_domain == NULL) {
@@ -75,23 +75,22 @@ pci_add_ecam_domain(const struct range bus_range,
 __optimize(3)
 bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
     const int flag = spin_acquire_with_irq(&g_ecam_domain_lock);
-    if (!pci_remove_domain(&ecam_domain->domain)) {
-        spin_release_with_irq(&g_ecam_domain_lock, flag);
-        return false;
-    }
+    pci_remove_domain(&ecam_domain->domain);
 
     vunmap_mmio(ecam_domain->mmio);
-    list_remove(&ecam_domain->list);
+    list_delete(&ecam_domain->list);
 
     g_ecam_entity_count--;
 
     spin_release_with_irq(&g_ecam_domain_lock, flag);
+    kfree(ecam_domain);
+
     return true;
 }
 
 __optimize(3) uint64_t
 pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
-                              const struct pci_location *const loc)
+                               const struct pci_location *const loc)
 {
     return
         (range_index_for_loc(domain->bus_range, loc->bus) << 20) |
@@ -224,7 +223,6 @@ enum pci_ecam_dtb_child_addr_flags {
     __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM = 1 << 30
 };
 
-// Not needed so unused
 static bool
 parse_dtb_resources(const struct devicetree_node *const node,
                     struct pci_bus *const root_bus)
@@ -393,12 +391,18 @@ init_from_dtb(const struct devicetree *const tree,
     if (root_bus == NULL) {
         printk(LOGLEVEL_WARN,
                "pci-ecam: failed to create root-bus from dtb node\n");
+
+        pci_remove_ecam_domain(ecam_domain);
         return false;
     }
 
     parse_dtb_resources(node, root_bus);
     if (!pci_add_root_bus(root_bus)) {
         printk(LOGLEVEL_INFO, "pci-ecam: failed to add bus to root-bus list\n");
+
+        pci_remove_root_bus(root_bus);
+        pci_remove_ecam_domain(ecam_domain);
+
         return false;
     }
 
