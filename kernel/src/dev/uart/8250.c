@@ -25,15 +25,22 @@
 #define UART_SCR_OFFSET 7  // I/O: Scratch Register
 #define UART_MDR1_OFFSET 8  // I/O:  Mode Register
 
-#define UART_LSR_FIFOE 0x80 // Fifo error
-#define UART_LSR_TEMT 0x40  // Transmitter empty
-#define UART_LSR_THRE 0x20  // Transmit-hold-register empty
-#define UART_LSR_BI 0x10    // Break interrupt indicator
-#define UART_LSR_FE 0x08    // Frame error indicator
-#define UART_LSR_PE 0x04    // Parity error indicator
-#define UART_LSR_OE 0x02    // Overrun error indicator
-#define UART_LSR_DR 0x01    // Receiver data ready
-#define UART_LSR_BRK_ERROR_BITS 0x1E    // BI, FE, PE, OE bits
+enum uart_lsr {
+    __UART_LSR_DATA_READY = 1 << 0,
+    __UART_LSR_OVERRUN_ERROR = 1 << 1,
+    __UART_LSR_PARITY_ERROR = 1 << 2,
+    __UART_LSR_FRAME_ERROR = 1 << 3,
+    __UART_LSR_BREAK_INTERRUPT = 1 << 4,
+    __UART_LSR_TRANSMIT_HRE = 1 << 5,
+    __UART_LSR_TRANSMITTER_EMPTY = 1 << 6,
+    __UART_LSR_FIFO_ERROR = 1 << 7,
+
+    __UART_LSR_BRK_ERROR =
+        __UART_LSR_BREAK_INTERRUPT |
+        __UART_LSR_FRAME_ERROR |
+        __UART_LSR_PARITY_ERROR |
+        __UART_LSR_OVERRUN_ERROR
+};
 
 struct uart8250_info {
     struct terminal term;
@@ -50,7 +57,7 @@ struct uart8250_info {
 static struct uart8250_info early_infos[8] = {};
 static uint16_t early_info_count = 0;
 
-static inline uint32_t
+__optimize(3) static inline uint32_t
 get_reg(const port_t uart8250_base,
         struct uart8250_info *const info,
         const uint32_t num)
@@ -68,7 +75,7 @@ get_reg(const port_t uart8250_base,
     verify_not_reached();
 }
 
-static inline void
+__optimize(3) static inline void
 set_reg(const port_t uart8250_base,
         struct uart8250_info *const info,
         const uint32_t num,
@@ -98,7 +105,7 @@ uart8250_putc(const port_t base,
               const char ch)
 {
     for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
-        if (get_reg(base, info, UART_LSR_OFFSET) & UART_LSR_THRE) {
+        if (get_reg(base, info, UART_LSR_OFFSET) & __UART_LSR_TRANSMIT_HRE) {
             set_reg(base, info, UART_THR_OFFSET, ch);
             return;
         }
@@ -211,8 +218,7 @@ init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
     if (reg_prop == NULL) {
-        printk(LOGLEVEL_WARN,
-               "uart8250: 'reg' property in dtb is missing\n");
+        printk(LOGLEVEL_WARN, "uart8250: 'reg' property in dtb is missing\n");
         return false;
     }
 
