@@ -59,6 +59,8 @@ __optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     }
 
     spin_release_with_irq(&g_root_bus_list_lock, flag);
+    kfree(bus);
+
     return false;
 }
 
