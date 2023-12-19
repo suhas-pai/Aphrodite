@@ -42,12 +42,12 @@ traverse_tree(const struct address_space *const addrspace,
               const struct range in_range,
               struct addrspace_node *node,
               const uint64_t size,
-              const uint8_t pagesize_shift,
+              const uint8_t pagesize_order,
               uint64_t *const result_out,
               struct addrspace_node **const node_out,
               struct addrspace_node **const prev_out)
 {
-    const uint64_t align = PAGE_SIZE << pagesize_shift;
+    const uint64_t align = PAGE_SIZE << pagesize_order;
     while (true) {
         struct addrspace_node *const prev = addrspace_node_prev(node);
         const uint64_t prev_end =
@@ -149,12 +149,12 @@ static uint64_t
 find_from_start(const struct address_space *const addrspace,
                 const struct range in_range,
                 const uint64_t size,
-                const uint8_t pagesize_shift,
+                const uint8_t pagesize_order,
                 struct addrspace_node **const prev_out)
 {
     if (addrspace->avltree.root == NULL) {
         const uint64_t aligned_front =
-            align_up_assert(in_range.front, PAGE_SIZE << pagesize_shift);
+            align_up_assert(in_range.front, PAGE_SIZE << pagesize_order);
 
         const struct range aligned_range = RANGE_INIT(aligned_front, size);
         if (!range_has(in_range, aligned_range)) {
@@ -193,7 +193,7 @@ find_from_start(const struct address_space *const addrspace,
                           in_range,
                           node,
                           size,
-                          pagesize_shift,
+                          pagesize_order,
                           &result,
                           &node,
                           prev_out);
@@ -252,14 +252,14 @@ uint64_t
 addrspace_find_space_and_add_node(struct address_space *const addrspace,
                                   const struct range in_range,
                                   struct addrspace_node *const node,
-                                  const uint8_t pagesize_shift)
+                                  const uint8_t pagesize_order)
 {
     struct addrspace_node *prev = NULL;
     const uint64_t addr =
         find_from_start(addrspace,
                         in_range,
                         node->range.size,
-                        pagesize_shift,
+                        pagesize_order,
                         &prev);
 
     if (addr == ADDRSPACE_INVALID_ADDR) {
