@@ -38,7 +38,7 @@
 #define ICW4_SFNM   0x10        /* Special fully nested (not) */
 
 static inline bool is_irq_in_pic_2(const uint8_t irq) {
-    return (irq >= 8);
+    return irq >= 8;
 }
 
 void pic_send_eoi(const uint8_t irq) {
