@@ -170,14 +170,6 @@ __optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     }
 }
 
-void lapic_timer_start() {
-    mmio_write(&lapic_regs->timer_initial_count, 0xFFFFF);
-    mmio_write(&lapic_regs->lvt_timer,
-               setup_timer_register(LAPIC_TIMER_MODE_PERIODIC,
-                                    /*masked=*/false,
-                                    /*vector=*/isr_get_timer_vector()));
-}
-
 void lapic_timer_stop() {
     mmio_write(&lapic_regs->timer_initial_count, 0);
     mmio_write(&lapic_regs->lvt_timer,
@@ -186,7 +178,8 @@ void lapic_timer_stop() {
                                     /*vector=*/isr_get_timer_vector()));
 }
 
-void lapic_timer_one_shot(const uint64_t microseconds) {
+void
+lapic_timer_one_shot(const uint64_t microseconds, const isr_vector_t vector) {
     // LAPIC-Timer Frequency is in Hz, which is cycles per second, while we need
     // cycles per microseconds
 
@@ -196,9 +189,9 @@ void lapic_timer_one_shot(const uint64_t microseconds) {
     mmio_write(&lapic_regs->timer_initial_count,
                lapic_timer_freq_in_microseconds * microseconds);
     mmio_write(&lapic_regs->lvt_timer,
-                setup_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                                     /*masked=*/false,
-                                     /*vector=*/isr_get_timer_vector()));
+               setup_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
+                                    /*masked=*/false,
+                                    vector));
 }
 
 void lapic_init() {
@@ -206,7 +199,6 @@ void lapic_init() {
     lapic_timer_stop();
 
     calibrate_timer();
-    lapic_timer_start();
 }
 
 void lapic_add(const struct lapic_info *const lapic_info) {
