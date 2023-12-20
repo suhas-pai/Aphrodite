@@ -22,6 +22,12 @@ struct array {
 #define ARRAY_INIT(size) \
     ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size) })
 
+#define ARRAY_ONE_ITEM(item) \
+    ((struct array){ \
+        .gbuffer = GBUFFER_WITH_ITEM(item, sizeof(item)), \
+        .object_size = sizeof(item) \
+    })
+
 struct array *array_alloc(uint32_t object_size, uint32_t item_capacity);
 struct array array_copy(struct array array);
 
