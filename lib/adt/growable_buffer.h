@@ -24,11 +24,19 @@ struct growable_buffer {
         .is_alloc = false      \
     })
 
-#define GBUFFER_FROM_PTR(ptr, capacity) \
+#define GBUFFER_FROM_PTR(ptr, capacity_) \
     ((struct growable_buffer){ \
         .begin = (ptr), \
         .index = 0, \
-        .end = (ptr) + (capacity), \
+        .capacity = (capacity_), \
+        .is_alloc = false \
+    })
+
+#define GBUFFER_WITH_ITEM(ptr, size) \
+    ((struct growable_buffer){ \
+        .begin = (ptr), \
+        .index = (size), \
+        .capacity = (size), \
         .is_alloc = false \
     })
 
