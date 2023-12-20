@@ -197,7 +197,7 @@ pci_entity_bar_read64(struct pci_entity_info *const entity,
 
     volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
     assert_msg(ptr != NULL,
-               "pci: trying to read uint8 at offset 0x%" PRIx32 " that's not "
+               "pci: trying to read uint64 at offset 0x%" PRIx32 " that's not "
                "part of any resource",
                offset);
 
