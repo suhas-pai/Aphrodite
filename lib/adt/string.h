@@ -31,8 +31,7 @@ struct string string_vformat(const char *fmt, va_list list);
 struct string *string_append_char(struct string *string, char ch, uint32_t amt);
 struct string *string_append_sv(struct string *string, struct string_view sv);
 
-__printf_format(2, 3)
-struct string *
+__printf_format(2, 3) struct string *
 string_append_format(struct string *string, const char *fmt, ...);
 
 struct string *
