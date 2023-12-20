@@ -116,7 +116,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     kernel_pagemap.root = phys_to_virt(root_phys);
     map_into_kernel_pagemap(/*phys_range=*/range_create_end(kib(64), gib(4)),
                             /*virt_addr=*/kib(64),
-                            __PTE_READ | __PTE_WRITE);
+                            __PTE_READ | __PTE_WRITE | __PTE_IO);
 
     // Map all 'good' regions into the hhdm
     uint64_t kernel_memmap_size = 0;
