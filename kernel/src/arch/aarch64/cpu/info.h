@@ -4,8 +4,10 @@
  */
 
 #pragma once
+#include "cpu/cpu_info.h"
 
 #include "acpi/structs.h"
+#include "sched/thread.h"
 #include "sys/gic.h"
 
 struct pagemap;
@@ -23,6 +25,7 @@ struct cpu_info {
     uint16_t spe_overflow_interrupt;
     uint64_t mpidr;
 
+    struct thread *idle_thread;
     struct gic_cpu_info gic_cpu;
 };
 
@@ -31,7 +34,3 @@ void cpu_init();
 
 void
 cpu_add_gic_interface(const struct acpi_madt_entry_gic_cpu_interface *intr);
-
-const struct cpu_info *get_base_cpu_info();
-const struct cpu_info *get_cpu_info();
-struct cpu_info *get_cpu_info_mut();

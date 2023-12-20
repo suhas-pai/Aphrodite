@@ -4,9 +4,11 @@
  */
 
 #include "asm/fsgsbase.h"
+#include "sched/thread.h"
+
 #include "info.h"
 
-static struct cpu_info g_base_cpu_info = {
+struct cpu_info g_base_cpu_info = {
     .processor_id = 0,
     .lapic_id = 0,
     .lapic_timer_frequency = 0,
@@ -23,9 +25,9 @@ __optimize(3) const struct cpu_info *get_base_cpu_info() {
 }
 
 __optimize(3) const struct cpu_info *get_cpu_info() {
-    return (const struct cpu_info *)read_gsbase();
+    return ((const struct thread *)read_gsbase())->cpu;
 }
 
 __optimize(3) struct cpu_info *get_cpu_info_mut() {
-    return (struct cpu_info *)read_gsbase();
+    return ((struct thread *)read_gsbase())->cpu;
 }

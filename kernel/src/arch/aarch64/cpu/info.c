@@ -6,11 +6,14 @@
 #include "asm/id_regs.h"
 #include "asm/tcr.h"
 
+#include "cpu/cpu_info.h"
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
 #include "mm/pagemap.h"
+
+#include "sched/thread.h"
 
 #include "info.h"
 #include "features.h"
@@ -45,10 +48,10 @@ __optimize(3) const struct cpu_info *get_cpu_info() {
 __optimize(3) struct cpu_info *get_cpu_info_mut() {
     assert(g_base_cpu_init);
 
-    struct cpu_info *result = NULL;
-    asm volatile ("mrs %0, tpidr_el1" : "=r"(result));
+    struct thread *thread = NULL;
+    asm volatile ("mrs %0, tpidr_el1" : "=r"(thread));
 
-    return result;
+    return thread->cpu;
 }
 
 __optimize(3) const struct cpu_features *cpu_get_features() {
@@ -1444,7 +1447,7 @@ void cpu_init() {
     g_base_cpu_info.mpidr = read_mpidr_el1();
     g_base_cpu_info.mpidr &= ~(1ull << 31);
 
-    asm volatile ("msr tpidr_el1, %0" :: "r"(&g_base_cpu_info));
+    asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
     g_base_cpu_init = true;
 }
 

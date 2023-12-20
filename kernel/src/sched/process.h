@@ -6,13 +6,19 @@
 #pragma once
 
 #include "lib/adt/array.h"
+#include "lib/adt/string_view.h"
+
 #include "mm/pagemap.h"
+#include "info.h"
 
 struct process {
     struct pagemap *pagemap;
     struct array threads;
 
-    char *name;
+    struct sched_process_info sched_info;
+    struct string_view name;
+
+    int pid;
 };
 
 extern struct process kernel_process;

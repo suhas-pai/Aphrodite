@@ -3,11 +3,12 @@
  * © suhas pai
  */
 
-#include "mm/pagemap.h"
-#include "thread.h"
+#include "process.h"
 
 __hidden struct process kernel_process = {
     .pagemap = &kernel_pagemap,
     .threads = ARRAY_INIT(sizeof(struct thread *)),
-    .name = "kernel"
+
+    .name = SV_STATIC("kernel"),
+    .pid = 0
 };

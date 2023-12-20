@@ -10,6 +10,7 @@
 #include "asm/xsave.h"
 
 #include "dev/printk.h"
+#include "sched/thread.h"
 #include "sys/gdt.h"
 
 #include "info.h"
@@ -424,7 +425,7 @@ __optimize(3) const struct cpu_capabilities *get_cpu_capabilities() {
 void cpu_init() {
     init_cpuid_features();
 
-    write_gsbase((uint64_t)get_base_cpu_info());
+    write_gsbase((uint64_t)&kernel_main_thread);
     list_add(&kernel_pagemap.cpu_list, &get_cpu_info_mut()->pagemap_node);
 
     g_base_cpu_init = true;

@@ -8,8 +8,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "cpu/cpu_info.h"
+
 #include "lib/list.h"
 #include "mm/pagemap.h"
+#include "sched/thread.h"
 
 struct cpu_capabilities {
     bool supports_avx512 : 1;
@@ -36,11 +39,9 @@ struct cpu_info {
 
     // Keep track of spurious interrupts for every lapic.
     uint64_t spur_int_count;
-};
 
-const struct cpu_info *get_base_cpu_info();
-const struct cpu_info *get_cpu_info();
-struct cpu_info *get_cpu_info_mut();
+    struct thread *idle_thread;
+};
 
 void cpu_init();
 const struct cpu_capabilities *get_cpu_capabilities();
