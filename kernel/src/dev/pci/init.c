@@ -465,13 +465,12 @@ const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
 }
 
 void
-pci_parse_bus(struct pci_bus *bus,
-              struct pci_location *loc,
-              uint8_t bus_id);
+pci_parse_bus(struct pci_bus *bus, struct pci_location *loc, uint8_t bus_id);
 
 static void
 parse_function(struct pci_bus *const bus,
-               const struct pci_location *const loc)
+               const struct pci_location *const loc,
+               const uint8_t header_kind)
 {
     struct pci_entity_info info = {
         .bus = bus,
@@ -484,9 +483,6 @@ parse_function(struct pci_bus *const bus,
     if (vendor_id == (uint16_t)PCI_READ_FAIL) {
         return;
     }
-
-    const uint8_t header_kind =
-        pci_read(&info, struct pci_spec_entity_info_base, header_kind);
 
     const bool is_multi_function =
         (header_kind & __PCI_ENTITY_HDR_MULTFUNC) != 0;
@@ -526,11 +522,11 @@ parse_function(struct pci_bus *const bus,
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE;
 
     if (hdrkind_is_pci_bridge != class_is_pci_bridge) {
+        free_inside_entity_info(&info);
         printk(LOGLEVEL_WARN,
                "pci: invalid entity, header-type and class/subclass "
                "mismatch\n");
 
-        free_inside_entity_info(&info);
         return;
     }
 
@@ -549,10 +545,10 @@ parse_function(struct pci_bus *const bus,
                         info.max_bar_count);
 
             if (info.bar_list == NULL) {
+                free_inside_entity_info(&info);
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
 
-                free_inside_entity_info(&info);
                 return;
             }
 
@@ -603,10 +599,10 @@ parse_function(struct pci_bus *const bus,
                         info.max_bar_count);
 
             if (info.bar_list == NULL) {
+                free_inside_entity_info(&info);
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
 
-                free_inside_entity_info(&info);
                 return;
             }
 
@@ -696,7 +692,7 @@ pci_parse_bus(struct pci_bus *const bus,
 
         for (uint8_t func = 0; func != function_count; func++) {
             loc->function = func;
-            parse_function(bus, loc);
+            parse_function(bus, loc, header_kind);
         }
     }
 }
@@ -828,6 +824,9 @@ __optimize(3) void pci_init() {
             array_foreach(bus_list, struct pci_bus *, iter) {
                 pci_find_entities(*iter);
             }
+        } else {
+            printk(LOGLEVEL_INFO,
+                   "pci: no root-bus found. Aborting init\n");
         }
 #if defined(__x86_64__)
     }
