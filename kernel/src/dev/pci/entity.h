@@ -65,8 +65,8 @@ struct pci_entity_info {
 };
 
 #define PCI_ENTITY_INFO_FMT                                                    \
-    "%" PRIx8 ":%" PRIx8 ":%" PRIx8 ":%" PRIx16 ":%" PRIx16 " (%" PRIx8 ":%"   \
-    PRIx8 ")"
+    "%" PRIx8 ":%" PRIx8 ":%" PRIx8 ":%" PRIx16 ":%" PRIx16 " (%" PRIx8 ":"    \
+    "%" PRIx8 ")"
 
 #define PCI_ENTITY_INFO_FMT_ARGS(device)                                       \
     (device)->loc.bus,                                                         \
