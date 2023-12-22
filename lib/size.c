@@ -5,7 +5,7 @@
 
 #include "size.h"
 
-__optimize(3) struct string_view units_to_sv(const enum unit_kind kind) {
+__optimize(3) struct string_view size_units_to_sv(const enum size_unit_kind kind) {
     switch (kind) {
     #define UNIT_KIND_CASE(name)                                               \
         case VAR_CONCAT(UNIT_KIND_, name):                                     \
@@ -17,6 +17,7 @@ __optimize(3) struct string_view units_to_sv(const enum unit_kind kind) {
         UNIT_KIND_CASE(GIB);
         UNIT_KIND_CASE(TIB);
         UNIT_KIND_CASE(PIB);
+        UNIT_KIND_CASE(EIB);
 
     #undef UNIT_KIND_CASE
         default:
@@ -24,7 +25,7 @@ __optimize(3) struct string_view units_to_sv(const enum unit_kind kind) {
     }
 }
 
-__optimize(3) struct string_view units_to_sv_abbrev(const enum unit_kind kind) {
+__optimize(3) struct string_view size_units_to_sv_abbrev(const enum size_unit_kind kind) {
     switch (kind) {
     #define UNIT_KIND_CASE(name)                                               \
         case VAR_CONCAT(UNIT_KIND_, name):                                     \
@@ -36,6 +37,7 @@ __optimize(3) struct string_view units_to_sv_abbrev(const enum unit_kind kind) {
         UNIT_KIND_CASE(GIB);
         UNIT_KIND_CASE(TIB);
         UNIT_KIND_CASE(PIB);
+        UNIT_KIND_CASE(EIB);
 
     #undef UNIT_KIND_CASE
         default:
@@ -43,8 +45,8 @@ __optimize(3) struct string_view units_to_sv_abbrev(const enum unit_kind kind) {
     }
 }
 
-__optimize(3) enum unit_kind size_to_units(uint64_t size) {
-    enum unit_kind kind = UNIT_KIND_BYTE;
+__optimize(3) enum size_unit_kind size_to_units(uint64_t size) {
+    enum size_unit_kind kind = UNIT_KIND_BYTE;
     while (size >= kib(1)) {
         size /= kib(1);
         kind *= kib(1);
