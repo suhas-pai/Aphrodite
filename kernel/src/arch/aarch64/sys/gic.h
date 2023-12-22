@@ -55,7 +55,6 @@ void gic_cpu_init(const struct cpu_info *cpu);
 void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 
 struct gic_msi_frame *gicd_add_msi(uint64_t phys_base_address);
-
 const struct gic_distributor *gic_get_dist();
 
 void gicd_mask_irq(uint8_t irq);

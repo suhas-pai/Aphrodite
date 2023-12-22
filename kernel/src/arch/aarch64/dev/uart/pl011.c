@@ -86,14 +86,14 @@ pl011_send_char(struct terminal *const term,
     }
 }
 
-__optimize(3) static void
-pl011_send_sv(struct terminal *const term, const struct string_view sv) {
+__optimize(3) static
+void pl011_send_sv(struct terminal *const term, const struct string_view sv) {
     struct pl011_device_info *const info =
         container_of(term, struct pl011_device_info, term);
 
     volatile struct pl011_device *const device = info->device;
-    wait_for_tx_complete(device);
 
+    wait_for_tx_complete(device);
     sv_foreach(sv, iter) {
         const char ch = *iter;
         if (ch == '\n') {

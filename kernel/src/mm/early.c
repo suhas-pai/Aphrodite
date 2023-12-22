@@ -470,8 +470,8 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         page->table.refcount.count++;
 
         prev_level = walker.level;
-        prev_was_at_end = walker.indices[prev_level - 1] ==
-            PGT_PTE_COUNT(prev_level) - 1;
+        prev_was_at_end =
+            walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
 
         i += PAGE_SIZE_AT_LEVEL(walker.level);
     }
