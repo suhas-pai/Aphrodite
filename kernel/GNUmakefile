@@ -212,7 +212,8 @@ LIBFILES += \
     ../lib/parse_strftime.c ../lib/adt/mutable_buffer.c \
     ../lib/adt/growable_buffer.c ../lib/string.c ../lib/adt/avltree.c \
     ../lib/adt/array.c ../lib/math.c ../lib/adt/bitmap.c ../lib/bits.c \
-    ../lib/memory.c ../lib/adt/addrspace.c ../lib/size.c ../lib/adt/hashmap.c
+    ../lib/memory.c ../lib/adt/addrspace.c ../lib/size.c ../lib/adt/hashmap.c \
+    ../lib/freq.c
 
 override OBJ := $(addprefix obj/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(LIBFILES:../lib/%.c=lib/%.c.o) $(NASMFILES:src/%.asm=%.asm.o))
 override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))

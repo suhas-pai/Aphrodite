@@ -22,4 +22,4 @@ struct clock_source {
 void arch_init_time();
 void add_clock_source(struct clock_source *const clock);
 
-uint64_t nsec_since_boot();
+nsec_t nsec_since_boot();
