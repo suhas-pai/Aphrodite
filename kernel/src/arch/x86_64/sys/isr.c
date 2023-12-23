@@ -13,8 +13,8 @@
 static isr_func_t g_funcs[256] = {0};
 
 static isr_vector_t g_free_vector = 0x21;
-static isr_vector_t g_timer_vector = 0;
 static isr_vector_t g_spur_vector = 0;
+static isr_vector_t g_timer_vector = 0;
 
 __optimize(3) isr_vector_t isr_alloc_vector() {
     assert(g_free_vector != 0xff);
@@ -40,7 +40,7 @@ void isr_handle_interrupt(const uint64_t vector, irq_context_t *const frame) {
     if (g_funcs[vector] != NULL) {
         g_funcs[vector](vector, frame);
     } else {
-        if (vector == 14) {
+        if (vector < 0x20) {
             handle_exception(vector, frame);
         } else {
             printk(LOGLEVEL_INFO,
