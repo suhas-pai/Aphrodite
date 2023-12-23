@@ -12,10 +12,10 @@
 static struct devicetree_node g_device_tree_root;
 static struct devicetree g_device_tree;
 
-static void
-find_nodes_for_driver(const struct dtb_driver *const driver,
-                      const struct devicetree *const tree,
-                      struct devicetree_node *const node)
+void
+dtb_find_nodes_for_driver(const struct dtb_driver *const driver,
+                          const struct devicetree *const tree,
+                          struct devicetree_node *const node)
 {
     if (driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
         struct devicetree_prop_compat *const compat_prop =
@@ -58,7 +58,7 @@ find_nodes_for_driver(const struct dtb_driver *const driver,
 
 next:
     devicetree_node_foreach_child(node, iter) {
-        find_nodes_for_driver(driver, tree, iter);
+        dtb_find_nodes_for_driver(driver, tree, iter);
     }
 }
 
@@ -89,7 +89,7 @@ static void dtb_initialize_drivers() {
                        driver->name);
         }
 
-        find_nodes_for_driver(dtb, &g_device_tree, &g_device_tree_root);
+        dtb_find_nodes_for_driver(dtb, &g_device_tree, &g_device_tree_root);
     }
 }
 

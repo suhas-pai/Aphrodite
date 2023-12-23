@@ -40,12 +40,12 @@ void serial_init() {
 void arch_init_dev();
 void dev_init() {
     acpi_init();
-    arch_init_time();
-
     dtb_init();
-    pci_init();
 
     arch_init_dev();
+    arch_init_time();
+
+    pci_init();
     printk(LOGLEVEL_INFO,
            "dev: initialized time, seconds since boot: %" PRIu64 "\n",
            nano_to_seconds(nsec_since_boot()));

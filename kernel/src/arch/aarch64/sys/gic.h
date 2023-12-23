@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include "lib/adt/array.h"
+#include "dev/dtb/node.h"
+#include "dev/dtb/tree.h"
 
-#include "acpi/structs.h"
+#include "lib/adt/array.h"
 #include "mm/mmio.h"
 
 #define GIC_SGI_INTERRUPT_START 0
@@ -50,6 +51,10 @@ struct gic_cpu_info {
     volatile struct gic_cpu_interface *interface;
     struct mmio_region *mmio;
 };
+
+bool
+gic_init_from_dtb(const struct devicetree *tree,
+                  const struct devicetree_node *node);
 
 void gic_cpu_init(const struct cpu_info *cpu);
 void gicd_init(uint64_t phys_base_address, uint8_t gic_version);

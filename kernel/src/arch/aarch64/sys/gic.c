@@ -415,9 +415,9 @@ void gic_cpu_eoi(const struct cpu_info *const cpu, const irq_number_t number) {
     }
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
+bool
+gic_init_from_dtb(const struct devicetree *const tree,
+                  const struct devicetree_node *const node)
 {
     (void)tree;
     const struct devicetree_prop *const int_controller_node =
@@ -500,21 +500,3 @@ init_from_dtb(const struct devicetree *const tree,
 
     return true;
 }
-
-static const struct string_view compat_list[] = {
-    SV_STATIC("arm,gic-400"), SV_STATIC("arm,cortex-a15-gic")
-};
-
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
-
-    .compat_list = compat_list,
-    .compat_count = countof(compat_list),
-};
-
-__driver static const struct driver driver = {
-    .name = "gicv2-driver",
-    .dtb = &dtb_driver,
-    .pci = NULL
-};
