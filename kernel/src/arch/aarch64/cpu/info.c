@@ -18,7 +18,7 @@
 #include "info.h"
 #include "features.h"
 
-static struct cpu_info g_base_cpu_info = {
+__hidden struct cpu_info g_base_cpu_info = {
     .pagemap = &kernel_pagemap,
     .pagemap_node = LIST_INIT(g_base_cpu_info.pagemap_node),
 
