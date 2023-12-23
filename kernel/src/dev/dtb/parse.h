@@ -4,6 +4,6 @@
  */
 
 #pragma once
-#include "dev/dtb/tree.h"
+#include "tree.h"
 
 bool devicetree_parse(struct devicetree *tree, const void *dtb);

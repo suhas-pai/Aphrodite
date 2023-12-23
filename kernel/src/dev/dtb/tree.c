@@ -123,20 +123,26 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
 }
 
 void devicetree_node_free(struct devicetree_node *const node) {
-    hashmap_foreach_bucket(&node->known_props, bucket) {
-        hashmap_bucket_foreach_node(*bucket, map_node) {
-            struct devicetree_prop *const prop =
-                (struct devicetree_prop *)(uint64_t)map_node->data;
+    hashmap_foreach_bucket(&node->known_props, bucket_ptr) {
+        struct hashmap_bucket *const bucket = *bucket_ptr;
+        if (bucket == NULL) {
+            continue;
+        }
 
+        hashmap_bucket_foreach_node(bucket, map_node) {
+            struct devicetree_prop **const prop_ptr =
+                (struct devicetree_prop **)(uint64_t)map_node->data;
+
+            struct devicetree_prop *const prop = *prop_ptr;
             switch (prop->kind) {
                 case DEVICETREE_PROP_COMPAT:
-                    break;
+                    goto free_prop;
                 case DEVICETREE_PROP_REG: {
                     struct devicetree_prop_reg *const reg_prop =
                         (struct devicetree_prop_reg *)(uint64_t)prop;
 
                     array_destroy(&reg_prop->list);
-                    break;
+                    goto free_prop;
                 }
                 case DEVICETREE_PROP_RANGES:
                 case DEVICETREE_PROP_DMA_RANGES: {
@@ -144,7 +150,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
                         (struct devicetree_prop_ranges *)(uint64_t)prop;
 
                     array_destroy(&ranges_prop->list);
-                    break;
+                    goto free_prop;
                 }
                 case DEVICETREE_PROP_MODEL:
                 case DEVICETREE_PROP_STATUS:
@@ -153,50 +159,53 @@ void devicetree_node_free(struct devicetree_node *const node) {
                 case DEVICETREE_PROP_VIRTUAL_REG:
                 case DEVICETREE_PROP_DMA_COHERENT:
                 case DEVICETREE_PROP_DEVICE_TYPE:
-                    break;
+                    goto free_prop;
                 case DEVICETREE_PROP_INTERRUPTS: {
                     struct devicetree_prop_interrupts *const int_prop =
                         (struct devicetree_prop_interrupts *)(uint64_t)prop;
 
                     array_destroy(&int_prop->list);
-                    break;
+                    goto free_prop;
                 }
                 case DEVICETREE_PROP_INTERRUPT_MAP: {
                     struct devicetree_prop_interrupt_map *const map_prop =
                         (struct devicetree_prop_interrupt_map *)(uint64_t)prop;
 
                     array_destroy(&map_prop->list);
-                    break;
+                    goto free_prop;
                 }
                 case DEVICETREE_PROP_INTERRUPT_PARENT:
                 case DEVICETREE_PROP_INTERRUPT_CONTROLLER:
                 case DEVICETREE_PROP_INTERRUPT_CELLS:
-                    break;
+                    goto free_prop;
                 case DEVICETREE_PROP_INTERRUPT_MAP_MASK: {
                     struct devicetree_prop_interrupt_map_mask *const map_prop =
                         (struct devicetree_prop_interrupt_map_mask *)
                             (uint64_t)prop;
 
                     array_destroy(&map_prop->list);
-                    break;
+                    goto free_prop;
                 }
                 case DEVICETREE_PROP_MSI_CONTROLLER:
-                    break;
+                    goto free_prop;
                 case DEVICETREE_PROP_SPECIFIER_MAP: {
                     struct devicetree_prop_specifier_map *const map_prop =
                         (struct devicetree_prop_specifier_map *)(uint64_t)prop;
 
                     array_destroy(&map_prop->list);
-                    break;
+                    goto free_prop;
                 }
                 case DEVICETREE_PROP_SPECIFIER_CELLS:
                 case DEVICETREE_PROP_SERIAL_CLOCK_FREQ:
                 case DEVICETREE_PROP_SERIAL_CURRENT_SPEED:
                 case DEVICETREE_PROP_PCI_BUS_RANGE:
-                    break;
+                    goto free_prop;
+
+                free_prop:
+                    kfree(prop);
             }
 
-            kfree(prop);
+            verify_not_reached();
         }
     }
 

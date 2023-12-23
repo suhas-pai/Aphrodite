@@ -13,6 +13,7 @@ struct devicetree {
 };
 
 struct devicetree *devicetree_alloc();
+struct devicetree *dtb_get_tree();
 
 void
 devicetree_init_fields(struct devicetree *tree, struct devicetree_node *root);
