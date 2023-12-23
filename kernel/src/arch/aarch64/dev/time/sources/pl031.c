@@ -81,6 +81,7 @@ init_from_dtb(const struct devicetree *const tree,
            "pl031: device initialized, current date&time is " STRING_FMT "\n",
            STRING_FMT_ARGS(string));
 
+    string_destroy(&string);
     return true;
 }
 
