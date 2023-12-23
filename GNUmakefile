@@ -55,16 +55,6 @@ ifeq ($(DISABLE_ACPI), 1)
 	MACHINE=$(DEFAULT_MACHINE),acpi=off
 endif
 
-ifneq ($(DEBUG), 1)
-	ifeq ($(ARCH),aarch64)
-		ifeq ($(shell uname -s),Darwin)
-			ifeq ($(shell uname -p),arm)
-				EXTRA_QEMU_ARGS += -accel hvf
-			endif
-		endif
-	endif
-endif
-
 DEFAULT_DRIVE_KIND=block
 ifeq ($(ARCH), riscv64)
 	DEFAULT_DRIVE_KIND=scsi
