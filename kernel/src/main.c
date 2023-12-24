@@ -20,7 +20,9 @@
 #include "mm/early.h"
 #include "mm/page_alloc.h"
 
+#include "sched/sched.h"
 #include "sys/boot.h"
+#include "time/time.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -92,5 +94,10 @@ void _start(void) {
 
     // We're done, just hang...
     enable_all_irqs();
+
+#if defined(__x86_64__)
+    sched_init(NULL);
+#endif
+
     cpu_halt();
 }

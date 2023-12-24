@@ -77,7 +77,7 @@ get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
 void
 ptwalker_default(struct pt_walker *const walker, const uint64_t virt_addr) {
     return ptwalker_default_for_pagemap(walker,
-                                        get_cpu_info()->pagemap,
+                                        this_cpu()->pagemap,
                                         virt_addr);
 }
 
@@ -100,7 +100,7 @@ ptwalker_create(struct pt_walker *const walker,
                 const ptwalker_free_pgtable_t free_pgtable)
 {
     return ptwalker_create_for_pagemap(walker,
-                                       get_cpu_info()->pagemap,
+                                       this_cpu()->pagemap,
                                        virt_addr,
                                        alloc_pgtable,
                                        free_pgtable);

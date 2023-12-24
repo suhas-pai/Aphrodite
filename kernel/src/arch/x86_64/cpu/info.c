@@ -3,9 +3,6 @@
  * © suhas pai
  */
 
-#include "asm/fsgsbase.h"
-#include "sched/thread.h"
-
 #include "info.h"
 
 struct cpu_info g_base_cpu_info = {
@@ -24,10 +21,10 @@ __optimize(3) const struct cpu_info *get_base_cpu_info() {
     return &g_base_cpu_info;
 }
 
-__optimize(3) const struct cpu_info *get_cpu_info() {
-    return ((const struct thread *)read_gsbase())->cpu;
+__optimize(3) const struct cpu_info *this_cpu() {
+    return current_thread()->cpu;
 }
 
-__optimize(3) struct cpu_info *get_cpu_info_mut() {
-    return ((struct thread *)read_gsbase())->cpu;
+__optimize(3) struct cpu_info *this_cpu_mut() {
+    return current_thread()->cpu;
 }

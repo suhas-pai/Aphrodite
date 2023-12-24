@@ -4,13 +4,22 @@
  */
 
 #pragma once
+
 #include "lib/time.h"
+#include "scheduler.h"
 
 struct sched_process_info {
 
 };
 
+enum sched_thread_state {
+    SCHED_THREAD_STATE_NONE,
+    SCHED_THREAD_STATE_RUNNABLE,
+    SCHED_THREAD_STATE_RUNNING
+};
+
 struct sched_thread_info {
+    struct scheduler *scheduler;
     usec_t timeslice;
 };
 

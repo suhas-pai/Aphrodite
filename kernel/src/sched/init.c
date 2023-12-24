@@ -4,24 +4,23 @@
  */
 
 #include "cpu/cpu_info.h"
-#include "cpu/isr.h"
-
 #include "mm/kmalloc.h"
 
-#include "sched/process.h"
-#include "sched/thread.h"
+#include "irq.h"
+#include "process.h"
+#include "sched/scheduler.h"
+#include "thread.h"
 
-__hidden isr_vector_t g_sched_vector = 0;
-
-void sched_init() {
-    g_sched_vector = isr_alloc_vector();
+void sched_init(struct scheduler *const sched) {
+    (void)sched;
     assert(array_append(&kernel_process.threads, &kernel_main_thread));
 
     struct thread *const idle_thread = kmalloc(sizeof(struct thread));
     assert(idle_thread != NULL);
 
-    idle_thread->cpu = get_cpu_info_mut();
+    idle_thread->cpu = this_cpu_mut();
     idle_thread->process = &kernel_process;
 
     g_base_cpu_info.idle_thread = idle_thread;
+    sched_init_irq();
 }

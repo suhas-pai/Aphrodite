@@ -41,17 +41,14 @@ __optimize(3) const struct cpu_info *get_base_cpu_info() {
     return &g_base_cpu_info;
 }
 
-__optimize(3) const struct cpu_info *get_cpu_info() {
-    return get_cpu_info_mut();
+__optimize(3) const struct cpu_info *this_cpu() {
+    assert(g_base_cpu_init);
+    return current_thread()->cpu;
 }
 
-__optimize(3) struct cpu_info *get_cpu_info_mut() {
+__optimize(3) struct cpu_info *this_cpu_mut() {
     assert(g_base_cpu_init);
-
-    struct thread *thread = NULL;
-    asm volatile ("mrs %0, tpidr_el1" : "=r"(thread));
-
-    return thread->cpu;
+    return current_thread()->cpu;
 }
 
 __optimize(3) const struct cpu_features *cpu_get_features() {

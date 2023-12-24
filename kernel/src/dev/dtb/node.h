@@ -10,6 +10,7 @@
 
 #include "fdt/libfdt_env.h"
 #include "lib/list.h"
+#include "sys/irq.h"
 
 enum devicetree_prop_kind {
     DEVICETREE_PROP_COMPAT,
@@ -134,8 +135,8 @@ struct devicetree_prop_int_info {
 
     bool is_ppi : 1;
 
-    enum devicetree_prop_int_polarity polarity : 1;
-    enum devicetree_prop_int_trigger_mode trigger_mode : 1;
+    enum irq_polarity polarity : 1;
+    enum irq_trigger_mpde trigger_mode : 1;
 };
 
 struct devicetree_prop_interrupts {

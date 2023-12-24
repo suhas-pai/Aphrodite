@@ -73,7 +73,7 @@ static void calibrate_timer() {
     const uint16_t pit_tick_count = pit_init_tick_number - pit_end_tick_number;
     const uint32_t lapic_timer_freq_multiple = sample_count / pit_tick_count;
 
-    get_cpu_info_mut()->lapic_timer_frequency =
+    this_cpu_mut()->lapic_timer_frequency =
         lapic_timer_freq_multiple * PIT_FREQUENCY;
 }
 
@@ -166,7 +166,7 @@ __optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     if (get_acpi_info()->using_x2apic) {
         lapic_write(X2APIC_LAPIC_REG_SELF_IPI, vector);
     } else {
-        lapic_send_ipi(get_cpu_info()->lapic_id, vector);
+        lapic_send_ipi(this_cpu()->lapic_id, vector);
     }
 }
 
@@ -184,7 +184,7 @@ lapic_timer_one_shot(const uint64_t microseconds, const isr_vector_t vector) {
     // cycles per microseconds
 
     const uint64_t lapic_timer_freq_in_microseconds =
-        get_cpu_info()->lapic_timer_frequency / MICRO_IN_SECONDS;
+        this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
 
     mmio_write(&lapic_regs->timer_initial_count,
                lapic_timer_freq_in_microseconds * microseconds);

@@ -7,5 +7,3 @@
 #include "sys/isr.h"
 
 extern isr_vector_t g_sched_vector;
-
-void sched_init();

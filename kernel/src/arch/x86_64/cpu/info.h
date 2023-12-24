@@ -4,13 +4,8 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
-
 #include "cpu/cpu_info.h"
 
-#include "lib/list.h"
 #include "mm/pagemap.h"
 #include "sched/thread.h"
 
@@ -38,9 +33,10 @@ struct cpu_info {
     struct list pagemap_node;
 
     // Keep track of spurious interrupts for every lapic.
+    struct thread *idle_thread;
     uint64_t spur_int_count;
 
-    struct thread *idle_thread;
+    bool active : 1;
 };
 
 void cpu_init();

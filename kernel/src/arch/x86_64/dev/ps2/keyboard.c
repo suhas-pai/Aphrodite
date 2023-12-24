@@ -232,7 +232,7 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
     g_ps2_vector = isr_alloc_vector();
 
     isr_set_vector(g_ps2_vector, ps2_keyboard_interrupt, &ARCH_ISR_INFO_NONE());
-    isr_assign_irq_to_cpu(get_cpu_info_mut(),
+    isr_assign_irq_to_cpu(this_cpu_mut(),
                           IRQ_KEYBOARD,
                           g_ps2_vector,
                           /*masked=*/false);

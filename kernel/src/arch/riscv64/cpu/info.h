@@ -19,4 +19,6 @@ struct cpu_info {
 
     uint16_t cbo_size;
     uint16_t cmo_size;
+
+    bool is_active : 1;
 };

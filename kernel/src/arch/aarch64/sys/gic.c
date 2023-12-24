@@ -4,13 +4,13 @@
  */
 
 #include <stdatomic.h>
-#include "cpu/info.h"
 
-#include "dev/driver.h"
+#include "cpu/info.h"
 #include "dev/printk.h"
 
 #include "lib/align.h"
-#include "mm/mmio.h"
+
+#include "sys/irq.h"
 #include "sys/mmio.h"
 
 #include "gic.h"
@@ -66,7 +66,7 @@ struct gicd_registers {
     volatile _Atomic uint32_t interrupt_targets[256];
 
     // Read-only on SGIs
-    volatile uint32_t interrupt_config[64];
+    volatile _Atomic uint32_t interrupt_config[64];
     volatile uint32_t interrupt_group_modifiers[64];
     volatile uint32_t non_secure_access_control[64];
 
@@ -185,7 +185,7 @@ static void init_with_regs() {
         }
     }
 
-    const uint8_t intr_number = get_cpu_info()->cpu_interface_number;
+    const uint8_t intr_number = this_cpu()->cpu_interface_number;
     const uint32_t mask_four_times =
         (uint32_t)intr_number |
         (uint32_t)intr_number << 8 |
@@ -317,8 +317,7 @@ struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
         return NULL;
     }
 
-    const struct range mmio_range =
-        RANGE_INIT(phys_base_address, PAGE_SIZE);
+    const struct range mmio_range = RANGE_INIT(phys_base_address, PAGE_SIZE);
     struct mmio_region *const mmio =
         vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
@@ -371,6 +370,35 @@ void gicd_set_irq_affinity(const uint8_t irq, const uint8_t iface) {
     atomic_store_explicit(&g_regs->interrupt_targets[index],
                           new_target,
                           memory_order_relaxed);
+}
+
+__optimize(3) void
+gicd_set_irq_trigger_mode(const uint8_t irq, const enum irq_trigger_mpde mode) {
+    assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
+               "gicd_set_irq_trigger_mode() called on sgi interrupt");
+
+    const uint64_t mask = 0b11ull;
+    const uint32_t target =
+        atomic_load_explicit(&g_regs->interrupt_config[irq / 16],
+                             memory_order_relaxed);
+
+    const uint8_t shift = irq % 16;
+    uint32_t new_target = target & ~(mask << shift);
+
+    switch (mode) {
+        case IRQ_TRIGGER_MODE_EDGE:
+            new_target |= mask << shift;
+            goto write;
+        case IRQ_TRIGGER_MODE_LEVEL:
+            goto write;
+        write:
+            atomic_store_explicit(&g_regs->interrupt_config[irq / 16],
+                                  new_target,
+                                  memory_order_relaxed);
+            return;
+    }
+
+    verify_not_reached();
 }
 
 __optimize(3)

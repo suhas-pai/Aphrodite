@@ -20,11 +20,11 @@ lapic_timer_irq_callback(const uint64_t int_no, irq_context_t *const frame) {
     (void)int_no;
     (void)frame;
 
-    get_cpu_info_mut()->timer_ticks++;
-    if (get_cpu_info()->timer_ticks % 1000 == 0) {
+    this_cpu_mut()->timer_ticks++;
+    if (this_cpu()->timer_ticks % 1000 == 0) {
         printk(LOGLEVEL_INFO,
                "Timer: %" PRIu64 "\n",
-               get_cpu_info_mut()->timer_ticks);
+               this_cpu_mut()->timer_ticks);
     }
 }
 
@@ -75,7 +75,7 @@ void apic_init(const uint64_t local_apic_base) {
                    lapic_timer_irq_callback,
                    &ARCH_ISR_INFO_NONE());
 
-    isr_assign_irq_to_cpu(get_cpu_info_mut(),
+    isr_assign_irq_to_cpu(this_cpu_mut(),
                           IRQ_TIMER,
                           isr_get_timer_vector(),
                           /*masked=*/false);

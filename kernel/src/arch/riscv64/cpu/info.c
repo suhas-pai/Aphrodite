@@ -15,10 +15,10 @@ __optimize(3) const struct cpu_info *get_base_cpu_info() {
     return &g_base_cpu_info;
 }
 
-__optimize(3) const struct cpu_info *get_cpu_info() {
+__optimize(3) const struct cpu_info *this_cpu() {
     return &g_base_cpu_info;
 }
 
-__optimize(3) struct cpu_info *get_cpu_info_mut() {
+__optimize(3) struct cpu_info *this_cpu_mut() {
     return &g_base_cpu_info;
 }

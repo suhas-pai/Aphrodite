@@ -142,7 +142,7 @@ __optimize(3) void pageop_finish(struct pageop *const pageop) {
         return;
     }
 
-    if (get_cpu_info()->pagemap == pageop->pagemap) {
+    if (this_cpu()->pagemap == pageop->pagemap) {
     #if defined(__x86_64__)
         tlb_flush_pageop(pageop);
     #elif defined(__riscv64)

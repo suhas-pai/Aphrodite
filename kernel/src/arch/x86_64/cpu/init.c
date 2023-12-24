@@ -426,7 +426,7 @@ void cpu_init() {
     init_cpuid_features();
 
     write_gsbase((uint64_t)&kernel_main_thread);
-    list_add(&kernel_pagemap.cpu_list, &get_cpu_info_mut()->pagemap_node);
+    list_add(&kernel_pagemap.cpu_list, &this_cpu_mut()->pagemap_node);
 
     g_base_cpu_init = true;
 }

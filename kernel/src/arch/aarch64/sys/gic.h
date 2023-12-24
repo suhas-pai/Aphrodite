@@ -12,13 +12,19 @@
 #include "mm/mmio.h"
 
 #define GIC_SGI_INTERRUPT_START 0
-#define GIC_SGI_INTERRUPT_END 15
+#define GIC_SGI_INTERRUPT_LAST 15
+
+#define GIC_SGI_IRQ_RANGE \
+    RANGE_INIT(GIC_SGI_INTERRUPT_START, GIC_SGI_INTERRUPT_LAST)
 
 #define GIC_PPI_INTERRUPT_START 16
-#define GIC_PPI_INTERRUPT_END 31
+#define GIC_PPI_INTERRUPT_LAST 31
+
+#define GIC_PPI_IRQ_RANGE \
+    RANGE_INIT(GIC_PPI_INTERRUPT_START, GIC_PPI_INTERRUPT_LAST)
 
 #define GIC_SPI_INTERRUPT_START 32
-#define GIC_SPI_INTERRUPT_END 1020
+#define GIC_SPI_INTERRUPT_LAST 1020
 
 enum gic_version {
     GICv1 = 1,
@@ -66,6 +72,7 @@ void gicd_mask_irq(uint8_t irq);
 void gicd_unmask_irq(uint8_t irq);
 
 void gicd_set_irq_affinity(uint8_t irq, uint8_t iface);
+void gicd_set_irq_trigger_mode(uint8_t irq, enum irq_trigger_mpde mode);
 void gicd_set_irq_priority(uint8_t irq, uint8_t priority);
 
 typedef uint16_t irq_number_t;

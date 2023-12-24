@@ -55,7 +55,7 @@ static void spur_tick(const uint64_t int_no, irq_context_t *const frame) {
     (void)int_no;
     (void)frame;
 
-    get_cpu_info_mut()->spur_int_count++;
+    this_cpu_mut()->spur_int_count++;
 }
 
 void isr_init() {

@@ -68,8 +68,8 @@ static void setup_from_dtb(const uint32_t hartid) {
         assert_msg(cbo_size < PAGE_SIZE,
                    "cpu: cbo-size is greater than page-size");
 
-        get_cpu_info_mut()->cbo_size = (uint16_t)cbo_size;
-        get_cpu_info_mut()->cmo_size = (uint16_t)cmo_size;
+        this_cpu_mut()->cbo_size = (uint16_t)cbo_size;
+        this_cpu_mut()->cmo_size = (uint16_t)cmo_size;
     }
 }
 

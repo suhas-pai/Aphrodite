@@ -10,6 +10,7 @@
 #include "mm/kmalloc.h"
 
 #include "gic_compat.h"
+#include "sys/irq.h"
 #include "parse.h"
 
 __optimize(3) static inline bool
@@ -424,27 +425,23 @@ parse_int_info(const fdt32_t *const data,
 
     switch (int_info->flags & 0xF) {
         case 1:
-            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH;
-            int_info->trigger_mode =
-                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE;
+            int_info->polarity = IRQ_POLARITY_HIGH;
+            int_info->trigger_mode = IRQ_TRIGGER_MODE_EDGE;
 
             return true;
         case 2:
-            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW;
-            int_info->trigger_mode =
-                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE;
+            int_info->polarity = IRQ_POLARITY_LOW;
+            int_info->trigger_mode = IRQ_TRIGGER_MODE_EDGE;
 
             return true;
         case 4:
-            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH;
-            int_info->trigger_mode =
-                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL;
+            int_info->polarity = IRQ_POLARITY_HIGH;
+            int_info->trigger_mode = IRQ_TRIGGER_MODE_LEVEL;
 
             return true;
         case 8:
-            int_info->polarity = DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW;
-            int_info->trigger_mode =
-                DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL;
+            int_info->polarity = IRQ_POLARITY_LOW;
+            int_info->trigger_mode = IRQ_TRIGGER_MODE_LEVEL;
 
             return true;
     }

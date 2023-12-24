@@ -496,6 +496,6 @@ void madt_init(const struct acpi_madt *const madt) {
     assert_msg(gic_dist != NULL, "madt: failed to find gic-distributor");
 
     gicd_init(gic_dist->phys_base_address, gic_dist->gic_version);
-    gic_cpu_init(get_cpu_info());
+    gic_cpu_init(this_cpu());
 #endif /* defined(__x86_64__) */
 }
