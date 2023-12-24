@@ -28,7 +28,7 @@ struct pci_entity_info {
     struct list list_in_entities;
     struct list list_in_domain;
 
-    struct pci_bus *bus;
+    const struct pci_bus *bus;
     struct pci_location loc;
 
     uint16_t id;

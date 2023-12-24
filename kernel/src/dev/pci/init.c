@@ -191,7 +191,7 @@ validate_cap_offset(struct array *const prev_cap_offsets,
         return false;
     }
 
-    array_foreach(prev_cap_offsets, uint8_t, iter) {
+    array_foreach(prev_cap_offsets, const uint8_t, iter) {
         if (*iter == cap_offset) {
             printk(LOGLEVEL_WARN,
                    "\t\tcapability'e offset_to_next points to previously "
@@ -465,10 +465,12 @@ const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
 }
 
 void
-pci_parse_bus(struct pci_bus *bus, struct pci_location *loc, uint8_t bus_id);
+pci_parse_bus(const struct pci_bus *bus,
+              struct pci_location *loc,
+              uint8_t bus_id);
 
 static void
-parse_function(struct pci_bus *const bus,
+parse_function(const struct pci_bus *const bus,
                const struct pci_location *const loc,
                const uint8_t header_kind)
 {
@@ -672,7 +674,7 @@ parse_function(struct pci_bus *const bus,
 }
 
 void
-pci_parse_bus(struct pci_bus *const bus,
+pci_parse_bus(const struct pci_bus *const bus,
               struct pci_location *const loc,
               const uint8_t bus_id)
 {
@@ -821,7 +823,7 @@ __optimize(3) void pci_init() {
             printk(LOGLEVEL_INFO,
                    "pci: searching for entities in every pci-bus\n");
 
-            array_foreach(bus_list, struct pci_bus *, iter) {
+            array_foreach(bus_list, struct pci_bus *const, iter) {
                 pci_find_entities(*iter);
             }
         } else {

@@ -76,7 +76,7 @@ __optimize(3) static inline volatile void *
 find_ptr_in_bus_resource(struct pci_entity_info *const entity,
                          const uint32_t offset)
 {
-    array_foreach(&entity->bus->resources, struct pci_bus_resource, res) {
+    array_foreach(&entity->bus->resources, const struct pci_bus_resource, res) {
         const struct range child_range = RANGE_INIT(res->child_base, res->size);
         if (range_has_loc(child_range, offset)) {
             return res->mmio->base + range_index_for_loc(child_range, offset);

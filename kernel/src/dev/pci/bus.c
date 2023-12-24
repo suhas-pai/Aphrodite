@@ -47,7 +47,7 @@ __optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     uint32_t index = 0;
     const int flag = spin_acquire_with_irq(&g_root_bus_list_lock);
 
-    array_foreach(&g_root_bus_list, struct pci_bus *, iter) {
+    array_foreach(&g_root_bus_list, const struct pci_bus *, iter) {
         if (*iter == bus) {
             array_remove_index(&g_root_bus_list, index);
             spin_release_with_irq(&g_root_bus_list_lock, flag);

@@ -243,7 +243,10 @@ parse_dtb_resources(const struct devicetree_node *const node,
     }
 
     uint32_t index = 0;
-    array_foreach(&ranges_prop->list, struct devicetree_prop_range_info, iter) {
+    array_foreach(&ranges_prop->list,
+                  const struct devicetree_prop_range_info,
+                  iter)
+    {
         const enum pci_ecam_dtb_range_kind kind =
             (iter->flags & __PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND) >>
                 PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT;

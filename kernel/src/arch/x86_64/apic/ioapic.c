@@ -37,8 +37,8 @@ create_ioapic_redirect_request(
 }
 
 __optimize(3)
-static struct ioapic_info *ioapic_info_for_gsi(const uint32_t gsi) {
-    array_foreach(&g_ioapic_list, struct ioapic_info, item) {
+static const struct ioapic_info *ioapic_info_for_gsi(const uint32_t gsi) {
+    array_foreach(&g_ioapic_list, const struct ioapic_info, item) {
         const uint32_t gsi_base = item->gsi_base;
         if (gsi > gsi_base && gsi < gsi_base + item->max_redirect_count) {
             return item;
@@ -152,7 +152,10 @@ ioapic_redirect_irq(const uint8_t lapic_id,
     // First check if the IOAPIC already directs this IRQ to the requested
     // vector. If so, we don't need to do anything.
 
-    array_foreach(&get_acpi_info()->iso_list, struct apic_iso_info, item) {
+    array_foreach(&get_acpi_info()->iso_list,
+                  const struct apic_iso_info,
+                  item)
+    {
         if (item->irq_src != irq) {
             continue;
         }

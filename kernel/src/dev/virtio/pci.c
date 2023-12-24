@@ -95,7 +95,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                        struct virtio_pci_cap64, \
                        field)
 
-    array_foreach(&pci_entity->vendor_cap_list, uint8_t, iter) {
+    array_foreach(&pci_entity->vendor_cap_list, const uint8_t, iter) {
         const uint8_t cap_len = pci_read_virtio_cap_field(*iter, cap.cap_len);
         if (cap_len < sizeof(struct virtio_pci_cap)) {
             printk(LOGLEVEL_INFO,

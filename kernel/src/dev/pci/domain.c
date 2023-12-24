@@ -30,7 +30,7 @@ bool pci_remove_domain(struct pci_domain *const domain) {
     uint32_t index = 0;
     const int flag = spin_acquire_with_irq(&g_domain_lock);
 
-    array_foreach(&g_domain_list, struct pci_domain *, iter) {
+    array_foreach(&g_domain_list, const struct pci_domain *, iter) {
         if (*iter == domain) {
             array_remove_index(&g_domain_list, index);
             spin_release_with_irq(&g_domain_lock, flag);

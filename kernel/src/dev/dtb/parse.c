@@ -1561,7 +1561,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         return false;
     }
 
-    array_foreach(&later_info.int_map_list, struct int_map_info, iter) {
+    array_foreach(&later_info.int_map_list, const struct int_map_info, iter) {
         bool has_flags = false;
         struct array list =
             ARRAY_INIT(sizeof(struct devicetree_prop_interrupt_map_entry));
@@ -1612,7 +1612,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         }
     }
 
-    array_foreach(&later_info.int_node_list, struct int_node_info, iter) {
+    array_foreach(&later_info.int_node_list, const struct int_node_info, iter) {
         struct devicetree_node *const node = iter->node;
         struct devicetree_node *const parent = node->parent;
 
