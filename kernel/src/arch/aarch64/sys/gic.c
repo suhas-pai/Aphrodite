@@ -310,8 +310,8 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
 struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
     if (!has_align(phys_base_address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
-                "madt: gic msi frame's physical base address (%p) is not "
-                "aligned to the page-size (%" PRIu32 ")\n",
+                "gicd: msi frame's physical base address (%p) is not aligned "
+                "to the page-size (%" PRIu32 ")\n",
                 (void *)phys_base_address,
                 (uint32_t)PAGE_SIZE);
         return NULL;
@@ -323,7 +323,7 @@ struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
 
     if (mmio == NULL) {
         printk(LOGLEVEL_WARN,
-               "madt: failed to mmio-map msi-frame at phys address %p\n",
+               "gicd: failed to mmio-map msi-frame at phys address %p\n",
                (void *)phys_base_address);
         return NULL;
     }
@@ -334,7 +334,7 @@ struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
     };
 
     assert_msg(array_append(&g_dist.msi_frame_list, &msi_frame),
-               "gic: failed to append msi-frame");
+               "gicd: failed to append msi-frame to list");
 
     return array_back(g_dist.msi_frame_list);
 }
@@ -378,8 +378,10 @@ gicd_set_irq_trigger_mode(const uint8_t irq, const enum irq_trigger_mpde mode) {
                "gicd_set_irq_trigger_mode() called on sgi interrupt");
 
     const uint64_t mask = 0b11ull;
+    const uint8_t config_index = irq / 16;
+
     const uint32_t target =
-        atomic_load_explicit(&g_regs->interrupt_config[irq / 16],
+        atomic_load_explicit(&g_regs->interrupt_config[config_index],
                              memory_order_relaxed);
 
     const uint8_t shift = irq % 16;
@@ -387,12 +389,12 @@ gicd_set_irq_trigger_mode(const uint8_t irq, const enum irq_trigger_mpde mode) {
 
     switch (mode) {
         case IRQ_TRIGGER_MODE_EDGE:
-            new_target |= mask << shift;
+            new_target |= (uint32_t)0b10 << shift;
             goto write;
         case IRQ_TRIGGER_MODE_LEVEL:
             goto write;
         write:
-            atomic_store_explicit(&g_regs->interrupt_config[irq / 16],
+            atomic_store_explicit(&g_regs->interrupt_config[config_index],
                                   new_target,
                                   memory_order_relaxed);
             return;
