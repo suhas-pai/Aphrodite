@@ -103,8 +103,7 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
 
 __optimize(3) struct mutable_buffer
 gbuffer_get_mutable_buffer(const struct growable_buffer gbuffer) {
-    const uint32_t cap = gbuffer.capacity;
-    return mbuffer_open(gbuffer.begin, gbuffer.index, cap);
+    return mbuffer_open(gbuffer.begin, gbuffer.index, gbuffer.capacity);
 }
 
 __optimize(3) void *gbuffer_current_ptr(const struct growable_buffer gbuffer) {
