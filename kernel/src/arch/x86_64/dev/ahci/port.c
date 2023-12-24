@@ -57,10 +57,15 @@ ahci_hba_port_send_command(struct ahci_hba_port *const port,
         __AHCI_PORT_CMDHDR_PREFETCHABLE |
         (sizeof(struct ahci_spec_fis_reg_h2d) / 4);
 
-    if (command_kind == AHCI_HBA_PORT_CMDKIND_WRITE) {
-        flags |= __AHCI_PORT_CMDHDR_WRITE;
-    } else {
-        flags &= (uint16_t)~__AHCI_PORT_CMDHDR_WRITE;
+    switch (command_kind) {
+        case AHCI_HBA_PORT_CMDKIND_READ:
+            flags &= (uint16_t)~__AHCI_PORT_CMDHDR_WRITE;
+            break;
+        case AHCI_HBA_PORT_CMDKIND_WRITE:
+            flags |= __AHCI_PORT_CMDHDR_WRITE;
+            break;
+        default:
+            verify_not_reached();
     }
 
     const uint32_t prdt_count = div_round_up(count, AHCI_HBA_PORT_MAX_COUNT);
