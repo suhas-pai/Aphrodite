@@ -9,8 +9,8 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
+#include "time/clock.h"
 #include "time/kstrftime.h"
-#include "time/time.h"
 
 struct goldfish_rtc {
     volatile uint32_t time_low;
@@ -28,26 +28,40 @@ struct goldfish_rtc {
 } __packed;
 
 struct goldfish_rtc_info {
-    struct clock_source clock_source;
+    struct clock clock;
     struct mmio_region *mmio;
 };
 
-static uint64_t goldfish_rtc_read(struct clock_source *const clock_source) {
+static struct goldfish_rtc_info *g_goldfish_clock = NULL;
+
+__optimize(3) struct clock *rtc_clock_get() {
+    return &g_goldfish_clock->clock;
+}
+
+__optimize(3)
+static uint64_t goldfish_rtc_read(const struct clock *const clock) {
     const struct goldfish_rtc_info *const info =
-        container_of(clock_source, struct goldfish_rtc_info, clock_source);
+        container_of(clock, struct goldfish_rtc_info, clock);
 
     volatile const struct goldfish_rtc *const rtc = info->mmio->base;
 
     const uint64_t lower = mmio_read(&rtc->time_low);
     const uint64_t higher = mmio_read(&rtc->time_high);
 
-    return nano_to_micro(higher << 32 | lower);
+    return higher << 32 | lower;
 }
 
 static bool
 init_from_dtb(const struct devicetree *const tree,
               const struct devicetree_node *const node)
 {
+    if (g_goldfish_clock != NULL) {
+        printk(LOGLEVEL_WARN,
+               "goldfish-rtc: multiple devices found. Ignoring\n");
+
+        return true;
+    }
+
     (void)tree;
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
@@ -91,23 +105,26 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    struct goldfish_rtc_info *const clock = kmalloc(sizeof(*clock));
-    if (clock == NULL) {
+    struct goldfish_rtc_info *const goldfish = kmalloc(sizeof(*goldfish));
+    if (goldfish == NULL) {
         printk(LOGLEVEL_WARN, "goldfish-rtc: failed to alloc clock-info\n");
         vunmap_mmio(mmio);
 
         return false;
     }
 
-    list_init(&clock->clock_source.list);
+    list_init(&goldfish->clock.list);
 
-    clock->clock_source.name = "goldfish-rtc";
-    clock->mmio = mmio;
-    clock->clock_source.read = goldfish_rtc_read;
+    goldfish->clock.name = SV_STATIC("goldfish-rtc");
+    goldfish->mmio = mmio;
 
-    add_clock_source(&clock->clock_source);
+    goldfish->clock.read = goldfish_rtc_read;
+    goldfish->clock.resolution = CLOCK_RES_NANO;
 
-    const uint64_t timestamp = goldfish_rtc_read(&clock->clock_source);
+    clock_add(&goldfish->clock);
+    g_goldfish_clock = goldfish;
+
+    const uint64_t timestamp = goldfish_rtc_read(&goldfish->clock);
     printk(LOGLEVEL_INFO,
            "goldfish-rtc: init complete. ns since epoch: %" PRIu64 "\n",
            timestamp);

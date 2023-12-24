@@ -7,30 +7,35 @@
 
 #include "lib/util.h"
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
 #include "sys/mmio.h"
 
+#include "time/clock.h"
 #include "time/kstrftime.h"
-#include "time/time.h"
 
 #define CLINT_REG_MTIME 0xBFF8
 
 struct clint_mtime {
-    struct clock_source source;
+    struct clock clock;
     struct mmio_region *mmio;
 
     volatile void *base;
     uint64_t frequency;
 };
 
-__optimize(3) __unused
-static uint64_t clint_mtime_read(struct clock_source *const source) {
+__optimize(3)
+__unused static uint64_t clint_mtime_read(const struct clock *const source) {
     struct clint_mtime *const clint =
-        container_of(source, struct clint_mtime, source);
+        container_of(source, struct clint_mtime, clock);
     const msec_t seconds =
         mmio_read(reg_to_ptr(uint32_t, clint->base, CLINT_REG_MTIME));
 
     return seconds / clint->frequency;
+}
+
+static struct clint_mtime *g_clint_mtime = NULL;
+
+__optimize(3) struct clock *system_clock_get() {
+    return &g_clint_mtime->clock;
 }
 
 void
@@ -56,20 +61,22 @@ clint_init(volatile uint64_t *const base,
         return;
     }
 
-    clint->source.name = "clint";
+    clint->clock.name = SV_STATIC("clint");
     clint->mmio = mmio;
     clint->base = mmio->base;
     clint->frequency = freq;
+    clint->clock.resolution = CLOCK_RES_NANO;
 
-    clint->source.read = clint_mtime_read;
-    clint->source.enable = NULL;
-    clint->source.disable = NULL;
-    clint->source.resume = NULL;
-    clint->source.suspend = NULL;
+    clint->clock.read = clint_mtime_read;
+    clint->clock.enable = NULL;
+    clint->clock.disable = NULL;
+    clint->clock.resume = NULL;
+    clint->clock.suspend = NULL;
 
-    add_clock_source(&clint->source);
+    clock_add(&clint->clock);
+    g_clint_mtime = clint;
 
-    const usec_t stamp = clint_mtime_read(&clint->source);
+    const usec_t stamp = clint_mtime_read(&clint->clock);
     printk(LOGLEVEL_INFO, "clint: timestamp is %" PRIu64 "\n", stamp);
 
     const struct tm tm = tm_from_stamp(stamp);
@@ -80,6 +87,11 @@ static bool
 init_from_dtb(const struct devicetree *const tree,
               const struct devicetree_node *const node)
 {
+    if (g_clint_mtime != NULL) {
+        printk(LOGLEVEL_WARN, "clint: multiple mtime clocks found. Ignoring\n");
+        return true;
+    }
+
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);

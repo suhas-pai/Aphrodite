@@ -16,7 +16,7 @@
 
 #include "dev/printk.h"
 #include "pci/init.h"
-#include "time/time.h"
+#include "time/clock.h"
 
 void serial_init() {
 #if defined(__x86_64__)
@@ -38,6 +38,8 @@ void serial_init() {
 }
 
 void arch_init_dev();
+void arch_init_time();
+
 void dev_init() {
     acpi_init();
 
