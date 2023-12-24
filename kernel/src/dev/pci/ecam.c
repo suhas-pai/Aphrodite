@@ -289,8 +289,13 @@ parse_dtb_resources(const struct devicetree_node *const node,
             continue;
         }
 
+        uint64_t flags = 0;
+        if (res_kind == PCI_BUS_RESOURCE_PREFETCH_MEM) {
+            flags |= __VMAP_MMIO_WT;
+        }
+
         struct mmio_region *const mmio =
-            vmap_mmio(res_mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+            vmap_mmio(res_mmio_range, PROT_READ | PROT_WRITE, flags);
 
         if (mmio == NULL) {
             printk(LOGLEVEL_WARN,
