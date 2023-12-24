@@ -4,13 +4,9 @@
  */
 
 #include "dev/driver.h"
-#include "dev/printk.h"
-
 #include "lib/align.h"
 
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
-
 #include "sys/mmio.h"
 
 #include "time/kstrftime.h"
@@ -111,7 +107,7 @@ init_from_dtb(const struct devicetree *const tree,
 
     add_clock_source(&clock->clock_source);
 
-    const uint64_t timestamp = clock->clock_source.read(&clock->clock_source);
+    const uint64_t timestamp = goldfish_rtc_read(&clock->clock_source);
     printk(LOGLEVEL_INFO,
            "goldfish-rtc: init complete. ns since epoch: %" PRIu64 "\n",
            timestamp);
@@ -120,7 +116,8 @@ init_from_dtb(const struct devicetree *const tree,
     struct string string = kstrftime("%c", &tm);
 
     printk(LOGLEVEL_INFO,
-           "goldfish-rtc: current date&time is " STRING_FMT "\n",
+           "goldfish-rtc: device initialized. current date&time "
+           "is " STRING_FMT "\n",
            STRING_FMT_ARGS(string));
 
     string_destroy(&string);
