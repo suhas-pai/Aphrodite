@@ -20,7 +20,7 @@ void kfree(void *buffer);
 __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
 void *kmalloc(uint32_t size);
 
-__malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
+__malloclike __malloc_dealloc(kfree, 1)
 void *kmalloc_size(uint32_t size, uint32_t *size_out);
 
 __alloc_size(2) void *krealloc(void *buffer, uint32_t size);

@@ -70,7 +70,7 @@ void *kmalloc(const uint32_t size) {
     return slab_alloc(allocator);
 }
 
-__optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
+__optimize(3) __malloclike __malloc_dealloc(kfree, 1)
 void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
     assert_msg(kmalloc_is_initialized,
                "mm: kmalloc_size() called before kmalloc_init()");
