@@ -7,6 +7,7 @@
 #include "mm/kmalloc.h"
 
 #include "bus.h"
+#include "resource.h"
 
 struct array g_root_bus_list = ARRAY_INIT(sizeof(struct pci_bus *));
 struct spinlock g_root_bus_list_lock = SPINLOCK_INIT();

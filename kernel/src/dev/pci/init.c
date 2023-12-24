@@ -471,8 +471,7 @@ pci_parse_bus(const struct pci_bus *bus,
 
 static void
 parse_function(const struct pci_bus *const bus,
-               const struct pci_location *const loc,
-               const uint8_t header_kind)
+               const struct pci_location *const loc)
 {
     struct pci_entity_info info = {
         .bus = bus,
@@ -486,8 +485,8 @@ parse_function(const struct pci_bus *const bus,
         return;
     }
 
-    const bool is_multi_function =
-        (header_kind & __PCI_ENTITY_HDR_MULTFUNC) != 0;
+    const uint8_t header_kind =
+        pci_read(&info, struct pci_spec_entity_info_base, header_kind);
 
     const uint8_t hdrkind = header_kind & (uint8_t)~__PCI_ENTITY_HDR_MULTFUNC;
     const uint8_t irq_pin =
@@ -507,7 +506,6 @@ parse_function(const struct pci_bus *const bus,
     info.class = pci_read(&info, struct pci_spec_entity_info_base, class_code);
     info.subclass = pci_read(&info, struct pci_spec_entity_info_base, subclass);
     info.irq_pin = irq_pin;
-    info.multifunction = is_multi_function;
     info.vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
 
     printk(LOGLEVEL_INFO,
@@ -678,23 +676,12 @@ pci_parse_bus(const struct pci_bus *const bus,
               struct pci_location *const loc,
               const uint8_t bus_id)
 {
-    loc->bus = bus_id;
-    for (uint8_t slot = 0; slot != PCI_MAX_ENTITY_COUNT; slot++) {
+    loc->bus += bus_id;
+    for (uint8_t slot = 0; slot != PCI_MAX_SLOT_COUNT; slot++) {
         loc->slot = slot;
-
-        const uint8_t header_kind =
-            pci_domain_read_8(bus->domain,
-                              loc,
-                              offsetof(struct pci_spec_entity_info_base,
-                                       header_kind));
-
-        const uint8_t function_count =
-            header_kind & __PCI_ENTITY_HDR_MULTFUNC ?
-                PCI_MAX_FUNCTION_COUNT : 1;
-
-        for (uint8_t func = 0; func != function_count; func++) {
+        for (uint8_t func = 0; func != PCI_MAX_FUNCTION_COUNT; func++) {
             loc->function = func;
-            parse_function(bus, loc, header_kind);
+            parse_function(bus, loc);
         }
     }
 }
@@ -702,12 +689,25 @@ pci_parse_bus(const struct pci_bus *const bus,
 void pci_find_entities(struct pci_bus *const bus) {
     struct pci_location loc = {
         .segment = bus->segment,
-        .bus = 0,
+        .bus = bus->bus_id,
         .slot = 0,
         .function = 0,
     };
 
-    for (uint16_t i = 0; i != PCI_MAX_BUS_COUNT; i++) {
+    const uint8_t header_kind =
+        pci_domain_read_8(bus->domain,
+                          &loc,
+                          offsetof(struct pci_spec_entity_info_base,
+                                   header_kind));
+
+    if (header_kind == (uint8_t)-1) {
+        return;
+    }
+
+    const uint8_t host_count =
+        header_kind & __PCI_ENTITY_HDR_MULTFUNC ? PCI_MAX_FUNCTION_COUNT : 1;
+
+    for (uint16_t i = 0; i != host_count; i++) {
         pci_parse_bus(bus, &loc, /*bus=*/i);
     }
 }
@@ -817,20 +817,20 @@ __optimize(3) void pci_init() {
                    "pci: failed to allocate pci-legacy root bus");
 
         pci_find_entities(root_bus);
+        pci_add_root_bus(root_bus);
     } else {
-#endif /* defined(__x86_64__) */
-        if (!array_empty(*bus_list)) {
-            printk(LOGLEVEL_INFO,
-                   "pci: searching for entities in every pci-bus\n");
+        printk(LOGLEVEL_INFO, "pci: no root-bus found. Aborting init\n");
+    }
+#else
+    if (!array_empty(*bus_list)) {
+        printk(LOGLEVEL_INFO,
+                "pci: searching for entities in every pci-bus\n");
 
-            array_foreach(bus_list, struct pci_bus *const, iter) {
-                pci_find_entities(*iter);
-            }
-        } else {
-            printk(LOGLEVEL_INFO,
-                   "pci: no root-bus found. Aborting init\n");
+        array_foreach(bus_list, struct pci_bus *const, iter) {
+            pci_find_entities(*iter);
         }
-#if defined(__x86_64__)
+    } else {
+        printk(LOGLEVEL_INFO, "pci: no root-bus found. Aborting init\n");
     }
 #endif /* defined(__x86_64__) */
 

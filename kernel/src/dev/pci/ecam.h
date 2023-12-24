@@ -30,45 +30,45 @@ pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *domain,
                                const struct pci_location *loc);
 
 uint8_t
-pci_ecam_read_8(struct pci_ecam_domain *domain,
+pci_ecam_read_8(const struct pci_ecam_domain *domain,
                 const struct pci_location *loc,
                 uint16_t offset);
 
 uint16_t
-pci_ecam_read_16(struct pci_ecam_domain *domain,
+pci_ecam_read_16(const struct pci_ecam_domain *domain,
                  const struct pci_location *loc,
                  uint16_t offset);
 
 uint32_t
-pci_ecam_read_32(struct pci_ecam_domain *domain,
+pci_ecam_read_32(const struct pci_ecam_domain *domain,
                  const struct pci_location *loc,
                  uint16_t offset);
 
 uint64_t
-pci_ecam_read_64(struct pci_ecam_domain *domain,
+pci_ecam_read_64(const struct pci_ecam_domain *domain,
                  const struct pci_location *loc,
                  uint16_t offset);
 
 void
-pci_ecam_write_8(struct pci_ecam_domain *domain,
+pci_ecam_write_8(const struct pci_ecam_domain *domain,
                  const struct pci_location *loc,
                  uint16_t offset,
                  uint8_t value);
 
 void
-pci_ecam_write_16(struct pci_ecam_domain *domain,
+pci_ecam_write_16(const struct pci_ecam_domain *domain,
                   const struct pci_location *loc,
                   uint16_t offset,
                   uint16_t value);
 
 void
-pci_ecam_write_32(struct pci_ecam_domain *domain,
+pci_ecam_write_32(const struct pci_ecam_domain *domain,
                   const struct pci_location *loc,
                   uint16_t offset,
                   uint32_t value);
 
 void
-pci_ecam_write_64(struct pci_ecam_domain *domain,
+pci_ecam_write_64(const struct pci_ecam_domain *domain,
                   const struct pci_location *loc,
                   uint16_t offset,
                   uint64_t value);

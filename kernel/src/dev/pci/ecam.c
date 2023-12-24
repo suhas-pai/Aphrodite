@@ -14,7 +14,9 @@
 #include "mm/mmio.h"
 
 #include "sys/mmio.h"
+
 #include "ecam.h"
+#include "resource.h"
 
 static struct list g_ecam_entity_list = LIST_INIT(g_ecam_entity_list);
 static struct spinlock g_ecam_domain_lock = SPINLOCK_INIT();
@@ -99,7 +101,7 @@ pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) uint8_t
-pci_ecam_read_8(struct pci_ecam_domain *const domain,
+pci_ecam_read_8(const struct pci_ecam_domain *const domain,
                 const struct pci_location *const loc,
                 const uint16_t off)
 {
@@ -112,7 +114,7 @@ pci_ecam_read_8(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) uint16_t
-pci_ecam_read_16(struct pci_ecam_domain *const domain,
+pci_ecam_read_16(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
 {
@@ -125,7 +127,7 @@ pci_ecam_read_16(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) uint32_t
-pci_ecam_read_32(struct pci_ecam_domain *const domain,
+pci_ecam_read_32(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
 {
@@ -138,7 +140,7 @@ pci_ecam_read_32(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) uint64_t
-pci_ecam_read_64(struct pci_ecam_domain *const domain,
+pci_ecam_read_64(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
 {
@@ -151,7 +153,7 @@ pci_ecam_read_64(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) void
-pci_ecam_write_8(struct pci_ecam_domain *const domain,
+pci_ecam_write_8(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off,
                  const uint8_t value)
@@ -165,7 +167,7 @@ pci_ecam_write_8(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) void
-pci_ecam_write_16(struct pci_ecam_domain *const domain,
+pci_ecam_write_16(const struct pci_ecam_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
                   const uint16_t value)
@@ -179,7 +181,7 @@ pci_ecam_write_16(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) void
-pci_ecam_write_32(struct pci_ecam_domain *const domain,
+pci_ecam_write_32(const struct pci_ecam_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
                   const uint32_t value)
@@ -193,7 +195,7 @@ pci_ecam_write_32(struct pci_ecam_domain *const domain,
 }
 
 __optimize(3) void
-pci_ecam_write_64(struct pci_ecam_domain *const domain,
+pci_ecam_write_64(const struct pci_ecam_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
                   const uint64_t value)

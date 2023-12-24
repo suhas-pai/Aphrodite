@@ -46,7 +46,6 @@ struct pci_entity_info {
     uint8_t irq_pin;
 
     bool supports_pcie : 1;
-    bool multifunction : 1;
     uint8_t max_bar_count : 3;
 
     enum pci_entity_msi_support msi_support : 2;

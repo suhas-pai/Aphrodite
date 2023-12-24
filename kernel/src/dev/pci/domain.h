@@ -32,45 +32,45 @@ const struct array *pci_get_domain_list_locked(int *flag_out);
 void pci_release_domain_list_lock(int flag);
 
 uint8_t
-pci_domain_read_8(struct pci_domain *domain,
+pci_domain_read_8(const struct pci_domain *domain,
                   const struct pci_location *loc,
                   uint16_t offset);
 
 uint16_t
-pci_domain_read_16(struct pci_domain *domain,
+pci_domain_read_16(const struct pci_domain *domain,
                    const struct pci_location *loc,
                    uint16_t offset);
 
 uint32_t
-pci_domain_read_32(struct pci_domain *domain,
+pci_domain_read_32(const struct pci_domain *domain,
                    const struct pci_location *loc,
                    uint16_t offset);
 
 uint64_t
-pci_domain_read_64(struct pci_domain *domain,
+pci_domain_read_64(const struct pci_domain *domain,
                    const struct pci_location *loc,
                    uint16_t offset);
 
 void
-pci_domain_write_8(struct pci_domain *domain,
+pci_domain_write_8(const struct pci_domain *domain,
                    const struct pci_location *loc,
                    uint16_t offset,
                    uint8_t value);
 
 void
-pci_domain_write_16(struct pci_domain *domain,
+pci_domain_write_16(const struct pci_domain *domain,
                     const struct pci_location *loc,
                     uint16_t offset,
                     uint16_t value);
 
 void
-pci_domain_write_32(struct pci_domain *domain,
+pci_domain_write_32(const struct pci_domain *domain,
                     const struct pci_location *loc,
                     uint16_t offset,
                     uint32_t value);
 
 void
-pci_domain_write_64(struct pci_domain *domain,
+pci_domain_write_64(const struct pci_domain *domain,
                     const struct pci_location *loc,
                     uint16_t offset,
                     uint64_t value);

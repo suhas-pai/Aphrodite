@@ -4,13 +4,12 @@
  */
 
 #pragma once
-#include "lib/list.h"
 
+#include "lib/list.h"
 #include "domain.h"
-#include "resource.h"
 
 struct pci_bus {
-    struct pci_domain *domain;
+    const struct pci_domain *domain;
     struct array resources;
 
     uint32_t bus_id;
@@ -21,8 +20,6 @@ struct pci_bus {
 
 struct pci_bus *
 pci_bus_create(struct pci_domain *domain, uint32_t bus_id, uint32_t segment);
-
-struct pci_bus_resource *pci_bus_get_resource();
 
 bool pci_add_root_bus(struct pci_bus *bus);
 bool pci_remove_root_bus(struct pci_bus *bus);

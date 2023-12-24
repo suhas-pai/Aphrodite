@@ -9,6 +9,7 @@
 #include "sys/pio.h"
 
 #include "bar.h"
+#include "resource.h"
 #include "entity.h"
 
 bool pci_map_bar(struct pci_entity_bar_info *const bar) {
