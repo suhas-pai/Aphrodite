@@ -62,6 +62,9 @@ endif
 
 $(eval $(call DEFAULT_VAR,DRIVE_KIND,$(DEFAULT_DRIVE_KIND)))
 
+DEFAULT_DISABLE_FLANTERM=0
+$(eval $(call DEFAULT_VAR,DISABLE_FLANTERM,$(DEFAULT_DISABLE_FLANTERM)))
+
 VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
 
@@ -157,7 +160,7 @@ limine:
 
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel DEBUG=$(DEBUG)
+	$(MAKE) -C kernel DEBUG=$(DEBUG) DISABLE_FLANTERM=$(DISABLE_FLANTERM)
 
 $(IMAGE_NAME).iso: limine kernel
 	rm -rf iso_root

@@ -14,6 +14,10 @@ struct flanterm_fb_info {
     struct flanterm_context *ctx;
 };
 
+#if defined(DISABLE_FLANTERM)
+    __unused
+#endif /* defined(DISABLE_FLANTERM) */
+
 static void
 flanterm_write_char(struct terminal *const term,
                     const char ch,
@@ -25,15 +29,25 @@ flanterm_write_char(struct terminal *const term,
     }
 }
 
+#if defined(DISABLE_FLANTERM)
+    __unused
+#endif /* defined(DISABLE_FLANTERM) */
+
 static void
 flanterm_write_sv(struct terminal *const term, const struct string_view sv) {
     struct flanterm_fb_info *const fb_info = (struct flanterm_fb_info *)term;
     flanterm_write(fb_info->ctx, sv.begin, sv.length);
 }
 
+#if defined(DISABLE_FLANTERM)
+    __unused
+#endif /* defined(DISABLE_FLANTERM) */
 static struct flanterm_fb_info g_fb_info_list[64] = {};
 
 void setup_flanterm() {
+#if defined(DISABLE_FLANTERM)
+    return;
+#else
     // Fetch the first framebuffer.
     const uint64_t fb_count =
         min(boot_get_fb()->framebuffer_count, countof(g_fb_info_list));
@@ -93,4 +107,5 @@ void setup_flanterm() {
 
         printk_add_terminal(&g_fb_info_list[i].terminal);
     }
+#endif /* defined(DISABLE_FLANTERM) */
 }
