@@ -63,7 +63,7 @@ static struct ps2_keyboard_state g_kbd_state = {
     .in_e0 = false
 };
 
-static char get_char_from_ps2_kb(const uint8_t scan_code) {
+__optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
     if (g_kbd_state.shift != 0) {
         return ps2_key_to_char_shift[scan_code];
     }
