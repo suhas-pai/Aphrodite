@@ -18,5 +18,5 @@ void arch_init_dev() {
         .compat_count = countof(gic_compat_sv_list),
     };
 
-    dtb_find_nodes_for_driver(&gic_driver, tree, tree->root);
+    dtb_init_nodes_for_driver(&gic_driver, tree, tree->root);
 }
