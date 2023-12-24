@@ -219,8 +219,8 @@ typedef uint64_t sec_t;
     };
 
     struct timespec {
-        time_t tv_sec;
-        time_t tv_nsec;
+        sec_t tv_sec;
+        nsec_t tv_nsec;
     };
 #endif /* _TIME_H_ */
 
@@ -260,6 +260,27 @@ timespec_sub(struct timespec left, const struct timespec right) {
 
     left.tv_sec -= right.tv_sec;
     return left;
+}
+
+__optimize(3) static inline
+int timespec_compare(const struct timespec left, const struct timespec right) {
+    if (left.tv_sec > right.tv_sec) {
+        return 1;
+    }
+
+    if (left.tv_sec < right.tv_sec) {
+        return -1;
+    }
+
+    if (left.tv_nsec > right.tv_nsec) {
+        return 1;
+    }
+
+    if (left.tv_nsec < right.tv_nsec) {
+        return -1;
+    }
+
+    return 0;
 }
 
 enum weekday {
