@@ -73,6 +73,7 @@ __optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
     return true;
 }
 
+#if !defined(__x86_64__)
 __optimize(3) static inline volatile void *
 find_ptr_in_bus_resource(struct pci_entity_info *const entity,
                          const uint32_t offset)
@@ -86,6 +87,7 @@ find_ptr_in_bus_resource(struct pci_entity_info *const entity,
 
     return NULL;
 }
+#endif /* !defined(__x86_64__) */
 
 __optimize(3) uint8_t
 pci_entity_bar_read8(struct pci_entity_info *const entity,
