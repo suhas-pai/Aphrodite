@@ -466,24 +466,18 @@ const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
 
 void
 pci_parse_bus(const struct pci_bus *bus,
-              struct pci_location *loc,
+              struct pci_location loc,
               uint8_t bus_id);
 
 static void
 parse_function(const struct pci_bus *const bus,
-               const struct pci_location *const loc)
+               const struct pci_location *const loc,
+               const uint16_t vendor_id)
 {
     struct pci_entity_info info = {
         .bus = bus,
         .loc = *loc
     };
-
-    const uint16_t vendor_id =
-        pci_read(&info, struct pci_spec_entity_info_base, vendor_id);
-
-    if (vendor_id == (uint16_t)PCI_READ_FAIL) {
-        return;
-    }
 
     const uint8_t header_kind =
         pci_read(&info, struct pci_spec_entity_info_base, header_kind);
@@ -648,7 +642,7 @@ parse_function(const struct pci_bus *const bus,
                          struct pci_spec_pci_to_pci_bridge_entity_info,
                          secondary_bus_number);
 
-            pci_parse_bus(bus, &info.loc, secondary_bus_number);
+            pci_parse_bus(bus, info.loc, secondary_bus_number);
             break;
         case PCI_SPEC_ENTITY_HDR_KIND_CARDBUS_BRIDGE:
             printk(LOGLEVEL_INFO,
@@ -673,15 +667,25 @@ parse_function(const struct pci_bus *const bus,
 
 void
 pci_parse_bus(const struct pci_bus *const bus,
-              struct pci_location *const loc,
+              struct pci_location loc,
               const uint8_t bus_id)
 {
-    loc->bus += bus_id;
+    loc.bus += bus_id;
     for (uint8_t slot = 0; slot != PCI_MAX_SLOT_COUNT; slot++) {
-        loc->slot = slot;
+        loc.slot = slot;
         for (uint8_t func = 0; func != PCI_MAX_FUNCTION_COUNT; func++) {
-            loc->function = func;
-            parse_function(bus, loc);
+            loc.function = func;
+            const uint16_t vendor_id =
+                pci_domain_read_16(
+                    bus->domain,
+                    &loc,
+                    offsetof(struct pci_spec_entity_info_base, vendor_id));
+
+            if (vendor_id == (uint16_t)PCI_READ_FAIL) {
+                continue;
+            }
+
+            parse_function(bus, &loc, vendor_id);
         }
     }
 }
@@ -700,7 +704,7 @@ void pci_find_entities(struct pci_bus *const bus) {
                           offsetof(struct pci_spec_entity_info_base,
                                    header_kind));
 
-    if (header_kind == (uint8_t)-1) {
+    if (header_kind == (uint8_t)PCI_READ_FAIL) {
         return;
     }
 
@@ -708,7 +712,7 @@ void pci_find_entities(struct pci_bus *const bus) {
         header_kind & __PCI_ENTITY_HDR_MULTFUNC ? PCI_MAX_FUNCTION_COUNT : 1;
 
     for (uint16_t i = 0; i != host_count; i++) {
-        pci_parse_bus(bus, &loc, /*bus=*/i);
+        pci_parse_bus(bus, loc, /*bus=*/i);
     }
 }
 
