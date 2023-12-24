@@ -24,3 +24,16 @@ round_up(const uint64_t number,
 
     return true;
 }
+
+bool
+math_pow(const uint64_t base, const uint64_t exp, uint64_t *const result_out) {
+    uint64_t result = base;
+    for (uint64_t i = 0; i != exp; i++) {
+        if (!check_mul(result, base, &result)) {
+            return false;
+        }
+    }
+
+    *result_out = result;
+    return true;
+}
