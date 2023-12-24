@@ -112,7 +112,7 @@ ifeq ($(ARCH),x86_64)
         -Wall
 endif
 
-ifeq ($(DEBUG), 0)
+ifeq ($(RELEASE), 1)
     ifeq ($(CC_IS_CLANG),yes)
         override CFLAGS += \
             -mllvm -enable-cond-stores-vec \
