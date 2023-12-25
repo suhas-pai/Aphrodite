@@ -109,12 +109,6 @@ void acpi_parse_tables() {
         return;
     }
 
-    const uint64_t oem_id_length =
-        strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));
-    const struct string_view oem_id =
-        sv_create_nocheck(g_info.rsdp->oem_id, oem_id_length);
-
-    printk(LOGLEVEL_INFO, "acpi: oem is \"" SV_FMT "\"\n", SV_FMT_ARGS(oem_id));
     if (has_xsdt()) {
         g_info.rsdt = phys_to_virt(g_info.rsdp->v2.xsdt_addr);
     } else {
@@ -126,6 +120,24 @@ void acpi_parse_tables() {
         return;
     }
 
+    acpi_recurse(acpi_init_each_sdt);
+}
+
+__optimize(3)
+static inline void acpi_print_each_sdt(const struct acpi_sdt *const sdt) {
+    printk(LOGLEVEL_INFO,
+           "acpi: found sdt \"" SV_FMT "\"\n",
+           SV_FMT_ARGS(
+            sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
+}
+
+void acpi_init(void) {
+    const uint64_t oem_id_length =
+        strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));
+    const struct string_view oem_id =
+        sv_create_nocheck(g_info.rsdp->oem_id, oem_id_length);
+
+    printk(LOGLEVEL_INFO, "acpi: oem is \"" SV_FMT "\"\n", SV_FMT_ARGS(oem_id));
     printk(LOGLEVEL_INFO,
            "acpi: revision: %" PRIu8 "\n",
            g_info.rsdp->revision);
@@ -133,10 +145,7 @@ void acpi_parse_tables() {
     printk(LOGLEVEL_INFO, "acpi: uses xsdt? %s\n", has_xsdt() ? "yes" : "no");
     printk(LOGLEVEL_INFO, "acpi: rsdt at %p\n", g_info.rsdt);
 
-    acpi_recurse(acpi_init_each_sdt);
-}
-
-void acpi_init(void) {
+    acpi_recurse(acpi_print_each_sdt);
     if (get_acpi_info()->madt != NULL) {
         madt_init(get_acpi_info()->madt);
     }
