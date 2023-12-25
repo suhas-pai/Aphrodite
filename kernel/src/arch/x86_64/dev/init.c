@@ -34,8 +34,10 @@ void arch_init_dev() {
         struct string string = kstrftime("%c", &tm);
 
         printk(LOGLEVEL_INFO,
-               "dev: rtc time: " STRING_FMT "\n",
+               "dev: rtc time is " STRING_FMT "\n",
                STRING_FMT_ARGS(string));
+
+        string_destroy(&string);
     }
 
     const struct acpi_hpet *const hpet =
