@@ -4,6 +4,6 @@
  */
 
 #pragma once
-#include "acpi/structs.h"
+#include "structs.h"
 
 void fadt_init(const struct acpi_fadt *fadt);

@@ -4,13 +4,13 @@
  */
 
 #pragma once
+#include "lib/adt/array.h"
 
 #if __has_include("acpi/extra_structs.h")
     #include "acpi/extra_structs.h"
 #endif /* __has_include("acpi/extra_structs.h") */
 
-#include "acpi/structs.h"
-#include "lib/adt/array.h"
+#include "structs.h"
 
 #if defined(__aarch64__)
     struct acpi_msi_frame {
@@ -34,6 +34,10 @@ struct acpi_info {
     const struct acpi_madt *madt;
     const struct acpi_fadt *fadt;
     const struct acpi_mcfg *mcfg;
+
+#if defined(__aarch64__)
+    const struct acpi_gtdt *gtdt;
+#endif /* defined(__aarch64__) */
 
     const struct acpi_rsdp *rsdp;
     const struct acpi_rsdt *rsdt;

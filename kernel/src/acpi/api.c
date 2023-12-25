@@ -3,7 +3,12 @@
  * © suhas pai
  */
 
+#if defined(__aarch64__)
+    #include "acpi/gtdt.h"
+#endif /* defined(__aarch64__)*/
+
 #include "acpi/mcfg.h"
+
 #include "dev/printk.h"
 #include "mm/mm_types.h"
 #include "sys/boot.h"
@@ -64,22 +69,30 @@ __optimize(3)
 static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
     printk(LOGLEVEL_INFO,
            "acpi: found sdt \"" SV_FMT "\"\n",
-           SV_FMT_ARGS(sv_create_nocheck(sdt->signature, 4)));
+           SV_FMT_ARGS(
+            sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
 
-    if (memcmp(sdt->signature, "APIC", 4) == 0) {
+    if (memcmp(sdt->signature, "APIC", sizeof(sdt->signature)) == 0) {
         g_info.madt = (const struct acpi_madt *)sdt;
         return;
     }
 
-    if (memcmp(sdt->signature, "FACP", 4) == 0) {
+    if (memcmp(sdt->signature, "FACP", sizeof(sdt->signature)) == 0) {
         g_info.fadt = (const struct acpi_fadt *)sdt;
         return;
     }
 
-    if (memcmp(sdt->signature, "MCFG", 4) == 0) {
+    if (memcmp(sdt->signature, "MCFG", sizeof(sdt->signature)) == 0) {
         g_info.mcfg = (const struct acpi_mcfg *)sdt;
         return;
     }
+
+#if defined(__aarch64__)
+    if (memcmp(sdt->signature, "GTDT", sizeof(sdt->signature)) == 0) {
+        g_info.gtdt = (const struct acpi_gtdt *)sdt;
+        return;
+    }
+#endif /* defined(__aarch64__) */
 }
 
 void acpi_parse_tables() {
@@ -124,6 +137,12 @@ void acpi_init(void) {
     if (get_acpi_info()->fadt != NULL) {
         fadt_init(get_acpi_info()->fadt);
     }
+
+#if defined(__aarch64__)
+    if (get_acpi_info()->gtdt != NULL) {
+        gtdt_init(get_acpi_info()->gtdt);
+    }
+#endif /* defined(__aarch64__) */
 
     if (get_acpi_info()->mcfg != NULL) {
         mcfg_init(get_acpi_info()->mcfg);
