@@ -29,7 +29,7 @@ void serial_init() {
 
         uint64_t address = 0x9000000;
         uint32_t baudrate = 9600;
-        uint8_t stop_bits = 0;
+        uint8_t stop_bits = 1;
 
         if (spcr != NULL) {
             address = spcr->serial_port.address;
