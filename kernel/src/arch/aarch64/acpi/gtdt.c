@@ -1,5 +1,5 @@
 /*
- * kernel/arc/acpi/gtdt.c
+ * kernel/src/aarch64/acpi/gtdt.c
  * © suhas pai
  */
 
