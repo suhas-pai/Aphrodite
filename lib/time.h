@@ -6,9 +6,10 @@
 #pragma once
 
 #include <stdbool.h>
-
 #include "adt/string_view.h"
+
 #include "lib/macros.h"
+#include "lib/overflow.h"
 
 #define FEMTO_IN_PICO 1000
 #define PICO_IN_NANO 1000
@@ -224,42 +225,60 @@ typedef uint64_t sec_t;
     };
 #endif /* _TIME_H_ */
 
+#define TIMESPEC_NONE() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
+
 struct tm tm_from_stamp(const uint64_t timestamp);
 
-__optimize(3) static inline struct timespec
-timespec_add(struct timespec left, const struct timespec right) {
+__optimize(3) static inline bool
+timespec_add(const struct timespec left,
+             const struct timespec right,
+             struct timespec *const result_out)
+{
+    struct timespec result = TIMESPEC_NONE();
     if (nano_to_seconds(left.tv_nsec + right.tv_nsec) != 0) {
-        left.tv_nsec = nano_mod_seconds(left.tv_nsec + right.tv_nsec);
-        left.tv_sec += 1;
+        result.tv_nsec = nano_mod_seconds(left.tv_nsec + right.tv_nsec);
+        if (!check_add(left.tv_sec, 1, &result.tv_sec)) {
+            return false;
+        }
     } else {
-        left.tv_nsec += right.tv_nsec;
+        if (!check_add(left.tv_nsec, right.tv_nsec, &result.tv_nsec)) {
+            return false;
+        }
     }
 
-    left.tv_sec += right.tv_sec;
-    return left;
+    if (!check_add(left.tv_sec, right.tv_sec, &result.tv_sec)) {
+        return false;
+    }
+
+    *result_out = result;
+    return true;
 }
 
-__optimize(3) static inline struct timespec
-timespec_sub(struct timespec left, const struct timespec right) {
-    if (right.tv_nsec > left.tv_nsec) {
-        left.tv_nsec = (NANO_IN_SECONDS - 1) - (right.tv_nsec - left.tv_nsec);
-        if (left.tv_sec == 0) {
-            left.tv_sec = left.tv_nsec = 0;
-            return left;
+__optimize(3) static inline bool
+timespec_sub(const struct timespec left,
+             const struct timespec right,
+             struct timespec *const result_out)
+{
+    if (left.tv_sec < right.tv_sec) {
+        return false;
+    }
+
+    struct timespec result = TIMESPEC_NONE();
+    result.tv_sec = left.tv_sec - right.tv_sec;
+
+    if (left.tv_nsec < right.tv_nsec) {
+        if (result.tv_sec == 0) {
+            return false;
         }
 
-        left.tv_sec--;
+        result.tv_nsec = (NANO_IN_SECONDS - 1) - (right.tv_nsec - left.tv_nsec);
+        result.tv_sec -= 1;
     } else {
-        left.tv_nsec -= right.tv_nsec;
+        result.tv_nsec = left.tv_nsec - right.tv_nsec;
     }
 
-    if (right.tv_sec > left.tv_sec) {
-        left.tv_sec = left.tv_nsec = 0;
-        return left;
-    }
-
-    left.tv_sec -= right.tv_sec;
-    return left;
+    *result_out = result;
+    return true;
 }
 
 __optimize(3) static inline
