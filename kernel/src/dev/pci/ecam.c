@@ -11,8 +11,6 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
-
 #include "sys/mmio.h"
 
 #include "ecam.h"

@@ -8,7 +8,7 @@
 
 #include "irq.h"
 #include "process.h"
-#include "sched/scheduler.h"
+#include "scheduler.h"
 #include "thread.h"
 
 void sched_init(struct scheduler *const sched) {

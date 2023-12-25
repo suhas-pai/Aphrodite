@@ -4,17 +4,15 @@
  */
 
 #if defined(__x86_64__)
-    #include "acpi/api.h"
     #include "dev/pci/legacy.h"
+    #include "acpi/api.h"
 #endif /* defined(__x86_64__) */
 
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "lib/util.h"
-
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
 
 #include "structs.h"
 

@@ -8,9 +8,7 @@
 #endif /* defined(__x86_64__) */
 
 #include "cpu/spinlock.h"
-
 #include "ecam.h"
-#include "domain.h"
 
 static struct array g_domain_list = ARRAY_INIT(sizeof(struct pci_domain *));
 static struct spinlock g_domain_lock = SPINLOCK_INIT();

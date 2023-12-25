@@ -20,7 +20,6 @@
 #include "mm/early.h"
 #include "mm/page_alloc.h"
 
-#include "sched/sched.h"
 #include "sys/boot.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
