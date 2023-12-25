@@ -74,7 +74,7 @@ void oneshot_alarm(const nsec_t nano) {
     printk(LOGLEVEL_INFO, "time: tval is %" PRIu64 "\n", tval);
 }
 
-static void enable_timer_irqs() {
+static void enable_dtb_timer_irqs() {
     struct devicetree *const tree = dtb_get_tree();
     struct devicetree_node *const node =
         devicetree_get_node_at_path(tree, SV_STATIC("/timer"));
@@ -136,7 +136,7 @@ void arch_init_time() {
     printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
 
     enable_all_irqs();
-    enable_timer_irqs();
+    enable_dtb_timer_irqs();
 
     oneshot_alarm(0);
 }
