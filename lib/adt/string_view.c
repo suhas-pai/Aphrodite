@@ -95,9 +95,6 @@ __optimize(3) char sv_back(const struct string_view sv) {
 __optimize(3)  int64_t
 sv_find_char(const struct string_view sv, const uint32_t index, const char ch) {
     assert(sv_has_index(sv, index));
-    if (sv.length == 0) {
-        return -1;
-    }
 
     char *const ptr = strchr(sv.begin + index, ch);
     if (ptr == NULL) {
