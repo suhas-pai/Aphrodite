@@ -875,3 +875,86 @@ struct acpi_pptt {
     struct acpi_sdt sdt;
     char buffer[];
 };
+
+enum acpi_spcr_interface_kind {
+    ACPI_SPCR_INTERFACE_16550_COMPATIBLE,
+    ACPI_SPCR_INTERFACE_16550_SUBSET,
+    ACPI_SPCR_INTERFACE_MAX311XE_SPI,
+    ACPI_SPCR_INTERFACE_ARM_PL011,
+    ACPI_SPCR_INTERFACE_MSM8X60,
+    ACPI_SPCR_INTERFACE_16550_NVIDIA,
+    ACPI_SPCR_INTERFACE_TI_OMAP,
+    ACPI_SPCR_INTERFACE_APM88XXXX,
+    ACPI_SPCR_INTERFACE_MSM8974,
+    ACPI_SPCR_INTERFACE_SAM5250,
+    ACPI_SPCR_INTERFACE_INTEL_USIF,
+    ACPI_SPCR_INTERFACE_IMX6,
+    ACPI_SPCR_INTERFACE_ARM_SBSA_32BIT,
+    ACPI_SPCR_INTERFACE_ARM_SBSA_GENERIC,
+    ACPI_SPCR_INTERFACE_ARM_DCC,
+    ACPI_SPCR_INTERFACE_BCM2835,
+    ACPI_SPCR_INTERFACE_SDM845_1_8432MHZ,
+    ACPI_SPCR_INTERFACE_16550_WITH_GAS,
+    ACPI_SPCR_INTERFACE_SDM845_7_372MHZ,
+    ACPI_SPCR_INTERFACE_INTEL_LPSS,
+};
+
+enum acpi_spcr_irq_kind {
+    __ACPI_SPCR_IRQ_8259 = 1 << 0,
+    __ACPI_SPCR_IRQ_IOAPIC = 1 << 1,
+    __ACPI_SPCR_IRQ_IO_SAPIC = 1 << 2,
+    __ACPI_SPCR_IRQ_ARM_GIC = 1 << 3,
+    __ACPI_SPCR_IRQ_RISCV_PLIC = 1 << 4,
+};
+
+enum acpi_spcr_baud_rate {
+    ACPI_SPCR_BAUD_RATE_OS_DEPENDENT,
+    ACPI_SPCR_BAUD_RATE_9600 = 3,
+    ACPI_SPCR_BAUD_RATE_19200,
+    ACPI_SPCR_BAUD_RATE_57600 = 6,
+    ACPI_SPCR_BAUD_RATE_115200,
+};
+
+enum acpi_spcr_terminal_kind {
+    ACPI_SPCR_TERMINAL_VT100,
+    ACPI_SPCR_TERMINAL_VT100_EXT,
+    ACPI_SPCR_TERMINAL_VT_UTF8,
+    ACPI_SPCR_TERMINAL_ANSI,
+};
+
+enum acpi_spcr_pci_flags {
+    __ACPI_SPCR_PCI_DONT_SUPRESS_PNP = 1 << 0
+};
+
+struct acpi_spcr {
+    struct acpi_sdt sdt;
+    enum acpi_spcr_interface_kind interface_kind : 8;
+
+    uint8_t reserved[3];
+    struct acpi_gas serial_port;
+
+    uint8_t interrupt_kind : 8;
+    uint8_t pc_interrupt;
+
+    uint32_t gsiv;
+    enum acpi_spcr_baud_rate baud_rate : 8;
+
+    uint8_t parity;
+    uint8_t stop_bits;
+    uint8_t flow_control;
+
+    enum acpi_spcr_terminal_kind terminal_kind : 8;
+    uint8_t reserved1;
+
+    uint16_t pci_device_id;
+    uint16_t pci_vendor_id;
+
+    uint8_t pci_bus;
+    uint8_t pci_device;
+    uint8_t pci_function;
+
+    uint32_t pci_flags;
+    uint8_t pci_segment;
+
+    uint32_t uart_clock_freq;
+} __packed;

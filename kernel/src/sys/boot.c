@@ -149,6 +149,15 @@ void boot_init() {
         smp_response = smp_request.response;
     }
 
+    if (dtb_request.response != NULL && dtb_request.response->dtb_ptr != NULL) {
+        dtb = dtb_request.response->dtb_ptr;
+    }
+
+    if (rsdp_request.response != NULL && rsdp_request.response->address != NULL)
+    {
+        rsdp = rsdp_request.response->address;
+    }
+
     HHDM_OFFSET = hhdm_request.response->offset;
     KERNEL_BASE = kern_addr_request.response->virtual_base;
     PAGING_MODE = paging_mode_request.response->mode;
@@ -240,8 +249,6 @@ void boot_post_early_init() {
 
     if (dtb_request.response == NULL || dtb_request.response->dtb_ptr == NULL) {
         printk(LOGLEVEL_WARN, "boot: device tree is missing\n");
-    } else {
-        dtb = dtb_request.response->dtb_ptr;
     }
 
     if (rsdp_request.response == NULL || rsdp_request.response->address == NULL)
@@ -251,8 +258,6 @@ void boot_post_early_init() {
     #else
         printk(LOGLEVEL_WARN, "boot: acpi does not exist\n");
     #endif /* !defined(__riscv64) */
-    } else {
-        rsdp = rsdp_request.response->address;
     }
 
     if (smp_response != NULL) {

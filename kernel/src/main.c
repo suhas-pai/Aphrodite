@@ -67,6 +67,7 @@ void _start(void) {
 
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
     boot_init();
+    acpi_parse_tables();
     setup_flanterm();
 
     mm_early_init();
@@ -82,7 +83,6 @@ void _start(void) {
     arch_post_mm_init();
 
     dtb_parse_main_tree();
-    acpi_parse_tables();
 
     isr_init();
     dev_init();

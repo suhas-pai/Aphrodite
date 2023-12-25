@@ -17,6 +17,7 @@
 #include "fadt.h"
 #include "madt.h"
 #include "pptt.h"
+#include "spcr.h"
 
 static struct acpi_info g_info = {
     .madt = NULL,
@@ -154,13 +155,19 @@ void acpi_init(void) {
         pptt_init(get_acpi_info()->pptt);
     }
 
+    const struct acpi_sdt *const spcr_sdt = acpi_lookup_sdt("SPCR");
+    if (spcr_sdt != NULL) {
+        const struct acpi_spcr *const spcr = (const struct acpi_spcr *)spcr_sdt;
+        spcr_init(spcr);
+    }
+
     if (get_acpi_info()->mcfg != NULL) {
         mcfg_init(get_acpi_info()->mcfg);
     }
 }
 
 __optimize(3)
-struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
+const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
     if (get_acpi_info()->rsdp == NULL) {
         return NULL;
     }

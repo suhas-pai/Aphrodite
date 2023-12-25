@@ -60,7 +60,7 @@ struct acpi_info {
 void acpi_parse_tables();
 void acpi_init();
 
-struct acpi_sdt *acpi_lookup_sdt(const char signature[static 4]);
+const struct acpi_sdt *acpi_lookup_sdt(const char signature[static 4]);
 
 const struct acpi_info *get_acpi_info();
 struct acpi_info *get_acpi_info_mut();
