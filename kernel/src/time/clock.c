@@ -4,7 +4,9 @@
  */
 
 #include "cpu/spinlock.h"
+
 #include "lib/math.h"
+#include "lib/overflow.h"
 
 #include "clock.h"
 
@@ -18,9 +20,10 @@ void clock_add(struct clock *const clock) {
     spin_release_with_irq(&g_lock, flag);
 }
 
-uint64_t
-clock_read_in_res(const struct clock *const clock,
-                  const enum clock_resolution resolution)
+bool
+clock_read_res(const struct clock *const clock,
+               enum clock_resolution resolution,
+               uint64_t *const result_out)
 {
     if (clock->resolution == resolution) {
         return clock->read(clock);
@@ -28,9 +31,13 @@ clock_read_in_res(const struct clock *const clock,
 
     if (resolution > clock->resolution) {
         const uint64_t diff = resolution - clock->resolution;
-        return clock->read(clock) / math_pow_assert(1000, diff);
+        *result_out = clock->read(clock) / math_pow_assert(1000, diff);
+
+        return true;
     }
 
     const uint64_t diff = clock->resolution - resolution;
-    return clock->read(clock) * math_pow_assert(1000, diff);
+    return check_mul(clock->read(clock),
+                     math_pow_assert(1000, diff),
+                     result_out);
 }
