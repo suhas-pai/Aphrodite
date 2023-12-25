@@ -16,7 +16,9 @@
 
 #include "dev/printk.h"
 #include "pci/init.h"
+
 #include "time/clock.h"
+#include "time/time.h"
 
 void serial_init() {
 #if defined(__x86_64__)
