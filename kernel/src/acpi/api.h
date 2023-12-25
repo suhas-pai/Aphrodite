@@ -39,6 +39,8 @@ struct acpi_info {
     const struct acpi_gtdt *gtdt;
 #endif /* defined(__aarch64__) */
 
+    const struct acpi_pptt *pptt;
+
     const struct acpi_rsdp *rsdp;
     const struct acpi_rsdt *rsdt;
 

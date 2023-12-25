@@ -16,6 +16,7 @@
 #include "api.h"
 #include "fadt.h"
 #include "madt.h"
+#include "pptt.h"
 
 static struct acpi_info g_info = {
     .madt = NULL,
@@ -87,6 +88,11 @@ static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
         return;
     }
 
+    if (memcmp(sdt->signature, "PPTT", sizeof(sdt->signature)) == 0) {
+        g_info.pptt = (const struct acpi_pptt *)sdt;
+        return;
+    }
+
 #if defined(__aarch64__)
     if (memcmp(sdt->signature, "GTDT", sizeof(sdt->signature)) == 0) {
         g_info.gtdt = (const struct acpi_gtdt *)sdt;
@@ -143,6 +149,10 @@ void acpi_init(void) {
         gtdt_init(get_acpi_info()->gtdt);
     }
 #endif /* defined(__aarch64__) */
+
+    if (get_acpi_info()->pptt != NULL) {
+        pptt_init(get_acpi_info()->pptt);
+    }
 
     if (get_acpi_info()->mcfg != NULL) {
         mcfg_init(get_acpi_info()->mcfg);

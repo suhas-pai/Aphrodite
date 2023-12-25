@@ -744,3 +744,134 @@ struct acpi_gtdt_platform_timer_generic_watchdog {
     uint32_t watchdog_timer_gsiv;
     uint32_t watchdog_timer_flags;
 } __packed;
+
+enum acpi_pptt_node_kind {
+    ACPI_PPTT_NODE_PROCESSOR_HIERARCHY,
+    ACPI_PPTT_NODE_CACHE_TYPE
+};
+
+struct acpi_pptt_node_base {
+    enum acpi_pptt_node_kind kind : 8;
+} __packed;
+
+enum acpi_pptt_processor_hierarchy_node_flags {
+    // This node of the processor topology represents the boundary of a physical
+    // package, whether socketed or surface mounted.
+    __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG = 1 << 0,
+
+    /*
+     * For non-leaf entries in the processor topology, the ACPI Processor ID
+     * entry can relate to a Processor container in the namespace. The processor
+     * container will have a matching ID value returned through the _UID method.
+     *
+     * As not every processor hierarchy node structure in PPTT may have a
+     * matching processor container, this flag indicates whether the ACPI
+     * processor ID points to valid entry. Where a valid entry is possible the
+     * ACPI Processor ID and _UID method are mandatory.
+     *
+     * For leaf entries in PPTT that represent processors listed in MADT, the
+     * ACPI Processor ID must always be provided and this flag must be set to 1.
+     */
+    __ACPI_PPTT_PROCESSOR_HIERARCHY_ACPI_ID_VALID = 1 << 1,
+
+    /*
+     * For leaf entries: must be set to 1 if the processing element representing
+     * this processor shares functional units with sibling nodes. For non-leaf
+     * entries: must be set to 0.
+     */
+    __ACPI_PPTT_PROCESSOR_HIERARCHY_PROCESSOR_IS_THREAD = 1 << 2,
+
+    /*
+     * For leaf entries: must be set to 1 if the processing element representing
+     * this processor shares functional units with sibling nodes. For non-leaf
+     * entries: must be set to 0.
+     */
+    __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_IS_LEAF = 1 << 3,
+
+    /*
+     * A value of 1 indicates that all children processors share an identical
+     * implementation revision. This field should be ignored on leaf nodes by
+     * the OSPM. Note: this implies an identical processor version and identical
+     * implementation reversion, not just a matching architecture revision.
+     */
+    __ACPI_PPTT_PROCESSOR_HIERARCHY_IDENTICAL_IMPL = 1 << 4,
+};
+
+struct acpi_pptt_processor_hierarchy_node {
+    struct acpi_pptt_node_base base;
+
+    uint8_t length;
+    uint16_t reserved;
+
+    uint32_t flags;
+    uint32_t parent_offset;
+    uint32_t acpi_processor_id;
+    uint32_t private_resource_count;
+    uint32_t private_resource_offsets[];
+} __packed;
+
+enum acpi_pptt_cache_type_node_attr_alloc_kind {
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2,
+};
+
+enum acpi_pptt_cache_type_node_attr_cache_kind {
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2,
+};
+
+enum acpi_pptt_cache_type_node_attr_write_policy {
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_THROUGH
+};
+
+enum acpi_pptt_cache_type_node_attr_write_shifts {
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT = 2,
+    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT = 4
+};
+
+enum acpi_pptt_cache_type_node_attr_write_masks {
+    __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND = 0b11,
+    __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND =
+        0b11 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT,
+    __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY =
+        0b1 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT
+};
+
+enum acpi_pptt_cache_type_node_flags {
+    __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID = 1 << 0,
+    __ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID = 1 << 1,
+    __ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID = 1 << 2,
+    __ACPI_PPTT_CACHE_TYPE_NODE_ALLOC_KIND_VALID = 1 << 3,
+    __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_KIND_VALID = 1 << 4,
+    __ACPI_PPTT_CACHE_TYPE_NODE_WRITE_POLICY_KIND_VALID = 1 << 5,
+    __ACPI_PPTT_CACHE_TYPE_NODE_LINE_SIZE_VALID = 1 << 6,
+    __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_ID_VALID = 1 << 7,
+};
+
+struct acpi_pptt_cache_type_node {
+    struct acpi_pptt_node_base base;
+
+    uint8_t length;
+    uint16_t reserved;
+
+    uint32_t flags;
+    uint32_t cache_next_level;
+    uint32_t size;
+    uint32_t set_count;
+
+    uint8_t associativity;
+    uint8_t attributes;
+
+    uint16_t line_size;
+    uint32_t cache_id;
+} __packed;
+
+struct acpi_pptt {
+    struct acpi_sdt sdt;
+    char buffer[];
+};
