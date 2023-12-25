@@ -140,7 +140,7 @@ __optimize(3) struct tm tm_from_stamp(const uint64_t timestamp) {
         .tm_mday = day_of_month + 1, // days is zero-indexed but tm_mday is not
         .tm_mon = month_to_tm_mon(month),
         .tm_year = year_to_tm_year(year),
-        .tm_wday = day_of_month_to_weekday(year, month, day_of_month),
+        .tm_wday = day_of_month_to_weekday(year, month, day_of_month + 1),
         .tm_yday = day_of_year,
         .tm_isdst = 0
     };
