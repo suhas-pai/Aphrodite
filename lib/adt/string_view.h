@@ -38,7 +38,7 @@ static inline struct string_view sv_create(const char *const str) {
 }
 
 __optimize(3) static inline struct string_view
-sv_create_nocheck(const char *const c_str, const uint64_t length) {
+sv_create_nocheck(const char *const c_str, const uint32_t length) {
     return (struct string_view){
         .begin = c_str,
         .length = length
@@ -52,7 +52,7 @@ sv_create_end(const char *const c_str, const char *const end) {
 }
 
 __optimize(3) static inline struct string_view
-sv_create_length(const char *const c_str, const uint64_t length) {
+sv_create_length(const char *const c_str, const uint32_t length) {
     check_add_assert((uint64_t)c_str, length);
     return sv_create_nocheck(c_str, length);
 }
