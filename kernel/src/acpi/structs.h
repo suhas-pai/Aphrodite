@@ -633,3 +633,114 @@ struct acpi_mcfg {
 
     struct acpi_mcfg_entry entries[];
 } __packed;
+
+enum acpi_gtdt_flags {
+    __ACPI_GTDT_EDGE_TRIGGER_IRQ = 1 << 0,
+    __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ = 1 << 1,
+
+    /*
+     * This timer is guaranteed to assert its interrupt and wake a processor,
+     * regardless of the processor’s power state. All of the methods by which an
+     * ARM Generic Timer may generate an interrupt must be supported, and must
+     * be capable of waking the processor.
+     */
+    __ACPI_GTDT_ALWAYS_ON_CAP = 1 << 2,
+};
+
+struct acpi_gtdt {
+    struct acpi_sdt sdt;
+
+    uint64_t ctrl_base_phys_address;
+    uint32_t reserved;
+
+    uint32_t secure_el1_timer_gsiv;
+    uint32_t secure_el1_timer_flags;
+
+    uint32_t non_secure_el1_timer_gsiv;
+    uint32_t non_secure_el1_timer_flags;
+
+    uint32_t virtual_el1_timer_gsiv;
+    uint32_t virtual_el1_timer_flags;
+
+    uint32_t el2_timer_gsiv;
+    uint32_t el2_timer_flags;
+
+    uint64_t read_base_phys_address;
+
+    uint32_t platform_timer_count;
+    uint32_t platform_timer_offset;
+
+    uint32_t virtual_el2_timer_gsiv;
+    uint32_t virtual_el2_timer_flags;
+
+    char buffer[];
+} __packed;
+
+enum acpi_gtdt_platform_timer_kind {
+    ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK,
+};
+
+struct acpi_gtdt_platform_timer_base {
+    enum acpi_gtdt_platform_timer_kind kind : 8;
+} __packed;
+
+enum acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags {
+    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ =
+        1 << 0,
+
+    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_PHYSVIRT_TIMER_ACTIVE_LOW_POLARITY_IRQ =
+        1 << 1,
+};
+
+enum acpi_gtdt_platform_timer_gt_block_timer_common_flags {
+    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_COMMON_SECURE = 1 << 0,
+    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_ALWAYS_ON_CAP = 1 << 1,
+};
+
+struct acpi_gtdt_platform_timer_gt_block_timer {
+    uint8_t gt_frame_number;
+    uint8_t reserved[3];
+
+    uint64_t gt_cnt_base_phys_address;
+    uint64_t gt_cnt_el0_base_phys_address;
+
+    uint32_t gt_phys_timer_gsiv;
+    uint32_t gt_phys_timer_flags;
+
+    uint32_t gt_virt_timer_gsiv;
+    uint32_t gt_virt_timer_flags;
+
+    uint32_t gt_common_flags;
+} __packed;
+
+struct acpi_gtdt_platform_timer_gt_block {
+    struct acpi_gtdt_platform_timer_base base;
+
+    uint16_t length;
+    uint8_t reserved;
+
+    uint64_t gt_block_phys_address;
+
+    uint32_t gt_block_timer_count;
+    uint32_t gt_block_timer_offset;
+} __packed;
+
+enum acpi_gtdt_platform_timer_generic_watchdog_flags {
+    __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_EDGE_TRIGGER_IRQ = 1 << 0,
+    __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_ACTIVE_LOW_POLARITY_IRQ =
+        1 << 1,
+    __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_SECURE_TIMER_IRQ = 1 << 2,
+};
+
+struct acpi_gtdt_platform_timer_generic_watchdog {
+    struct acpi_gtdt_platform_timer_base base;
+
+    uint16_t length;
+    uint8_t reserved;
+
+    uint64_t refresh_frame_phys_address;
+    uint64_t watchdog_control_frame_phys_address;
+
+    uint32_t watchdog_timer_gsiv;
+    uint32_t watchdog_timer_flags;
+} __packed;
