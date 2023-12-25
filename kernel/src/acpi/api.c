@@ -132,6 +132,10 @@ static inline void acpi_print_each_sdt(const struct acpi_sdt *const sdt) {
 }
 
 void acpi_init(void) {
+    if (g_info.rsdp == NULL) {
+        return;
+    }
+
     const uint64_t oem_id_length =
         strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));
     const struct string_view oem_id =
