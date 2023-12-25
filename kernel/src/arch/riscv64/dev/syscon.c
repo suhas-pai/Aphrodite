@@ -316,7 +316,7 @@ static const struct dtb_driver reboot_dtb_driver = {
 };
 
 __driver static const struct driver reboot_driver = {
-    .name = "riscv64-syscon-reboot-driver",
+    .name = SV_STATIC("riscv64-syscon-reboot-driver"),
     .dtb = &reboot_dtb_driver,
     .pci = NULL
 };
@@ -334,7 +334,7 @@ static const struct dtb_driver poweroff_dtb_driver = {
 };
 
 __driver static const struct driver poweroff_driver = {
-    .name = "riscv64-syscon-poweroff-driver",
+    .name = SV_STATIC("riscv64-syscon-poweroff-driver"),
     .dtb = &poweroff_dtb_driver,
     .pci = NULL
 };
@@ -352,7 +352,7 @@ static const struct dtb_driver syscon_dtb_driver = {
 };
 
 __driver static const struct driver syscon_driver = {
-    .name = "riscv64-syscon-driver",
+    .name = SV_STATIC("riscv64-syscon-driver"),
     .dtb = &syscon_dtb_driver,
     .pci = NULL
 };

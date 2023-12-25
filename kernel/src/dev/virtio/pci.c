@@ -318,7 +318,7 @@ static const struct pci_driver pci_driver = {
 };
 
 __driver static const struct driver driver = {
-    .name = "virtio-driver",
+    .name = SV_STATIC("virtio-driver"),
     .dtb = NULL,
     .pci = &pci_driver
 };

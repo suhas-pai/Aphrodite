@@ -259,7 +259,7 @@ static struct dtb_driver dtb_driver = {
 };
 
 __driver static const struct driver uart8250_driver = {
-    .name = "uart8250-driver",
+    .name = SV_STATIC("uart8250-driver"),
     .dtb = &dtb_driver,
     .pci = NULL
 };

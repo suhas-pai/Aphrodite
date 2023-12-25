@@ -430,7 +430,7 @@ static const struct dtb_driver dtb_driver = {
 };
 
 __driver static const struct driver driver = {
-    .name = "pci-ecam-driver",
+    .name = SV_STATIC("pci-ecam-driver"),
     .dtb = &dtb_driver,
     .pci = NULL
 };

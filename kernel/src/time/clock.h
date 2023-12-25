@@ -25,9 +25,11 @@ struct clock {
 
     enum clock_resolution resolution : 3;
 
-    time_t (*read)(const struct clock *source);
+    time_t (*read)(const struct clock *clock);
+
     bool (*enable)(const struct clock *clock);
     bool (*disable)(const struct clock *clock);
+
     void (*resume)(const struct clock *clock);
     void (*suspend)(const struct clock *clock);
 };
@@ -44,7 +46,7 @@ clock_has_atleast_res(const struct clock *const clock,
     return clock->resolution >= res;
 }
 
-void clock_add(struct clock *const clock);
+void clock_add(struct clock *clock);
 
 struct clock *system_clock_get();
 struct clock *rtc_clock_get();

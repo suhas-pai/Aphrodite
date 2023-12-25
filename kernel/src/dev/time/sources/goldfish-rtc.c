@@ -151,7 +151,7 @@ static struct dtb_driver dtb_driver = {
 };
 
 __driver static const struct driver driver = {
-    .name = "google,goldfish-rtc.driver",
+    .name = SV_STATIC("google,goldfish-rtc.driver"),
     .dtb = &dtb_driver,
     .pci = NULL
 };

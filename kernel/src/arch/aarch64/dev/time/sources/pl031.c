@@ -100,7 +100,7 @@ static struct dtb_driver dtb_driver = {
 };
 
 __driver static const struct driver driver = {
-    .name = "arm,pl031.driver",
+    .name = SV_STATIC("arm,pl031.driver"),
     .dtb = &dtb_driver,
     .pci = NULL
 };
