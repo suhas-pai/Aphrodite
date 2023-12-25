@@ -68,12 +68,12 @@ void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 struct gic_msi_frame *gicd_add_msi(uint64_t phys_base_address);
 const struct gic_distributor *gic_get_dist();
 
-void gicd_mask_irq(uint8_t irq);
-void gicd_unmask_irq(uint8_t irq);
+void gicd_mask_irq(uint16_t irq);
+void gicd_unmask_irq(uint16_t irq);
 
-void gicd_set_irq_affinity(uint8_t irq, uint8_t iface);
-void gicd_set_irq_trigger_mode(uint8_t irq, enum irq_trigger_mpde mode);
-void gicd_set_irq_priority(uint8_t irq, uint8_t priority);
+void gicd_set_irq_affinity(uint16_t irq, uint8_t iface);
+void gicd_set_irq_trigger_mode(uint16_t irq, enum irq_trigger_mpde mode);
+void gicd_set_irq_priority(uint16_t irq, uint8_t priority);
 
 typedef uint16_t irq_number_t;
 

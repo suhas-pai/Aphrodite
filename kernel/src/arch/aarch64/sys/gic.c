@@ -9,6 +9,7 @@
 #include "dev/printk.h"
 
 #include "lib/align.h"
+#include "lib/util.h"
 
 #include "sys/irq.h"
 #include "sys/mmio.h"
@@ -345,19 +346,28 @@ __optimize(3) const struct gic_distributor *gic_get_dist() {
     return &g_dist;
 }
 
-__optimize(3) void gicd_mask_irq(const uint8_t irq) {
+__optimize(3) void gicd_mask_irq(const uint16_t irq) {
     mmio_write(&g_regs->interrupt_clear_enable[irq / sizeof(uint32_t)],
                1ull << (irq % sizeof(uint32_t)));
 }
 
-__optimize(3) void gicd_unmask_irq(const uint8_t irq) {
+__optimize(3) void gicd_unmask_irq(const uint16_t irq) {
     mmio_write(&g_regs->interrupt_set_enable[irq / sizeof(uint32_t)],
                1ull << (irq % sizeof(uint32_t)));
 }
 
 __optimize(3)
-void gicd_set_irq_affinity(const uint8_t irq, const uint8_t iface) {
+void gicd_set_irq_affinity(const uint16_t irq, const uint8_t iface) {
     const uint8_t index = irq / sizeof(uint32_t);
+    if (!index_in_bounds(index, countof(g_regs->interrupt_targets))) {
+        printk(LOGLEVEL_WARN,
+               "gicd: gicd_set_irq_affinity() irq %" PRIu8 " is beyond end of "
+               "file\n",
+               irq);
+
+        return;
+    }
+
     const uint32_t target =
         atomic_load_explicit(&g_regs->interrupt_targets[index],
                              memory_order_relaxed);
@@ -373,12 +383,21 @@ void gicd_set_irq_affinity(const uint8_t irq, const uint8_t iface) {
 }
 
 __optimize(3) void
-gicd_set_irq_trigger_mode(const uint8_t irq, const enum irq_trigger_mpde mode) {
+gicd_set_irq_trigger_mode(const uint16_t irq, const enum irq_trigger_mpde mode) {
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
                "gicd_set_irq_trigger_mode() called on sgi interrupt");
 
     const uint64_t mask = 0b11ull;
     const uint8_t config_index = irq / 16;
+
+    if (!index_in_bounds(config_index, countof(g_regs->interrupt_config))) {
+        printk(LOGLEVEL_WARN,
+               "gicd: gicd_set_irq_trigger_mode() irq %" PRIu8 " is beyond end "
+               "of file\n",
+               irq);
+
+        return;
+    }
 
     const uint32_t target =
         atomic_load_explicit(&g_regs->interrupt_config[config_index],
@@ -404,8 +423,17 @@ gicd_set_irq_trigger_mode(const uint8_t irq, const enum irq_trigger_mpde mode) {
 }
 
 __optimize(3)
-void gicd_set_irq_priority(const uint8_t irq, const uint8_t priority) {
+void gicd_set_irq_priority(const uint16_t irq, const uint8_t priority) {
     const uint8_t index = irq / sizeof(uint32_t);
+    if (!index_in_bounds(index, countof(g_regs->interrupt_priority))) {
+        printk(LOGLEVEL_WARN,
+               "gicd: gicd_set_irq_priority() irq %" PRIu8 " is beyond end of "
+               "file\n",
+               irq);
+
+        return;
+    }
+
     const uint32_t irq_priority =
         atomic_load_explicit(&g_regs->interrupt_priority[index],
                              memory_order_relaxed);
