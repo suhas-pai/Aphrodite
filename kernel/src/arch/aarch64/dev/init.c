@@ -10,13 +10,15 @@
 
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();
-    struct dtb_driver gic_driver = {
-        .init = gic_init_from_dtb,
-        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+    if (tree != NULL) {
+        struct dtb_driver gic_driver = {
+            .init = gic_init_from_dtb,
+            .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
-        .compat_list = gic_compat_sv_list,
-        .compat_count = countof(gic_compat_sv_list),
-    };
+            .compat_list = gic_compat_sv_list,
+            .compat_count = countof(gic_compat_sv_list),
+        };
 
-    dtb_init_nodes_for_driver(&gic_driver, tree, tree->root);
+        dtb_init_nodes_for_driver(&gic_driver, tree, tree->root);
+    }
 }

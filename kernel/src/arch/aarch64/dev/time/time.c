@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "acpi/api.h"
 #include "asm/irqs.h"
 #include "dev/printk.h"
 
@@ -78,7 +79,14 @@ static void enable_timer_irqs() {
     struct devicetree_node *const node =
         devicetree_get_node_at_path(tree, SV_STATIC("/timer"));
 
-    assert_msg(node != NULL, "time: '/timer' node is not present in dtb");
+    if (node == NULL) {
+        if (get_acpi_info()->gtdt == NULL) {
+            panic("time: no timer found in acpi/dtb, expected GTDT table "
+                  "in ACPI, or '/timer' node in dtb");
+        }
+
+        return;
+    }
 
     struct devicetree_prop_interrupts *const int_prop =
         (struct devicetree_prop_interrupts *)(uint64_t)
@@ -88,9 +96,7 @@ static void enable_timer_irqs() {
                "time: 'interrupts' prop not found in '/timer' dtb-node");
 
     uint8_t index = 0;
-    array_foreach(&int_prop->list,
-                  const struct devicetree_prop_int_info,
-                  iter)
+    array_foreach(&int_prop->list, const struct devicetree_prop_int_info, iter)
     {
         if (iter->polarity != IRQ_POLARITY_HIGH) {
             printk(LOGLEVEL_WARN,
