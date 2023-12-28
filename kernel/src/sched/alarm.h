@@ -10,13 +10,10 @@
 
 struct sched_alarm {
     struct list list;
-    struct clock *clock;
     struct timespec time;
+
+    const struct clock *clock;
 };
 
-#define SCHED_ALARM_INIT(name, clock_, spec) \
-    ((struct sched_alarm){ \
-        .list = LIST_INIT(name.list), \
-        .clock = (clock_), \
-        .time = (spec) \
-    })
+struct sched_alarm *
+sched_alarm_post(const struct clock *clock, struct timespec spec);

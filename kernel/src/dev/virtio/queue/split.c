@@ -25,10 +25,12 @@ virtio_split_queue_init(struct virtio_device *const device,
             VIRTQ_MAX_DESC_COUNT);
 
     _Static_assert(
-        (sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT) // Desc Table
-        + (sizeof(struct virtq_avail) +                    // Avail Ring
-         (sizeof(le16_t) * VIRTQ_MAX_DESC_COUNT))
-        + (sizeof(struct virtq_used) +                     // Used Ring
+        // Desc Table
+        (sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT)
+        // Avail ring
+        + (sizeof(struct virtq_avail) + (sizeof(le16_t) * VIRTQ_MAX_DESC_COUNT))
+        // Used Ring
+        + (sizeof(struct virtq_used) +
          (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))
             <= (PAGE_SIZE << VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER),
         "virtio/split-queue: VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER needs to be "

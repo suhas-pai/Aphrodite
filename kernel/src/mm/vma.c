@@ -8,7 +8,7 @@
 
 #include "pagemap.h"
 
-struct vm_area *vma_prev(struct vm_area *const vma) {
+__optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_prev(&vma->node);
     if (node == NULL) {
         return NULL;
@@ -17,7 +17,7 @@ struct vm_area *vma_prev(struct vm_area *const vma) {
     return container_of(node, struct vm_area, node);
 }
 
-struct vm_area *vma_next(struct vm_area *const vma) {
+__optimize(3) struct vm_area *vma_next(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_next(&vma->node);
     if (node == NULL) {
         return NULL;
@@ -91,6 +91,6 @@ vma_create_at(struct pagemap *const pagemap,
     return vma;
 }
 
-struct pagemap *vma_pagemap(struct vm_area *const vma) {
+__optimize(3) struct pagemap *vma_pagemap(struct vm_area *const vma) {
     return container_of(vma->node.addrspace, struct pagemap, addrspace);
 }

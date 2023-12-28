@@ -6,7 +6,7 @@
 .macro save_context
     sub sp, sp, context_size
 
-    stp x0, x1,   [sp, #(0 * 8)]
+    stp x0, x1,   [sp, #(0 * 16)]
     stp x2, x3,   [sp, #(1 * 16)]
     stp x4, x5,   [sp, #(2 * 16)]
     stp x6, x7,   [sp, #(3 * 16)]

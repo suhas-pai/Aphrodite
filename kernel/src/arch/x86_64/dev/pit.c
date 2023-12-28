@@ -19,7 +19,7 @@ void irq$pit(const uint64_t int_no, irq_context_t *const regs) {
     (void)int_no;
     (void)regs;
 
-    printk(LOGLEVEL_INFO, "Timer: %" PRIu64, g_tick);
+    printk(LOGLEVEL_INFO, "pit: tick at %" PRIu64, g_tick);
     g_tick++;
 }
 

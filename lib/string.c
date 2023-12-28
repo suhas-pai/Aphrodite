@@ -99,11 +99,19 @@ __optimize(3) void *memset_all_ones(void *dst, unsigned long n) {
         n -= sizeof(uint64_t);
     }
 
+    if (n == 0) {
+        return ret;
+    }
+
     while (n >= sizeof(uint32_t)) {
         *(uint32_t *)dst = UINT32_MAX;
 
         dst += sizeof(uint32_t);
         n -= sizeof(uint32_t);
+    }
+
+    if (n == 0) {
+        return ret;
     }
 
     while (n >= sizeof(uint16_t)) {

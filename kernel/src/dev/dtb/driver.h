@@ -4,7 +4,6 @@
  */
 
 #pragma once
-#include "lib/adt/string_view.h"
 #include "tree.h"
 
 enum dtb_driver_match_flags {

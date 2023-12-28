@@ -36,8 +36,8 @@ struct virtio_block_config {
 
     uint8_t writeback;
     uint8_t unused0;
-    le16_t num_queues;
 
+    le16_t num_queues;
     le32_t max_discard_sectors;
     le32_t max_discard_seg;
     le32_t discard_sector_alignment;

@@ -48,9 +48,7 @@ void arch_init_dev() {
 
     uint64_t rand = 0;
     if (rdrand(&rand)) {
-        printk(LOGLEVEL_INFO,
-               "dev: testing random, got: %" PRIu64 "\n",
-               rand);
+        printk(LOGLEVEL_INFO, "dev: testing random, got: %" PRIu64 "\n", rand);
     } else {
         printk(LOGLEVEL_WARN, "dev: failed to execute rdrand instruction\n");
     }

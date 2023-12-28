@@ -24,6 +24,7 @@ __optimize(3) void arch_early_init() {
     if (spcr != NULL) {
         assert(spcr->interface_kind == ACPI_SPCR_INTERFACE_ARM_PL011);
         assert(spcr->serial_port.access_size == ACPI_GAS_ACCESS_SIZE_4_BYTE);
+        assert(spcr->baud_rate != ACPI_SPCR_BAUD_RATE_OS_DEPENDENT);
 
         address = spcr->serial_port.address;
     }

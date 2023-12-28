@@ -204,6 +204,8 @@ typedef uint64_t usec_t;
 typedef uint64_t msec_t;
 typedef uint64_t sec_t;
 
+struct tm tm_from_stamp(const uint64_t timestamp);
+
 // Stop colliding with Apple's time.h
 #ifndef _TIME_H_
     typedef uint64_t time_t;
@@ -226,8 +228,6 @@ typedef uint64_t sec_t;
 #endif /* _TIME_H_ */
 
 #define TIMESPEC_NONE() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
-
-struct tm tm_from_stamp(const uint64_t timestamp);
 
 __optimize(3) static inline bool
 timespec_add(const struct timespec left,

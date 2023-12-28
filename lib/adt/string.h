@@ -54,4 +54,3 @@ struct string_view string_to_sv(struct string string);
 const char *string_to_cstr(struct string string);
 
 void string_destroy(struct string *string);
-

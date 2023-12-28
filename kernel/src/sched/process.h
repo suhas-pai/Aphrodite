@@ -15,8 +15,8 @@ struct process {
     struct pagemap *pagemap;
     struct array threads;
 
-    struct sched_process_info sched_info;
     struct string_view name;
+    struct sched_process_info sched_info;
 
     int pid;
 };

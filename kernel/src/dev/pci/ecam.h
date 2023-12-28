@@ -72,4 +72,3 @@ pci_ecam_write_64(const struct pci_ecam_domain *domain,
                   const struct pci_location *loc,
                   uint16_t offset,
                   uint64_t value);
-

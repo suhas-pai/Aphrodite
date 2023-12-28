@@ -4,6 +4,7 @@
  */
 
 #pragma once
+
 #include "dev/dtb/node.h"
 #include "lib/adt/hashmap.h"
 

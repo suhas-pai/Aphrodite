@@ -55,13 +55,6 @@ __optimize(3) nsec_t nsec_since_boot() {
            (sec_t)boot_get_time();
 }
 
-uint64_t read_cval() {
-    uint64_t val = 0;
-    asm volatile ("mrs %0, cntp_cval_el0" :: "r"(val));
-
-    return val;
-}
-
 void oneshot_alarm(const nsec_t nano) {
     const sec_t seconds = nano_to_seconds(g_frequency * nano);
     asm volatile ("msr cntp_tval_el0, %0" :: "r"(seconds));

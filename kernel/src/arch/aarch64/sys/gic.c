@@ -273,8 +273,7 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
     g_regs = g_mmio->base;
     g_dist.version = gic_version;
 
-    assert_msg(g_dist.version >= GICv1 &&
-                g_dist.version <= GIC_VERSION_BACK,
+    assert_msg(g_dist.version >= GICv1 && g_dist.version <= GIC_VERSION_BACK,
                "gic: distributor has an unrecognized version: %d",
                g_dist.version);
 
@@ -347,12 +346,31 @@ __optimize(3) const struct gic_distributor *gic_get_dist() {
 }
 
 __optimize(3) void gicd_mask_irq(const uint16_t irq) {
-    mmio_write(&g_regs->interrupt_clear_enable[irq / sizeof(uint32_t)],
+    const uint8_t index = irq / sizeof(uint32_t);
+    if (!index_in_bounds(index, countof(g_regs->interrupt_clear_enable))) {
+        printk(LOGLEVEL_WARN,
+               "gicd: gicd_mask_irq() irq %" PRIu8 " is beyond end of bitset\n",
+               irq);
+
+        return;
+    }
+
+    mmio_write(&g_regs->interrupt_clear_enable[index],
                1ull << (irq % sizeof(uint32_t)));
 }
 
 __optimize(3) void gicd_unmask_irq(const uint16_t irq) {
-    mmio_write(&g_regs->interrupt_set_enable[irq / sizeof(uint32_t)],
+    const uint8_t index = irq / sizeof(uint32_t);
+    if (!index_in_bounds(index, countof(g_regs->interrupt_set_enable))) {
+        printk(LOGLEVEL_WARN,
+               "gicd: gicd_unmask_irq() irq %" PRIu8 " is beyond end of "
+               "bitset\n",
+               irq);
+
+        return;
+    }
+
+    mmio_write(&g_regs->interrupt_set_enable[index],
                1ull << (irq % sizeof(uint32_t)));
 }
 
@@ -362,7 +380,7 @@ void gicd_set_irq_affinity(const uint16_t irq, const uint8_t iface) {
     if (!index_in_bounds(index, countof(g_regs->interrupt_targets))) {
         printk(LOGLEVEL_WARN,
                "gicd: gicd_set_irq_affinity() irq %" PRIu8 " is beyond end of "
-               "file\n",
+               "bitset\n",
                irq);
 
         return;
@@ -387,13 +405,11 @@ gicd_set_irq_trigger_mode(const uint16_t irq, const enum irq_trigger_mpde mode) 
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
                "gicd_set_irq_trigger_mode() called on sgi interrupt");
 
-    const uint64_t mask = 0b11ull;
     const uint8_t config_index = irq / 16;
-
     if (!index_in_bounds(config_index, countof(g_regs->interrupt_config))) {
         printk(LOGLEVEL_WARN,
                "gicd: gicd_set_irq_trigger_mode() irq %" PRIu8 " is beyond end "
-               "of file\n",
+               "of bitset\n",
                irq);
 
         return;
@@ -404,7 +420,7 @@ gicd_set_irq_trigger_mode(const uint16_t irq, const enum irq_trigger_mpde mode) 
                              memory_order_relaxed);
 
     const uint8_t shift = irq % 16;
-    uint32_t new_target = target & ~(mask << shift);
+    uint32_t new_target = target & ~(0b11ull << shift);
 
     switch (mode) {
         case IRQ_TRIGGER_MODE_EDGE:
@@ -428,7 +444,7 @@ void gicd_set_irq_priority(const uint16_t irq, const uint8_t priority) {
     if (!index_in_bounds(index, countof(g_regs->interrupt_priority))) {
         printk(LOGLEVEL_WARN,
                "gicd: gicd_set_irq_priority() irq %" PRIu8 " is beyond end of "
-               "file\n",
+               "bitset\n",
                irq);
 
         return;
@@ -465,11 +481,11 @@ void gic_cpu_eoi(const struct cpu_info *const cpu, const irq_number_t number) {
     if (cpu->gic_cpu.mmio->size > PAGE_SIZE) {
         mmio_write(&cpu->gic_cpu.interface->deactivation,
                    (uint32_t)cpu->cpu_interface_number |
-                   (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
+                    (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
     } else {
         mmio_write(&cpu->gic_cpu.interface->end_of_interrupt,
                    (uint32_t)cpu->cpu_interface_number |
-                   (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
+                    (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
     }
 }
 

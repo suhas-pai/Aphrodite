@@ -62,9 +62,7 @@ void pptt_init(const struct acpi_pptt *const pptt) {
 
                 if (node->private_resource_count != 0) {
                     printk(LOGLEVEL_INFO, "\tprivate resource offsets:\n");
-                    for (uint32_t i = 0; i
-                         != node->private_resource_count;
-                         i++)
+                    for (uint32_t i = 0; i != node->private_resource_count; i++)
                     {
                         printk(LOGLEVEL_INFO,
                                "\t\t%" PRIu32 ". 0x%" PRIx32 "\n",
@@ -164,8 +162,7 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                        node->length,
                        node->flags,
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID ?
-                            "yes" : "no",
+                        __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID ? "yes" : "no",
                        node->flags &
                         __ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID ?
                             "yes" : "no",

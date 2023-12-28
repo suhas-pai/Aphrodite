@@ -12,4 +12,4 @@ void dtb_init();
 void
 dtb_init_nodes_for_driver(const struct dtb_driver *driver,
                           const struct devicetree *tree,
-                          struct devicetree_node *node);
+                          const struct devicetree_node *node);

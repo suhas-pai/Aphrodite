@@ -15,7 +15,7 @@ static struct devicetree g_device_tree;
 void
 dtb_init_nodes_for_driver(const struct dtb_driver *const driver,
                           const struct devicetree *const tree,
-                          struct devicetree_node *const node)
+                          const struct devicetree_node *const node)
 {
     if (driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
         struct devicetree_prop_compat *const compat_prop =
