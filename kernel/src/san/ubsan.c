@@ -34,7 +34,7 @@ __ubsan_handle_type_mismatch_v1(struct type_mismatch_info_v1 *const info,
                SOURCE_LOCATION_FMT_ARGS(&info->location),
                type_check_kind_list[info->type_check_kind],
                info->type->name);
-        cpu_halt();
+        cpu_idle();
     }
 
     const uint64_t alignment = 1ull << info->log_alignment;
@@ -55,7 +55,7 @@ __ubsan_handle_type_mismatch_v1_abort(struct type_mismatch_info_v1 *const info,
                                       const uint64_t pointer)
 {
     __ubsan_handle_type_mismatch_v1(info, pointer);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -169,7 +169,7 @@ __ubsan_handle_pointer_overflow_abort(struct pointer_overflow_info *const info,
                                       const uint64_t offset)
 {
     __ubsan_handle_pointer_overflow(info, base, offset);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -214,7 +214,7 @@ __ubsan_handle_shift_out_of_bounds_abort(
     const uint64_t rhs_value)
 {
     __ubsan_handle_shift_out_of_bounds(info, lhs_value, rhs_value);
-    cpu_halt();
+    cpu_idle();
 }
 
 void __ubsan_handle_nonnull_arg(struct nonnull_arg_info *const info) {
@@ -227,7 +227,7 @@ void __ubsan_handle_nonnull_arg(struct nonnull_arg_info *const info) {
 
 void __ubsan_handle_nonnull_arg_abort(struct nonnull_arg_info *const info) {
     __ubsan_handle_nonnull_arg(info);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -281,7 +281,7 @@ __ubsan_handle_add_overflow_abort(struct overflow_info *const info,
                                   const uint64_t rhs)
 {
     __ubsan_handle_add_overflow(info, lhs, rhs);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -290,7 +290,7 @@ __ubsan_handle_sub_overflow_abort(struct overflow_info *const info,
                                   const uint64_t rhs)
 {
     __ubsan_handle_sub_overflow(info, lhs, rhs);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -299,7 +299,7 @@ __ubsan_handle_mul_overflow_abort(struct overflow_info *const info,
                                   const uint64_t rhs)
 {
     __ubsan_handle_mul_overflow(info, lhs, rhs);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -327,7 +327,7 @@ __ubsan_handle_negate_overflow_abort(struct overflow_info *const info,
                                      const uint64_t value)
 {
     __ubsan_handle_negate_overflow(info, value);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -359,7 +359,7 @@ __ubsan_handle_divrem_overflow_abort(struct overflow_info *const info,
                                      const uint64_t rhs)
 {
     __ubsan_handle_divrem_overflow(info, lhs, rhs);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -379,7 +379,7 @@ __ubsan_handle_out_of_bounds_abort(struct out_of_bounds_info *const info,
                                    const uint64_t index)
 {
     __ubsan_handle_out_of_bounds(info, index);
-    cpu_halt();
+    cpu_idle();
 }
 
 void
@@ -483,7 +483,7 @@ __ubsan_handle_implicit_conversion_abort(
     const uint64_t value)
 {
     __ubsan_handle_implicit_conversion(info, value);
-    cpu_halt();
+    cpu_idle();
 }
 
 void __ubsan_handle_nonnull_return_v1(struct nonnull_return_info *const info) {
@@ -496,7 +496,7 @@ void __ubsan_handle_nonnull_return_v1(struct nonnull_return_info *const info) {
 void
 __ubsan_handle_nonnull_return_v1_abort(struct nonnull_return_info *const info) {
     __ubsan_handle_nonnull_return_v1(info);
-    cpu_halt();
+    cpu_idle();
 }
 
 void

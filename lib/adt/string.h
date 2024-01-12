@@ -15,17 +15,15 @@ struct string {
 #define STRING_NULL() ((struct string){ .gbuffer = GBUFFER_INIT() })
 #define STRING_EMPTY() ((struct string){ .gbuffer = GBUFFER_FROM_PTR("", 1) })
 #define STRING_STATIC(cstr) \
-    ((struct string){ \
-        .gbuffer = GBUFFER_FROM_PTR(cstr, LEN_OF(cstr)) \
-    })
+    ((struct string){ .gbuffer = GBUFFER_FROM_PTR(cstr, LEN_OF(cstr)) })
 
 #define STRING_FMT SV_FMT
 #define STRING_FMT_ARGS(string) SV_FMT_ARGS(string_to_sv(string))
 
 struct string string_alloc(struct string_view sv);
+struct string string_copy(struct string string);
 
-__printf_format(1, 2)
-struct string string_format(const char *fmt, ...);
+__printf_format(1, 2) struct string string_format(const char *fmt, ...);
 struct string string_vformat(const char *fmt, va_list list);
 
 struct string *string_append_char(struct string *string, char ch, uint32_t amt);
@@ -40,7 +38,7 @@ string_append(struct string *string, const struct string *append);
 char string_front(struct string string);
 char string_back(struct string string);
 
-uint64_t string_length(struct string string);
+uint32_t string_length(struct string string);
 void string_reserve(struct string *string, uint32_t capacity);
 
 struct string *string_remove_index(struct string *string, uint32_t index);

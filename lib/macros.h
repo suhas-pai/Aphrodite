@@ -4,7 +4,9 @@
  */
 
 #pragma once
+
 #include <stddef.h>
+#include <stdint.h>
 
 #if !defined(__unused)
     #define __unused __attribute__((unused))
@@ -24,7 +26,7 @@
 #endif /* !defined(__printf_format) */
 
 #if !defined(__optimize)
-    #if __has_attribute(optimize)
+    #if __has_attribute(optimize) && defined(DEBUG) && !defined(RELEASE)
         #define __optimize(n) __attribute__((optimize(n)))
     #else
         #define __optimize(n)
@@ -93,9 +95,8 @@
 #define h_var(token) VAR_CONCAT(VAR_CONCAT_3(__, token, __), __LINE__)
 #define countof(carr) (sizeof(carr) / sizeof((carr)[0]))
 #define carr_foreach(arr, name) \
-    for (typeof(&(arr)[0]) name = &arr[0]; \
-         name != ((arr) + countof(arr)); \
-         name++)
+    const typeof(&(arr)[0]) h_var(end) = ((arr) + countof(arr)); \
+    for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
 
 #define swap(a, b) ({ \
     const __auto_type __tmp = b; \
@@ -147,6 +148,8 @@
         *(ptr) &= (typeof(mask))~(mask); \
     }                                    \
 })
+
+#define rm_mask(num, mask) ((num) & ((typeof(num))~(mask)))
 
 #define div_round_up(a, b) ({\
     const __auto_type __a = (a); \

@@ -8,7 +8,7 @@
 
 #include "dev/psci.h"
 
-void cpu_halt() {
+void cpu_idle() {
     while (true) {
         asm volatile ("wfi");
     }

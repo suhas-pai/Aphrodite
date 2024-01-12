@@ -10,6 +10,8 @@
     #if defined(AARCH64_USE_16K_PAGES)
         #include "asm/tcr.h"
     #endif /* defined(AARCH64_USE_16K_PAGES) */
+#elif defined(__riscv64)
+    #include "asm/satp.h"
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
@@ -154,9 +156,11 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     asm volatile ("dsb sy; isb" ::: "memory");
 #else
     const uint64_t satp =
-        (PAGING_MODE + 8) << 60 | (virt_to_phys(pagemap->root) >> PML1_SHIFT);
+        (SATP_MODE_39_BIT_PAGING + PAGING_MODE) << SATP_PHYS_MODE_SHIFT |
+        (virt_to_phys(pagemap->root) >> PML1_SHIFT);
 
-    asm volatile ("csrw satp, %0; sfence.vma" :: "r"(satp) : "memory");
+    write_satp(satp);
+    asm volatile ("sfence.vma" ::: "memory");
 #endif /* defined(__x86_64__) */
 
     spin_release_with_irq(&pagemap->cpu_lock, flag);

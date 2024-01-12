@@ -51,8 +51,8 @@ __optimize(3) nsec_t nsec_since_boot() {
                   : "=r"(cntvct)
                   :: "memory");
 
-    return seconds_to_nano(read_syscount() / g_frequency) -
-           (sec_t)boot_get_time();
+    return seconds_to_nano(read_syscount() / g_frequency -
+                           (sec_t)boot_get_time());
 }
 
 void oneshot_alarm(const nsec_t nano) {
@@ -128,7 +128,7 @@ void arch_init_time() {
 
     printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
 
-    enable_all_irqs();
+    enable_interrupts();
     enable_dtb_timer_irqs();
 
     oneshot_alarm(0);

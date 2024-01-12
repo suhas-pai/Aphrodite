@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include "dev/printk.h"
+
 #include "lib/align.h"
 #include "lib/size.h"
-
-#include "dev/printk.h"
 
 #include "mm/early.h"
 #include "mm/memmap.h"
@@ -16,7 +16,10 @@
 #include "sys/boot.h"
 
 __optimize(3) static void
-alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
+alloc_region(const uint64_t virt_addr,
+             const uint64_t map_size,
+             const uint64_t pte_flags)
+{
     const struct pgmap_options options = {
         .pte_flags = pte_flags,
         .alloc_pgtable_cb_info = NULL,

@@ -4,10 +4,13 @@
  */
 
 #pragma once
-#include "cpu/cpu_info.h"
 
 #include "acpi/structs.h"
+#include "cpu/cpu_info.h"
+
+#include "sched/info.h"
 #include "sched/thread.h"
+
 #include "sys/gic.h"
 
 struct pagemap;
@@ -29,6 +32,8 @@ struct cpu_info {
 
     uint16_t spe_overflow_interrupt;
     bool is_active : 1;
+
+    struct sched_percpu_info info;
 };
 
 extern struct list g_cpu_list;

@@ -251,8 +251,8 @@ destroy_hashmap_buckets(struct hashmap_bucket ***const buckets_out,
                         uint32_t *const bucket_count_out)
 {
     struct hashmap_bucket **const buckets = *buckets_out;
+    struct hashmap_bucket **const end = buckets + *bucket_count_out;
 
-    const __auto_type end = buckets + *bucket_count_out;
     for (__auto_type iter = buckets; iter != end; iter++) {
         struct hashmap_bucket *const bucket = *iter;
         if (bucket == NULL) {

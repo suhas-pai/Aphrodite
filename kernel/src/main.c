@@ -3,12 +3,10 @@
  * © suhas pai
  */
 
-#include <limine.h>
-
 #include "dev/dtb/init.h"
 
-#include "acpi/api.h"
 #include "asm/irqs.h"
+#include "acpi/api.h"
 
 #include "cpu/isr.h"
 #include "cpu/util.h"
@@ -19,6 +17,10 @@
 
 #include "mm/early.h"
 #include "mm/page_alloc.h"
+
+#if defined(__x86_64__) || defined(__riscv64)
+    #include "sched/scheduler.h"
+#endif /* defined(__x86_64__) */
 
 #include "sys/boot.h"
 
@@ -62,7 +64,7 @@ void arch_post_mm_init();
 void _start(void) {
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED == false) {
-        cpu_halt();
+        cpu_idle();
     }
 
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
@@ -88,14 +90,17 @@ void _start(void) {
     dev_init();
 
     test_alloc_largepage();
-    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
 
     // We're done, just hang...
-    enable_all_irqs();
+    enable_interrupts();
 
-#if defined(__x86_64__)
-    sched_init(NULL);
+#if defined(__x86_64__) || defined(__riscv64)
+    sched_init();
+    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
+
+    sched_yield(/*noreturn=*/true);
+#else
+    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
+    cpu_idle();
 #endif
-
-    cpu_halt();
 }

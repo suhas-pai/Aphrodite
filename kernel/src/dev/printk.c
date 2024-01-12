@@ -28,11 +28,11 @@ void printk(const enum log_level loglevel, const char *const string, ...) {
 }
 
 // FIXME: Allocate a formatted-string over this approach
-__optimize(3) static uint64_t
+__optimize(3) static uint32_t
 write_char(struct printf_spec_info *const spec_info,
            void *const cb_info,
            const char ch,
-           const uint64_t amount,
+           const uint32_t amount,
            bool *const cont_out)
 {
     (void)spec_info;
@@ -49,7 +49,7 @@ write_char(struct printf_spec_info *const spec_info,
     return amount;
 }
 
-__optimize(3) static uint64_t
+__optimize(3) static uint32_t
 write_sv(struct printf_spec_info *const spec_info,
          void *const cb_info,
          const struct string_view sv,

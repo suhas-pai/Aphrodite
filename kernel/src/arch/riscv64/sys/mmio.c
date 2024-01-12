@@ -36,9 +36,13 @@ __optimize(3) uint16_t mmio_read_16(volatile const void *const ptr) {
 }
 
 __optimize(3) uint32_t mmio_read_32(volatile const void *const ptr) {
-    uint32_t result = *(volatile const uint32_t *)ptr;
-    io_br_fence();
+    uint32_t result = 0;
+    asm volatile ("lw %0, 0(%1)"
+                  : "=r"(result)
+                  : "r"(ptr)
+                  : "memory");
 
+    io_br_fence();
     return result;
 }
 

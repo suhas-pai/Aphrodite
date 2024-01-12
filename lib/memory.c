@@ -6,10 +6,12 @@
 #include "lib/macros.h"
 #include "memory.h"
 
+#define REP_MIN 32
+
 __optimize(3)
 uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
 #if defined(__x86_64__)
-    if (count > 32) {
+    if (count > REP_MIN) {
         void *ret = buf;
         asm volatile ("cld;\n"
                       "rep stosw"
@@ -32,7 +34,7 @@ __optimize(3)
 uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
     void *const ret = buf;
 #if defined(__x86_64__)
-    if (count > 32) {
+    if (count > REP_MIN) {
         asm volatile ("cld;\n"
                       "rep stosl"
                       : "+D"(buf), "+c"(count)

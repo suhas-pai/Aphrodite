@@ -89,9 +89,7 @@ parse_width(struct printf_spec_info *const curr_spec,
     }
 
     if (*iter == '\0') {
-        // If we have an incomplete spec, then we exit without writing
-        // anything.
-
+        // If we have an incomplete spec, then we exit without writing anything.
         return false;
     }
 
@@ -272,7 +270,7 @@ handle_spec(struct printf_spec_info *const curr_spec,
             char *const buffer,
             uint64_t number,
             struct va_list_struct *const list_struct,
-            const uint64_t written_out,
+            const uint32_t written_out,
             struct string_view *const parsed_out,
             bool *const is_zero_out,
             bool *const is_null_out)
@@ -417,7 +415,7 @@ handle_spec(struct printf_spec_info *const curr_spec,
         }
         case 'n':
             if (curr_spec->length_sv.length == 0) {
-                *va_arg(list_struct->list, int *) = written_out;
+                *va_arg(list_struct->list, int *) = (int)written_out;
                 return E_HANDLE_SPEC_CONTINUE;
             }
 
@@ -603,7 +601,7 @@ call_cb(struct printf_spec_info *const info,
     return write_sv_cb(info, sv_cb_info, sv, cont_out);
 }
 
-__optimize(3) uint64_t
+__optimize(3) uint32_t
 parse_printf(const char *const fmt,
              const printf_write_char_callback_t write_char_cb,
              void *const write_char_cb_info,
@@ -621,7 +619,7 @@ parse_printf(const char *const fmt,
     struct printf_spec_info curr_spec = PRINTF_SPEC_INFO_INIT();
     const char *unformatted_start = fmt;
 
-    uint64_t written_out = 0;
+    uint32_t written_out = 0;
     bool should_continue = true;
 
     const char *iter = strchr(fmt, '%');
@@ -887,7 +885,6 @@ parse_printf(const char *const fmt,
         const struct string_view unformatted =
             sv_create_length(unformatted_start, strlen(unformatted_start));
 
-        curr_spec = PRINTF_SPEC_INFO_INIT();
         written_out +=
             call_cb(NULL,
                     unformatted,

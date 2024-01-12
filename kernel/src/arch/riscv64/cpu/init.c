@@ -3,11 +3,15 @@
  * © suhas pai
  */
 
-#include "dev/dtb/init.h"
 #include "dev/dtb/tree.h"
+
+#include "asm/csr.h"
+#include "asm/irqs.h"
 
 #include "cpu/info.h"
 #include "dev/printk.h"
+
+#include "sched/thread.h"
 #include "sys/boot.h"
 
 static void setup_from_dtb(const uint32_t hartid) {
@@ -73,10 +77,16 @@ static void setup_from_dtb(const uint32_t hartid) {
     }
 }
 
-void cpu_init() {
+extern void isr_interrupt_entry();
+
+__optimize(3) void cpu_init() {
+    csr_write(sscratch, (uint64_t)&kernel_main_thread);
+    csr_write(stvec, (uint64_t)&isr_interrupt_entry);
+
+    this_cpu_mut()->hart_id = boot_get_smp()->bsp_hartid;
 }
 
-void cpu_init_from_dtb() {
+__optimize(3) void cpu_init_from_dtb() {
     const struct limine_smp_response *const smp_resp = boot_get_smp();
     setup_from_dtb(smp_resp->bsp_hartid);
 }

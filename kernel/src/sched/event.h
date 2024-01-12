@@ -14,14 +14,13 @@ struct event {
     struct spinlock lock;
     struct array listeners;
 
-    struct scheduler *sched;
     uint32_t pending_count;
 };
 
 #define EVENT_INIT() \
     ((struct event){ \
         .lock = SPINLOCK_INIT(), \
-        .listeners = ARRAY_INIT(sizeof(struct thread *)) \
+        .listeners = ARRAY_INIT(sizeof(struct event_listener)) \
     })
 
 struct thread;

@@ -15,19 +15,6 @@
 #include "mm/mmio.h"
 #include "sys/pic.h"
 
-__optimize(3) void
-lapic_timer_irq_callback(const uint64_t int_no, irq_context_t *const frame) {
-    (void)int_no;
-    (void)frame;
-
-    this_cpu_mut()->timer_ticks++;
-    if (this_cpu()->timer_ticks % 1000 == 0) {
-        printk(LOGLEVEL_INFO,
-               "Timer: %" PRIu64 "\n",
-               this_cpu_mut()->timer_ticks);
-    }
-}
-
 enum {
     __IA32_MSR_APIC_BASE_IS_BSP = 1 << 8,
     __IA32_MSR_APIC_BASE_X2APIC = 1 << 10,
@@ -70,13 +57,4 @@ void apic_init(const uint64_t local_apic_base) {
 
     msr_write(IA32_MSR_APIC_BASE, apic_msr | __IA32_MSR_APIC_BASE_ENABLE);
     lapic_init();
-
-    isr_set_vector(isr_get_timer_vector(),
-                   lapic_timer_irq_callback,
-                   &ARCH_ISR_INFO_NONE());
-
-    isr_assign_irq_to_cpu(this_cpu_mut(),
-                          IRQ_TIMER,
-                          isr_get_timer_vector(),
-                          /*masked=*/false);
 }

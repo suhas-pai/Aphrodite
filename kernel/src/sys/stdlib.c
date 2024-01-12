@@ -342,17 +342,19 @@ __optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
                                   const void *const src, \
                                   const unsigned long n) \
     {                                                                          \
-        if (n >= sizeof(type)) {                                               \
-            unsigned long off = n - sizeof(type);                              \
-            do {                                                               \
-                *((type *)(dst + off)) = *((const type *)(src + off));         \
-                if (off < sizeof(type)) {                                      \
-                    return off;                                                \
-                }                                                              \
-                                                                               \
-                off -= sizeof(type);                                           \
-            } while (true);                                                    \
+        if (n < sizeof(type)) {                                                \
+            return n;                                                          \
         }                                                                      \
+                                                                               \
+        unsigned long off = n - sizeof(type);                                  \
+        do {                                                                   \
+            *((type *)(dst + off)) = *((const type *)(src + off));             \
+            if (off < sizeof(type)) {                                          \
+                return off;                                                    \
+            }                                                                  \
+                                                                               \
+            off -= sizeof(type);                                               \
+        } while (true);                                                        \
                                                                                \
         return n;                                                              \
     }
@@ -362,47 +364,50 @@ _memcpy_bw_uint64_t(void *const dst,
                     const void *const src,
                     const unsigned long n)
 {
-    if (n >= sizeof(uint64_t)) {
-        unsigned long off = n - sizeof(uint64_t);
-    #if defined(__aarch64__)
-        if (n >= (2 * sizeof(uint64_t))) {
-            off -= sizeof(uint64_t);
-            do {
-                uint64_t left_ch = 0;
-                uint64_t right_ch = 0;
-
-                asm volatile ("ldp %0, %1, [%2]"
-                              : "+r"(left_ch), "+r"(right_ch)
-                              : "r"((const uint64_t *)(src + off))
-                              : "memory");
-
-                asm volatile ("stp %0, %1, [%2]"
-                              :: "r"(left_ch), "r"(right_ch),
-                                 "r"((uint64_t *)(dst + off)));
-
-                off -= (sizeof(uint64_t) * 2);
-                if (off < (sizeof(uint64_t) * 2)) {
-                    break;
-                }
-            } while (true);
-
-            if (off < sizeof(uint64_t)) {
-                return off;
-            }
-        }
-    #endif /* defined(__aarch64__) */
-
-        do {
-            *(uint64_t *)(dst + off) = *(const uint64_t *)(src + off);
-
-            off -= sizeof(uint64_t);
-            if (off < sizeof(uint64_t)) {
-                return off;
-            }
-        } while (n >= sizeof(uint64_t));
+    if (n < sizeof(uint64_t)) {
+        return n;
     }
 
-    return n;
+    unsigned long off = n - sizeof(uint64_t);
+#if defined(__aarch64__)
+    if (n >= (2 * sizeof(uint64_t))) {
+        off -= sizeof(uint64_t);
+        do {
+            uint64_t left_ch = 0;
+            uint64_t right_ch = 0;
+
+            asm volatile ("ldp %0, %1, [%2]"
+                            : "+r"(left_ch), "+r"(right_ch)
+                            : "r"((const uint64_t *)(src + off))
+                            : "memory");
+
+            asm volatile ("stp %0, %1, [%2]"
+                            :: "r"(left_ch), "r"(right_ch),
+                                "r"((uint64_t *)(dst + off)));
+
+            if (off < (sizeof(uint64_t) * 2)) {
+                break;
+            }
+
+            off -= (sizeof(uint64_t) * 2);
+        } while (true);
+
+        if (off < sizeof(uint64_t)) {
+            return off;
+        }
+    }
+#endif /* defined(__aarch64__) */
+
+    do {
+        *(uint64_t *)(dst + off) = *(const uint64_t *)(src + off);
+        if (off < sizeof(uint64_t)) {
+            break;
+        }
+
+        off -= sizeof(uint64_t);
+    } while (true);
+
+    return off;
 }
 
 
@@ -475,7 +480,7 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
 }
 
 #if defined(__x86_64__)
-    #define REP_MIN 128
+    #define REP_MIN 48
 #elif defined(__riscv64)
     // FIXME: 64 is the cbo size in QEMU, read value for dtb instead.
     #define CBO_SIZE 64

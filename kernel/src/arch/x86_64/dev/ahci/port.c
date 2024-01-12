@@ -59,7 +59,7 @@ ahci_hba_port_send_command(struct ahci_hba_port *const port,
 
     switch (command_kind) {
         case AHCI_HBA_PORT_CMDKIND_READ:
-            flags &= (uint16_t)~__AHCI_PORT_CMDHDR_WRITE;
+            flags = rm_mask(flags, __AHCI_PORT_CMDHDR_WRITE);
             break;
         case AHCI_HBA_PORT_CMDKIND_WRITE:
             flags |= __AHCI_PORT_CMDHDR_WRITE;

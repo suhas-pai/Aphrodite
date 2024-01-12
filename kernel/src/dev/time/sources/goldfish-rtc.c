@@ -124,10 +124,10 @@ init_from_dtb(const struct devicetree *const tree,
     clock_add(&goldfish->clock);
     g_goldfish_clock = goldfish;
 
-    const uint64_t timestamp = goldfish_rtc_read(&goldfish->clock);
+    const timestamp_t timestamp = goldfish_rtc_read(&goldfish->clock);
     printk(LOGLEVEL_INFO,
-           "goldfish-rtc: init complete. ns since epoch: %" PRIu64 "\n",
-           timestamp);
+           "goldfish-rtc: init complete. ns since epoch: " TIMESTAMP_FMT "\n",
+           TIMESTAMP_FMT_ARGS(timestamp));
 
     const struct tm tm = tm_from_stamp(nano_to_seconds(timestamp));
     struct string string = kstrftime("%c", &tm);

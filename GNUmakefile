@@ -117,12 +117,12 @@ run-hdd-aarch64: ovmf $(IMAGE_NAME).hdd
 .PHONY: run-riscv64
 run-riscv64: QEMU_RUN = 1
 run-riscv64: ovmf $(IMAGE_NAME).iso
-	qemu-system-riscv64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) $(DRIVE_CD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-riscv64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_CD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-riscv64
 run-hdd-riscv64: QEMU_RUN = 1
 run-hdd-riscv64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-riscv64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-riscv64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-bios
 run-bios: QEMU_RUN = 1

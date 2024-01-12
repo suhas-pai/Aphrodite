@@ -41,16 +41,6 @@ __optimize(3) const struct cpu_info *get_base_cpu_info() {
     return &g_base_cpu_info;
 }
 
-__optimize(3) const struct cpu_info *this_cpu() {
-    assert(g_base_cpu_init);
-    return current_thread()->cpu;
-}
-
-__optimize(3) struct cpu_info *this_cpu_mut() {
-    assert(g_base_cpu_init);
-    return current_thread()->cpu;
-}
-
 __optimize(3) const struct cpu_features *cpu_get_features() {
     return &g_cpu_features;
 }
@@ -1442,7 +1432,7 @@ void cpu_init() {
 #endif /* defined(AARCH64_USE_16K_PAGES) */
 
     g_base_cpu_info.mpidr = read_mpidr_el1();
-    g_base_cpu_info.mpidr &= ~(1ull << 31);
+    g_base_cpu_info.mpidr = rm_mask(g_base_cpu_info.mpidr, 1ull << 31);
 
     asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
     g_base_cpu_init = true;

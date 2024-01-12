@@ -5,6 +5,7 @@
 
 #include "apic/ioapic.h"
 
+#include "apic/lapic.h"
 #include "cpu/info.h"
 #include "cpu/isr.h"
 
@@ -47,6 +48,8 @@ void isr_handle_interrupt(const uint64_t vector, irq_context_t *const frame) {
                    "Got unhandled interrupt %" PRIu64 "\n",
                    vector);
         }
+
+        lapic_eoi();
     }
 }
 

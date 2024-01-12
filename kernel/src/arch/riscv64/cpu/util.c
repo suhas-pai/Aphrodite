@@ -8,7 +8,7 @@
 #include "cpu/util.h"
 #include "dev/syscon.h"
 
-void cpu_halt() {
+void cpu_idle() {
     while (true) {
         asm("wfi");
     }

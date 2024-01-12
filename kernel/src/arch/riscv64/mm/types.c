@@ -62,8 +62,8 @@ __optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
 }
 
 __optimize(3) bool pte_is_large(const pte_t pte) {
-    return ((pte & (__PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC))
-                > __PTE_VALID);
+    return (pte & (__PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC))
+                > __PTE_VALID;
 }
 
 __optimize(3) bool pte_is_dirty(const pte_t pte) {

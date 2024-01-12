@@ -20,11 +20,3 @@ struct cpu_info g_base_cpu_info = {
 __optimize(3) const struct cpu_info *get_base_cpu_info() {
     return &g_base_cpu_info;
 }
-
-__optimize(3) const struct cpu_info *this_cpu() {
-    return current_thread()->cpu;
-}
-
-__optimize(3) struct cpu_info *this_cpu_mut() {
-    return current_thread()->cpu;
-}

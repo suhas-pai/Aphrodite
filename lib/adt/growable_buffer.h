@@ -42,7 +42,6 @@ struct growable_buffer {
 
 struct growable_buffer gbuffer_alloc(uint32_t capacity);
 struct growable_buffer gbuffer_alloc_copy(void *data, const uint32_t size);
-
 struct growable_buffer gbuffer_copy(struct growable_buffer gbuffer);
 
 struct growable_buffer

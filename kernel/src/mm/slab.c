@@ -99,7 +99,7 @@ static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
     return head;
 }
 
-static inline uint64_t
+__optimize(3) static inline uint64_t
 get_free_index(struct page *const head,
                struct slab_allocator *const alloc,
                struct free_slab_object *const free_object)
@@ -107,7 +107,7 @@ get_free_index(struct page *const head,
     return distance(page_to_virt(head), free_object) / alloc->object_size;
 }
 
-static inline void *
+__optimize(3) static inline void *
 get_free_ptr(struct page *const page, struct slab_allocator *const alloc) {
     if (page->slab.head.first_free_index == UINT32_MAX) {
         return NULL;

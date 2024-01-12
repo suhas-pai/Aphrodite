@@ -34,20 +34,20 @@ struct printf_spec_info {
         .length_sv = SV_EMPTY() \
     })
 
-typedef uint64_t
+typedef uint32_t
 (*printf_write_char_callback_t)(struct printf_spec_info *spec_info,
                                 void *info,
                                 char ch,
-                                uint64_t times,
+                                uint32_t times,
                                 bool *should_continue_out);
 
-typedef uint64_t
+typedef uint32_t
 (*printf_write_sv_callback_t)(struct printf_spec_info *spec_info,
                               void *info,
                               struct string_view sv,
                               bool *should_continue_out);
 
-uint64_t
+uint32_t
 parse_printf(const char *fmt,
              printf_write_char_callback_t write_char_cb,
              void *char_cb_info,

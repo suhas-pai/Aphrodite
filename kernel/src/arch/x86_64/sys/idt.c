@@ -117,7 +117,7 @@ void handle_exception(const uint64_t int_no, irq_context_t *const context) {
             break;
         case EXCEPTION_DEBUG:
             printk(LOGLEVEL_ERROR, "Debug exception\n");
-            cpu_halt();
+            cpu_idle();
         case EXCEPTION_NMI:
             printk(LOGLEVEL_ERROR, "NMI exception\n");
             break;
@@ -191,7 +191,7 @@ void handle_exception(const uint64_t int_no, irq_context_t *const context) {
             break;
     }
 
-    cpu_halt();
+    cpu_idle();
 }
 
 void idt_register_exception_handlers() {

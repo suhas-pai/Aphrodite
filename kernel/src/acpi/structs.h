@@ -515,7 +515,7 @@ struct acpi_fadt {
     uint32_t firmware_ctrl;
     uint32_t dsdt;
 
-    // field used in ACPI 1.0; no longer in use, for compatibility only
+    // Field used in ACPI 1.0; no longer in use, for compatibility only
     uint8_t reserved;
     uint8_t preferred_power_management_profile;
 
@@ -566,7 +566,6 @@ struct acpi_fadt {
      * A don’t care value can be any unused value (not 0x1-0x31 BCD or 0x01-0x1F
      * hex) that the RTC reverts back to a 24 hour alarm.
      */
-
     uint8_t day_alarm;
 
     /*
@@ -576,7 +575,6 @@ struct acpi_fadt {
      * A "don't care" value can be any unused value (not 1-12 BCD or x01-xC hex)
      * that the RTC reverts back to a 24 hour alarm and/or 31 day alarm).
      */
-
     uint8_t month_alarm;
 
     /*
@@ -585,7 +583,6 @@ struct acpi_fadt {
      * century, 20 for the next) or binary (x13 for this century, x14 for the
      * next).
      */
-
     uint8_t century;
     uint16_t iapc_boot_arch_flags;
 

@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "dev/driver.h"
+#include "dev/dtb/node.h"
 #include "dev/printk.h"
 
 #include "psci.h"
@@ -110,9 +110,9 @@ static bool init_common() {
     return true;
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
+bool
+psci_init_from_dtb(const struct devicetree *const tree,
+                   const struct devicetree_node *const node)
 {
     (void)tree;
     const struct devicetree_prop_other *const method_prop =
@@ -149,17 +149,17 @@ init_from_dtb(const struct devicetree *const tree,
         PSCI_FUNC_CPU_SUSPEND
     };
 
-    carr_foreach(key_list, key_iter) {
-        const struct string_view key = *key_iter;
+    carr_foreach(key_list, iter) {
+        const struct string_view key = *iter;
         const struct devicetree_prop_other *const key_prop =
-            devicetree_node_get_other_prop(node, *key_iter);
+            devicetree_node_get_other_prop(node, key);
 
-        if (method_prop == NULL) {
+        if (key_prop == NULL) {
             continue;
         }
 
         uint32_t *const func_ptr =
-            &g_func_to_cmd[key_index_to_func[key_iter - key_list]];
+            &g_func_to_cmd[key_index_to_func[iter - key_list]];
 
         if (!devicetree_prop_other_get_u32(key_prop, func_ptr)) {
             printk(LOGLEVEL_WARN,
@@ -209,34 +209,16 @@ void psci_init_from_acpi(const bool use_hvc) {
     printk(LOGLEVEL_INFO, "psci: successfully initialized from acpi\n");
 }
 
-enum psci_return_value psci_reboot() {
+__optimize(3) enum psci_return_value psci_reboot() {
     return psci_invoke_function(PSCI_FUNC_SYSTEM_RESET,
                                 /*arg1=*/0,
                                 /*arg2=*/0,
                                 /*arg3=*/0);
 }
 
-enum psci_return_value psci_shutdown() {
+__optimize(3) enum psci_return_value psci_shutdown() {
     return psci_invoke_function(PSCI_FUNC_SYSTEM_OFF,
                                 /*arg1=*/0,
                                 /*arg2=*/0,
                                 /*arg3=*/0);
 }
-
-static const struct string_view compat_list[] = {
-    SV_STATIC("arm,psci"), SV_STATIC("arm,psci-1.0"), SV_STATIC("arm,psci-0.2")
-};
-
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
-
-    .compat_list = compat_list,
-    .compat_count = countof(compat_list),
-};
-
-__driver static const struct driver driver = {
-    .name = SV_STATIC("aarch64-psci-driver"),
-    .dtb = &dtb_driver,
-    .pci = NULL
-};

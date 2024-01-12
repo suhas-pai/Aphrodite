@@ -3,7 +3,11 @@
  * © suahs pai
  */
 
+#include "cpu/info.h"
 #include "dev/printk.h"
+
+#include "lib/freq.h"
+#include "lib/time.h"
 #include "lib/util.h"
 
 #include "rhct.h"
@@ -104,6 +108,7 @@ print_rhct_node(const struct acpi_rhct *const rhct,
     }
 }
 
+extern struct cpus_info g_cpus_info;
 void acpi_rhct_init(const struct acpi_rhct *const rhct) {
     printk(LOGLEVEL_INFO,
            "rhct:\n"
@@ -121,4 +126,10 @@ void acpi_rhct_init(const struct acpi_rhct *const rhct) {
         print_rhct_node(rhct, node, /*prefix=*/"");
         node = reg_to_ptr(struct acpi_rhct_node, node, node->length);
     }
+
+    assert_msg(rhct->time_base_freq >= MICRO_IN_SECONDS,
+               "arch: timebase-frequency " FREQ_TO_UNIT_FMT " is too low\n",
+               FREQ_TO_UNIT_FMT_ARGS_ABBREV(rhct->time_base_freq));
+
+    g_cpus_info.timebase_frequency = rhct->time_base_freq;
 }

@@ -21,5 +21,5 @@ __optimize(3) void panic(const char *const fmt, ...) {
     print_stack_trace(/*max_lines=*/10);
 #endif /* __has_include("asm/stack_trace.h") */
 
-    cpu_halt();
+    cpu_idle();
 }

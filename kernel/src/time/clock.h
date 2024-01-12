@@ -24,14 +24,14 @@ struct clock {
     struct string_view name;
 
     enum clock_resolution resolution : 3;
+    bool one_shot_capable : 1;
 
     time_t (*read)(const struct clock *clock);
 
     bool (*enable)(const struct clock *clock);
     bool (*disable)(const struct clock *clock);
 
-    void (*resume)(const struct clock *clock);
-    void (*suspend)(const struct clock *clock);
+    void (*oneshot)(const struct clock *clock, nsec_t interval);
 };
 
 bool

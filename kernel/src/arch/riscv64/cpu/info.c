@@ -11,14 +11,14 @@ static struct cpu_info g_base_cpu_info = {
     .spur_int_count = 0
 };
 
+struct cpus_info g_cpus_info = {
+    .timebase_frequency = 0
+};
+
 __optimize(3) const struct cpu_info *get_base_cpu_info() {
     return &g_base_cpu_info;
 }
 
-__optimize(3) const struct cpu_info *this_cpu() {
-    return &g_base_cpu_info;
-}
-
-__optimize(3) struct cpu_info *this_cpu_mut() {
-    return &g_base_cpu_info;
+__optimize(3) const struct cpus_info *get_cpus_info() {
+    return &g_cpus_info;
 }

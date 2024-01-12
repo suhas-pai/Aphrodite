@@ -1,0 +1,73 @@
+/*
+ * kernel/src/arch/riscv64/asm/cause.h
+ * © suhas pai
+ */
+
+#pragma once
+
+#include "lib/adt/string_view.h"
+#include "lib/macros.h"
+
+enum mcause_flags {
+    __MCAUSE_CODE = mask_for_n_bits(11),
+    __MCAUSE_PREV_INT_LVL = 0xFFull << 16,
+    __MCAUSE_PREV_MPIE = 1ull << 27,
+    __MCAUSE_PREV_MPP = 0b11ull << 28,
+    __MCAUSE_MEPC_IS_TABLE_ADDRESS = 1ull << 30,
+    __MCAUSE_IS_INT = 1ull << 63,
+};
+
+enum scause_flags {
+    __SCAUSE_CODE = mask_for_n_bits(11),
+    __SCAUSE_PREV_INT_LVL = 0xFFull << 16,
+    __SCAUSE_PREV_SPIE = 1ull << 27,
+    __SCAUSE_PREV_SPP = 1ull << 28,
+    __SCAUSE_SEPC_IS_TABLE_ADDRESS = 1ull << 30,
+    __SCAUSE_IS_INT = 1ull << 63,
+};
+
+enum ucause_flags {
+    __UCAUSE_CODE = mask_for_n_bits(11),
+    __UCAUSE_PREV_INT_LVL = 0xFFull << 16,
+    __UCAUSE_PREV_UPIE = 1ull << 27,
+    __UCAUSE_UEPC_IS_TABLE_ADDRESS = 1ull << 30,
+    __UCAUSE_IS_INT = 1ull << 63,
+};
+
+
+enum cause_exception_kind {
+    CAUSE_EXCEPTION_NONE = -1,
+    CAUSE_EXCEPTION_INST_ADDR_MI,
+    CAUSE_EXCEPTION_INST_ACCESS_FAULT,
+    CAUSE_EXCEPTION_ILLEGAL_INST,
+    CAUSE_EXCEPTION_BREAKPOINT,
+    CAUSE_EXCEPTION_LOAD_ADDR_MIS,
+    CAUSE_EXCEPTION_LOAD_ACCESS_FAULT,
+    CAUSE_EXCEPTION_STORE_AMO_ADDR_MIS,
+    CAUSE_EXCEPTION_STORE_AMO_ACCESS_FAULT,
+    CAUSE_EXCEPTION_U_ECALL,
+    CAUSE_EXCEPTION_S_ECALL,
+    CAUSE_EXCEPTION_VS_ECALL,
+    CAUSE_EXCEPTION_M_ECALL,
+    CAUSE_EXCEPTION_INST_PAGE_FAULT,
+    CAUSE_EXCEPTION_LOAD_PAGE_FAULT,
+    CAUSE_EXCEPTION_STORE_PAGE_FAULT,
+    CAUSE_EXCEPTION_SEMIHOST,
+    CAUSE_EXCEPTION_INST_GUEST_PAGE_FAULT,
+    CAUSE_EXCEPTION_LOAD_GUEST_ACCESS_FAULT,
+    CAUSE_EXCEPTION_VIRT_INSTRUCTION_FAULT,
+    CAUSE_EXCEPTION_STORE_GUEST_AMO_ACCESS_FAULT,
+};
+
+enum cause_interrupt_kind {
+    CAUSE_INTERRUPT_SUPERVISOR_IPI = 1,
+    CAUSE_INTERRUPT_MACHINE_IPI = 3,
+
+    CAUSE_INTERRUPT_SUPERVISOR_TIMER = 5,
+    CAUSE_INTERRUPT_MACHINE_TIMER = 7,
+
+    CAUSE_INTERRUPT_SUPERVISOR_EXTERNAL = 5,
+    CAUSE_INTERRUPT_MACHINE_EXTERNAL = 7,
+};
+
+struct string_view cause_exception_kind_get_sv(enum cause_exception_kind kind);

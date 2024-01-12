@@ -114,8 +114,10 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
         ioapic_version_reg_get_max_redirect_count(ioapic_version_reg);
 
     printk(LOGLEVEL_INFO,
-           "ioapic: added ioapic with version: %" PRIu8 " and max "
-           "redirect-count: %" PRIu8 ", mmio: " RANGE_FMT "\n",
+           "ioapic: added ioapic\n"
+           "\tversion: %" PRIu8 "\n"
+           "\tmax redirect-count: %" PRIu8 "\n"
+           "\tmmio: " RANGE_FMT "\n",
            info.version,
            info.max_redirect_count,
            RANGE_FMT_ARGS(mmio_region_get_range(info.regs_mmio)));
@@ -152,16 +154,14 @@ ioapic_redirect_irq(const uint8_t lapic_id,
     // First check if the IOAPIC already directs this IRQ to the requested
     // vector. If so, we don't need to do anything.
 
-    array_foreach(&get_acpi_info()->iso_list,
-                  const struct apic_iso_info,
-                  item)
+    array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, item)
     {
         if (item->irq_src != irq) {
             continue;
         }
 
-        // Don't fill up the redirection-table if the iso already directs
-        // the irq to the requested irq.
+        // Don't fill up the redirection-table if the iso already directs the
+        // irq to the requested irq.
 
         const uint8_t gsi = item->gsi;
         if (gsi == vector) {

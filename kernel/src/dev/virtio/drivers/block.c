@@ -24,7 +24,7 @@ struct virtio_block_config {
 
     le32_t block_size;
     struct virtio_block_topology {
-        // # of logical blocks per physical block (log2)
+        // NUmber of logical blocks per physical block (log2)
         uint8_t physical_block_exp;
         // Offset of first aligned logical block
         uint8_t alignment_offset;

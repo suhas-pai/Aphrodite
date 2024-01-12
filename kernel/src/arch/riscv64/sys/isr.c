@@ -3,17 +3,75 @@
  * © suhas pai
  */
 
+#include "dev/time/stime.h"
+
+#include "asm/cause.h"
+#include "asm/csr.h"
+
 #include "cpu/info.h"
 #include "cpu/panic.h"
+#include "cpu/util.h"
 
+#include "dev/printk.h"
+#include "sched/scheduler.h"
 #include "sys/isr.h"
+
+static isr_func_t g_funcs[240] = {0};
+static isr_vector_t g_free_vector = 16;
 
 void isr_init() {
 
 }
 
-isr_vector_t isr_alloc_vector() {
-    panic("isr: isr_alloc_vector() called, not supported on riscv64");
+__optimize(3) isr_vector_t isr_alloc_vector() {
+    const isr_vector_t result = g_free_vector;
+    g_free_vector++;
+
+    return result;
+}
+
+extern void handle_exception(const uint64_t vector, irq_context_t *const frame);
+
+__optimize(3) void
+isr_handle_interrupt(const uint64_t cause,
+                     const uint64_t epc,
+                     irq_context_t *const frame)
+{
+    const isr_vector_t code = cause & __SCAUSE_CODE;
+    if (cause & __SCAUSE_IS_INT) {
+        switch ((enum cause_interrupt_kind)code) {
+            case CAUSE_INTERRUPT_SUPERVISOR_IPI:
+                return;
+            case CAUSE_INTERRUPT_SUPERVISOR_TIMER:
+                stimer_stop();
+                sched_next(/*from_irq=*/true);
+
+                return;
+            case CAUSE_INTERRUPT_MACHINE_IPI:
+            case CAUSE_INTERRUPT_MACHINE_TIMER:
+                verify_not_reached();
+        }
+
+        if (g_funcs[code] != NULL) {
+            g_funcs[code](code, epc, frame);
+        } else {
+            printk(LOGLEVEL_INFO,
+                   "isr: got unhandled interrupt: " ISR_VECTOR_FMT "\n",
+                   code);
+        }
+    } else {
+        printk(LOGLEVEL_INFO,
+               "exception:\n"
+               "\tscause: " SV_FMT " (0x%" PRIx64 ")\n"
+               "\tsepc: 0x%" PRIx64 "\n"
+               "\tstval: 0x%" PRIx64 "\n\n",
+               SV_FMT_ARGS(cause_exception_kind_get_sv(code)),
+               cause,
+               epc,
+               csr_read(stval));
+
+        cpu_idle();
+    }
 }
 
 void

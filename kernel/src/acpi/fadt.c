@@ -3,11 +3,11 @@
  * © suhas pai
  */
 
+#include "dev/printk.h"
 #if defined(__aarch64__)
     #include "dev/psci.h"
 #endif /* defined(__aarch64__) */
 
-#include "dev/printk.h"
 #include "fadt.h"
 
 void fadt_init(const struct acpi_fadt *const fadt) {

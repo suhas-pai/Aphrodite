@@ -29,6 +29,14 @@ __optimize(3) struct string string_alloc(const struct string_view sv) {
     return result;
 }
 
+__optimize(3) struct string string_copy(const struct string string) {
+    const struct string result = {
+        .gbuffer = gbuffer_copy(string.gbuffer)
+    };
+
+    return result;
+}
+
 __optimize(3) struct string string_format(const char *const fmt, ...) {
     va_list list;
     va_start(list, fmt);
@@ -39,6 +47,7 @@ __optimize(3) struct string string_format(const char *const fmt, ...) {
     return result;
 }
 
+__optimize(3)
 struct string string_vformat(const char *const fmt, va_list list) {
     struct string result = STRING_NULL();
     vformat_to_string(&result, fmt, list);
@@ -133,7 +142,7 @@ __optimize(3) char string_back(const struct string string) {
     return '\0';
 }
 
-__optimize(3) uint64_t string_length(const struct string string) {
+__optimize(3) uint32_t string_length(const struct string string) {
     return gbuffer_used_size(string.gbuffer);
 }
 

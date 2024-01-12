@@ -41,6 +41,13 @@ enum psci_invoke_method {
 
 void psci_init_from_acpi(bool use_hvc);
 
+struct devicetree;
+struct devicetree_node;
+
+bool
+psci_init_from_dtb(const struct devicetree *tree,
+                   const struct devicetree_node *node);
+
 enum psci_return_value
 psci_invoke_function(enum psci_function func,
                      uint64_t arg1,

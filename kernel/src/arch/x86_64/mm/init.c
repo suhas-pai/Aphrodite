@@ -13,12 +13,14 @@
 #include "mm/early.h"
 #include "mm/memmap.h"
 #include "mm/pgmap.h"
-#include "mm/walker.h"
 
 #include "sys/boot.h"
 
 __optimize(3) static void
-alloc_region(uint64_t virt_addr, uint64_t map_size, const uint64_t pte_flags) {
+alloc_region(const uint64_t virt_addr,
+             const uint64_t map_size,
+             const uint64_t pte_flags)
+{
     const bool supports_1gib = get_cpu_capabilities()->supports_1gib_pages;
     const struct pgmap_options options = {
         .pte_flags = pte_flags,

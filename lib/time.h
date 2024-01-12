@@ -204,7 +204,12 @@ typedef uint64_t usec_t;
 typedef uint64_t msec_t;
 typedef uint64_t sec_t;
 
-struct tm tm_from_stamp(const uint64_t timestamp);
+typedef sec_t timestamp_t;
+
+#define TIMESTAMP_FMT "%" PRIu64
+#define TIMESTAMP_FMT_ARGS(num) (num)
+
+struct tm tm_from_stamp(const timestamp_t timestamp);
 
 // Stop colliding with Apple's time.h
 #ifndef _TIME_H_
@@ -522,11 +527,11 @@ enum month {
 // Weekday - Day of the Week (Sunday...Saturday)
 // Year day - Days since January 1st
 
-__optimize(3) static inline bool weekday_is_valid(const enum weekday day) {
+__optimize(3) static inline bool weekday_valid(const enum weekday day) {
     return day >= WEEKDAY_SUNDAY && day <= WEEKDAY_SATURDAY;
 }
 
-__optimize(3) static inline bool month_is_valid(const enum month month) {
+__optimize(3) static inline bool month_valid(const enum month month) {
     return month >= MONTH_JANUARY && month <= MONTH_DECEMBER;
 }
 

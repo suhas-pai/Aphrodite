@@ -8,7 +8,6 @@
 #endif /* defined(__aarch64__)*/
 
 #include "acpi/mcfg.h"
-
 #include "dev/printk.h"
 #include "mm/mm_types.h"
 #include "sys/boot.h"
@@ -141,15 +140,25 @@ void acpi_init(void) {
     const struct string_view oem_id =
         sv_create_nocheck(g_info.rsdp->oem_id, oem_id_length);
 
-    printk(LOGLEVEL_INFO, "acpi: oem is \"" SV_FMT "\"\n", SV_FMT_ARGS(oem_id));
     printk(LOGLEVEL_INFO,
-           "acpi: revision: %" PRIu8 "\n",
-           g_info.rsdp->revision);
-
-    printk(LOGLEVEL_INFO, "acpi: uses xsdt? %s\n", has_xsdt() ? "yes" : "no");
-    printk(LOGLEVEL_INFO, "acpi: rsdt at %p\n", g_info.rsdt);
+           "acpi:\n"
+           "\toem is \"" SV_FMT "\"\n"
+           "\trevision: %" PRIu8 "\n"
+           "\tuses xsdt? %s\n"
+           "\trsdt at %p\n",
+           SV_FMT_ARGS(oem_id),
+           g_info.rsdp->revision,
+           has_xsdt() ? "yes" : "no",
+           g_info.rsdt);
 
     acpi_recurse(acpi_print_each_sdt);
+
+    const struct acpi_sdt *const spcr_sdt = acpi_lookup_sdt("SPCR");
+    if (spcr_sdt != NULL) {
+        const struct acpi_spcr *const spcr = (const struct acpi_spcr *)spcr_sdt;
+        spcr_init(spcr);
+    }
+
     if (get_acpi_info()->madt != NULL) {
         madt_init(get_acpi_info()->madt);
     }
@@ -166,12 +175,6 @@ void acpi_init(void) {
 
     if (get_acpi_info()->pptt != NULL) {
         pptt_init(get_acpi_info()->pptt);
-    }
-
-    const struct acpi_sdt *const spcr_sdt = acpi_lookup_sdt("SPCR");
-    if (spcr_sdt != NULL) {
-        const struct acpi_spcr *const spcr = (const struct acpi_spcr *)spcr_sdt;
-        spcr_init(spcr);
     }
 
     if (get_acpi_info()->mcfg != NULL) {
@@ -220,6 +223,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
     printk(LOGLEVEL_WARN,
            "acpi: failed to find entry with signature \"" SV_FMT "\"\n",
            SV_FMT_ARGS(sv_create_nocheck(signature, 4)));
+
     return NULL;
 }
 

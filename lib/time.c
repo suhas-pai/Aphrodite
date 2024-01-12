@@ -96,19 +96,19 @@ __optimize(3) bool year_is_leap_year(const uint64_t year) {
     // Year has to be divisible by 4 (first two lsb bits are zero) and either
     // the year is not divisible by 100 or the year is divisible by 400.
 
-    return ((year & 0b11) == 0) && ((year % 100) != 0 || ((year % 400) == 0));
+    return (year & 0b11) == 0 && ((year % 100) != 0 || ((year % 400) == 0));
 }
 
 __optimize(3) uint16_t year_get_day_count(const uint64_t year) {
-    return (MIN_DAYS_IN_YEAR + (year_is_leap_year(year) ? 1 : 0));
+    return MIN_DAYS_IN_YEAR + (year_is_leap_year(year) ? 1 : 0);
 }
 
 __optimize(3) int year_to_tm_year(const uint64_t year) {
     assert(year <= INT_MAX);
-    return ((int)year - 1900);
+    return (int)year - 1900;
 }
 
-__optimize(3) struct tm tm_from_stamp(const uint64_t timestamp) {
+__optimize(3) struct tm tm_from_stamp(const timestamp_t timestamp) {
     const int seconds_of_day = (int)seconds_mod_days(timestamp);
     const int minutes_of_day = seconds_to_minutes(seconds_of_day);
     const int hour_of_day = minutes_to_hours(minutes_of_day);
@@ -467,7 +467,7 @@ day_of_month_to_day_of_year(const uint8_t day_in_month,
                             const enum month month,
                             const bool in_leap_year)
 {
-    assert(month_is_valid(month));
+    assert(month_valid(month));
 
     // Store the days preceding a month at index `(uint8_t)(month - 1)`
     static const uint16_t lookup_table[MONTH_COUNT] = {
@@ -508,8 +508,8 @@ iso_8601_get_week_number(const enum weekday weekday,
                          const uint8_t day_in_month,
                          const uint16_t days_since_jan_1)
 {
-    assert(weekday_is_valid(weekday));
-    assert(month_is_valid(month));
+    assert(weekday_valid(weekday));
+    assert(month_valid(month));
 
     enum weekday jan_1_weekday = (weekday - (days_since_jan_1 % 7));
     if (jan_1_weekday < 0) {

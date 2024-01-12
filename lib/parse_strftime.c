@@ -11,7 +11,7 @@
 
 __optimize(3) static inline struct strftime_modifiers
 parse_strftime_mods(const char *const iter, const char **const iter_out) {
-    struct strftime_modifiers mods = {0};
+    struct strftime_modifiers mods = STRFTIME_MODIFIERS_INIT();
     switch (*iter) {
         case 'E':
             mods.locale_alt_repr = true;
@@ -117,7 +117,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
     switch (spec_info->spec) {
         case 'a': {
             const enum weekday weekday = (enum weekday)tm->tm_wday;
-            if (weekday_is_valid(weekday)) {
+            if (weekday_valid(weekday)) {
                 CALL_CALLBACK(GET_SV_FROM_FUNC(weekday_to_sv_abbrev, weekday));
             } else {
                 CALL_CALLBACK(SV_STATIC("?"));
@@ -127,7 +127,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
         }
         case 'A': { // Full weekday name
             const enum weekday weekday = (enum weekday)tm->tm_wday;
-            if (weekday_is_valid(weekday)) {
+            if (weekday_valid(weekday)) {
                 CALL_CALLBACK(GET_SV_FROM_FUNC(weekday_to_sv, weekday));
             } else {
                 CALL_CALLBACK(SV_STATIC("?"));
@@ -138,7 +138,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
         case 'b':
         case 'h': { // month name abbreviated
             const enum month month = tm_mon_to_month(tm->tm_mon);
-            if (month_is_valid(month)) {
+            if (month_valid(month)) {
                 CALL_CALLBACK(GET_SV_FROM_FUNC(month_to_sv_abbrev, month));
             } else {
                 CALL_CALLBACK(SV_STATIC("?"));
@@ -148,7 +148,7 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
         }
         case 'B': { // Full month name
             const enum month month = tm_mon_to_month(tm->tm_mon);
-            if (month_is_valid(month)) {
+            if (month_valid(month)) {
                 CALL_CALLBACK(GET_SV_FROM_FUNC(month_to_sv, month));
             } else {
                 CALL_CALLBACK(SV_STATIC("?"));

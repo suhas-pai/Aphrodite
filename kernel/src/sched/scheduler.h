@@ -5,19 +5,21 @@
 
 #pragma once
 
-enum scheduler_kind {
-    SCHED_KIND_SIMPLE
-};
+#include <stdbool.h>
+#include "lib/macros.h"
 
-struct scheduler {
-    enum scheduler_kind kind;
-};
+void sched_init();
+void sched_algo_init();
 
-void sched_init(struct scheduler *sched);
-void sched_next(struct scheduler *sched);
-void sched_yield();
+void sched_next(bool from_irq);
+void sched_yield(bool noreturn);
 
 struct thread;
+
+void sched_prepare_thread(struct thread *thread);
+void sched_switch_to(struct thread *prev, struct thread *next);
+
+__noreturn void sched_switch_to_idle();
 
 void sched_enqueue_thread(struct thread *thread);
 void sched_dequeue_thread(struct thread *thread);

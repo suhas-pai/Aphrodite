@@ -54,69 +54,69 @@ __optimize(3) static inline void write_cr4(const uint64_t cr4) {
 
 enum {
     // Protection Enable
-    __CR0_BIT_PE = (1ull << 0),
+    __CR0_BIT_PE = 1ull << 0,
 
     // Monitor Co-processor
-    __CR0_BIT_MP = (1ull << 1),
+    __CR0_BIT_MP = 1ull << 1,
 
     // Emulation - Set for no x87 FPU, Clear for x87 FPu
-    __CR0_BIT_EM = (1ull << 2),
+    __CR0_BIT_EM = 1ull << 2,
 
     // Task switched
-    __CR0_BIT_TS = (1ull << 3),
+    __CR0_BIT_TS = 1ull << 3,
 
     // Extension type
-    __CR0_BIT_ET = (1ull << 4),
+    __CR0_BIT_ET = 1ull << 4,
 
     // Numeric Error
-    __CR0_BIT_NE = (1ull << 5),
+    __CR0_BIT_NE = 1ull << 5,
 
     // bits 6-15 are reserved
     // Write Protect
 
-    __CR0_BIT_WP = (1ull << 16),
+    __CR0_BIT_WP = 1ull << 16,
 
     // bit 17 is reserved
     // Alignment Mask
 
-    __CR0_BIT_AM = (1ull << 18),
+    __CR0_BIT_AM = 1ull << 18,
 
     // bits 19-28 are reserved
     // Not-Write Through
 
-    __CR0_BIT_NW = (1ull << 29),
+    __CR0_BIT_NW = 1ull << 29,
 
     // Cache Disable
-    __CR0_BIT_CD = (1ull << 30),
+    __CR0_BIT_CD = 1ull << 30,
 
     // Paging
-    __CR0_BIT_PG = (1ull << 31)
+    __CR0_BIT_PG = 1ull << 31,
 };
 
 enum {
     // Virtual-8086 Mode Extensions
-    __CR4_BIT_VME = (1ull << 0),
+    __CR4_BIT_VME = 1ull << 0,
 
     // Protected Mode Virtual Interrupts
-    __CR4_BIT_PVI = (1ull << 1),
+    __CR4_BIT_PVI = 1ull << 1,
 
     // Time Stamp enabled only in ring 0
-    __CR4_BIT_TSD = (1ull << 2),
+    __CR4_BIT_TSD = 1ull << 2,
 
     // Debugging Extensions
-    __CR4_BIT_DE = (1ull << 3),
+    __CR4_BIT_DE = 1ull << 3,
 
     // Page Size Extension
-    __CR4_BIT_PSE = (1ull << 4),
+    __CR4_BIT_PSE = 1ull << 4,
 
     // Physical Address Extension
-    __CR4_BIT_PAE = (1ull << 5),
+    __CR4_BIT_PAE = 1ull << 5,
 
     // Machine Check Exception
-    __CR4_BIT_MCE = (1ull << 6),
+    __CR4_BIT_MCE = 1ull << 6,
 
     // Page Global Enable
-    __CR4_BIT_PGE = (1ull << 7),
+    __CR4_BIT_PGE = 1ull << 7,
 
     /*
      * Performance Monitoring Counter Enable
@@ -125,7 +125,7 @@ enum {
      * running at any protection level when set; RDPMC instruction can be
      * executed only at protection level 0 when clear.
      */
-    __CR4_BIT_PCE = (1ull << 8),
+    __CR4_BIT_PCE = 1ull << 8,
 
     /*
      * Operating System Support for FXSAVE and FXRSTOR instructions
@@ -148,7 +148,7 @@ enum {
      *  PAUSE, PREFETCHh, SFENCE, LFENCE, MFENCE, MOVNTI, CLFLUSH, CRC32, and
      *  POPCNT. The operating system or executive must explicitly set this flag.
      */
-    __CR4_BIT_OSFXSR = (1ull << 9),
+    __CR4_BIT_OSFXSR = 1ull << 9,
 
     /*
      * OS Support for unmasked simd floating point exceptions
@@ -163,14 +163,14 @@ enum {
      * flag is not set, the processor will generate an invalid opcode exception
      * (#UD) whenever it detects an unmasked SIMD floating-point exception.
      */
-    __CR4_BIT_OSXMMEXCPTO = (1ull << 10),
+    __CR4_BIT_OSXMMEXCPTO = 1ull << 10,
 
     /*
      * When set, the following instructions cannot be executed if CPL > 0:
      * SGDT, SIDT, SLDT, SMSW, and STR. An attempt at such execution causes a
      * general-protection exception (#GP)
      */
-    __CR4_BIT_UMIP = (1ull << 11),
+    __CR4_BIT_UMIP = 1ull << 11,
 
     /*
      * 57-bit linear addresses
@@ -180,23 +180,23 @@ enum {
      * 4-level paging to translate 48-bit linear addresses. This bit cannot be
      * modified in IA-32e mode.
      */
-    __CR4_BIT_LA57 = (1ull << 12),
+    __CR4_BIT_LA57 = 1ull << 12,
 
     // VMXE = Virtual Machine Extensions Enable
-    __CR4_BIT_VMXE = (1ull << 13),
+    __CR4_BIT_VMXE = 1ull << 13,
 
     // SMXE = Safer Mode Extensions Enable
-    __CR4_BIT_SMXE = (1ull << 14),
+    __CR4_BIT_SMXE = 1ull << 14,
 
     // bit 15 is reserved
 
     // Enables the instructions RDFSBASE, RDGSBASE, WRFSBASE, and WRGSBASE.
-    __CR4_BIT_FSGSBASE = (1ull << 16),
+    __CR4_BIT_FSGSBASE = 1ull << 16,
 
     // PCID Enable
     // PCID = Page-Level Caching Identifiers
 
-    __CR4_BIT_PCIDE = (1ull << 17),
+    __CR4_BIT_PCIDE = 1ull << 17,
 
     /*
      * XSAVE And Processor Extended States Enable
@@ -206,13 +206,13 @@ enum {
      *       system supports the use of the XGETBV, XSAVE, and XRSTOR
      *       instructions by general software;
      *   (2) enables the XSAVE and XRSTOR instructions to save and restore the
-     *       x87 FPU state (including MMX registers), the SSE state (XMM
-     *       registers and MXCSR), along with other processor extended states
+     *       x87 FPU state (including MMX registers, the SSE state (XMM
+     *       registers and MXCSR, along with other processor extended states
      *       enabled in XCR0;
      *   (3) enables the processor to execute XGETBV and XSETBV instructions in
      *       order to read and write XCR0.
      */
-    __CR4_BIT_OSXSAVE = (1ull << 18),
+    __CR4_BIT_OSXSAVE = 1ull << 18,
 
     /*
      * Key-Locker-Enable
@@ -224,13 +224,13 @@ enum {
      * is enumerated as 0 and execution of any Key Locker instruction causes an
      * invalid-opcode exception (#UD).
      */
-    __CR4_BIT_KEY_LOCKER = (1ull << 19),
+    __CR4_BIT_KEY_LOCKER = 1ull << 19,
 
     // Supervisor Mode Executions Protection Enable
-    __CR4_BIT_SMEP = (1ull << 20),
+    __CR4_BIT_SMEP = 1ull << 20,
 
     // Supervisor Mode Access Protection Enable
-    __CR4_BIT_SMAP = (1ull << 21),
+    __CR4_BIT_SMAP = 1ull << 21,
 
     /*
      * Enable protection keys for user-mode pages
@@ -245,7 +245,7 @@ enum {
      * This bit also enables access to the PKRU register using the RDPKRU and
      * WRPKRU instructions.
      */
-    __CR4_BIT_PKE = (1ull << 22),
+    __CR4_BIT_PKE = 1ull << 22,
 
     /*
      * Enable Control-flow Enforcement Technology
@@ -253,7 +253,7 @@ enum {
      * This flag can be set only if CR0.WP is set, and it must be clear before
      * CR0.WP can be cleared
      */
-    __CR4_BIT_CET = (1ull << 23),
+    __CR4_BIT_CET = 1ull << 23,
 
     // Enable protection keys for supervisor-mode pages
     /*
@@ -263,7 +263,7 @@ enum {
      * supervisor-mode linear addresses with that protection key can be read or
      * written.
      */
-    __CR4_BIT_PKS = (1ull << 24),
+    __CR4_BIT_PKS = 1ull << 24,
 
     /*
      * User Interrupts Enable Bit
@@ -272,7 +272,7 @@ enum {
      * user-interrupt notification identification, and the user-interrupt
      * instructions
      */
-    __CR4_BIT_UINTR = (1ull << 25),
+    __CR4_BIT_UINTR = 1ull << 25,
 
     /*
      * This sets the threshold value corresponding to the highest-priority
@@ -281,5 +281,5 @@ enum {
      * This field is available in 64-bit mode. A value of 15 means all
      * interrupts will be disabled.
      */
-    __CR4_BIT_TPL = (1ull << 26),
+    __CR4_BIT_TPL = 1ull << 26,
 };

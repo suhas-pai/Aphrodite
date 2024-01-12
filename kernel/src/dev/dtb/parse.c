@@ -10,7 +10,6 @@
 #include "mm/kmalloc.h"
 
 #include "gic_compat.h"
-#include "sys/irq.h"
 #include "parse.h"
 
 __optimize(3) static inline bool
@@ -717,7 +716,7 @@ parse_node_prop(const void *const dtb,
                        &name_len);
 
     const struct string_view name =
-        sv_create_length(prop_string, (uint64_t)name_len);
+        sv_create_length(prop_string, (uint32_t)name_len);
 
     enum devicetree_prop_kind kind = DEVICETREE_PROP_COMPAT;
     switch (kind) {
@@ -1464,7 +1463,7 @@ parse_node_children(const void *const dtb,
 
         int lenp = 0;
         const struct string_view node_name =
-            sv_create_length(fdt_get_name(dtb, nodeoff, &lenp), (uint64_t)lenp);
+            sv_create_length(fdt_get_name(dtb, nodeoff, &lenp), (uint32_t)lenp);
 
         devicetree_node_init_fields(node, parent, node_name, nodeoff);
 

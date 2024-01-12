@@ -9,8 +9,11 @@
 #include "sys/pio.h"
 
 #include "bar.h"
-#include "resource.h"
 #include "entity.h"
+
+#if !defined(__x86_64__)
+    #include "resource.h"
+#endif /* !defined(__x86_64__) */
 
 bool pci_map_bar(struct pci_entity_bar_info *const bar) {
     if (!bar->is_mmio) {
@@ -74,19 +77,25 @@ __optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
 }
 
 #if !defined(__x86_64__)
-__optimize(3) static inline volatile void *
-find_ptr_in_bus_resource(struct pci_entity_info *const entity,
-                         const uint32_t offset)
-{
-    array_foreach(&entity->bus->resources, const struct pci_bus_resource, res) {
-        const struct range child_range = RANGE_INIT(res->child_base, res->size);
-        if (range_has_loc(child_range, offset)) {
-            return res->mmio->base + range_index_for_loc(child_range, offset);
-        }
-    }
+    __optimize(3) static inline volatile void *
+    find_ptr_in_bus_resource(struct pci_entity_info *const entity,
+                            const uint32_t offset)
+    {
+        array_foreach(&entity->bus->resources,
+                      const struct pci_bus_resource,
+                      res)
+        {
+            const struct range child_range =
+                RANGE_INIT(res->child_base, res->size);
 
-    return NULL;
-}
+            if (range_has_loc(child_range, offset)) {
+                return res->mmio->base +
+                       range_index_for_loc(child_range, offset);
+            }
+        }
+
+        return NULL;
+    }
 #endif /* !defined(__x86_64__) */
 
 __optimize(3) uint8_t

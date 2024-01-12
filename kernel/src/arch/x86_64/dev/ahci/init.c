@@ -65,7 +65,8 @@ ahci_hba_port_set_state(volatile struct ahci_spec_hba_port *const port,
 {
     uint32_t cmd_status = mmio_read(&port->command_and_status);
 
-    cmd_status &= ~__AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL;
+    cmd_status =
+        rm_mask(cmd_status, __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL);
     cmd_status |=
         ctrl << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT;
 

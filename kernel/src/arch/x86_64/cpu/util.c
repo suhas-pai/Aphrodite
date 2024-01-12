@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "cpu/util.h"
 
-void cpu_halt() {
+void cpu_idle() {
     while (true) {
         asm("hlt");
     }

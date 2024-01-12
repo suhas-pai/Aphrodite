@@ -21,8 +21,8 @@ struct slist {
     struct slist *next;
 };
 
-#define LIST_INIT(name) { .prev = &(name), .next = &(name) }
-#define SLIST_INIT(name) { .prev = &(name) }
+#define LIST_INIT(lvalue) { .prev = &(lvalue), .next = &(lvalue) }
+#define SLIST_INIT(lvalue) { .prev = &(lvalue) }
 
 __optimize(3) static inline void list_init(struct list *const head) {
     head->prev = head;

@@ -31,10 +31,7 @@ xsave_feat_get_offset(const uint64_t xcomp_bv, const enum xsave_feature feat) {
     }
 
     int16_t offset = sizeof(struct xsave_fx_regs);
-    for (enum xsave_feature iter = XSAVE_FEAT_SSE + 1;
-         iter <= feat;
-         iter++)
-    {
+    for (enum xsave_feature iter = XSAVE_FEAT_SSE + 1; iter <= feat; iter++) {
         if (xsave_feat_has_aligned_offset(feat)) {
             offset = align_up_assert((uint64_t)offset, /*boundary=*/64);
         }

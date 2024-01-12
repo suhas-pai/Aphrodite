@@ -397,20 +397,19 @@ init_from_dtb(const struct devicetree *const tree,
         pci_bus_create(&ecam_domain->domain, bus_range.front, /*segment=*/0);
 
     if (root_bus == NULL) {
+        pci_remove_ecam_domain(ecam_domain);
         printk(LOGLEVEL_WARN,
                "pci-ecam: failed to create root-bus from dtb node\n");
 
-        pci_remove_ecam_domain(ecam_domain);
         return false;
     }
 
     parse_dtb_resources(node, root_bus);
     if (!pci_add_root_bus(root_bus)) {
-        printk(LOGLEVEL_INFO, "pci-ecam: failed to add bus to root-bus list\n");
-
         pci_remove_root_bus(root_bus);
         pci_remove_ecam_domain(ecam_domain);
 
+        printk(LOGLEVEL_INFO, "pci-ecam: failed to add bus to root-bus list\n");
         return false;
     }
 

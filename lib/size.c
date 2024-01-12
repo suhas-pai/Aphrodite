@@ -5,10 +5,11 @@
 
 #include "size.h"
 
-__optimize(3) struct string_view size_units_to_sv(const enum size_unit_kind kind) {
+__optimize(3)
+struct string_view size_units_to_sv(const enum size_unit_kind kind) {
     switch (kind) {
-    #define UNIT_KIND_CASE(name)                                               \
-        case VAR_CONCAT(UNIT_KIND_, name):                                     \
+    #define UNIT_KIND_CASE(name) \
+        case VAR_CONCAT(UNIT_KIND_, name): \
             return VAR_CONCAT(name, _SV)
 
         UNIT_KIND_CASE(BYTE);
@@ -25,10 +26,11 @@ __optimize(3) struct string_view size_units_to_sv(const enum size_unit_kind kind
     }
 }
 
-__optimize(3) struct string_view size_units_to_sv_abbrev(const enum size_unit_kind kind) {
+__optimize(3)
+struct string_view size_units_to_sv_abbrev(const enum size_unit_kind kind) {
     switch (kind) {
-    #define UNIT_KIND_CASE(name)                                               \
-        case VAR_CONCAT(UNIT_KIND_, name):                                     \
+    #define UNIT_KIND_CASE(name) \
+        case VAR_CONCAT(UNIT_KIND_, name): \
             return VAR_CONCAT(name, _SV_ABBREV)
 
         UNIT_KIND_CASE(BYTE);

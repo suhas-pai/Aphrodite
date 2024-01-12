@@ -23,7 +23,7 @@ struct xsave_header {
     char reserved[48];
 };
 
-struct xsave_fx_regs {
+struct xsave_fx_legacy_regs {
     /*
      * Bytes 1:0, 3:2, 7:6. These are used for the x87 FPU Control Word (FCW),
      * the x87 FPU Status Word (FSW), and the x87 FPU Opcode (FOP),
@@ -65,6 +65,10 @@ struct xsave_fx_regs {
     uint32_t mxcsr;
     uint32_t mxcsr_mask;
     uint16_t st0[8][8];
+} __packed;
+
+struct xsave_fx_regs {
+    struct xsave_fx_legacy_regs legacy;
     uint16_t xmm[8][16];
 
     char reserved[96];

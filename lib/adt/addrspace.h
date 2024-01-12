@@ -28,17 +28,17 @@ struct addrspace_node {
     uint64_t largest_free_to_prev;
 };
 
-#define ADDRSPACE_INIT(name) \
+#define ADDRSPACE_INIT(lvalue) \
     ((struct address_space){ \
         .avltree = AVLTREE_INIT(),   \
-        .list = LIST_INIT(name.list) \
+        .list = LIST_INIT(lvalue.list) \
     })
 
-#define ADDRSPACE_NODE_INIT(name, addrspace_) \
+#define ADDRSPACE_NODE_INIT(lvalue, addrspace_) \
     ((struct addrspace_node){ \
         .addrspace = (addrspace_),     \
         .avlnode = AVLNODE_INIT(),     \
-        .list = LIST_INIT(name.list),  \
+        .list = LIST_INIT(lvalue.list),  \
         .range = RANGE_EMPTY(),        \
         .largest_free_to_prev = 0      \
     })

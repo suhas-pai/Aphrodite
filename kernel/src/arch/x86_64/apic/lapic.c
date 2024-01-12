@@ -7,14 +7,14 @@
 #include "asm/msr.h"
 
 #include "cpu/info.h"
-#include "cpu/isr.h"
 
 #include "dev/pit.h"
 #include "dev/printk.h"
 
+#include "lib/freq.h"
 #include "lib/time.h"
-#include "sys/mmio.h"
 
+#include "sys/mmio.h"
 #include "lapic.h"
 
 struct mmio_region *lapic_mmio_region = NULL;
@@ -24,8 +24,8 @@ static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
 
 __optimize(3) static inline uint32_t
 setup_timer_register(const enum lapic_timer_mode timer_mode,
-                     const bool masked,
-                     const uint8_t vector)
+                     const uint8_t vector,
+                     const bool masked)
 {
     return (timer_mode << 17) | ((uint32_t)masked << 16) | vector;
 }
@@ -60,8 +60,8 @@ static void calibrate_timer() {
 
     const uint32_t timer_reg =
         setup_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                             /*masked=*/true,
-                             /*vector=*/0xFF);
+                             /*vector=*/0xFF,
+                             /*masked=*/true);
 
     mmio_write(&lapic_regs->lvt_timer, timer_reg);
     mmio_write(&lapic_regs->timer_initial_count, sample_count);
@@ -174,12 +174,12 @@ void lapic_timer_stop() {
     mmio_write(&lapic_regs->timer_initial_count, 0);
     mmio_write(&lapic_regs->lvt_timer,
                setup_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                                    /*masked=*/true,
-                                    /*vector=*/isr_get_timer_vector()));
+                                    /*vector=*/isr_get_timer_vector(),
+                                    /*masked=*/true));
 }
 
 void
-lapic_timer_one_shot(const uint64_t microseconds, const isr_vector_t vector) {
+lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
     // LAPIC-Timer Frequency is in Hz, which is cycles per second, while we need
     // cycles per microseconds
 
@@ -187,11 +187,11 @@ lapic_timer_one_shot(const uint64_t microseconds, const isr_vector_t vector) {
         this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
 
     mmio_write(&lapic_regs->timer_initial_count,
-               lapic_timer_freq_in_microseconds * microseconds);
+               check_mul_assert(lapic_timer_freq_in_microseconds, usec));
     mmio_write(&lapic_regs->lvt_timer,
                setup_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                                    /*masked=*/false,
-                                    vector));
+                                    vector,
+                                    /*masked=*/false));
 }
 
 void lapic_init() {
@@ -199,6 +199,11 @@ void lapic_init() {
     lapic_timer_stop();
 
     calibrate_timer();
+    lapic_timer_stop();
+
+    printk(LOGLEVEL_INFO,
+           "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
+           FREQ_TO_UNIT_FMT_ARGS_ABBREV(this_cpu()->lapic_timer_frequency));
 }
 
 void lapic_add(const struct lapic_info *const lapic_info) {

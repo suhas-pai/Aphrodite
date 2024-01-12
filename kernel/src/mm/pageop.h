@@ -17,8 +17,9 @@ struct pageop {
     struct list delayed_free;
 };
 
-#define PAGEOP_INIT(name) \
+#define PAGEOP_INIT(name, pagemap_) \
     ((struct pageop){ \
+        .pagemap = (pagemap_), \
         .flush_range = RANGE_EMPTY(), \
         .delayed_free = LIST_INIT(name.delayed_free) \
     })
@@ -28,9 +29,9 @@ pageop_init(struct pageop *pageop, struct pagemap *pagemap, struct range range);
 
 void
 pageop_flush_pte_in_current_range(struct pageop *pageop,
-                                  const pte_t pte,
+                                  pte_t pte,
                                   pgt_level_t level,
-                                  const bool should_free_pages);
+                                  bool should_free_pages);
 
 void pageop_setup_for_address(struct pageop *pageop, uint64_t virt);
 void pageop_setup_for_range(struct pageop *pageop, struct range virt);

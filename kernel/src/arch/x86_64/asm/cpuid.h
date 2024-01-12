@@ -48,71 +48,71 @@ enum {
     __CPUID_FEAT_ECX_MONITOR = 1ull << 3,
 
     // DS-CPL = CPL Qualified Debug Store
-    __CPUID_FEAT_ECX_DS_CPL  = 1ull << 4,
+    __CPUID_FEAT_ECX_DS_CPL = 1ull << 4,
 
     // VMX = Virtual Machine Extensions
-    __CPUID_FEAT_ECX_VMX     = 1ull << 5,
+    __CPUID_FEAT_ECX_VMX = 1ull << 5,
 
     // SMX = Safer Mode Extensions
-    __CPUID_FEAT_ECX_SMX     = 1ull << 6,
+    __CPUID_FEAT_ECX_SMX = 1ull << 6,
 
     // EST = Enhanced SpeedStep
-    __CPUID_FEAT_ECX_EST     = 1ull << 7,
+    __CPUID_FEAT_ECX_EST = 1ull << 7,
 
     // TM2 = Thermal Monitor 2
-    __CPUID_FEAT_ECX_TM2     = 1ull << 8,
+    __CPUID_FEAT_ECX_TM2 = 1ull << 8,
 
     // SSSE3 = Supplemental Streaming SIMD Extensions 3
-    __CPUID_FEAT_ECX_SSSE3   = 1ull << 9,
+    __CPUID_FEAT_ECX_SSSE3 = 1ull << 9,
 
     // CID = Context ID
-    __CPUID_FEAT_ECX_CID     = 1ull << 10,
+    __CPUID_FEAT_ECX_CID = 1ull << 10,
 
     // FMA = Fused Multiply Add
-    __CPUID_FEAT_ECX_FMA     = 1ull << 12,
+    __CPUID_FEAT_ECX_FMA = 1ull << 12,
 
     // Supports CMPXCHG16B instruction
     __CPUID_FEAT_ECX_CMPXCHG16B = 1ull << 13,
 
     // ETRPD = Extended Topology Enumeration and __CPUID Leaf Identifiers
-    __CPUID_FEAT_ECX_ETPRD   = 1ull << 14,
+    __CPUID_FEAT_ECX_ETPRD = 1ull << 14,
 
     // PDCM = Perfmon and Debug Capability MSR
-    __CPUID_FEAT_ECX_PDCM    = 1ull << 15,
+    __CPUID_FEAT_ECX_PDCM = 1ull << 15,
 
     // PCIDE = Performance-Monitoring Counter Interrupts
-    __CPUID_FEAT_ECX_PCIDE   = 1ull << 17,
+    __CPUID_FEAT_ECX_PCIDE = 1ull << 17,
 
     // DCA = Direct Cache Access
-    __CPUID_FEAT_ECX_DCA     = 1ull << 18,
+    __CPUID_FEAT_ECX_DCA = 1ull << 18,
 
     // SSE4_1 = Streaming SIMD Extensions 4.1
-    __CPUID_FEAT_ECX_SSE4_1  = 1ull << 19,
+    __CPUID_FEAT_ECX_SSE4_1 = 1ull << 19,
 
     // SSE4_2 = Streaming SIMD Extensions 4.2
-    __CPUID_FEAT_ECX_SSE4_2  = 1ull << 20,
-    __CPUID_FEAT_ECX_X2APIC  = 1ull << 21,
+    __CPUID_FEAT_ECX_SSE4_2 = 1ull << 20,
+    __CPUID_FEAT_ECX_X2APIC = 1ull << 21,
 
     // Supports MOVBE Instruction
-    __CPUID_FEAT_ECX_MOVBE   = 1ull << 22,
+    __CPUID_FEAT_ECX_MOVBE = 1ull << 22,
 
     // Supports POPCNT instruction
-    __CPUID_FEAT_ECX_POPCNT  = 1ull << 23,
+    __CPUID_FEAT_ECX_POPCNT = 1ull << 23,
 
     // AES = Advanced Encryption Standard
-    __CPUID_FEAT_ECX_AES     = 1ull << 25,
+    __CPUID_FEAT_ECX_AES = 1ull << 25,
 
     // Supports XSAVE/XRSTOR instructions
-    __CPUID_FEAT_ECX_XSAVE   = 1ull << 26,
+    __CPUID_FEAT_ECX_XSAVE = 1ull << 26,
 
     // OSXSAVE = XSAVE/XRSTOR enabled by OS
     __CPUID_FEAT_ECX_OSXSAVE = 1ull << 27,
 
     // AVX = Advanced Vector Extensions
-    __CPUID_FEAT_ECX_AVX     = 1ull << 28,
+    __CPUID_FEAT_ECX_AVX = 1ull << 28,
 
     // F16 = Float16
-    __CPUID_FEAT_ECX_F16     = 1ull << 29,
+    __CPUID_FEAT_ECX_F16 = 1ull << 29,
 
     // Supports RDRAND instruction
     __CPUID_FEAT_ECX_RDRAND  = 1ull << 30,
@@ -239,11 +239,8 @@ enum {
     // Supports Enhanced REP MOVSB/STOSB if 1.
     __CPUID_FEAT_EXT7_ECX0_EBX_REP_MOVSB_STOSB = 1ull << 9,
 
-    /*
-     * Supports INVPCID instruction for system software that manages
-     * process-context id
-     */
-
+    // Supports INVPCID instruction for system software that manages
+    // process-context id
     __CPUID_FEAT_EXT7_ECX0_EBX_INVPCID = 1ull << 10,
 
     /*
@@ -254,7 +251,6 @@ enum {
      *
      * The feature is supported if __CPUID.7H.EBX[11] = 1.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EBX_RTM = 1ull << 11,
 
     /*
@@ -264,7 +260,6 @@ enum {
      * Intel® Resource Director Technology (Intel® Resource Director Technology)
      * is a collection of instructions that provide a processor ID.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EBX_RDT_M = 1ull << 12,
 
     // Deprecates FPU CS and FPU DS values if 1
@@ -272,14 +267,10 @@ enum {
 
     // MPX = Memory Protection Extensions
     // Supports Intel® Memory Protection Extensions if 1
-
     __CPUID_FEAT_EXT7_ECX0_EBX_MPX = 1ull << 14,
 
-    /*
-     * Supports Intel® Resource Director Technology (Intel® RDT) Allocation
-     * capability if 1.
-     */
-
+    // Supports Intel® Resource Director Technology (Intel® RDT) Allocation
+    // capability if 1.
     __CPUID_FEAT_EXT7_ECX0_EBX_RDT_A = 1ull << 15,
 
     /*
@@ -289,7 +280,6 @@ enum {
      * 512 bits of vector registers. The 512-bit registers are used to perform
      * vector operations.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EBX_AVX512F = 1ull << 16,
 
     // AVX512DQ = AVX-512 Doubleword and Quadword Instructions
@@ -300,7 +290,6 @@ enum {
      * AVX-512 instructions that operate on 128-bit doublewords and 128-bit
      * quadwords. The 512-bit registers are used to perform vector operations.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EBX_AVX512DQ = 1ull << 17,
 
     // RDSEED = Intel® Resource Director Technology (Intel® RDT) Seed
@@ -310,11 +299,8 @@ enum {
     __CPUID_FEAT_EXT7_ECX0_EBX_ADX = 1ull << 19,
 
     // SMAP = Supervisor Mode Access Prevention
-    /*
-     * Supports Supervisor-Mode Access Prevention (and the CLAC/STAC
-     * instructions) if 1.
-     */
-
+    // Supports Supervisor-Mode Access Prevention (and the CLAC/STAC
+    // instructions) if 1.
     __CPUID_FEAT_EXT7_ECX0_EBX_SMAP = 1ull << 20,
 
     // AVX512_IFMA = AVX-512 Integer Fused Multiply-Add
@@ -526,7 +512,6 @@ enum {
      * FAST_SHORT_REP_PREFIX is a collection of instructions that provide a
      * fast short rep prefix.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_FAST_SHORT_REP_PREFIX = 1ull << 4,
 
     /*
@@ -534,7 +519,6 @@ enum {
      *
      * PT is a collection of instructions that provide a processor trace.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_PT = 1ull << 5,
 
     // Bit 5-7 are reserved
@@ -544,7 +528,6 @@ enum {
      * AVX-512 VP2INTERSECT (AVX-512 VP2INTERSECT) is a collection of
      * instructions that operate on 128-bit vectors of floating-point values.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_AVX512_VP2INTERSECT = 1ull << 8,
 
     // Bit 9 is reserved
@@ -555,7 +538,6 @@ enum {
      * MD_CLEAR is a collection of instructions that provide memory
      * disambiguation.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_MD_CLEAR = 1ull << 10,
 
     // Bit 11-14 are reserved
@@ -573,7 +555,6 @@ enum {
      * Processors that set this bit define [5:2] and bits 63:10 of the
      * IA32_U_CET and IA32_S_CET MSRs.
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_CET_IBT = 1ull << 20,
 
     // Bit 21-25 are reserved
@@ -588,7 +569,6 @@ enum {
      * bit support the IA32_SPEC_CTRL MSR and the IA32_PRED_CMD MSR. They allow
      * software to set IA32_SPEC_CTRL[0] (IBRS) and IA32_PRED_CMD[0] (IBPB).
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_IBRS = 1ull << 26,
 
     /*
@@ -596,7 +576,6 @@ enum {
      * Processors that set this bit support the IA32_SPEC_CTRL MSR. They allow
      * software to set IA32_SPEC_CTRL[1] (STIBP)
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_STIBP = 1ull << 27,
 
     /*
@@ -604,7 +583,6 @@ enum {
      * the IA32_FLUSH_CMD MSR. They allow software to set IA32_FLUSH_CMD[0]
      * (L1D_FLUSH)
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_L1D_FLUSH = 1ull << 28,
 
     /*
@@ -633,7 +611,6 @@ enum {
      * Processors that set this bit support the IA32_SPEC_CTRL MSR. They allow
      * software to set IA32_SPEC_CTRL[2] (SSBD).
      */
-
     __CPUID_FEAT_EXT7_ECX0_EDX_SSBD = 1ull << 31,
 
     // AVX (VEX-encoded) versions of the Vector Neural Network Instructions
@@ -664,7 +641,6 @@ enum {
      * IA32_HRESET_ENABLE MSR. When set, indicates that the Processor History
      * Reset Leaf (EAX = 20H) is valid.
      */
-
     __CPUID_FEAT_EXT7_ECX1_EAX_HRESET = 1ull << 22,
 
     __CPUID_FEAT_EXT80000001_ECX_LAHF_SAFH_IN_64B = 1ull << 0,

@@ -51,21 +51,21 @@ void pit_sleep_for(const uint32_t ms) {
 }
 
 uint16_t pit_get_current_tick() {
-    const bool flag = disable_all_irqs_if_not();
+    const bool flag = disable_interrupts_if_not();
     pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0);
 
     const uint8_t low = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
     const uint8_t high = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
 
-    enable_all_irqs_if_flag(flag);
+    enable_interrupts_if_flag(flag);
     return (uint16_t)high << 8 | low;
 }
 
 void pit_set_reload_value(const uint16_t count) {
-    const bool flag = disable_all_irqs_if_not();
+    const bool flag = disable_interrupts_if_not();
 
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, count & 0xFF);
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, (count & 0xFF00) >> 8);
 
-    enable_all_irqs_if_flag(flag);
+    enable_interrupts_if_flag(flag);
 }

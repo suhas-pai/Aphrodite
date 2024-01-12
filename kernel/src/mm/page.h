@@ -27,6 +27,9 @@ enum page_state {
     PAGE_STATE_LARGE_HEAD,
     PAGE_STATE_LARGE_TAIL,
 
+    PAGE_STATE_KERNEL_STACK,
+    PAGE_STATE_USER_STACK,
+
     PAGE_STATE_USED,
 };
 
@@ -78,6 +81,12 @@ struct page {
                 } tail;
             };
         } slab;
+        struct {
+            struct list list;
+        } kernel_stack;
+        struct {
+            struct list list;
+        } user_stack;
         struct {
             struct refcount refcount;
             struct list delayed_free_list;

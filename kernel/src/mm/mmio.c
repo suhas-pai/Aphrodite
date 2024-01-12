@@ -270,6 +270,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
     return true;
 }
 
+__optimize(3)
 struct range mmio_region_get_range(const struct mmio_region *const region) {
     return RANGE_INIT((uint64_t)region->base, region->size);
 }

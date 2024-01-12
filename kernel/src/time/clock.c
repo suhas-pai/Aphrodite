@@ -22,11 +22,12 @@ void clock_add(struct clock *const clock) {
 
 bool
 clock_read_res(const struct clock *const clock,
-               enum clock_resolution resolution,
+               const enum clock_resolution resolution,
                uint64_t *const result_out)
 {
     if (clock->resolution == resolution) {
-        return clock->read(clock);
+        *result_out = clock->read(clock);
+        return true;
     }
 
     if (resolution > clock->resolution) {

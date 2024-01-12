@@ -4,9 +4,11 @@
  */
 
 #pragma once
-#include "cpu/cpu_info.h"
 
+#include "cpu/cpu_info.h"
 #include "mm/pagemap.h"
+
+#include "sched/info.h"
 #include "sched/thread.h"
 
 struct cpu_capabilities {
@@ -27,7 +29,9 @@ struct cpu_info {
     uint32_t processor_id;
     uint32_t lapic_id;
     uint32_t lapic_timer_frequency;
-    uint64_t timer_ticks;
+
+    bool active : 1;
+    uint32_t timer_ticks;
 
     struct pagemap *pagemap;
     struct list pagemap_node;
@@ -36,7 +40,7 @@ struct cpu_info {
     struct thread *idle_thread;
     uint64_t spur_int_count;
 
-    bool active : 1;
+    struct sched_percpu_info sched_info;
 };
 
 void cpu_init();

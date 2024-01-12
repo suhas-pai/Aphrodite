@@ -5,26 +5,14 @@
 
 #pragma once
 
-#include "lib/time.h"
-#include "scheduler.h"
+#if defined(SCHED_ROUND_ROBIN)
+    #include "round_robin/sched.h"
+#else
+    #error "scheduler not set"
+#endif /* defined(SCHED_ROUND_ROBIN) */
 
-struct sched_process_info {
+struct process;
+struct thread;
 
-};
-
-enum sched_thread_state {
-    SCHED_THREAD_STATE_NONE,
-    SCHED_THREAD_STATE_RUNNABLE,
-    SCHED_THREAD_STATE_RUNNING
-};
-
-struct sched_thread_info {
-    struct scheduler *scheduler;
-    usec_t timeslice;
-};
-
-#define SCHED_PROCESS_INFO_INIT() \
-    ((struct sched_process_info){})
-
-#define SCHED_THREAD_INFO_INIT() \
-    ((struct sched_thread_info){ .timeslice = 0 })
+void sched_process_algo_info_init(struct process *process);
+void sched_thread_algo_info_init(struct thread *thread);

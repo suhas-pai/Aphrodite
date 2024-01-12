@@ -3,12 +3,12 @@
  * © suhas pai
  */
 
+#include "lib/time.h"
 #include "sys/boot.h"
 
-uint64_t nsec_since_boot() {
-    return (uint64_t)boot_get_time();
+__optimize(3) nsec_t nsec_since_boot() {
+    return seconds_to_nano((sec_t)boot_get_time());
 }
 
 void arch_init_time() {
-
 }

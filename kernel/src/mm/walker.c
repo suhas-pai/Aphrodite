@@ -29,7 +29,7 @@ ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,
     return INVALID_PHYS;
 }
 
-static void
+__optimize(3) static void
 ptwalker_free_pgtable_cb(struct pt_walker *const walker,
                          struct page *const page,
                          void *const cb_info)

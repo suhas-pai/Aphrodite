@@ -209,6 +209,8 @@ setup_pages_off_freelist(struct page *const page,
     switch (state) {
         case PAGE_STATE_SYSTEM_CRUCIAL:
             verify_not_reached();
+        case PAGE_STATE_KERNEL_STACK:
+        case PAGE_STATE_USER_STACK:
         case PAGE_STATE_USED: {
             const struct page *const end = page + (1ull << order);
             for (struct page *iter = page; iter != end; iter++) {
@@ -482,6 +484,16 @@ setup_alloced_page(struct page *const page,
         case PAGE_STATE_FREE_LIST_TAIL:
         case PAGE_STATE_LRU_CACHE:
             verify_not_reached();
+        case PAGE_STATE_KERNEL_STACK:
+            zero_multiple_pages(page_to_virt(page), 1ull << order);
+            list_init(&page->kernel_stack.list);
+
+            return page;
+        case PAGE_STATE_USER_STACK:
+            zero_multiple_pages(page_to_virt(page), 1ull << order);
+            list_init(&page->user_stack.list);
+
+            return page;
         case PAGE_STATE_SLAB_HEAD:
             zero_multiple_pages(page_to_virt(page), 1ull << order);
             list_init(&page->slab.head.slab_list);

@@ -11,13 +11,13 @@
 
 #include "bitmap.h"
 
-struct bitmap bitmap_alloc(const uint64_t bit_count) {
+struct bitmap bitmap_alloc(const uint32_t bit_count) {
     return (struct bitmap){
         .gbuffer = gbuffer_alloc(bits_to_bytes_roundup(bit_count)),
     };
 }
 
-struct bitmap bitmap_open(void *const buffer, const uint64_t byte_count) {
+struct bitmap bitmap_open(void *const buffer, const uint32_t byte_count) {
     return (struct bitmap){
         .gbuffer =
             gbuffer_open(buffer,
@@ -27,7 +27,7 @@ struct bitmap bitmap_open(void *const buffer, const uint64_t byte_count) {
     };
 }
 
-__optimize(3) uint64_t bitmap_capacity(const struct bitmap *const bitmap) {
+__optimize(3) uint32_t bitmap_capacity(const struct bitmap *const bitmap) {
     return bytes_to_bits(bitmap->gbuffer.capacity);
 }
 
@@ -595,11 +595,11 @@ find_set_at_mult(struct bitmap *const bitmap,
     return FIND_BIT_INVALID;
 }
 
-__optimize(3) uint64_t
+__optimize(3) uint32_t
 bitmap_find_at_mult(struct bitmap *const bitmap,
-                    const uint64_t count,
-                    const uint64_t mult,
-                    const uint64_t start_index,
+                    const uint32_t count,
+                    const uint32_t mult,
+                    const uint32_t start_index,
                     const bool expected_value,
                     const bool invert)
 {
@@ -611,9 +611,9 @@ bitmap_find_at_mult(struct bitmap *const bitmap,
 }
 
 __optimize(3)
-bool bitmap_at(const struct bitmap *const bitmap, uint64_t index) {
+bool bitmap_at(const struct bitmap *const bitmap, uint32_t index) {
     const void *const begin = bitmap->gbuffer.begin;
-    const void *ptr = begin + bits_to_bytes_noround(index);
+    const void *const ptr = begin + bits_to_bytes_noround(index);
 
     index = (index % sizeof_bits(uint8_t));
     return *(const uint8_t *)ptr & (1 << index);
@@ -712,7 +712,8 @@ bitmap_has(const struct bitmap *const bitmap,
     return (last_byte_bits == last_byte_expected);
 }
 
-void bitmap_set(struct bitmap *const bitmap, uint64_t index, const bool value) {
+__optimize(3)
+void bitmap_set(struct bitmap *const bitmap, uint32_t index, const bool value) {
     void *const begin = bitmap->gbuffer.begin;
     void *ptr = begin + bits_to_bytes_noround(index);
 
@@ -776,6 +777,7 @@ bitmap_set_range(struct bitmap *const bitmap,
     }
 }
 
+__optimize(3)
 void bitmap_set_all(struct bitmap *const bitmap, const bool value) {
     if (value) {
         const uint64_t capacity = bitmap->gbuffer.capacity;

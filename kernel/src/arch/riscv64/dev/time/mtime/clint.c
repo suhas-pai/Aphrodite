@@ -3,34 +3,27 @@
  * © suhas pai
  */
 
+#include "dev/dtb/node.h"
+
 #include "dev/driver.h"
+#include "dev/printk.h"
 
-#include "lib/util.h"
 #include "mm/kmalloc.h"
-#include "sys/mmio.h"
-
 #include "time/clock.h"
-#include "time/kstrftime.h"
 
-#define CLINT_REG_MTIME 0xBFF8
+struct clint_regs {
+    volatile const uint32_t msip[4096];
+    volatile uint64_t time_compares[4095];
+    volatile uint64_t mtime;
+};
 
 struct clint_mtime {
     struct clock clock;
     struct mmio_region *mmio;
 
-    volatile void *base;
+    volatile struct clint_regs *regs;
     uint64_t frequency;
 };
-
-__optimize(3)
-__unused static uint64_t clint_mtime_read(const struct clock *const source) {
-    struct clint_mtime *const clint =
-        container_of(source, struct clint_mtime, clock);
-    const msec_t seconds =
-        mmio_read(reg_to_ptr(uint32_t, clint->base, CLINT_REG_MTIME));
-
-    return seconds / clint->frequency;
-}
 
 static struct clint_mtime *g_clint_mtime = NULL;
 
@@ -63,24 +56,19 @@ clint_init(volatile uint64_t *const base,
 
     clint->clock.name = SV_STATIC("clint");
     clint->mmio = mmio;
-    clint->base = mmio->base;
+    clint->regs = mmio->base;
     clint->frequency = freq;
-    clint->clock.resolution = CLOCK_RES_NANO;
 
-    clint->clock.read = clint_mtime_read;
+    clint->clock.resolution = CLOCK_RES_NANO;
+    clint->clock.one_shot_capable = false;
+
+    clint->clock.read = NULL;
     clint->clock.enable = NULL;
     clint->clock.disable = NULL;
-    clint->clock.resume = NULL;
-    clint->clock.suspend = NULL;
+    clint->clock.oneshot = NULL;
 
     clock_add(&clint->clock);
     g_clint_mtime = clint;
-
-    const usec_t stamp = clint_mtime_read(&clint->clock);
-    printk(LOGLEVEL_INFO, "clint: timestamp is %" PRIu64 "\n", stamp);
-
-    const struct tm tm = tm_from_stamp(stamp);
-    printk_strftime(LOGLEVEL_INFO, "clint: date is %c\n", &tm);
 }
 
 static bool
@@ -98,24 +86,23 @@ init_from_dtb(const struct devicetree *const tree,
 
     if (reg_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "clint: 'reg' property in dtb is missing\n");
+               "clint: 'reg' property in dtb node is missing\n");
         return false;
     }
 
     if (array_empty(reg_prop->list)) {
-        printk(LOGLEVEL_WARN, "clint: reg property is missing\n");
+        printk(LOGLEVEL_WARN,
+               "clint: dtb node's 'reg' property is empty\n");
         return false;
     }
 
     const struct devicetree_prop_reg_info *const reg =
         (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
 
-    if (!index_range_in_bounds(RANGE_INIT(CLINT_REG_MTIME, sizeof(uint64_t)),
-                               reg->size))
-    {
+    if (reg->size < sizeof(struct clint_regs)) {
         printk(LOGLEVEL_WARN,
-               "clint: base-addr reg of 'reg' property of dtb node is "
-               "too small\n");
+               "clint: base-addr reg of 'reg' property of dtb node is too "
+               "small\n");
         return false;
     }
 
@@ -139,18 +126,16 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    if (timebase_freq_prop->data_length != sizeof(fdt32_t)) {
+    uint32_t freq = 0;
+    if (!devicetree_prop_other_get_u32(timebase_freq_prop, &freq)) {
         printk(LOGLEVEL_WARN,
                "clint: node at path \"/cpus\" timebase-frequency prop is of "
-               "the wrong length %" PRIu64 "\n",
-               sizeof(fdt32_t));
+               "the wrong length %" PRIu32 "\n",
+               timebase_freq_prop->data_length);
         return false;
     }
 
-    clint_init((volatile uint64_t *)reg->address,
-               reg->size,
-               /*freq=*/fdt32_to_cpu(*timebase_freq_prop->data));
-
+    clint_init((volatile uint64_t *)reg->address, reg->size, freq);
     return true;
 }
 

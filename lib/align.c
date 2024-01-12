@@ -11,7 +11,7 @@ uint64_t align_down(const uint64_t number, const uint64_t boundary) {
     assert(boundary != 0);
 
     const uint64_t mask = ~(boundary - 1);
-    return (number & mask);
+    return number & mask;
 }
 
 __optimize(3) bool

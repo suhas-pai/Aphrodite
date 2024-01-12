@@ -264,7 +264,11 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
         return;
     }
 
-    g_mmio = vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+    g_mmio =
+        vmap_mmio(mmio_range,
+                  PROT_READ | PROT_WRITE | PROT_DEVICE,
+                  /*flags=*/0);
+
     if (g_mmio == NULL) {
         printk(LOGLEVEL_WARN, "gic: failed to mmio-map dist registers\n");
         return;
@@ -401,7 +405,9 @@ void gicd_set_irq_affinity(const uint16_t irq, const uint8_t iface) {
 }
 
 __optimize(3) void
-gicd_set_irq_trigger_mode(const uint16_t irq, const enum irq_trigger_mpde mode) {
+gicd_set_irq_trigger_mode(const uint16_t irq,
+                          const enum irq_trigger_mpde mode)
+{
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
                "gicd_set_irq_trigger_mode() called on sgi interrupt");
 

@@ -44,7 +44,7 @@ COMMON_CFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
                 -Wshadow -Wstrict-overflow=5 -Wundef -Wnull-dereference \
                 -funsigned-char -Wformat=2 -Isrc/arch/$(ARCH) -DBUILD_KERNEL \
                 -Wno-address-of-packed-member -fno-omit-frame-pointer \
-                -fms-extensions -DFLANTERM_FB_SUPPORT_BPP
+                -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_ROUND_ROBIN
 
 ifeq ($(ARCH), riscv64)
     override COMMON_CFLAGS += -D__riscv64
