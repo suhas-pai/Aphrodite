@@ -25,7 +25,7 @@ round_up(const uint64_t number,
     return true;
 }
 
-bool
+__optimize(3) bool
 math_pow(const uint64_t base, const uint64_t exp, uint64_t *const result_out) {
     uint64_t result = base;
     for (uint64_t i = 0; i != exp; i++) {
