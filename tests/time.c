@@ -66,18 +66,18 @@ int test_time() {
          weekday <= WEEKDAY_SATURDAY;
          weekday++)
     {
-        assert(weekday_is_valid(weekday));
+        assert(weekday_valid(weekday));
     }
 
     for (enum month month = MONTH_JANUARY; month <= MONTH_DECEMBER; month++) {
-        assert(month_is_valid(month));
+        assert(month_valid(month));
     }
 
-    assert(!month_is_valid(MONTH_JANUARY - 1));
-    assert(!month_is_valid(MONTH_DECEMBER + 1));
+    assert(!month_valid(MONTH_JANUARY - 1));
+    assert(!month_valid(MONTH_DECEMBER + 1));
 
-    assert(!weekday_is_valid((enum weekday)(WEEKDAY_SUNDAY - 1)));
-    assert(!weekday_is_valid(WEEKDAY_SATURDAY + 1));
+    assert(!weekday_valid((enum weekday)(WEEKDAY_SUNDAY - 1)));
+    assert(!weekday_valid(WEEKDAY_SATURDAY + 1));
 
     assert(weekday_next(WEEKDAY_SUNDAY) == WEEKDAY_MONDAY);
     assert(weekday_next(WEEKDAY_MONDAY) == WEEKDAY_TUESDAY);
