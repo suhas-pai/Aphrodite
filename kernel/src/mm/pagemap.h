@@ -26,13 +26,13 @@ struct pagemap {
     struct spinlock addrspace_lock;
 };
 
+struct pagemap pagemap_empty();
+
 #if defined(__aarch64__)
     struct pagemap pagemap_create(pte_t *lower_root, pte_t *higher_root);
 #else
     struct pagemap pagemap_create(pte_t *root);
 #endif
-
-extern struct pagemap kernel_pagemap;
 
 bool
 pagemap_find_space_and_add_vma(struct pagemap *pagemap,

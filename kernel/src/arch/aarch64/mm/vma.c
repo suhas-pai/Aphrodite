@@ -4,6 +4,7 @@
  */
 
 #include "mm/pgmap.h"
+#include "sched/process.h"
 
 static inline uint64_t
 flags_from_info(struct pagemap *const pagemap,
@@ -11,7 +12,7 @@ flags_from_info(struct pagemap *const pagemap,
                 const enum vma_cachekind cachekind)
 {
     uint64_t result = __PTE_VALID | __PTE_INNER_SH;
-    if (pagemap != &kernel_pagemap) {
+    if (pagemap != &kernel_process.pagemap) {
         result |= __PTE_NONGLOBAL | __PTE_USER;
     }
 

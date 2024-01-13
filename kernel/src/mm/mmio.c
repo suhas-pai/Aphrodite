@@ -11,6 +11,8 @@
 #include "mm/pgmap.h"
 #include "mm/zone.h"
 
+#include "sched/process.h"
+
 #include "kmalloc.h"
 #include "mmio.h"
 
@@ -83,8 +85,8 @@ find_virt_addr(const struct range phys_range,
                                           /*pagesize_order=*/0);
 }
 
-// 16kib of guard pages
-#define GUARD_PAGE_SIZE min(kib(16), PAGE_SIZE)
+// (at least) 16kib of guard space
+#define GUARD_PAGE_SIZE max(kib(16), PAGE_SIZE)
 
 struct mmio_region *
 map_mmio_region(const struct range phys_range,
@@ -123,7 +125,7 @@ map_mmio_region(const struct range phys_range,
 
     const struct range virt_range = RANGE_INIT(virt_addr, phys_range.size);
     const bool map_success =
-        arch_make_mapping(&kernel_pagemap,
+        arch_make_mapping(&kernel_process.pagemap,
                           phys_range,
                           virt_addr,
                           prot,
@@ -252,7 +254,10 @@ bool vunmap_mmio(struct mmio_region *const region) {
 
     const int flag = spin_acquire_with_irq(&mmio_space_lock);
     const bool result =
-        pgunmap_at(&kernel_pagemap, virt_range, /*map_options=*/NULL, &options);
+        pgunmap_at(&kernel_process.pagemap,
+                   virt_range,
+                   /*map_options=*/NULL,
+                   &options);
 
     if (!result) {
         spin_release_with_irq(&mmio_space_lock, flag);

@@ -14,7 +14,7 @@
 #include "info.h"
 
 struct process {
-    struct pagemap *pagemap;
+    struct pagemap pagemap;
     struct array threads;
 
     struct string name;
@@ -27,7 +27,4 @@ struct process {
 
 extern struct process kernel_process;
 
-void
-sched_process_init(struct process *process,
-                   struct pagemap *pagemap,
-                   struct string name);
+void sched_process_init(struct process *process, struct string name);

@@ -5,6 +5,8 @@
 
 #include "dev/printk.h"
 #include "lib/align.h"
+
+#include "sched/process.h"
 #include "sys/boot.h"
 
 #include "early.h"
@@ -378,10 +380,10 @@ __optimize(3) static inline void init_table_page(struct page *const page) {
 __optimize(3) void
 mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
 #if defined(__aarch64__)
-    init_table_page(virt_to_page(kernel_pagemap.lower_root));
-    init_table_page(virt_to_page(kernel_pagemap.higher_root));
+    init_table_page(virt_to_page(kernel_process.pagemap.lower_root));
+    init_table_page(virt_to_page(kernel_process.pagemap.higher_root));
 #else
-    init_table_page(virt_to_page(kernel_pagemap.root));
+    init_table_page(virt_to_page(kernel_process.pagemap.root));
 #endif
 
     struct pt_walker walker;

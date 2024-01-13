@@ -18,12 +18,13 @@ enum satp_mode {
 };
 
 enum satp_shifts {
+    SATP_PHYS_ASID_SHIFT = 44,
     SATP_PHYS_MODE_SHIFT = 60
 };
 
 enum satp_flags {
     __SATP_PHYS_ROOT_NUM = mask_for_n_bits(44),
-    __SATP_PHYS_ASID = 0xFFull << 44,
+    __SATP_PHYS_ASID = 0xFFull << SATP_PHYS_ASID_SHIFT,
     __SATP_PHYS_MODE = 0xFull << SATP_PHYS_MODE_SHIFT,
 };
 

@@ -12,7 +12,7 @@ flags_from_info(struct pagemap *const pagemap,
                 const enum vma_cachekind cachekind)
 {
     uint64_t result = __PTE_PRESENT;
-    if (pagemap == &kernel_pagemap) {
+    if (pagemap == &kernel_process.pagemap) {
         result |= __PTE_GLOBAL;
     } else {
         result |= __PTE_USER;

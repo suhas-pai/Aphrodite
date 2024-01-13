@@ -8,6 +8,7 @@
 #include "dev/printk.h"
 #include "lib/align.h"
 #include "sys/boot.h"
+#include "sched/process.h"
 
 #include "page.h"
 #include "zone.h"
@@ -332,7 +333,7 @@ get_large_from_freelist_order(struct page_section *const section,
         }
 
         setup_pages_off_freelist(page, largepage_order, PAGE_STATE_LARGE_HEAD);
-        struct page *begin = page + (1ull << largepage_order);
+        struct page *const begin = page + (1ull << largepage_order);
 
         const struct page *const end = head + (1ull << freelist_order);
         const uint64_t count = (uint64_t)(end - begin);
@@ -933,6 +934,21 @@ deref_large_page(struct page *const page,
     return NULL;
 }
 
-struct page *alloc_table() {
+__optimize(3) struct page *alloc_table() {
     return alloc_page(PAGE_STATE_TABLE, __ALLOC_ZERO);
+}
+
+__optimize(3)
+struct page *alloc_user_stack(struct process *const proc, const uint8_t order) {
+    struct page *const page =
+        alloc_pages(PAGE_STATE_USER_STACK, __ALLOC_ZERO, order);
+
+    if (page == NULL) {
+        return NULL;
+    }
+
+    page->user_stack.process = proc;
+    list_add(&proc->stack_page_list, &page->user_stack.list);
+
+    return page;
 }

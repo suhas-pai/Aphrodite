@@ -50,7 +50,7 @@ cause_exception_kind_get_sv(const enum cause_exception_kind kind) {
         case CAUSE_EXCEPTION_VIRT_INSTRUCTION_FAULT:
             return SV_STATIC("virt-instruction guest page fault");
         case CAUSE_EXCEPTION_STORE_GUEST_AMO_ACCESS_FAULT:
-            return SV_STATIC("store-instruction guest page fault");
+            return SV_STATIC("store guest amo access fault");
     }
 
     verify_not_reached();

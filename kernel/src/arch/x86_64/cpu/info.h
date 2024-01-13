@@ -4,9 +4,7 @@
  */
 
 #pragma once
-
 #include "cpu/cpu_info.h"
-#include "mm/pagemap.h"
 
 #include "sched/info.h"
 #include "sched/thread.h"
@@ -33,7 +31,7 @@ struct cpu_info {
     bool active : 1;
     uint32_t timer_ticks;
 
-    struct pagemap *pagemap;
+    struct process *process;
     struct list pagemap_node;
 
     // Keep track of spurious interrupts for every lapic.

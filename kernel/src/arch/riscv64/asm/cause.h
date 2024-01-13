@@ -34,7 +34,6 @@ enum ucause_flags {
     __UCAUSE_IS_INT = 1ull << 63,
 };
 
-
 enum cause_exception_kind {
     CAUSE_EXCEPTION_NONE = -1,
     CAUSE_EXCEPTION_INST_ADDR_MI,

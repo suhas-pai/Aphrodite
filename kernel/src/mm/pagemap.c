@@ -15,40 +15,59 @@
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
+#include "sched/process.h"
+
 #include "pgmap.h"
 
-__hidden struct pagemap kernel_pagemap = {
-#if defined(__aarch64__)
-    .lower_root = NULL, // setup later
-    .higher_root = NULL, // setup later
-#else
-    .root = NULL, // setup later
-#endif /* defined(__aarch64__)*/
+__optimize(3) struct pagemap pagemap_empty() {
+    struct pagemap result = {
+    #if defined(__aarch64__)
+        .lower_root = NULL,
+        .higher_root = NULL,
+    #else
+        .root = NULL,
+    #endif /* defined(__aarch64__) */
 
-    .cpu_list = LIST_INIT(kernel_pagemap.cpu_list),
-    .cpu_lock = SPINLOCK_INIT(),
-    .addrspace = ADDRSPACE_INIT(kernel_pagemap.addrspace),
-    .addrspace_lock = SPINLOCK_INIT(),
-    .refcount = REFCOUNT_CREATE_MAX(),
-};
+        .addrspace = ADDRSPACE_INIT(result.addrspace),
+
+        .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
+        .cpu_lock = SPINLOCK_INIT(),
+
+        .addrspace_lock = SPINLOCK_INIT(),
+    };
+
+    refcount_init(&result.refcount);
+    return result;
+}
 
 #if defined(__aarch64__)
-    struct pagemap
+    __optimize(3) struct pagemap
     pagemap_create(pte_t *const lower_root, pte_t *const higher_root) {
         struct pagemap result = {
             .lower_root = lower_root,
             .higher_root = higher_root,
-            .addrspace = ADDRSPACE_INIT(result.addrspace)
+
+            .addrspace = ADDRSPACE_INIT(result.addrspace),
+
+            .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
+            .cpu_lock = SPINLOCK_INIT(),
+
+            .addrspace_lock = SPINLOCK_INIT(),
         };
 
         refcount_init(&result.refcount);
         return result;
     }
 #else
-    struct pagemap pagemap_create(pte_t *const root) {
+    __optimize(3) struct pagemap pagemap_create(pte_t *const root) {
         struct pagemap result = {
             .root = root,
-            .addrspace = ADDRSPACE_INIT(result.addrspace)
+            .addrspace = ADDRSPACE_INIT(result.addrspace),
+
+            .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
+            .cpu_lock = SPINLOCK_INIT(),
+
+            .addrspace_lock = SPINLOCK_INIT(),
         };
 
         refcount_init(&result.refcount);
@@ -139,8 +158,6 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 
     list_remove(&this_cpu_mut()->pagemap_node);
     list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);
-
-    this_cpu_mut()->pagemap = pagemap;
 
 #if defined(__x86_64__)
     write_cr3(virt_to_phys(pagemap->root));

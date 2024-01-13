@@ -21,9 +21,8 @@ void sched_init() {
     sched_init_irq();
     sched_algo_init();
 
-    sched_process_init(&kernel_process,
-                       &kernel_pagemap,
-                       STRING_STATIC("kernel"));
+    sched_process_arch_info_init(&kernel_process);
+    sched_process_algo_info_init(&kernel_process);
 
     sched_thread_init(&kernel_main_thread, &kernel_process);
 }

@@ -18,7 +18,7 @@ void sched_process_algo_info_init(struct process *const process) {
 }
 
 void sched_thread_algo_info_init(struct thread *const thread) {
-    thread->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNABLE;
+    thread->sched_info.state = SCHED_THREAD_INFO_STATE_READY;
     thread->sched_info.timeslice = SCHED_ROUND_ROBIN_DEF_TIMESLICE_US;
 
     list_init(&thread->sched_info.list);
@@ -32,7 +32,7 @@ void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_with_irq(&g_run_queue_lock);
 
     list_add(&g_run_queue, &thread->sched_info.list);
-    thread->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNABLE;
+    thread->sched_info.state = SCHED_THREAD_INFO_STATE_READY;
 
     spin_release_with_irq(&g_run_queue_lock, flag);
 }
@@ -63,8 +63,8 @@ __optimize(3) static struct thread *get_next_thread(struct thread *const prev) {
         }
     }
 
-    if (prev->sched_info.state == SCHED_THREAD_INFO_STATE_RUNNABLE) {
-        prev->sched_info.state = SCHED_THREAD_INFO_STATE_READY;
+    if (prev->sched_info.state == SCHED_THREAD_INFO_STATE_READY) {
+        prev->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNING;
 
         list_remove(&next->sched_info.list);
         spin_release_with_irq(&g_run_queue_lock, flag);

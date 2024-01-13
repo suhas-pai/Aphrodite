@@ -4,14 +4,13 @@
  */
 
 #pragma once
+
 #include "cpu/cpu_info.h"
-
 #include "lib/list.h"
-#include "mm/pagemap.h"
 
-struct pagemap;
+struct process;
 struct cpu_info {
-    struct pagemap *pagemap;
+    struct process *process;
     struct list pagemap_node;
 
     struct thread *idle_thread;

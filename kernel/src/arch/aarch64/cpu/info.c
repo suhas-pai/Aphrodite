@@ -11,7 +11,6 @@
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
-#include "mm/pagemap.h"
 
 #include "sched/thread.h"
 
@@ -19,7 +18,7 @@
 #include "features.h"
 
 __hidden struct cpu_info g_base_cpu_info = {
-    .pagemap = &kernel_pagemap,
+    .process = &kernel_process,
     .pagemap_node = LIST_INIT(g_base_cpu_info.pagemap_node),
 
     .cpu_list = LIST_INIT(g_base_cpu_info.cpu_list),

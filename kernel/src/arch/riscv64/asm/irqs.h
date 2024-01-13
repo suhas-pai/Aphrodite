@@ -23,7 +23,7 @@ enum ip_flags {
     __IP_MACHINE_EXT_INT_PENDING = 1ull << 11,
 };
 
-// ie = "Interrupt ENABLE"
+// ie = "Interrupt Enable"
 enum ie_flags {
     __IE_USER_SW_INT_ENABLE = 1ull << 0,
     __IE_SUPERVISOR_SW_INT_ENABLE = 1ull << 1,

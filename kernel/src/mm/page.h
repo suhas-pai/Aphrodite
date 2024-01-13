@@ -35,6 +35,7 @@ enum page_state {
 
 typedef uint8_t page_section_t;
 
+struct process;
 struct page {
     _Atomic uint32_t flags;
     _Atomic uint8_t state;
@@ -85,6 +86,7 @@ struct page {
             struct list list;
         } kernel_stack;
         struct {
+            struct process *process;
             struct list list;
         } user_stack;
         struct {

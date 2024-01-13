@@ -13,9 +13,9 @@
 
 #include "sys/gic.h"
 
-struct pagemap;
+struct process;
 struct cpu_info {
-    struct pagemap *pagemap;
+    struct process *process;
 
     struct list pagemap_node;
     struct list cpu_list;

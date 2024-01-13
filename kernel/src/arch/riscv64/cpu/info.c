@@ -3,10 +3,11 @@
  * © suhas pai
  */
 
+#include "sched/process.h"
 #include "info.h"
 
 static struct cpu_info g_base_cpu_info = {
-    .pagemap = &kernel_pagemap,
+    .process = &kernel_process,
     .pagemap_node = LIST_INIT(g_base_cpu_info.pagemap_node),
     .spur_int_count = 0
 };

@@ -43,7 +43,7 @@ alloc_region(const uint64_t virt_addr,
     };
 
     const enum pgmap_alloc_result map_result =
-        pgmap_alloc_at(&kernel_pagemap,
+        pgmap_alloc_at(&kernel_process.pagemap,
                        RANGE_INIT(virt_addr, map_size),
                        &options,
                        &alloc_options);
@@ -98,7 +98,10 @@ map_into_kernel_pagemap(const struct range phys_range,
         .is_overwrite = false
     };
 
-    assert_msg(pgmap_at(&kernel_pagemap, phys_range, virt_addr, &options),
+    assert_msg(pgmap_at(&kernel_process.pagemap,
+                        phys_range,
+                        virt_addr,
+                        &options),
                "mm: failed to setup kernel-pagemap");
 
     printk(LOGLEVEL_INFO,
@@ -113,7 +116,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
         panic("mm: failed to allocate root page for kernel-pagemap");
     }
 
-    kernel_pagemap.root = phys_to_virt(root_phys);
+    kernel_process.pagemap.root = phys_to_virt(root_phys);
     uint64_t kernel_memmap_size = 0;
 
     // Map all 'good' regions into the hhdm, except the kernel, which goes in
@@ -155,7 +158,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     *kernel_memmap_size_out = kernel_memmap_size;
 
     setup_pagestructs_table();
-    switch_to_pagemap(&kernel_pagemap);
+    switch_to_pagemap(&kernel_process.pagemap);
 
     // All 'good' memmaps use pages with associated struct pages to them,
     // despite the pages being allocated before the structpage-table, so we have
@@ -184,35 +187,36 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
 static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
     // Setup vma_tree to include all ranges we've mapped.
     struct vm_area *const null_area =
-        vma_alloc(&kernel_pagemap,
+        vma_alloc(&kernel_process.pagemap,
                   range_create_upto(PAGE_SIZE),
                   PROT_NONE,
                   VMA_CACHEKIND_NO_CACHE);
 
     // This range was never mapped, but is still reserved.
     struct vm_area *const mmio =
-        vma_alloc(&kernel_pagemap,
+        vma_alloc(&kernel_process.pagemap,
                   RANGE_INIT(VMAP_BASE, (VMAP_END - VMAP_BASE)),
                   PROT_READ | PROT_WRITE,
                   VMA_CACHEKIND_MMIO);
 
     struct vm_area *const kernel =
-        vma_alloc(&kernel_pagemap,
+        vma_alloc(&kernel_process.pagemap,
                   RANGE_INIT(KERNEL_BASE, kernel_memmap_size),
                   PROT_READ | PROT_WRITE,
                   VMA_CACHEKIND_DEFAULT);
 
     struct vm_area *const hhdm =
-        vma_alloc(&kernel_pagemap,
+        vma_alloc(&kernel_process.pagemap,
                   RANGE_INIT(HHDM_OFFSET, tib(64)),
                   PROT_READ | PROT_WRITE,
                   VMA_CACHEKIND_DEFAULT);
 
     assert_msg(
-        addrspace_add_node(&kernel_pagemap.addrspace, &null_area->node) &&
-        addrspace_add_node(&kernel_pagemap.addrspace, &mmio->node) &&
-        addrspace_add_node(&kernel_pagemap.addrspace, &kernel->node) &&
-        addrspace_add_node(&kernel_pagemap.addrspace, &hhdm->node),
+        addrspace_add_node(&kernel_process.pagemap.addrspace,
+                           &null_area->node) &&
+        addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node) &&
+        addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node) &&
+        addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
         "mm: failed to setup kernel-pagemap");
 }
 

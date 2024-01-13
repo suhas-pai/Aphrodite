@@ -49,3 +49,4 @@ alloc_large_page_in_zone(struct page_zone *zone,
                          bool allow_fallback);
 
 struct page *alloc_table();
+struct page *alloc_user_stack(struct process *proc, uint8_t order);

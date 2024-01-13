@@ -4,6 +4,7 @@
  */
 
 #include "mm/pgmap.h"
+#include "sched/process.h"
 
 static inline uint64_t
 flags_from_info(struct pagemap *const pagemap,
@@ -15,7 +16,7 @@ flags_from_info(struct pagemap *const pagemap,
                "mm: arch_make_mapping(): got protections w/o any of rwx");
 
     uint64_t result = __PTE_VALID | (sanitized_prot << 1);
-    if (pagemap == &kernel_pagemap) {
+    if (pagemap == &kernel_process.pagemap) {
         result |= __PTE_GLOBAL;
     } else {
         result |= __PTE_USER;
