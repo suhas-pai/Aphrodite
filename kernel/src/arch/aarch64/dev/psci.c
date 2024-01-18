@@ -99,7 +99,7 @@ static bool init_common() {
         return false;
     }
 
-    const uint32_t major = (uint32_t)version & (uint32_t)~0xffff;
+    const uint32_t major = rm_mask((uint32_t)version, 0xffff);
     const uint32_t minor = (uint32_t)version & 0xffff;
 
     printk(LOGLEVEL_INFO,

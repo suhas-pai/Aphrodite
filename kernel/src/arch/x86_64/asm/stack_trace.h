@@ -15,3 +15,4 @@ struct stack_trace *stacktrace_top();
 struct stack_trace *stacktrace_next(struct stack_trace *stk);
 
 void print_stack_trace(uint8_t max_lines);
+void print_stack_trace_from_top(struct stack_trace *top, uint8_t max_lines);

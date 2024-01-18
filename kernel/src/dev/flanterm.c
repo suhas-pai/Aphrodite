@@ -18,7 +18,7 @@ struct flanterm_fb_info {
     __unused
 #endif /* defined(DISABLE_FLANTERM) */
 
-static void
+__optimize(3) static void
 flanterm_write_char(struct terminal *const term,
                     const char ch,
                     const uint32_t amt)
@@ -33,7 +33,7 @@ flanterm_write_char(struct terminal *const term,
     __unused
 #endif /* defined(DISABLE_FLANTERM) */
 
-static void
+__optimize(3) static void
 flanterm_write_sv(struct terminal *const term, const struct string_view sv) {
     struct flanterm_fb_info *const fb_info = (struct flanterm_fb_info *)term;
     flanterm_write(fb_info->ctx, sv.begin, sv.length);

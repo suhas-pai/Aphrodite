@@ -1,4 +1,4 @@
-# operating-system
+# Aphrodite
 
 An operating system written in C17 (gnu17), for x86_64, aarch64, and riscv64.
 
@@ -9,7 +9,7 @@ Check older repository for full commit history
 
 The kernel has the following implemented:
 * UART drivers; uart8250 on x86_64, riscv64 and pl011 on aarch64
-* Physical Memory Buddy Allocator using a vmemmap of `struct page`
+* Physical memory buddy allocator using a vmemmap of `struct page`
 * General memory allocation with kmalloc() using a slab allocator
 * RTC (google,goldfish-rtc on riscv64) and LAPIC Timer, HPET on x86_64
 * Keyboard (ps2) driver
@@ -21,8 +21,8 @@ The following is currently being worked on.
 * AHCI, SATA, IDE controllers to read disks
 * VirtIO drivers
 * Virtual File System (VFS)
-* Full SMP support to run multiple cores
-* User Processes and threads, with a scheduler to run them
+* Full SMP support with scheduler
+* User processes and threads
 
 In addition, the system comes with a basic standard library that includes:
 
@@ -61,10 +61,12 @@ Several variables are available to configure launching in QEMU:
   * `RELEASE=1` to build in release mode with full optimizations (though `ubsan` is still enabled) (By default `0`)
   * `CONSOLE=1` to start in QEMU's console mode (By default `0`)
   * `DISABLE_ACPI=1` to start QEMU's machine without ACPI, relying exclusively on the DTB (Flattened Device Tree) (by default `0`)
+  * `DISABLE_FLANTERM=1` to disable `flanterm`, the terminal emulator used. This option helps improve kernel performance (by default `0)
+  * `TRACE=""` to trace certain logs in qemu to `log.txt`. Takes a space separated string and provides qemu with the correct argumentd (by default `""`)
 
-The all target (default target) builds the system for the given architecture, creating a bootable .iso image containing the built system.
-The all-hdd target builds a flat hard disk/USB image instead.
+The `all` target (default target) builds the system for the given architecture, creating a bootable .iso image containing the built system.
+The `all-hdd` target builds a flat hard disk/USB image instead.
 
 Here's an example command:
 
-```make clean && make run ARCH=<arch> MEM=<mem> SMP=<smp>```
+```make clean && make run ARCH=<arch> MEM=<mem> SMP=<smp> RELEASE=1```

@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "dev/pci/entity.h"
 #if defined(__x86_64__)
     #include "dev/pci/legacy.h"
     #include "acpi/api.h"
@@ -480,14 +481,17 @@ parse_function(const struct pci_bus *const bus,
     const uint8_t header_kind =
         pci_read(&info, struct pci_spec_entity_info_base, header_kind);
 
-    const uint8_t hdrkind = header_kind & (uint8_t)~__PCI_ENTITY_HDR_MULTFUNC;
+    const uint8_t hdrkind = rm_mask(header_kind, __PCI_ENTITY_HDR_MULTFUNC);
     const uint8_t irq_pin =
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_GENERAL ?
             pci_read(&info, struct pci_spec_entity_info, interrupt_pin) : 0;
 
+    const uint8_t irq_line =
+        hdrkind == PCI_SPEC_ENTITY_HDR_KIND_GENERAL ?
+            pci_read(&info, struct pci_spec_entity_info, interrupt_line) : 0;
+
     info.id = pci_read(&info, struct pci_spec_entity_info_base, device_id);
     info.vendor_id = vendor_id;
-    info.command = pci_read(&info, struct pci_spec_entity_info_base, command);
     info.status = pci_read(&info, struct pci_spec_entity_info_base, status);
     info.revision_id =
         pci_read(&info, struct pci_spec_entity_info_base, revision_id);
@@ -497,7 +501,8 @@ parse_function(const struct pci_bus *const bus,
 
     info.class = pci_read(&info, struct pci_spec_entity_info_base, class_code);
     info.subclass = pci_read(&info, struct pci_spec_entity_info_base, subclass);
-    info.irq_pin = irq_pin;
+    info.interrupt_pin = irq_pin;
+    info.interrupt_line = irq_line;
     info.vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
 
     printk(LOGLEVEL_INFO,
@@ -522,11 +527,15 @@ parse_function(const struct pci_bus *const bus,
         return;
     }
 
-    // Disable I/O Space and Memory domain flags to parse bars. Re-enable after.
+    // Disable I/O Space and Memory domain flags to parse bars.
+    const uint16_t disable_flags =
+        __PCI_DEVCMDREG_IOSPACE |
+        __PCI_DEVCMDREG_MEMSPACE |
+        __PCI_ENTITY_PRIVL_BUS_MASTER;
+    const uint16_t old_command =
+        pci_read(&info, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
-        (info.command &
-            (uint16_t)~(__PCI_DEVCMDREG_IOSPACE | __PCI_DEVCMDREG_MEMSPACE)) |
-        __PCI_DEVCMDREG_INT_DISABLE;
+        rm_mask(old_command, disable_flags) | __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(&info, struct pci_spec_entity_info_base, command, new_command);
     switch (hdrkind) {
@@ -648,7 +657,7 @@ parse_function(const struct pci_bus *const bus,
             break;
     }
 
-    pci_write(&info, struct pci_spec_entity_info_base, command, info.command);
+    // pci_write(&info, struct pci_spec_entity_info_base, command, info.command);
 
     struct pci_entity_info *const info_out = kmalloc(sizeof(*info_out));
     if (info_out == NULL) {

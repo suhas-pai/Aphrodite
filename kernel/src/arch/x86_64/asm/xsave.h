@@ -187,7 +187,8 @@ static inline void xsave_feat_disable(const enum xsave_feature feat) {
 
 __optimize(3)
 static inline void xsave_feat_enable(const enum xsave_feature feat) {
-    msr_write(IA32_MSR_XFD, msr_read(IA32_MSR_XFD) & ~__XSAVE_FEAT_MASK(feat));
+    msr_write(IA32_MSR_XFD,
+              rm_mask(msr_read(IA32_MSR_XFD), __XSAVE_FEAT_MASK(feat)));
 }
 
 bool xsave_feat_is_supervisor(enum xsave_feature feat);

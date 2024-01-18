@@ -88,7 +88,7 @@ find_virt_addr(const struct range phys_range,
 // (at least) 16kib of guard space
 #define GUARD_PAGE_SIZE max(kib(16), PAGE_SIZE)
 
-struct mmio_region *
+static struct mmio_region *
 map_mmio_region(const struct range phys_range,
                 const prot_t prot,
                 const uint64_t flags)

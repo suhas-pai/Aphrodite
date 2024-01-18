@@ -90,14 +90,14 @@ __optimize(3) void adjust_lint_extint_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_EXTINT << 8;
     const uint64_t remove_mask = 0b111 << 8 | 1 << 12  | 1 << 14  | 1 << 16;
 
-    *value_in = (*value_in & ~remove_mask) | add_mask;
+    *value_in = rm_mask(*value_in, ~remove_mask) | add_mask;
 }
 
 __optimize(3) void adjust_lint_nmi_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_NMI << 8;
     const uint64_t remove_mask = 0b111 << 8 | 1 << 15;
 
-    *value_in = (*value_in & ~remove_mask) | add_mask;
+    *value_in = rm_mask(*value_in, ~remove_mask) | add_mask;
 }
 
 void lapic_enable() {
@@ -170,7 +170,7 @@ __optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     }
 }
 
-void lapic_timer_stop() {
+__optimize(3) void lapic_timer_stop() {
     mmio_write(&lapic_regs->timer_initial_count, 0);
     mmio_write(&lapic_regs->lvt_timer,
                setup_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
@@ -178,7 +178,7 @@ void lapic_timer_stop() {
                                     /*masked=*/true));
 }
 
-void
+__optimize(3) void
 lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
     // LAPIC-Timer Frequency is in Hz, which is cycles per second, while we need
     // cycles per microseconds

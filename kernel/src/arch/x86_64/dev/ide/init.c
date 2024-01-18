@@ -223,32 +223,33 @@ handle_device(struct ide_device *const device,
     }
 
     // (V) Read Identification Space of the Device:
-    ide_read_buffer(channel, ATA_REG_DATA, ide_buf, 128);
+    ide_read_buffer(channel, ATA_REG_DATA, ide_buf, /*quads=*/128);
+
+    const struct ata_identify *const ide_ident =
+        (const struct ata_identify *)ide_buf;
 
     // (VI) Read Device Parameters:
     device->reserved = 1;
     device->type = type;
     device->channel = channel;
     device->drive = drive;
-    device->signature = *reg_to_ptr(uint16_t, ide_buf, ATA_IDENT_DEVICE_TYPE);
-    device->capabilities =
-        *reg_to_ptr(uint16_t, ide_buf, ATA_IDENT_CAPABILITIES);
-    device->command_sets =
-        *reg_to_ptr(uint32_t, ide_buf, ATA_IDENT_COMMAND_SETS);
+    device->signature = ide_ident->device_type;
+    device->capabilities = ide_ident->capabilities;
+    device->command_sets = ide_ident->command_set_count;
 
     // (VII) Get Size:
     if (device->command_sets & (1 << 26)) {
         // Device uses 48-Bit Addressing:
-        device->size = *reg_to_ptr(uint32_t, ide_buf, ATA_IDENT_MAX_LBA_EXT);
+        device->size = ide_ident->max_lba_upper32;
     } else {
         // Device uses CHS or 28-bit Addressing:
-        device->size = *reg_to_ptr(uint32_t, ide_buf, ATA_IDENT_MAX_LBA);
+        device->size = ide_ident->max_lba_lower32;
     }
 
     // (VIII) String indicates model of device (like Western Digital HDD and
     // SONY DVD-RW...):
 
-    memcpy(device->model, &ide_buf[ATA_IDENT_MODEL], sizeof(device->model));
+    // memcpy(device->model, &ide_buf[ATA_IDENT_MODEL], sizeof(device->model));
 }
 
 void

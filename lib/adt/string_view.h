@@ -29,6 +29,10 @@ struct string_view {
 #define sv_foreach(sv, iter) \
     for (const char *iter = sv.begin; iter != (sv.begin + sv.length); iter++)
 
+#define sv_of_carr(field) sv_create_length(field, sizeof(field))
+#define sv_of_carr_not_full(field) \
+    sv_create_upto_length(field, sizeof(field))
+
 #define SV_FMT "%.*s"
 #define SV_FMT_ARGS(sv) (int)(sv).length, (sv).begin
 
@@ -55,6 +59,12 @@ __optimize(3) static inline struct string_view
 sv_create_length(const char *const c_str, const uint32_t length) {
     check_add_assert((uint64_t)c_str, length);
     return sv_create_nocheck(c_str, length);
+}
+
+__optimize(3) static inline struct string_view
+sv_create_upto_length(const char *const c_str, const uint32_t length) {
+    check_add_assert((uint64_t)c_str, length);
+    return sv_create_nocheck(c_str, strnlen(c_str, length));
 }
 
 struct string_view

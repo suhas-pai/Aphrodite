@@ -6,10 +6,8 @@
 #include "acpi/api.h"
 #include "apic/lapic.h"
 
-#include "asm/irqs.h"
 #include "asm/msr.h"
-
-#include "cpu/isr.h"
+#include "cpu/info.h"
 #include "dev/printk.h"
 
 #include "mm/mmio.h"

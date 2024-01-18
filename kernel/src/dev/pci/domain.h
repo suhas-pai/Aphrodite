@@ -75,124 +75,124 @@ pci_domain_write_64(const struct pci_domain *domain,
                     uint16_t offset,
                     uint64_t value);
 
-#define pci_read(device, type, field) \
+#define pci_read(entity, type, field) \
     ({ \
         __auto_type __result__ = (typeof_field(type, field))0; \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
                 __result__ = \
-                    pci_domain_read_8((device)->bus->domain, \
-                                      &(device)->loc, \
+                    pci_domain_read_8((entity)->bus->domain, \
+                                      &(entity)->loc, \
                                       offsetof(type, field)); \
                 break; \
             case sizeof(uint16_t): \
                 __result__ = \
-                    pci_domain_read_16((device)->bus->domain, \
-                                       &(device)->loc, \
+                    pci_domain_read_16((entity)->bus->domain, \
+                                       &(entity)->loc, \
                                        offsetof(type, field)); \
                 break; \
             case sizeof(uint32_t): \
                 __result__ = \
-                    pci_domain_read_32((device)->bus->domain, \
-                                       &(device)->loc, \
+                    pci_domain_read_32((entity)->bus->domain, \
+                                       &(entity)->loc, \
                                        offsetof(type, field)); \
                 break; \
             case sizeof(uint64_t): \
                 __result__ = \
-                    pci_domain_read_64((device)->bus->domain, \
-                                       &(device)->loc, \
+                    pci_domain_read_64((entity)->bus->domain, \
+                                       &(entity)->loc, \
                                        offsetof(type, field)); \
                 break; \
         } \
         __result__; \
     })
 
-#define pci_write(device, type, field, value) \
+#define pci_write(entity, type, field, value) \
     ({ \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
-                pci_domain_write_8((device)->bus->domain, \
-                                   &(device)->loc, \
+                pci_domain_write_8((entity)->bus->domain, \
+                                   &(entity)->loc, \
                                    offsetof(type, field), \
                                    value); \
                 break; \
             case sizeof(uint16_t): \
-                pci_domain_write_16((device)->bus->domain, \
-                                    &(device)->loc, \
+                pci_domain_write_16((entity)->bus->domain, \
+                                    &(entity)->loc, \
                                     offsetof(type, field), \
                                     value); \
                 break; \
             case sizeof(uint32_t): \
-                pci_domain_write_32((device)->bus->domain, \
-                                    &(device)->loc, \
+                pci_domain_write_32((entity)->bus->domain, \
+                                    &(entity)->loc, \
                                     offsetof(type, field), \
                                     value); \
                 break; \
             case sizeof(uint64_t): \
-                pci_domain_write_64((device)->bus->domain, \
-                                    &(device)->loc, \
+                pci_domain_write_64((entity)->bus->domain, \
+                                    &(entity)->loc, \
                                     offsetof(type, field), \
                                     value); \
                 break; \
         } \
     })
 
-#define pci_read_from_base(device, base, type, field) \
+#define pci_read_from_base(entity, base, type, field) \
     ({ \
         __auto_type __result__ = (typeof_field(type, field))0; \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
                 __result__ = \
-                    pci_domain_read_8((device)->bus->domain, \
-                                      &(device)->loc, \
+                    pci_domain_read_8((entity)->bus->domain, \
+                                      &(entity)->loc, \
                                       (base) + offsetof(type, field)); \
                 break; \
             case sizeof(uint16_t): \
                 __result__ = \
-                    pci_domain_read_16((device)->bus->domain, \
-                                       &(device)->loc, \
+                    pci_domain_read_16((entity)->bus->domain, \
+                                       &(entity)->loc, \
                                        (base) + offsetof(type, field)); \
                 break; \
             case sizeof(uint32_t): \
                 __result__ = \
-                    pci_domain_read_32((device)->bus->domain, \
-                                       &(device)->loc, \
+                    pci_domain_read_32((entity)->bus->domain, \
+                                       &(entity)->loc, \
                                        (base) + offsetof(type, field)); \
                 break; \
             case sizeof(uint64_t): \
                 __result__ = \
-                    pci_domain_read_64((device)->bus->domain, \
-                                       &(device)->loc, \
+                    pci_domain_read_64((entity)->bus->domain, \
+                                       &(entity)->loc, \
                                        (base) + offsetof(type, field)); \
                 break; \
         } \
         __result__; \
     })
 
-#define pci_write_from_base(device, base, type, field, value) \
+#define pci_write_from_base(entity, base, type, field, value) \
     ({ \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
-                pci_domain_write_8((device)->bus->domain, \
-                                   &(device)->loc, \
+                pci_domain_write_8((entity)->bus->domain, \
+                                   &(entity)->loc, \
                                    (base) + offsetof(type, field), \
                                    value); \
                 break; \
             case sizeof(uint16_t): \
-                pci_domain_write_16((device)->bus->domain, \
-                                    &(device)->loc, \
+                pci_domain_write_16((entity)->bus->domain, \
+                                    &(entity)->loc, \
                                     (base) + offsetof(type, field), \
                                     value); \
                 break; \
             case sizeof(uint32_t): \
-                pci_domain_write_32((device)->bus->domain, \
-                                    &(device)->loc, \
+                pci_domain_write_32((entity)->bus->domain, \
+                                    &(entity)->loc, \
                                     (base) + offsetof(type, field), \
                                     value); \
                 break; \
             case sizeof(uint64_t): \
-                pci_domain_write_64((device)->bus->domain, \
-                                    &(device)->loc, \
+                pci_domain_write_64((entity)->bus->domain, \
+                                    &(entity)->loc, \
                                     (base) + offsetof(type, field), \
                                     value); \
                 break; \

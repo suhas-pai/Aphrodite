@@ -4,15 +4,15 @@
  */
 
 #pragma once
-
 #include <stdbool.h>
+
 #include "apic/structs.h"
 #include "sys/isr.h"
 
 enum lapic_version_reg_flags {
     __LAPIC_VERSION_REG_VERION_MASK = 0xFF,
     __LAPIC_VERSION_REG_MAX_LVT_ENTRIES_MASK = 0xFF0000,
-    __LAPIC_VERSION_REG_SUPPRESS_EOI = (1 << 24),
+    __LAPIC_VERSION_REG_SUPPRESS_EOI = 1 << 24,
 };
 
 enum lapic_reg {
@@ -35,7 +35,6 @@ enum lapic_reg {
 
     // LDR = "Logical Destination Register"
     LAPIC_REG_LDR = 0xD0,
-
     LAPIC_REG_SPURIOUS = 0xF0,
 
     // ISR = "In-Service Register"
@@ -97,10 +96,12 @@ enum lapic_reg {
 enum x2apic_lapic_reg {
     X2APIC_LAPIC_REG_ID = 0x2,
     X2APIC_LAPIC_REG_VERSION = 0x3,
+
     X2APIC_LAPIC_REG_TPR = 0x8,
     X2APIC_LAPIC_REG_PPR = 0xA,
     X2APIC_LAPIC_REG_EOI = 0xB,
     X2APIC_LAPIC_REG_LDR = 0xD,
+
     X2APIC_LAPIC_REG_SPUR_VECTOR = 0xF,
 
     X2APIC_LAPIC_REG_ISR0 = 0x10,
@@ -156,9 +157,9 @@ enum lapic_ipi {
 };
 
 enum lapic_spurious_vector_flags {
-    __LAPIC_SPURVEC_ENABLE         = 1 << 8,
+    __LAPIC_SPURVEC_ENABLE = 1 << 8,
     __LAPIC_SPURVEC_FOCUS_DISABLED = 1 << 9,
-    __LAPIC_SPURVEC_EOI            = 1 << 11,
+    __LAPIC_SPURVEC_EOI = 1 << 11,
 };
 
 enum lapic_timer_mode {

@@ -1720,9 +1720,7 @@ pgunmap_at(struct pagemap *const pagemap,
             ptwalker_deref_from_level(&walker, walker.level, &pageop);
         }
 
-        const uint64_t page_size = PAGE_SIZE_AT_LEVEL(level);
-        offset += page_size;
-
+        offset += PAGE_SIZE_AT_LEVEL(level);
         if (offset == virt_range.size) {
             break;
         }

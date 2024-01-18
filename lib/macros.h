@@ -149,6 +149,11 @@
     }                                    \
 })
 
+#define has_mask(num, mask) ({ \
+    __auto_type __mask__ = (mask); \
+    ((num) & __mask__) == __mask__; \
+})
+
 #define rm_mask(num, mask) ((num) & ((typeof(num))~(mask)))
 
 #define div_round_up(a, b) ({\

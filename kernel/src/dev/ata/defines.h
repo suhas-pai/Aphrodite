@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <stdint.h>
+#include "lib/macros.h"
+
 enum ata_status {
     __ATA_STATUS_REG_ERR = 1 << 0,
     __ATA_STATUS_REG_IDX = 1 << 1,
@@ -48,19 +51,87 @@ enum atapi_commands {
     ATAPI_CMD_EJECT = 0x1B,
 };
 
-enum ata_identity_f {
-    ATA_IDENT_DEVICE_TYPE,
-    ATA_IDENT_CYLINDERS = 2,
-    ATA_IDENT_HEADS = 6,
-    ATA_IDENT_SECTORS = 12,
-    ATA_IDENT_SERIAL = 20,
-    ATA_IDENT_MODEL = 54,
-    ATA_IDENT_CAPABILITIES = 98,
-    ATA_IDENT_FIELD_VALID = 106,
-    ATA_IDENT_MAX_LBA = 120,
-    ATA_IDENT_COMMAND_SETS = 164,
-    ATA_IDENT_MAX_LBA_EXT = 200,
+enum ata_ident_capabilities {
+    __ATA_IDENTITY_CAP_DMA_SUPPORT = 1 << 8,
+    __ATA_IDENTITY_CAP_LBA_SUPPORT = 1 << 9,
+    __ATA_IDENTITY_CAP_IORDY_SUPPORT = 1 << 10,
+    __ATA_IDENTITY_CAP_STANDBY_TIMER_SUPPORTED = 1 << 13,
 };
+
+enum ata_ident_capabilities_ext {
+    __ATA_IDENTITY_CAP_EXT_HAS_MIN_STANDBY_TIME = 1 << 0,
+};
+
+enum ata_ident_sata_cap_flags {
+    __ATA_IDENTITY_SATA_CAP_GEN1 = 1 << 1,
+    __ATA_IDENTITY_SATA_CAP_GEN2 = 1 << 2,
+    __ATA_IDENTITY_SATA_CAP_GEN3 = 1 << 3,
+    __ATA_IDENTITY_SATA_CAP_SUPPORTS_NCQ = 1 << 8,
+};
+
+struct ata_identify {
+    uint16_t device_type;
+    uint16_t cylinder_count;
+
+    const char reserved[2];
+
+    uint16_t head_count;
+    char reserved_2[4];
+
+    uint16_t sector_count;
+
+    char serial[20];
+    const char reserved_3[12];
+
+    uint64_t firmware_version;
+
+    char model[40];
+    const char reserved_4[4];
+
+    uint16_t capabilities;
+    uint16_t capabilities_ext;
+    const char reserved_5[18];
+
+    uint32_t max_lba_lower32;
+    const char reserved_6[28];
+
+    uint16_t sata_capabilities;
+    uint16_t sata_capabilities_ext;
+
+    const char reserved_7[8];
+
+    uint32_t command_set_count;
+    const char reserved_8[32];
+
+    uint32_t max_lba_upper32;
+} __packed;
+
+enum atapi_identity_fieldvalid_flags {
+    __ATAPI_IDENTITY_FIELDVALID_64_70_VALID = 1 << 0,
+    __ATAPI_IDENTITY_FIELDVALID_88_VALID = 1 << 1,
+};
+
+struct atapi_identify {
+    uint16_t device_type;
+    const char reserved[18];
+
+    char serial[20];
+
+    uint16_t buffer_kind;
+    uint16_t cache_size;
+    uint16_t ecc;
+
+    char version[8];
+    char model[40];
+
+    uint16_t dword_flags;
+    uint16_t flags;
+
+    uint16_t capabilities;
+    char reserved_2[6];
+
+    uint16_t fieldvalid;
+} __packed;
 
 enum ata_register {
     ATA_REG_DATA,

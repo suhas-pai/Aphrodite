@@ -7,14 +7,38 @@
     #include "asm/msr.h"
     #include "dev/printk.h"
 
+    #include "lib/align.h"
     #include "lib/bits.h"
     #include "lib/util.h"
 
     #include "sys/mmio.h"
 #endif /* defined(__x86_64__) */
 
+#include "dev/printk.h"
+
 #include "entity.h"
 #include "structs.h"
+
+void pci_entity_enable_msi(struct pci_entity_info *const entity) {
+    if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
+        printk(LOGLEVEL_WARN,
+               "pci: pci_entity_enable_msi() called on entity that doesn't "
+               "support msi\n");
+        return;
+    }
+
+    const uint32_t msi_control =
+        pci_read_from_base(entity,
+                           entity->pcie_msi_offset,
+                           struct pci_spec_cap_msi,
+                           msg_control);
+
+    pci_write_from_base(entity,
+                        entity->pcie_msi_offset,
+                        struct pci_spec_cap_msi,
+                        msg_control,
+                        msi_control | __PCI_CAPMSI_CTRL_ENABLE);
+}
 
 #if defined(__x86_64__)
     static void
@@ -61,7 +85,7 @@
         }
 
         msg_control |= __PCI_CAPMSI_CTRL_ENABLE;
-        msg_control &= (uint16_t)~__PCI_CAPMSI_CTRL_MULTIMSG_ENABLE;
+        msg_control = rm_mask(msg_control, __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE);
 
         pci_write_from_base(entity,
                             entity->pcie_msi_offset,
@@ -170,8 +194,7 @@
 
         const uint64_t bar_address = (uint64_t)bar->mmio->base;
         const uint64_t table_addr =
-            bar_address +
-            (table_offset & (uint32_t)~__PCI_BARSPEC_TABLE_OFFSET_BIR);
+            bar_address + rm_mask(table_offset, __PCI_BARSPEC_TABLE_OFFSET_BIR);
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
             (volatile struct pci_spec_cap_msix_table_entry *)table_addr;
@@ -197,7 +220,9 @@
                                   const bool masked)
     {
         const uint64_t msi_address =
-            (msr_read(IA32_MSR_APIC_BASE) & PAGE_SIZE) | cpu->lapic_id << 12;
+            align_down(msr_read(IA32_MSR_APIC_BASE), PAGE_SIZE) |
+            cpu->lapic_id << 12;
+
         switch (entity->msi_support) {
             case PCI_ENTITY_MSI_SUPPORT_NONE:
                 printk(LOGLEVEL_WARN,
@@ -221,14 +246,12 @@
 
 void
 pci_entity_enable_privl(struct pci_entity_info *const entity,
-                        const uint8_t privl)
+                        const uint16_t privl)
 {
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
-    const enum pci_spec_entity_cmdreg_flags flags =
-        (enum pci_spec_entity_cmdreg_flags)privl;
     const uint16_t new_command =
-        (old_command | flags) ^ __PCI_DEVCMDREG_INT_DISABLE;
+        (old_command | privl) ^ __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
 }

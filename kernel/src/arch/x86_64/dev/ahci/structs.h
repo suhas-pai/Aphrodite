@@ -62,15 +62,35 @@ enum ahci_hba_port_cmd_status_flags {
         0b11111ull << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT,
 };
 
+enum ahci_hba_port_interrupt_status_flags {
+    __AHCI_HBA_IS_DEV_TO_HOST_FIS = 1ull << 0,
+    __AHCI_HBA_IS_PIO_SETUP_FIS = 1ull << 1,
+    __AHCI_HBA_IS_DMA_SETUP_FIS = 1ull << 2,
+    __AHCI_HBA_IS_SET_DEV_BITS_FIS = 1ull << 3,
+    __AHCI_HBA_IS_UNKNOWN_FIS = 1ull << 4,
+    __AHCI_HBA_IS_DESC_PROCESSED = 1ull << 5,
+    __AHCI_HBA_IS_PORT_CHANGE = 1ull << 6,
+    __AHCI_HBA_IS_DEV_MECH_PRESENCE = 1ull << 7,
+    __AHCI_HBA_IS_PHYRDY_CHANGE_STATUS = 1ull << 22,
+    __AHCI_HBA_IS_INCORRECT_PORT_MULT_STATUS = 1ull << 23,
+    __AHCI_HBA_IS_OVERFLOW_STATUS = 1ull << 24,
+    __AHCI_HBA_IS_INTERFACE_NOT_FATAL_ERR_STATUS = 1ull << 26,
+    __AHCI_HBA_IS_INTERFACE_FATAL_ERR_STATUS = 1ull << 27,
+    __AHCI_HBA_IS_HOST_BUS_DATA_ERR_STATUS = 1ull << 28,
+    __AHCI_HBA_IS_HOST_BUS_FATAL_ERR_STATUS = 1ull << 29,
+    __AHCI_HBA_IS_TASK_FILE_ERR_STATUS = 1ull << 30,
+    __AHCI_HBA_IS_COLD_PORT_DETECT_STATUS = 1ull << 31,
+};
+
 enum ahci_hba_port_interrupt_enable_flags {
-    __AHCI_HBA_IE_DEV_TO_HOST_FIS_INT_ENABLE = 1ull << 0,
-    __AHCI_HBA_IE_PIO_SETUP_FIS_INT_ENABLE = 1ull << 1,
-    __AHCI_HBA_IE_DMA_SETUP_FIS_INT_ENABLE = 1ull << 2,
-    __AHCI_HBA_IE_SET_DEV_BITS_FIS_INT_ENABLE = 1ull << 3,
-    __AHCI_HBA_IE_UNKNOWN_FIS_INT_ENABLE = 1ull << 4,
-    __AHCI_HBA_IE_DESC_PROCESSED_INT_ENABLE = 1ull << 5,
-    __AHCI_HBA_IE_PORT_CHANGE_INT_ENABLE = 1ull << 6,
-    __AHCI_HBA_IE_DEV_MECH_PRESENCE_INT_ENABLE = 1ull << 7,
+    __AHCI_HBA_IE_DEV_TO_HOST_FIS = 1ull << 0,
+    __AHCI_HBA_IE_PIO_SETUP_FIS = 1ull << 1,
+    __AHCI_HBA_IE_DMA_SETUP_FIS = 1ull << 2,
+    __AHCI_HBA_IE_SET_DEV_BITS_FIS = 1ull << 3,
+    __AHCI_HBA_IE_UNKNOWN_FIS = 1ull << 4,
+    __AHCI_HBA_IE_DESC_PROCESSED = 1ull << 5,
+    __AHCI_HBA_IE_PORT_CHANGE = 1ull << 6,
+    __AHCI_HBA_IE_DEV_MECH_PRESENCE = 1ull << 7,
     __AHCI_HBA_IE_PHYRDY_CHANGE_STATUS = 1ull << 22,
     __AHCI_HBA_IE_INCORRECT_PORT_MULT_STATUS = 1ull << 23,
     __AHCI_HBA_IE_OVERFLOW_STATUS = 1ull << 24,
@@ -82,6 +102,64 @@ enum ahci_hba_port_interrupt_enable_flags {
     __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
 
+enum ahci_hba_port_task_file_data_flags {
+    __AHCI_HBA_TFD_STATUS_ERROR = 1 << 0,
+    __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED = 1 << 3,
+    __AHCI_HBA_TFD_STATUS_BUSY = 1 << 7,
+
+    __AHCI_HBA_TFD_STATUS = 0xFFull,
+    __AHCI_HBA_TFD_ERROR = 0xFFull << 8
+};
+
+enum ahci_hba_port_ipm {
+    AHCI_HBA_PORT_IPM_ACTIVE = 1,
+    AHCI_HBA_PORT_IPM_PARTIAL_POWER_MGMT_STATE,
+    AHCI_HBA_PORT_IPM_PARTIAL_SLUMBER_MGMT_STATE,
+    AHCI_HBA_PORT_IPM_PARTIAL_DEVSLEEP_MGMT_STATE
+};
+
+enum ahci_hba_port_det {
+    AHCI_HBA_PORT_DET_NO_INIT,
+    AHCI_HBA_PORT_DET_INIT,
+    AHCI_HBA_PORT_DET_PRESENT = 3,
+    AHCI_HBA_PORT_DET_OFFLINE_MODE
+};
+
+enum ahci_hba_port_sata_status_control_shifts {
+    AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT = 8
+};
+
+enum ahci_hba_port_sata_status_flags {
+    __AHCI_HBA_PORT_SATA_STAT_CTRL_DET = 0xF,
+    __AHCI_HBA_PORT_SATA_STAT_CTRL_IPM =
+        0xF << AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT,
+};
+
+enum ahci_hba_port_sata_error_flags {
+    __AHCI_HBA_PORT_SATA_ERROR_SERR_DATA_INTEGRITY = 1 << 0,
+    __AHCI_HBA_PORT_SATA_ERROR_SERR_COMM = 1 << 1,
+    __AHCI_HBA_PORT_SATA_ERROR_SERR_TRANSIENT_DATA_INTEGRITY = 1 << 8,
+    __AHCI_HBA_PORT_SATA_ERROR_SERR_PERSISTENT_COMM_OR_INTEGRITY = 1 << 9,
+    __AHCI_HBA_PORT_SATA_ERROR_SATA_PROTOCOL = 1 << 10,
+    __AHCI_HBA_PORT_SATA_ERROR_SATA_INTERNAL_ERROR = 1 << 11,
+};
+
+enum ahci_hba_port_sata_diag_flags {
+    __AHCI_HBA_PORT_SATA_DIAG_PHYRDY_CHANGED = 1 << 16,
+    __AHCI_HBA_PORT_SATA_DIAG_PHY_INTERNAL_ERROR = 1 << 17,
+    __AHCI_HBA_PORT_SATA_DIAG_COMM_WAKE = 1 << 18,
+    __AHCI_HBA_PORT_SATA_DIAG_10B_TO_8B_DECODE_ERROR = 1 << 19,
+    __AHCI_HBA_PORT_SATA_DIAG_DISPARITY_ERROR = 1 << 20,
+    __AHCI_HBA_PORT_SATA_DIAG_HANDSHAKE_ERROR = 1 << 21,
+    __AHCI_HBA_PORT_SATA_DIAG_LINK_SEQ_ERROR = 1 << 23,
+    __AHCI_HBA_PORT_SATA_DIAG_TRANSPORT_STATE_TRANSITION_ERROR = 1 << 24,
+    __AHCI_HBA_PORT_SATA_DIAG_UNKNOWN_FIS_TYPE = 1 << 25,
+
+    //  When set to one this bit indicates that a change in device presence has
+    // been detected since the last time this bit was cleared.
+    __AHCI_HBA_PORT_SATA_DIAG_EXCHANGED = 1 << 26
+};
+
 struct ahci_spec_hba_port {
     volatile uint32_t cmd_list_base_phys_lower32; // 1K byte-aligned
     volatile uint32_t cmd_list_base_phys_upper32;
@@ -89,7 +167,7 @@ struct ahci_spec_hba_port {
     volatile uint32_t fis_base_address_upper32;
     volatile uint32_t interrupt_status;
     volatile uint32_t interrupt_enable;
-    volatile uint32_t command_and_status;
+    volatile uint32_t cmd_status;
     volatile uint32_t reserved;
     volatile uint32_t task_file_data;
     volatile uint32_t signature;
@@ -142,6 +220,32 @@ enum ahci_hba_host_capability_flags {
     __AHCI_HBA_HOST_CAP_64BIT_DMA = 1ull << 31,
 };
 
+enum ahci_hba_host_capability_ext_flags {
+    __AHCI_HBA_HOST_CAP_EXT_BIOS_HANDOFF = 1ull << 0,
+
+    // When set to ‘1’, the HBA includes support for NVMHCI and the registers at
+    // offset 60h-9Fh are valid.
+    __AHCI_HBA_HOST_CAP_EXT_NVMHCI_SUPPORT = 1ull << 1,
+    __AHCI_HBA_HOST_CAP_EXT_AUTO_PARTIAL_TO_SLUMBER = 1ull << 2,
+    __AHCI_HBA_HOST_CAP_EXT_SUPPORTS_DEV_SLEEP = 1ull << 3,
+    __AHCI_HBA_HOST_CAP_EXT_SUPPORTS_AGGRESSIVE_DEV_SLEEP_MGMT = 1ull << 4,
+
+    // This field specifies that the HBA shall only assert the DEVSLP signal if
+    // the interface is in Slumber.
+    __AHCI_HBA_HOST_CAP_EXT_DEVSLEEP_ENTRANCE_FROM_SLEEP_ONLY = 1ull << 5,
+};
+
+enum ahci_hba_bios_handoff_status_ctrl_flags {
+    __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_OWNED_SEM = 1ull << 0,
+    __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_OS_OWNED_SEM = 1ull << 1,
+
+    // SMI on OS Ownership Change Enable
+    __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_SMI = 1ull << 2,
+    __AHCI_HBA_BIOS_HANDOFF_OS_OWNERSHIP_CHANGE = 1ull << 3,
+
+    __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_BUSY = 1ull << 4,
+};
+
 struct ahci_spec_hba_registers {
     volatile const uint32_t host_capabilities;
 
@@ -158,7 +262,7 @@ struct ahci_spec_hba_registers {
     volatile uint32_t enclosure_management_control;
 
     volatile const uint32_t host_capabilities_extended;
-    volatile uint32_t bios_os_handoff_ctrl_and_status;
+    volatile uint32_t bios_os_handoff_ctrl_status;
 
     volatile uint8_t reserved[0xA0-0x2C];
     volatile uint8_t vendor_registers[0x100-0xA0];
@@ -235,29 +339,21 @@ enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
         0xffffull << AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS_SHIFT
 };
 
-#define SATA_SIG_ATA 0x00000101 // SATA drive
-#define SATA_SIG_ATAPI 0xEB140101 // SATAPI drive
-#define SATA_SIG_SEMB 0xC33C0101 // Enclosure management bridge
-#define SATA_SIG_PM 0x96690101  // Port multiplier
+enum sata_sig {
+    SATA_SIG_ATA = 0x00000101,
+    SATA_SIG_ATAPI = 0xEB140101,
+
+    // Enclosure management bridge
+    SATA_SIG_SEMB = 0xC33C0101,
+    // Port multiplier
+    SATA_SIG_PM = 0x96690101 ,
+};
 
 #define AHCI_DEV_NULL 0
 #define AHCI_DEV_SATA 1
 #define AHCI_DEV_SEMB 2
 #define AHCI_DEV_PM 3
 #define AHCI_DEV_SATAPI 4
-
-enum ahci_hba_port_ipm {
-    AHCI_HBA_PORT_IPM_ACTIVE = 1,
-    AHCI_HBA_PORT_IPM_PARTIAL_POWER_MGMT_STATE,
-    AHCI_HBA_PORT_IPM_PARTIAL_SLUMBER_MGMT_STATE,
-    AHCI_HBA_PORT_IPM_PARTIAL_DEVSLEEP_MGMT_STATE
-};
-
-enum ahci_hba_port_det {
-    AHCI_HBA_PORT_DET_PRESENT_BUT_NO_COMM = 1,
-    AHCI_HBA_PORT_DET_PRESENT = 3,
-    AHCI_HBA_PORT_DET_OFFLINE_MODE
-};
 
 enum ahci_spec_hba_prdt_entry_flags {
     __AHCI_SPEC_HBA_PRDT_ENTRY_DATA_BYTE_COUNT_MINUS_ONE = (1ull << 22) - 1,
@@ -308,6 +404,7 @@ struct ahci_spec_fis_reg_h2d {
     uint8_t lba0;
     uint8_t lba1;
     uint8_t lba2;
+
     uint8_t device;
 
     uint8_t lba3;
@@ -443,7 +540,9 @@ enum ahci_port_command_header_flags {
         0xffffull << AHCI_PORT_CMDHDR_PRDT_LENGTH_SHIFT,
 };
 
-struct ahci_spec_port_cmd_header {
+#define AHCI_HBA_CMD_HDR_COUNT 32
+
+struct ahci_spec_port_cmdhdr {
     volatile uint16_t flags;
 
     /*

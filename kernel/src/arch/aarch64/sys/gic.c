@@ -216,7 +216,7 @@ void gic_cpu_init(const struct cpu_info *const cpu) {
 
     for (uint16_t i = 0; i != 32; i += 4) {
         const uint16_t index = i / 4;
-        mmio_write(&g_regs->interrupt_priority[index], 0xa0a0a0a0);
+        mmio_write(&g_regs->interrupt_priority[index], 0XA0A0A0A0);
     }
 
     if (g_dist.version == GICv1) {
@@ -235,7 +235,8 @@ void gic_cpu_init(const struct cpu_info *const cpu) {
 
     uint32_t interrupt_control = mmio_read(&intr->interrupt_control);
     if (g_dist.version >= GICv2) {
-        interrupt_control &= (uint32_t)~__GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE;
+        interrupt_control =
+            rm_mask(interrupt_control, __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE);
     }
 
     interrupt_control |= __GIC_CPU_INTR_CTRL_ENABLE;
@@ -396,7 +397,7 @@ void gicd_set_irq_affinity(const uint16_t irq, const uint8_t iface) {
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_CPU_COUNT;
     const uint32_t new_target =
-        (target & (uint32_t)~(0xFF << bit_index)) |
+        rm_mask(target, 0xFF << bit_index) |
         (target | (1ull << (iface + bit_index)));
 
     atomic_store_explicit(&g_regs->interrupt_targets[index],
@@ -462,7 +463,7 @@ void gicd_set_irq_priority(const uint16_t irq, const uint8_t priority) {
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_CPU_COUNT;
     const uint32_t new_priority =
-        (irq_priority & (uint32_t)~(0xFF << bit_index)) |
+        rm_mask(irq_priority, (0xFF << bit_index)) |
         (irq_priority | (uint32_t)priority << bit_index);
 
     atomic_store_explicit(&g_regs->interrupt_priority[index],

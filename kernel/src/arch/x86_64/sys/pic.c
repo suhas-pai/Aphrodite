@@ -4,8 +4,9 @@
  */
 
 #include <stdbool.h>
-#include "asm/pause.h"
 
+#include "asm/pause.h"
+#include "lib/macros.h"
 #include "sys/pio.h"
 
 #define PIC1        0x20        /* IO base address for master PIC */
@@ -121,8 +122,7 @@ void pic_clear_irq_mask(uint8_t irq) {
         port = PIC1_DATA;
     }
 
-    const uint8_t value = pio_read8(port) & ~(1 << irq);
-    pio_write8(port, value);
+    pio_write8(port, rm_mask(pio_read8(port), 1 << irq));
 }
 
 void pic_mask_remapped_irqs() {

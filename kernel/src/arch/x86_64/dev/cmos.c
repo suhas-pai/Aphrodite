@@ -9,8 +9,8 @@
 #include "cmos.h"
 #include "pio.h"
 
-static inline void select_cmos_register(enum cmos_register reg) {
-    reg &= (unsigned)~0x80;
+__optimize(3) static inline void select_cmos_register(enum cmos_register reg) {
+    reg = rm_mask(reg, 1 << 7);
     pio_write8(PIO_PORT_CMOS_REGISTER_SELECT, reg);
 
     /*
@@ -23,7 +23,7 @@ static inline void select_cmos_register(enum cmos_register reg) {
     cpu_pause();
 }
 
-uint8_t cmos_read(const enum cmos_register reg) {
+__optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
     const bool flag = disable_interrupts_if_not();
 
     // Note: We have to select the cmos register every time as reading/writing
@@ -36,6 +36,7 @@ uint8_t cmos_read(const enum cmos_register reg) {
     return result;
 }
 
+__optimize(3)
 void cmos_write(const enum cmos_register reg, const uint8_t data) {
     const bool flag = disable_interrupts_if_not();
 

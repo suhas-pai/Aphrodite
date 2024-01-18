@@ -33,7 +33,6 @@ struct pci_entity_info {
 
     uint16_t id;
     uint16_t vendor_id;
-    uint16_t command;
     uint16_t status;
     uint8_t revision_id;
 
@@ -43,7 +42,9 @@ struct pci_entity_info {
 
     uint8_t subclass;
     uint8_t class;
-    uint8_t irq_pin;
+
+    uint8_t interrupt_line;
+    uint8_t interrupt_pin;
 
     bool supports_pcie : 1;
     uint8_t max_bar_count : 3;
@@ -76,6 +77,8 @@ struct pci_entity_info {
     (device)->class,                                                           \
     (device)->subclass
 
+void pci_entity_enable_msi(struct pci_entity_info *entity);
+
 #if defined(__x86_64__)
     bool
     pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
@@ -91,4 +94,4 @@ enum pci_entity_privilege {
     __PCI_ENTITY_PRIVL_INTERRUPTS = 1ull << 10
 };
 
-void pci_entity_enable_privl(struct pci_entity_info *device, uint8_t privl);
+void pci_entity_enable_privl(struct pci_entity_info *device, uint16_t privl);

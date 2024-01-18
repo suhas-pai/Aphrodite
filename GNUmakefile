@@ -62,6 +62,14 @@ endif
 
 $(eval $(call DEFAULT_VAR,DRIVE_KIND,$(DEFAULT_DRIVE_KIND)))
 
+DEFAULT_TRACE=
+$(eval $(call DEFAULT_VAR,TRACE,$(DEFAULT_TRACE)))
+
+ifneq ($(TRACE),)
+	TRACE_LIST=$(wordlist 1, 2147483647, $(TRACE))
+	EXTRA_QEMU_ARGS += $(foreach trace_var,$(TRACE_LIST),$(addprefix -trace , $(trace_var)))
+endif
+
 DEFAULT_DISABLE_FLANTERM=0
 $(eval $(call DEFAULT_VAR,DISABLE_FLANTERM,$(DEFAULT_DISABLE_FLANTERM)))
 

@@ -87,20 +87,19 @@ void _start(void) {
     dtb_parse_main_tree();
 
     isr_init();
-    dev_init();
-
-    test_alloc_largepage();
-
-    // We're done, just hang...
     enable_interrupts();
 
 #if defined(__x86_64__) || defined(__riscv64)
     sched_init();
-    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
+#endif
 
+    dev_init();
+    test_alloc_largepage();
+
+    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
+#if defined(__x86_64__) || defined(__riscv64)
     sched_yield(/*noreturn=*/true);
 #else
-    printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
     cpu_idle();
 #endif
 }

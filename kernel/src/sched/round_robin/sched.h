@@ -29,4 +29,5 @@ struct sched_thread_info {
 };
 
 struct sched_percpu_info {
+
 };
