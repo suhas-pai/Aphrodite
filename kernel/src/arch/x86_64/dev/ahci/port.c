@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/ahci/port.h"
-#include "dev/ata/defines.h"
 #include "apic/lapic.h"
 
 #include "asm/stack_trace.h"
@@ -16,8 +14,8 @@
 #include "lib/size.h"
 
 #include "mm/zone.h"
-
 #include "sys/mmio.h"
+
 #include "device.h"
 
 #define AHCI_HBA_PORT_MAX_COUNT mib(4)
@@ -46,6 +44,11 @@ static uint8_t find_free_command_header(struct ahci_hba_port *const port) {
 }
 
 #define MAX_ATTEMPTS 100
+
+__optimize(3) static
+inline void flush_writes(volatile struct ahci_spec_hba_port *const port) {
+    mmio_read(&port->cmd_status);
+}
 
 __optimize(3)
 bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
@@ -76,8 +79,7 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
                mmio_read(&spec->cmd_status) |
                 __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE);
 
-    // Flush writes to command-status
-    mmio_read(&spec->cmd_status);
+    flush_writes(spec);
     return true;
 }
 
@@ -121,11 +123,6 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
     }
 
     return fis_stopped;
-}
-
-__optimize(3) static
-inline void flush_writes(volatile struct ahci_spec_hba_port *const port) {
-    mmio_read(&port->cmd_status);
 }
 
 __optimize(3) static
@@ -315,7 +312,6 @@ void ahci_port_handle_irq(const uint64_t vector, irq_context_t *const frame) {
         __AHCI_HBA_IS_INTERFACE_FATAL_ERR_STATUS |
         __AHCI_HBA_IS_TASK_FILE_ERR_STATUS;
 
-    bool called_eoi = false;
     for_every_lsb_one_bit(pending_ports, /*start_index=*/0, pending_index) {
         for (uint32_t index = 0; index != hba->port_count; index++) {
             struct ahci_hba_port *const port = &hba->port_list[index];
@@ -347,23 +343,16 @@ void ahci_port_handle_irq(const uint64_t vector, irq_context_t *const frame) {
 
             if (interrupt_status & fatal_mask) {
                 handle_serr(port);
-                print_stack_trace_from_top((struct stack_trace *)frame->rbp,
-                                           /*max_lines=*/10);
-
-                if (!called_eoi) {
-                    lapic_eoi();
-                }
-
-                called_eoi = true;
+                print_stack_trace_from_top(
+                    (struct stack_trace *)frame->regs.rbp,
+                    /*max_lines=*/10);
             }
 
             break;
         }
     }
 
-    if (!called_eoi) {
-        lapic_eoi();
-    }
+    lapic_eoi();
 }
 
 __optimize(3) bool ahci_hba_port_start(struct ahci_hba_port *const port) {
@@ -653,7 +642,7 @@ ahci_hba_port_send_ata_command(struct ahci_hba_port *const port,
                                const enum ata_command command_kind,
                                const uint64_t sector,
                                const uint16_t count,
-                               const uint64_t response_phys,
+                               const uint64_t phys_addr,
                                struct await_result *const result_out)
 {
     if (!ahci_hba_port_stop_running(port)) {
@@ -693,8 +682,10 @@ ahci_hba_port_send_ata_command(struct ahci_hba_port *const port,
         case ATA_CMD_IDENTIFY:
         case ATA_CMD_CACHE_FLUSH:
         case ATA_CMD_CACHE_FLUSH_EXT:
-        case ATA_CMD_PACKET:
             flags = rm_mask(flags, AHCI_HBA_PORT_CMDKIND_WRITE);
+            break;
+        case ATA_CMD_PACKET:
+            verify_not_reached();
             break;
         case ATA_CMD_WRITE_PIO:
         case ATA_CMD_WRITE_PIO_EXT:
@@ -714,7 +705,7 @@ ahci_hba_port_send_ata_command(struct ahci_hba_port *const port,
     volatile struct ahci_spec_hba_prdt_entry *const entries =
         cmd_table->prdt_entries;
 
-    uint64_t response_addr = response_phys;
+    uint64_t response_addr = phys_addr;
     const uint32_t entry_flags =
         (AHCI_HBA_PORT_MAX_COUNT - 1) |
         __AHCI_SPEC_HBA_PRDT_ENTRY_INT_ON_COMPLETION;
@@ -792,7 +783,7 @@ ahci_hba_port_send_ata_command(struct ahci_hba_port *const port,
     }
 
     result_out->event = &port->event;
-    result_out->result_ptr = phys_to_virt(response_phys);
+    result_out->result_ptr = phys_to_virt(phys_addr);
 
     mmio_write(&port->spec->command_issue, 1ull << slot);
     return true;

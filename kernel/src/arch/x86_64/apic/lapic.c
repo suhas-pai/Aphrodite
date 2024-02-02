@@ -90,14 +90,12 @@ __optimize(3) void adjust_lint_extint_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_EXTINT << 8;
     const uint64_t remove_mask = 0b111 << 8 | 1 << 12  | 1 << 14  | 1 << 16;
 
-    *value_in = rm_mask(*value_in, ~remove_mask) | add_mask;
+    *value_in = rm_mask(*value_in, remove_mask) | add_mask;
 }
 
 __optimize(3) void adjust_lint_nmi_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_NMI << 8;
-    const uint64_t remove_mask = 0b111 << 8 | 1 << 15;
-
-    *value_in = rm_mask(*value_in, ~remove_mask) | add_mask;
+    *value_in = rm_mask(*value_in, 0b111 << 8 | 1 << 15) | add_mask;
 }
 
 void lapic_enable() {

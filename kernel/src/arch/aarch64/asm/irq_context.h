@@ -14,6 +14,7 @@ struct aarch64_irq_context {
     uint64_t spsr_el1;
     uint64_t elr_el1;
     uint64_t sp_el0;
+    uint64_t esr_el1;
 };
 
 typedef struct aarch64_irq_context irq_context_t;

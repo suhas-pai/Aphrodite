@@ -52,5 +52,5 @@ ahci_hba_port_send_ata_command(struct ahci_hba_port *port,
                                enum ata_command command,
                                uint64_t sector,
                                uint16_t count,
-                               uint64_t response_phys,
+                               uint64_t phys_addr,
                                struct await_result *result_out);

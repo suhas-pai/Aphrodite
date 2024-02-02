@@ -56,7 +56,7 @@ __optimize(3) const void *array_end(const struct array array) {
     return array.gbuffer.begin + array.gbuffer.index;
 }
 
-__optimize(3) void *array_at(const struct array array, const uint64_t index) {
+__optimize(3) void *array_at(const struct array array, const uint32_t index) {
     assert(index_in_bounds(index, array_item_count(array)));
     const uint64_t byte_index = check_mul_assert(index, array.object_size);
 

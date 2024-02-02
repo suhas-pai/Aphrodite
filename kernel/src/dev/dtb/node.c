@@ -80,7 +80,7 @@ devicetree_node_get_other_prop(const struct devicetree_node *const node,
     return NULL;
 }
 
-bool
+__optimize(3) bool
 devicetree_node_has_compat_sv(const struct devicetree_node *const node,
                               const struct string_view sv)
 {
@@ -95,7 +95,7 @@ devicetree_node_has_compat_sv(const struct devicetree_node *const node,
     return false;
 }
 
-static bool
+__optimize(3) static bool
 fdt_stringlist_contains_sv(const char *strlist,
                            uint32_t listlen,
                            const struct string_view sv)
@@ -106,7 +106,7 @@ fdt_stringlist_contains_sv(const char *strlist,
         }
 
         const char *const p = memchr(strlist, '\0', (size_t)listlen);
-        if (!p) {
+        if (p == NULL) {
             return false; /* malformed strlist.. */
         }
 
@@ -117,7 +117,7 @@ fdt_stringlist_contains_sv(const char *strlist,
     return false;
 }
 
-bool
+__optimize(3) bool
 devicetree_prop_compat_has_sv(const struct devicetree_prop_compat *const prop,
                               const struct string_view sv)
 {

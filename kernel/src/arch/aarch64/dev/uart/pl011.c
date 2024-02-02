@@ -144,7 +144,7 @@ pl011_init(const port_t base,
     wait_for_tx_complete(device);
 
     // Flush FIFOs
-    mmio_write(&device->lcr_offset, (lcr & ~LCR_FEN));
+    mmio_write(&device->lcr_offset, rm_mask(lcr, LCR_FEN));
 
     // Set frequency divisors (UARTIBRD and UARTFBRD) to configure the speed
     const uint32_t div = 4 * PL011_BASE_CLOCK / baudrate;

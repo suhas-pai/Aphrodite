@@ -4,6 +4,7 @@
  */
 
 #include "asm/irqs.h"
+#include "cpu/util.h"
 
 #include "sched/irq.h"
 #include "sched/scheduler.h"
@@ -109,7 +110,7 @@ void sched_next(const bool from_irq) {
         }
 
         sched_timer_oneshot(next_thread->sched_info.timeslice);
-        sched_switch_to_idle();
+        sched_switch_to(/*prev=*/curr_thread, next_thread, from_irq);
 
         return;
     }
@@ -119,12 +120,8 @@ void sched_next(const bool from_irq) {
     sched_prepare_thread(next_thread);
     sched_set_current_thread(next_thread);
 
-    if (from_irq) {
-        sched_irq_eoi();
-    }
-
     sched_timer_oneshot(next_thread->sched_info.timeslice);
-    sched_switch_to(/*prev=*/curr_thread, next_thread);
+    sched_switch_to(/*prev=*/curr_thread, next_thread, from_irq);
 }
 
 __optimize(3) void sched_yield(const bool noreturn) {
@@ -141,6 +138,6 @@ __optimize(3) void sched_yield(const bool noreturn) {
 
     if (noreturn) {
         sched_set_current_thread(this_cpu()->idle_thread);
-        sched_switch_to_idle();
+        cpu_idle();
     }
 }

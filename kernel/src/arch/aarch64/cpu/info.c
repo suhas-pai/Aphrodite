@@ -10,9 +10,8 @@
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
-#include "mm/mmio.h"
-
 #include "sched/thread.h"
+#include "sys/gic.h"
 
 #include "info.h"
 #include "features.h"
@@ -24,7 +23,7 @@ __hidden struct cpu_info g_base_cpu_info = {
     .cpu_list = LIST_INIT(g_base_cpu_info.cpu_list),
     .spur_int_count = 0,
 
-    .cpu_interface_number = 0,
+    .interface_number = 0,
     .acpi_processor_id = 0,
 
     .spe_overflow_interrupt = 0,
@@ -1457,19 +1456,9 @@ cpu_add_gic_interface(
 
     cpu->spur_int_count = 0;
     cpu->acpi_processor_id = intr->acpi_processor_id;
-    cpu->cpu_interface_number = intr->cpu_interface_number;
+    cpu->interface_number = intr->cpu_interface_number;
     cpu->spe_overflow_interrupt = intr->spe_overflow_interrupt;
     cpu->mpidr = intr->mpidr;
 
-    cpu->gic_cpu.mmio =
-        vmap_mmio(RANGE_INIT(intr->phys_base_address, PAGE_SIZE),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
-
-    assert_msg(cpu->gic_cpu.mmio != NULL,
-               "cpu: failed to allocate mmio-region for gic-cpu-interface for "
-               "cpu with mpidr %" PRIu64 "\n",
-               cpu->mpidr);
-
-    cpu->gic_cpu.interface = cpu->gic_cpu.mmio->base;
+    gic_init_on_this_cpu(intr->phys_base_address, PAGE_SIZE);
 }

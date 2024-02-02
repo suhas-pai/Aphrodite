@@ -53,31 +53,26 @@ struct gic_distributor {
 struct gic_cpu_interface;
 struct cpu_info;
 
-struct gic_cpu_info {
-    volatile struct gic_cpu_interface *interface;
-    struct mmio_region *mmio;
-};
-
 bool
 gic_init_from_dtb(const struct devicetree *tree,
                   const struct devicetree_node *node);
 
-void gic_cpu_init(const struct cpu_info *cpu);
+void gic_init_on_this_cpu(uint64_t phys_address, uint64_t size);
 void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 
 struct gic_msi_frame *gicd_add_msi(uint64_t phys_base_address);
 const struct gic_distributor *gic_get_dist();
 
-void gicd_mask_irq(uint16_t irq);
-void gicd_unmask_irq(uint16_t irq);
-
-void gicd_set_irq_affinity(uint16_t irq, uint8_t iface);
-void gicd_set_irq_trigger_mode(uint16_t irq, enum irq_trigger_mpde mode);
-void gicd_set_irq_priority(uint16_t irq, uint8_t priority);
-
 typedef uint16_t irq_number_t;
 
-irq_number_t gic_cpu_get_irq_number(const struct cpu_info *cpu);
-uint32_t gic_cpu_get_irq_priority(const struct cpu_info *cpu);
+void gicd_mask_irq(irq_number_t irq);
+void gicd_unmask_irq(irq_number_t irq);
 
-void gic_cpu_eoi(const struct cpu_info *cpu, irq_number_t number);
+void gicd_set_irq_affinity(irq_number_t irq, uint8_t iface);
+void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
+void gicd_set_irq_priority(irq_number_t irq, uint8_t priority);
+
+irq_number_t gic_cpu_get_irq_number(uint8_t *cpu_id_out);
+uint32_t gic_cpu_get_irq_priority();
+
+void gic_cpu_eoi(uint8_t cpu_id, irq_number_t number);

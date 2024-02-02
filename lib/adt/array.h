@@ -38,7 +38,7 @@ bool array_remove_range(struct array *array, struct range range);
 void *array_begin(struct array array);
 const void *array_end(struct array array);
 
-void *array_at(struct array array, uint64_t index);
+void *array_at(struct array array, uint32_t index);
 
 void *array_front(struct array array);
 void *array_back(struct array array);

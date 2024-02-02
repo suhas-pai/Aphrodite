@@ -3,18 +3,21 @@
  * © suhas pai
  */
 
+#include "asm/irqs.h"
 #include "asm/irq_context.h"
+
 #include "cpu/isr.h"
 #include "dev/printk.h"
+#include "sys/gic.h"
 
-extern void *ivt_el1;
+extern void *const ivt_el1;
 
 void isr_init() {
 
 }
 
 void isr_install_vbar() {
-    asm volatile ("msr vbar_el1, %0" :: "r"(ivt_el1));
+    asm volatile ("msr vbar_el1, %0" :: "r"(&ivt_el1));
     printk(LOGLEVEL_INFO, "isr: installed vbar_el1\n");
 }
 
@@ -46,10 +49,32 @@ isr_assign_irq_to_cpu(struct cpu_info *const cpu,
 
 void handle_exception(irq_context_t *const context) {
     (void)context;
-    printk(LOGLEVEL_INFO, "isr: got exception\n");
+
+    uint8_t cpu_id = 0;
+    const int irq = gic_cpu_get_irq_number(&cpu_id);
+
+    printk(LOGLEVEL_INFO, "isr: got exception: %d on cpu: %d\n", irq, cpu_id);
+    gic_cpu_eoi(cpu_id, irq);
+}
+
+void handle_sexception(irq_context_t *const context) {
+    (void)context;
+
+    uint8_t cpu_id = 0;
+    const int irq = gic_cpu_get_irq_number(&cpu_id);
+
+    printk(LOGLEVEL_INFO, "isr: got sexception: %d on cpu: %d\n", irq, cpu_id);
+    gic_cpu_eoi(cpu_id, irq);
 }
 
 void handle_interrupt(irq_context_t *const context) {
     (void)context;
-    printk(LOGLEVEL_INFO, "isr: got interrupt\n");
+
+    uint8_t cpu_id = 0;
+    const int irq = gic_cpu_get_irq_number(&cpu_id);
+
+    printk(LOGLEVEL_INFO, "isr: got interrupt: %d on cpu: %d\n", irq, cpu_id);
+    gic_cpu_eoi(cpu_id, irq);
+
+    disable_interrupts();
 }

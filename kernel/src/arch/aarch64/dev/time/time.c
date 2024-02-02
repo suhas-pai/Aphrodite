@@ -4,7 +4,6 @@
  */
 
 #include "acpi/api.h"
-#include "asm/irqs.h"
 #include "dev/printk.h"
 
 #include "lib/freq.h"
@@ -12,12 +11,6 @@
 
 #include "sys/boot.h"
 #include "sys/gic.h"
-
-enum ctl_flags {
-    __CTL_ENABLE = 1ull << 0,
-    __CTL_INT_MASKED = 1ull << 1,
-    __CTL_STATUS = 1ull << 2,
-};
 
 static uint64_t g_frequency = 0;
 
@@ -55,7 +48,7 @@ __optimize(3) nsec_t nsec_since_boot() {
                            (sec_t)boot_get_time());
 }
 
-void oneshot_alarm(const nsec_t nano) {
+__optimize(3) void oneshot_alarm(const nsec_t nano) {
     const sec_t seconds = nano_to_seconds(g_frequency * nano);
     asm volatile ("msr cntp_tval_el0, %0" :: "r"(seconds));
 
@@ -73,12 +66,9 @@ static void enable_dtb_timer_irqs() {
         devicetree_get_node_at_path(tree, SV_STATIC("/timer"));
 
     if (node == NULL) {
-        if (get_acpi_info()->gtdt == NULL) {
-            panic("time: no timer found in acpi/dtb, expected GTDT table "
-                  "in ACPI, or '/timer' node in dtb");
-        }
-
-        return;
+        assert_msg(get_acpi_info()->gtdt != NULL,
+                   "time: no timer found in acpi/dtb, expected GTDT table "
+                   "in ACPI, or '/timer' node in dtb");
     }
 
     struct devicetree_prop_interrupts *const int_prop =
@@ -120,7 +110,7 @@ void arch_init_time() {
 
     // Enable and unmask generic timers
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
-    asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)1));
+    //asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)1));
     asm volatile ("msr cntp_tval_el0, %0" :: "r"((uint64_t)0));
 
     asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
@@ -128,8 +118,6 @@ void arch_init_time() {
 
     printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
 
-    enable_interrupts();
     enable_dtb_timer_irqs();
-
     oneshot_alarm(0);
 }

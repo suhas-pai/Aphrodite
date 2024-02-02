@@ -138,8 +138,8 @@ virtio_split_queue_add(struct virtio_split_queue *const queue,
 }
 
 void
-virtio_split_queue_transmit(struct virtio_device *const device,
-                            struct virtio_split_queue *const queue)
+virtio_split_queue_commit(struct virtio_device *const device,
+                          struct virtio_split_queue *const queue)
 {
     // 4. The driver performs a suitable memory barrier to ensure the device
     //    sees the updated descriptor table and available ring before the next

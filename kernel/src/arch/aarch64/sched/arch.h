@@ -14,7 +14,7 @@ struct thread_arch_info {
 };
 
 struct process;
-void sched_process_arch_info_init(struct process *proc);
-
 struct thread;
+
+void sched_process_arch_info_init(struct process *proc);
 void sched_thread_arch_info_init(struct thread *thread);

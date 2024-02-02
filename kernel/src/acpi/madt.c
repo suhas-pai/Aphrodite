@@ -28,6 +28,7 @@ void madt_init(const struct acpi_madt *const madt) {
     uint64_t local_apic_base = madt->local_apic_base;
 #elif defined(__aarch64__)
     const struct acpi_madt_entry_gic_distributor *gic_dist = NULL;
+    uint64_t gic_cpu_intr_phys_addr = 0;
 #endif /* defined(_-x86_64__) */
 
     uint32_t length = madt->sdt.length - sizeof(*madt);
@@ -355,7 +356,25 @@ void madt_init(const struct acpi_madt *const madt) {
                        cpu->processor_power_efficiency_class,
                        cpu->spe_overflow_interrupt);
 
-                cpu_add_gic_interface(cpu);
+                if (cpu->phys_base_address == 0) {
+                    printk(LOGLEVEL_WARN,
+                           "madt: gic cpu-interface phys-address is zero\n");
+                    break;
+                }
+
+                if (gic_cpu_intr_phys_addr != 0) {
+                    if (gic_cpu_intr_phys_addr != cpu->phys_base_address) {
+                        printk(LOGLEVEL_WARN,
+                               "madt: gic cpu-interface has multiple "
+                               "conflicitng phys-addresses: 0x%" PRIx64 " vs "
+                               "0x%" PRIx64 "\n",
+                               gic_cpu_intr_phys_addr,
+                               cpu->phys_base_address);
+                        return;
+                    }
+                } else {
+                    gic_cpu_intr_phys_addr = cpu->phys_base_address;
+                }
             #else
                 printk(LOGLEVEL_WARN,
                        "madt: found gic cpu-interface entry. ignoring\n");
@@ -496,6 +515,6 @@ void madt_init(const struct acpi_madt *const madt) {
     assert_msg(gic_dist != NULL, "madt: failed to find gic-distributor");
 
     gicd_init(gic_dist->phys_base_address, gic_dist->gic_version);
-    gic_cpu_init(this_cpu());
+    gic_init_on_this_cpu(gic_cpu_intr_phys_addr, PAGE_SIZE);
 #endif /* defined(__x86_64__) */
 }

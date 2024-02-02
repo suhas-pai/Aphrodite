@@ -49,10 +49,10 @@ bool pci_map_bar(struct pci_entity_bar_info *const bar) {
         return false;
     }
 
-    const uint64_t index_in_map = phys_range.front - aligned_range.front;
+    const uint64_t index_in_mmio = phys_range.front - aligned_range.front;
 
     bar->mmio = mmio;
-    bar->index_in_mmio = index_in_map;
+    bar->index_in_mmio = index_in_mmio;
 
     return true;
 }
@@ -79,7 +79,7 @@ __optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
 #if !defined(__x86_64__)
     __optimize(3) static inline volatile void *
     find_ptr_in_bus_resource(struct pci_entity_info *const entity,
-                            const uint32_t offset)
+                             const uint32_t offset)
     {
         array_foreach(&entity->bus->resources,
                       const struct pci_bus_resource,

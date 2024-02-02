@@ -152,6 +152,9 @@ struct gic_cpu_interface {
 _Static_assert(sizeof(struct gicd_registers) == 0x10000,
                "struct gicd_registers has an incorrect size");
 
+#define GICD_CPU_COUNT 8
+#define GICD_DEFAULT_PRIO 0xA0
+
 static struct gic_distributor g_dist = {
     .msi_frame_list = ARRAY_INIT(sizeof(struct gic_msi_frame)),
     .version = GICv1,
@@ -159,93 +162,86 @@ static struct gic_distributor g_dist = {
     .max_impl_lockable_spis = 0
 };
 
-#define GICD_CPU_COUNT 8
-
-static struct mmio_region *g_mmio = NULL;
+static struct mmio_region *g_dist_mmio = NULL;
 static volatile struct gicd_registers *g_regs = NULL;
+
+static struct mmio_region *g_cpu_mmio = NULL;
+static volatile struct gic_cpu_interface *g_cpu = NULL;
+
+static uint64_t g_cpu_phys_addr = 0;
+static uint64_t g_cpu_size = 0;
+
 static bool g_dist_initialized = false;
+static bool g_use_split_eoi = false;
 
 static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
-    if (g_dist.version != GICv1) {
-        for (uint16_t i = GIC_SPI_INTERRUPT_START;
-             i < g_dist.interrupt_lines_count;
-             i += 32)
-        {
-            const uint32_t index = i / sizeof(uint32_t);
-            mmio_write(&g_regs->interrupt_clear_enable[index], 0xFFFFFFFF);
-        }
-    } else {
-        for (uint16_t i = GIC_SPI_INTERRUPT_START;
-             i < g_dist.interrupt_lines_count;
-             i += 32)
-        {
-            const uint32_t index = i / sizeof(uint32_t);
-            mmio_write(&g_regs->interrupt_clear_active_enable[index],
-                       0xFFFFFFFF);
-        }
-    }
 
-    const uint8_t intr_number = this_cpu()->cpu_interface_number;
-    const uint32_t mask_four_times =
-        (uint32_t)intr_number |
-        (uint32_t)intr_number << 8 |
-        (uint32_t)intr_number << 16 |
-        (uint32_t)intr_number << 24;
-
-    for (uint16_t i = GIC_SPI_INTERRUPT_START;
-         i < g_dist.interrupt_lines_count;
-         i += 4)
+    const uint8_t intr_number = this_cpu()->interface_number;
+    for (uint16_t irq = GIC_SPI_INTERRUPT_START;
+         irq < g_dist.interrupt_lines_count;
+         irq++)
     {
-        const uint16_t index = i / sizeof(uint32_t);
+        gicd_mask_irq(irq);
 
-        mmio_write(&g_regs->interrupt_priority[index], 0xA0A0A0A0);
-        mmio_write(&g_regs->interrupt_targets[index], mask_four_times);
+        gicd_set_irq_priority(irq, GICD_DEFAULT_PRIO);
+        gicd_set_irq_affinity(irq, intr_number);
     }
 
     mmio_write(&g_regs->control, /*value=*/1);
     printk(LOGLEVEL_INFO, "gic: finished initializing gicd\n");
 }
 
-void gic_cpu_init(const struct cpu_info *const cpu) {
-    if (g_dist.version == GICv1) {
-        mmio_write(g_regs->interrupt_clear_active_enable, 0xFFFFFFFF);
-    } else {
-        mmio_write(&g_regs->interrupt_clear_enable[0], 0xFFFFFFF);
+void gic_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
+    for (uint8_t irq = 0; irq != 32; irq++) {
+        gicd_mask_irq(irq);
+        gicd_set_irq_priority(irq, GICD_DEFAULT_PRIO);
+        gicd_unmask_irq(irq);
     }
 
-    for (uint16_t i = 0; i != 32; i += 4) {
-        const uint16_t index = i / 4;
-        mmio_write(&g_regs->interrupt_priority[index], 0XA0A0A0A0);
+    if (g_cpu_mmio != NULL) {
+        assert(phys_addr == g_cpu_phys_addr && size == g_cpu_size);
+        return;
     }
 
-    if (g_dist.version == GICv1) {
-        mmio_write(g_regs->interrupt_set_active_enable, 0xFFFFFFFF);
-    } else {
-        mmio_write(&g_regs->interrupt_set_enable[0], 0xFFFFFFF);
+    assert_msg(has_align(size, PAGE_SIZE),
+               "gic: cpu interface mmio-region isn't aligned to page-size\n");
+
+    g_cpu_mmio =
+        vmap_mmio(RANGE_INIT(phys_addr, size),
+                  PROT_READ | PROT_WRITE | PROT_DEVICE,
+                  /*flags=*/0);
+
+    assert_msg(g_cpu_mmio != NULL,
+               "gic: failed to allocate mmio-region for cpu-interface");
+
+    g_cpu = g_cpu_mmio->base;
+    g_use_split_eoi = size > PAGE_SIZE;
+
+    if (g_use_split_eoi) {
+        printk(LOGLEVEL_INFO, "gic: using split-eoi for cpu-interface\n");
     }
 
-    volatile struct gic_cpu_interface *const intr = cpu->gic_cpu.interface;
+    printk(LOGLEVEL_INFO,
+           "gic: cpu interface at %p, size: 0x%" PRIx64 "\n",
+           g_cpu,
+           size);
 
-    mmio_write(&intr->priority_mask, 0xF0);
-    mmio_write(&intr->active_priority_base[0], /*value=*/0);
-    mmio_write(&intr->active_priority_base[1], /*value=*/0);
-    mmio_write(&intr->active_priority_base[2], /*value=*/0);
-    mmio_write(&intr->active_priority_base[3], /*value=*/0);
+    mmio_write(&g_cpu->priority_mask, 0xF0);
+    mmio_write(&g_cpu->active_priority_base[0], /*value=*/0);
+    mmio_write(&g_cpu->active_priority_base[1], /*value=*/0);
+    mmio_write(&g_cpu->active_priority_base[2], /*value=*/0);
+    mmio_write(&g_cpu->active_priority_base[3], /*value=*/0);
 
-    uint32_t interrupt_control = mmio_read(&intr->interrupt_control);
-    if (g_dist.version >= GICv2) {
-        interrupt_control =
-            rm_mask(interrupt_control, __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE);
-    }
+    const uint32_t bypass =
+        mmio_read(&g_cpu->interrupt_control) &
+        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE;
 
-    interrupt_control |= __GIC_CPU_INTR_CTRL_ENABLE;
-    if (cpu->gic_cpu.mmio->size > PAGE_SIZE) {
-        printk(LOGLEVEL_INFO, "gic: using split-eoi for cpu %ld\n", cpu->mpidr);
-        interrupt_control |= __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI;
-    }
+    mmio_write(&g_cpu->interrupt_control,
+                __GIC_CPU_INTR_CTRL_ENABLE |
+                bypass |
+                (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
 
-    mmio_write(&intr->interrupt_control, interrupt_control);
     printk(LOGLEVEL_INFO, "gic: initialized cpu interface\n");
 }
 
@@ -265,17 +261,13 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
         return;
     }
 
-    g_mmio =
-        vmap_mmio(mmio_range,
-                  PROT_READ | PROT_WRITE | PROT_DEVICE,
-                  /*flags=*/0);
-
-    if (g_mmio == NULL) {
+    g_dist_mmio = vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
+    if (g_dist_mmio == NULL) {
         printk(LOGLEVEL_WARN, "gic: failed to mmio-map dist registers\n");
         return;
     }
 
-    g_regs = g_mmio->base;
+    g_regs = g_dist_mmio->base;
     g_dist.version = gic_version;
 
     assert_msg(g_dist.version >= GICv1 && g_dist.version <= GIC_VERSION_BACK,
@@ -350,47 +342,32 @@ __optimize(3) const struct gic_distributor *gic_get_dist() {
     return &g_dist;
 }
 
-__optimize(3) void gicd_mask_irq(const uint16_t irq) {
-    const uint8_t index = irq / sizeof(uint32_t);
-    if (!index_in_bounds(index, countof(g_regs->interrupt_clear_enable))) {
-        printk(LOGLEVEL_WARN,
-               "gicd: gicd_mask_irq() irq %" PRIu8 " is beyond end of bitset\n",
-               irq);
+__optimize(3) void gicd_mask_irq(const irq_number_t irq) {
+    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+               "gicd_mask_irq() called on invalid interrupt");
 
-        return;
-    }
+    const uint8_t index = irq / sizeof_bits(uint32_t);
+    const uint8_t bit_index = irq % sizeof_bits(uint32_t);
 
-    mmio_write(&g_regs->interrupt_clear_enable[index],
-               1ull << (irq % sizeof(uint32_t)));
+    mmio_write(&g_regs->interrupt_clear_enable[index], 1ull << bit_index);
 }
 
-__optimize(3) void gicd_unmask_irq(const uint16_t irq) {
-    const uint8_t index = irq / sizeof(uint32_t);
-    if (!index_in_bounds(index, countof(g_regs->interrupt_set_enable))) {
-        printk(LOGLEVEL_WARN,
-               "gicd: gicd_unmask_irq() irq %" PRIu8 " is beyond end of "
-               "bitset\n",
-               irq);
+__optimize(3) void gicd_unmask_irq(const irq_number_t irq) {
+    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+               "gicd_unmask_irq() called on invalid interrupt");
 
-        return;
-    }
+    const uint8_t index = irq / sizeof_bits(uint32_t);
+    const uint8_t bit_index = irq % sizeof_bits(uint32_t);
 
-    mmio_write(&g_regs->interrupt_set_enable[index],
-               1ull << (irq % sizeof(uint32_t)));
+    mmio_write(&g_regs->interrupt_set_enable[index], 1ull << bit_index);
 }
 
 __optimize(3)
-void gicd_set_irq_affinity(const uint16_t irq, const uint8_t iface) {
+void gicd_set_irq_affinity(const irq_number_t irq, const uint8_t iface) {
+    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+               "gicd_set_irq_affinity() called on invalid interrupt");
+
     const uint8_t index = irq / sizeof(uint32_t);
-    if (!index_in_bounds(index, countof(g_regs->interrupt_targets))) {
-        printk(LOGLEVEL_WARN,
-               "gicd: gicd_set_irq_affinity() irq %" PRIu8 " is beyond end of "
-               "bitset\n",
-               irq);
-
-        return;
-    }
-
     const uint32_t target =
         atomic_load_explicit(&g_regs->interrupt_targets[index],
                              memory_order_relaxed);
@@ -406,28 +383,22 @@ void gicd_set_irq_affinity(const uint16_t irq, const uint8_t iface) {
 }
 
 __optimize(3) void
-gicd_set_irq_trigger_mode(const uint16_t irq,
+gicd_set_irq_trigger_mode(const irq_number_t irq,
                           const enum irq_trigger_mpde mode)
 {
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
                "gicd_set_irq_trigger_mode() called on sgi interrupt");
 
+    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+               "gicd_set_irq_trigger_mode() called on invalid interrupt");
+
     const uint8_t config_index = irq / 16;
-    if (!index_in_bounds(config_index, countof(g_regs->interrupt_config))) {
-        printk(LOGLEVEL_WARN,
-               "gicd: gicd_set_irq_trigger_mode() irq %" PRIu8 " is beyond end "
-               "of bitset\n",
-               irq);
-
-        return;
-    }
-
     const uint32_t target =
         atomic_load_explicit(&g_regs->interrupt_config[config_index],
                              memory_order_relaxed);
 
-    const uint8_t shift = irq % 16;
-    uint32_t new_target = target & ~(0b11ull << shift);
+    const uint8_t shift = (irq % 16) * 2;
+    uint32_t new_target = rm_mask(target, 0b11ull << shift);
 
     switch (mode) {
         case IRQ_TRIGGER_MODE_EDGE:
@@ -446,17 +417,11 @@ gicd_set_irq_trigger_mode(const uint16_t irq,
 }
 
 __optimize(3)
-void gicd_set_irq_priority(const uint16_t irq, const uint8_t priority) {
-    const uint8_t index = irq / sizeof(uint32_t);
-    if (!index_in_bounds(index, countof(g_regs->interrupt_priority))) {
-        printk(LOGLEVEL_WARN,
-               "gicd: gicd_set_irq_priority() irq %" PRIu8 " is beyond end of "
-               "bitset\n",
-               irq);
+void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
+    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+               "gicd_mask_irq() called on invalid interrupt");
 
-        return;
-    }
-
+    const uint16_t index = irq / sizeof(uint32_t);
     const uint32_t irq_priority =
         atomic_load_explicit(&g_regs->interrupt_priority[index],
                              memory_order_relaxed);
@@ -471,29 +436,25 @@ void gicd_set_irq_priority(const uint16_t irq, const uint8_t priority) {
                           memory_order_relaxed);
 }
 
-irq_number_t gic_cpu_get_irq_number(const struct cpu_info *const cpu) {
+__optimize(3) irq_number_t gic_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     const uint64_t ack =
-        atomic_load_explicit(&cpu->gic_cpu.interface->interrupt_acknowledge,
+        atomic_load_explicit(&g_cpu->interrupt_acknowledge,
                              memory_order_relaxed);
 
+    *cpu_id_out = (ack & __GIC_CPU_EOI_CPU_ID) >> GIC_CPU_EOI_CPU_ID_SHIFT;
     return ack & __GIC_CPU_EOI_IRQ_ID;
 }
 
-uint32_t gic_cpu_get_irq_priority(const struct cpu_info *const cpu) {
-    return atomic_load_explicit(&cpu->gic_cpu.interface->running_polarity,
-                                memory_order_relaxed);
+__optimize(3) uint32_t gic_cpu_get_irq_priority() {
+    return atomic_load_explicit(&g_cpu->running_polarity, memory_order_relaxed);
 }
 
-void gic_cpu_eoi(const struct cpu_info *const cpu, const irq_number_t number) {
-    if (cpu->gic_cpu.mmio->size > PAGE_SIZE) {
-        mmio_write(&cpu->gic_cpu.interface->deactivation,
-                   (uint32_t)cpu->cpu_interface_number |
-                    (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
-    } else {
-        mmio_write(&cpu->gic_cpu.interface->end_of_interrupt,
-                   (uint32_t)cpu->cpu_interface_number |
-                    (uint32_t)number << GIC_CPU_EOI_CPU_ID_SHIFT);
-    }
+__optimize(3)
+void gic_cpu_eoi(const uint8_t cpu_id, const irq_number_t number) {
+    const uint32_t value =
+        number | (uint32_t)cpu_id << GIC_CPU_EOI_CPU_ID_SHIFT;
+
+    mmio_write(&g_cpu->end_of_interrupt, value);
 }
 
 bool
@@ -579,5 +540,9 @@ gic_init_from_dtb(const struct devicetree *const tree,
         gicd_add_msi(msi_reg_info->address);
     }
 
+    struct devicetree_prop_reg_info *const cpu_reg_info =
+        array_at(reg_prop->list, /*index=*/1);
+
+    gic_init_on_this_cpu(cpu_reg_info->address, cpu_reg_info->size);
     return true;
 }

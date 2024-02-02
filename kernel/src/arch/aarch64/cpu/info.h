@@ -11,8 +11,6 @@
 #include "sched/info.h"
 #include "sched/thread.h"
 
-#include "sys/gic.h"
-
 struct process;
 struct cpu_info {
     struct process *process;
@@ -22,13 +20,11 @@ struct cpu_info {
 
     uint64_t spur_int_count;
 
-    uint32_t cpu_interface_number;
+    uint32_t interface_number;
     uint32_t acpi_processor_id;
 
     uint64_t mpidr;
-
     struct thread *idle_thread;
-    struct gic_cpu_info gic_cpu;
 
     uint16_t spe_overflow_interrupt;
     bool is_active : 1;

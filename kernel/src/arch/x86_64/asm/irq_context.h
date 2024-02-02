@@ -4,13 +4,11 @@
  */
 
 #pragma once
-#include <stdint.h>
+#include "asm/context.h"
 
 struct x86_64_irq_context {
     // Pushed by pushad
-    uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx;
-    uint64_t rax;
-
+    struct register_context regs;
     uint64_t err_code;
 
     // Pushed by the processor automatically.

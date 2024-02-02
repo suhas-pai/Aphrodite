@@ -17,7 +17,10 @@ __optimize(3) static inline void enable_interrupts(void) {
 }
 
 __optimize(3) static inline bool are_interrupts_enabled() {
-    return true;
+    uint64_t value = 0;
+    asm volatile ("mrs %0, daif" : "=r"(value));
+
+    return value == 0;
 }
 
 __optimize(3) static inline bool disable_interrupts_if_not() {
