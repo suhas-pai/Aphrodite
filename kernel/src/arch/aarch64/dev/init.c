@@ -20,7 +20,8 @@ void arch_init_dev() {
             .compat_count = countof(gic_compat_sv_list),
         };
 
-        dtb_init_nodes_for_driver(&gic_driver, tree, tree->root);
+        assert_msg(dtb_init_nodes_for_driver(&gic_driver, tree, tree->root),
+                   "dtb: gicv2 not found or was malformed");
 
         static const struct string_view compat_list[] = {
             SV_STATIC("arm,psci"), SV_STATIC("arm,psci-1.0"),
@@ -35,6 +36,8 @@ void arch_init_dev() {
             .compat_count = countof(compat_list),
         };
 
-        dtb_init_nodes_for_driver(&psci_dtb_driver, tree, tree->root);
+        assert_msg(
+            dtb_init_nodes_for_driver(&psci_dtb_driver, tree, tree->root),
+            "dtb: psci not found or was malformed");
     }
 }

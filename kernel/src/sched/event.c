@@ -4,7 +4,6 @@
  */
 
 #include "asm/irqs.h"
-#include "lib/adt/array.h"
 #include "sched/thread.h"
 
 #include "event.h"
@@ -24,10 +23,15 @@ unlock_events(struct event *const *const events, const uint32_t event_count) {
 }
 
 __optimize(3) static inline int64_t
-find_pending(struct event *const *const events, const uint32_t event_count) {
+find_pending(struct event *const *const events,
+             const uint32_t event_count,
+             struct await_result *const result_out)
+{
     for (uint32_t i = 0; i != event_count; i++) {
-        if (events[i]->pending_count > 0) {
-            events[i]->pending_count--;
+        if (!array_empty(events[i]->pending)) {
+            *result_out =
+                *(struct await_result *)array_front(events[i]->pending);
+
             return i;
         }
     }
@@ -68,12 +72,13 @@ remove_thread_from_listeners(struct event *const event,
 int64_t
 events_await(struct event *const *const events,
              const uint32_t events_count,
-             const bool block)
+             const bool block,
+             struct await_result *const result_out)
 {
     const bool flag = disable_interrupts_if_not();
     lock_events(events, events_count);
 
-    const int64_t index = find_pending(events, events_count);
+    const int64_t index = find_pending(events, events_count, result_out);
     if (index != -1) {
         unlock_events(events, events_count);
         remove_thread_from_listeners(events[index], current_thread());
@@ -104,21 +109,25 @@ events_await(struct event *const *const events,
     return ret;
 }
 
-void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
-    const bool flag = disable_interrupts_if_not();
-    if (array_empty(event->listeners)) {
-        if (!drop_if_no_listeners) {
-            event->pending_count++;
+void
+event_trigger(struct event *const event,
+              const struct await_result *const result,
+              const bool drop_if_no_listeners)
+{
+    const bool flag = spin_acquire_with_irq(&event->lock);
+    if (!array_empty(event->listeners)) {
+        array_foreach(&event->listeners,
+                      const struct event_listener,
+                      listener)
+        {
+            listener->waiter->event_index = listener->listeners_index;
+            sched_enqueue_thread(listener->waiter);
         }
-
-        enable_interrupts_if_flag(flag);
-        return;
+    } else {
+        if (!drop_if_no_listeners) {
+            array_append(&event->pending, result);
+        }
     }
 
-    array_foreach(&event->listeners, const struct event_listener, listener) {
-        listener->waiter->event_index = listener->listeners_index;
-        sched_enqueue_thread(listener->waiter);
-    }
-
-    enable_interrupts_if_flag(flag);
+    spin_release_with_irq(&event->lock, flag);
 }

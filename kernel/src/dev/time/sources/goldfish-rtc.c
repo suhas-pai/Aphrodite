@@ -38,8 +38,7 @@ __optimize(3) struct clock *rtc_clock_get() {
     return &g_goldfish_clock->clock;
 }
 
-__optimize(3)
-static uint64_t goldfish_rtc_read(const struct clock *const clock) {
+__optimize(3) static sec_t goldfish_rtc_read(const struct clock *const clock) {
     const struct goldfish_rtc_info *const info =
         container_of(clock, struct goldfish_rtc_info, clock);
 

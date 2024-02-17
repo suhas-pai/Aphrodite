@@ -588,7 +588,8 @@ parse_function(const struct pci_bus *const bus,
                        bar->is_prefetchable ?
                         "prefetchable" : "not-prefetchable",
                        bar->is_mmio ?
-                        bar->is_64_bit ? "64-bit, " : "32-bit, " : "",
+                        bar->is_64_bit ? "64-bit, " : "32-bit, " :
+                        "",
                        bar->port_or_phys_range.size);
             }
 

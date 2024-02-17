@@ -224,6 +224,12 @@ bool
 devicetree_prop_other_get_u32(const struct devicetree_prop_other *prop,
                               uint32_t *result_out);
 
+bool
+devicetree_prop_other_get_u32_list(const struct devicetree_prop_other *prop,
+                                   uint32_t u32_in_elem_count,
+                                   const fdt32_t **result_out,
+                                   uint32_t *count_out);
+
 struct string_view
 devicetree_prop_other_get_sv(const struct devicetree_prop_other *prop);
 

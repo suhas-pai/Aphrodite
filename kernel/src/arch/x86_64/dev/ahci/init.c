@@ -4,7 +4,9 @@
  */
 
 #include "dev/pci/structs.h"
+
 #include "asm/pause.h"
+#include "cpu/isr.h"
 
 #include "dev/driver.h"
 #include "dev/printk.h"
@@ -18,8 +20,8 @@
 #include "device.h"
 #include "irq.h"
 
-static isr_vector_t g_hba_vector = 0;
 #define MAX_ATTEMPTS 100
+static isr_vector_t g_hba_vector = 0;
 
 __optimize(3) static
 bool ahci_hba_probe_port(volatile struct ahci_spec_hba_port *const port) {
@@ -83,7 +85,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                             __PCI_ENTITY_PRIVL_MEM_ACCESS |
                             __PCI_ENTITY_PRIVL_INTERRUPTS);
 
-    g_hba_vector = isr_alloc_vector();
+    g_hba_vector = isr_alloc_vector(/*for_msi=*/true);
     isr_set_vector(g_hba_vector,
                    ahci_port_handle_irq,
                    &(struct arch_isr_info){});
@@ -103,7 +105,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
            version >> 16,
            (uint16_t)version);
 
-    const uint32_t ports_impled = mmio_read(&regs->port_implemented);
+    const uint32_t ports_impled = mmio_read(&regs->ports_implemented);
     const uint8_t ports_impled_count =
         count_all_one_bits(ports_impled,
                            /*start_index=*/0,
@@ -149,7 +151,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         printk(LOGLEVEL_INFO, "ahci: hba doesn't support staggered spinup\n");
     }
 
-    const uint32_t host_cap_ext = mmio_read(&regs->host_capabilities_extended);
+    const uint32_t host_cap_ext = mmio_read(&regs->host_capabilities_ext);
     if (host_cap_ext & __AHCI_HBA_HOST_CAP_EXT_BIOS_HANDOFF) {
         printk(LOGLEVEL_INFO, "ahci: hba supports bios handoff\n");
         mmio_write(&regs->bios_os_handoff_ctrl_status,
@@ -179,7 +181,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE);
 
     uint8_t usable_port_count = 0;
-    for (uint8_t index = 0; index != sizeof_bits(ports_impled); index++) {
+    for (uint8_t index = 0; index != AHCI_HBA_MAX_PORT_COUNT; index++) {
         if ((ports_impled & 1ull << index) == 0) {
             continue;
         }
@@ -197,7 +199,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
         struct ahci_hba_port *const port = &hba->port_list[usable_port_count];
 
-        port->device = hba;
         port->spec = spec;
         port->index = index;
 

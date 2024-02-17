@@ -9,9 +9,9 @@
 #include "cmos.h"
 #include "pio.h"
 
-__optimize(3) static inline void select_cmos_register(enum cmos_register reg) {
-    reg = rm_mask(reg, 1 << 7);
-    pio_write8(PIO_PORT_CMOS_REGISTER_SELECT, reg);
+__optimize(3)
+static inline void select_cmos_register(const enum cmos_register reg) {
+    pio_write8(PIO_PORT_CMOS_REGISTER_SELECT, rm_mask(reg, 1 << 7));
 
     /*
      * According to wiki.osdev.org;

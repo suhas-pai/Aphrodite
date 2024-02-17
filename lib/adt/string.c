@@ -80,10 +80,12 @@ string_append_char(struct string *const string,
 __optimize(3) struct string *
 string_append_sv(struct string *const string, const struct string_view sv) {
     if (!prepare_append(string, sv.length)) {
+        gbuffer_destroy(&string->gbuffer);
         return NULL;
     }
 
     if (!gbuffer_append_sv(&string->gbuffer, sv)) {
+        gbuffer_destroy(&string->gbuffer);
         return NULL;
     }
 
@@ -134,7 +136,7 @@ __optimize(3) char string_front(const struct string string) {
 }
 
 __optimize(3) char string_back(const struct string string) {
-    const uint64_t length = string_length(string);
+    const uint32_t length = string_length(string);
     if (length != 0) {
         return ((uint8_t *)string.gbuffer.begin)[length - 1];
     }
@@ -182,8 +184,9 @@ string_find_sv(struct string *const string, const struct string_view sv) {
         return -1;
     }
 
-    for (uint32_t i = 0; i <= (string_len - sv.length); i++) {
-        if (strncmp(string->gbuffer.begin + i, sv.begin, sv.length) == 0) {
+    const char *ptr = string->gbuffer.begin;
+    for (uint32_t i = 0; i <= (string_len - sv.length); i++, ptr++) {
+        if (strncmp(ptr, sv.begin, sv.length) == 0) {
             return i;
         }
     }
@@ -198,7 +201,7 @@ string_find_string(struct string *const string, const struct string *const find)
 }
 
 __optimize(3) struct string_view string_to_sv(const struct string string) {
-    const uint64_t length = string_length(string);
+    const uint32_t length = string_length(string);
     if (length == 0) {
         return SV_EMPTY();
     }

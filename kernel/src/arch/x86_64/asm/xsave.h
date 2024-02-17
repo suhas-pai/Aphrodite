@@ -100,11 +100,11 @@ struct xsave_avx512_opmask_state {
 } __packed;
 
 struct xsave_avx512_zmm_high_state {
-	struct xsave_uint256_register zmm_high[16];
+    struct xsave_uint256_register zmm_high[16];
 } __packed;
 
 struct xsave_avx512_hi16_state {
-	struct xsave_uint512_register hi16_zmm[16];
+    struct xsave_uint512_register hi16_zmm[16];
 } __packed;
 
 struct xsave_avx512_state {
@@ -139,7 +139,7 @@ struct xsave_lbr_state {
 } __packed;
 
 struct xsave_pasid_state {
-	uint64_t pasid;
+    uint64_t pasid;
 } __packed;
 
 enum xsave_feature {

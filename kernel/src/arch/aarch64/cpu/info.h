@@ -35,5 +35,7 @@ struct cpu_info {
 extern struct list g_cpu_list;
 void cpu_init();
 
+struct cpu_info *cpu_mut_for_intr_number(uint32_t intr_number);
+
 void
 cpu_add_gic_interface(const struct acpi_madt_entry_gic_cpu_interface *intr);

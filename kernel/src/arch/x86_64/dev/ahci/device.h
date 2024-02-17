@@ -20,12 +20,10 @@ struct ahci_hba_device {
     struct ahci_hba_port *port_list;
 
     volatile struct ahci_spec_hba_registers *regs;
-    uint32_t port_count;
+    uint8_t port_count;
 
     bool supports_64bit_dma : 1;
     bool supports_staggered_spinup : 1;
-
-    enum ahci_hba_device_kind kind;
 };
 
 struct ahci_hba_device *ahci_hba_get();

@@ -46,22 +46,21 @@ enum pit_timer_op_mode {
 };
 
 enum pit_granularity {
-    PIT_GRANULARITY_1_MS    = 1000,
-    PIT_GRANULARITY_5_MS    = 1000,
-    PIT_GRANULARITY_10_MS   = 200,
-    PIT_GRANULARITY_20_MS   = 50,
-    PIT_GRANULARITY_50_MS   = 20,
-    PIT_GRANULARITY_100_MS  = 10,
-    PIT_GRANULARITY_500_MS  = 2,
+    PIT_GRANULARITY_1_MS = 1000,
+    PIT_GRANULARITY_5_MS = 1000,
+    PIT_GRANULARITY_10_MS = 200,
+    PIT_GRANULARITY_20_MS = 50,
+    PIT_GRANULARITY_50_MS = 20,
+    PIT_GRANULARITY_100_MS = 10,
+    PIT_GRANULARITY_500_MS = 2,
     PIT_GRANULARITY_1000_MS = 1
 };
 
 _Static_assert(
-    (
-        PIT_TIMER_CHANNEL_0 |
-        PIT_TIMER_ACCESS_MODE_FULL_BYTE |
-        PIT_TIMER_OP_MODE_SQUARE_WAVE
-    ) == 0x36, "");
+    (PIT_TIMER_CHANNEL_0 |
+     PIT_TIMER_ACCESS_MODE_FULL_BYTE |
+     PIT_TIMER_OP_MODE_SQUARE_WAVE) == 0x36,
+    "");
 
 void pit_init(uint8_t flags, enum pit_granularity granularity);
 void pit_sleep_for(uint32_t ms);

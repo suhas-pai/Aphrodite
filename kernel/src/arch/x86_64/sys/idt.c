@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "apic/lapic.h"
+
 #include "asm/cr.h"
 #include "asm/stack_trace.h"
 
@@ -111,48 +113,49 @@ void idt_init() {
 }
 
 void handle_exception(const uint64_t int_no, irq_context_t *const context) {
+    const char *except_str = NULL;
     switch ((enum exception)int_no) {
         case EXCEPTION_DIVIDE_BY_ZERO:
-            printk(LOGLEVEL_ERROR, "Divide by zero exception\n");
+            except_str = "Divide by zero exception";
             break;
         case EXCEPTION_DEBUG:
-            printk(LOGLEVEL_ERROR, "Debug exception\n");
+            except_str = "Debug exception";
             cpu_idle();
         case EXCEPTION_NMI:
-            printk(LOGLEVEL_ERROR, "NMI exception\n");
+            except_str = "NMI exception";
             break;
         case EXCEPTION_BREAKPOINT:
-            printk(LOGLEVEL_ERROR, "Breakpoint exception\n");
+            except_str = "Breakpoint exception";
             break;
         case EXCEPTION_OVERFLOW:
-            printk(LOGLEVEL_ERROR, "Overflow exception\n");
+            except_str = "Overflow exception";
             break;
         case EXCEPTION_BOUND:
-            printk(LOGLEVEL_ERROR, "BOUND exception\n");
+            except_str = "BOUND exception";
             break;
         case EXCEPTION_INVALID_OPCODE:
-            printk(LOGLEVEL_ERROR, "Invalid opcode exception\n");
+            except_str = "Invalid opcode exception";
             break;
         case EXCEPTION_DEVICE_NOT_AVAILABLE:
-            printk(LOGLEVEL_ERROR, "Device not available exception\n");
+            except_str = "Device not available exception";
             break;
         case EXCEPTION_DOUBLE_FAULT:
-            printk(LOGLEVEL_ERROR, "Double fault exception\n");
+            except_str = "Double fault exception";
             break;
         case EXCEPTION_COPROC_SEGMENT_OVERRUN:
-            printk(LOGLEVEL_ERROR, "Coprocessor segment overrun exception\n");
+            except_str = "Coprocessor segment overrun exception";
             break;
         case EXCEPTION_INVALID_TSS:
-            printk(LOGLEVEL_ERROR, "Invalid TSS exception\n");
+            except_str = "Invalid TSS exception";
             break;
         case EXCEPTION_SEGMENT_NOT_PRESENT:
-            printk(LOGLEVEL_ERROR, "Segment not present exception\n");
+            except_str = "Segment not present exception";
             break;
         case EXCEPTION_STACK_FAULT:
-            printk(LOGLEVEL_ERROR, "Stack fault exception\n");
+            except_str = "Stack fault exception";
             break;
         case EXCEPTION_GENERAL_PROTECTION_FAULT:
-            printk(LOGLEVEL_ERROR, "General protection fault exception\n");
+            except_str = "General protection fault exception";
             break;
         case EXCEPTION_PAGE_FAULT:
             printk(LOGLEVEL_ERROR,
@@ -161,36 +164,42 @@ void handle_exception(const uint64_t int_no, irq_context_t *const context) {
                    (void *)context->rip);
 
             print_stack_trace(/*max_lines=*/10);
-            break;
+            return;
         case EXCEPTION_FPU_FAULT:
-            printk(LOGLEVEL_ERROR, "FPU fault exception\n");
+            except_str = "FPU fault exception";
             break;
         case EXCEPTION_ALIGNMENT_CHECK:
-            printk(LOGLEVEL_ERROR, "Alignment check exception\n");
+            except_str = "Alignment check exception";
             break;
         case EXCEPTION_MACHINE_CHECK:
-            printk(LOGLEVEL_ERROR, "Machine check exception\n");
+            except_str = "Machine check exception";
             break;
         case EXCEPTION_SIMD_FLOATING_POINT:
-            printk(LOGLEVEL_ERROR, "SIMD floating point exception\n");
+            except_str = "SIMD floating point exception";
             break;
         case EXCEPTION_VIRTUALIZATION_EXCEPTION:
-            printk(LOGLEVEL_ERROR, "Virtualization exception\n");
+            except_str = "Virtualization exception";
             break;
         case EXCEPTION_CONTROL_PROTECTION_EXCEPTION:
-            printk(LOGLEVEL_ERROR, "Control protection exception\n");
+            except_str = "Control protection exception";
             break;
         case EXCEPTION_HYPERVISOR_EXCEPTION:
-            printk(LOGLEVEL_ERROR, "Hypervisor exception\n");
+            except_str = "Hypervisor exception";
             break;
         case EXCEPTION_VMM_EXCEPTION:
-            printk(LOGLEVEL_ERROR, "VMM exception\n");
+            except_str = "VMM exception";
             break;
         case EXCEPTION_SECURITY_EXCEPTION:
-            printk(LOGLEVEL_ERROR, "Security exception\n");
+            except_str = "Security exception";
             break;
     }
 
+    printk(LOGLEVEL_WARN,
+           "Exception (%s) at %p\n",
+           except_str,
+           (void *)context->rip);
+
+    lapic_eoi();
     cpu_idle();
 }
 

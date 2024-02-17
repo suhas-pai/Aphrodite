@@ -1436,6 +1436,18 @@ void cpu_init() {
     g_base_cpu_init = true;
 }
 
+__optimize(3)
+struct cpu_info *cpu_mut_for_intr_number(const uint32_t intr_number) {
+    struct cpu_info *iter = NULL;
+    list_foreach(iter, &g_cpu_list, cpu_list) {
+        if (iter->interface_number == intr_number) {
+            return iter;
+        }
+    }
+
+    return NULL;
+}
+
 void
 cpu_add_gic_interface(
     const struct acpi_madt_entry_gic_cpu_interface *const intr)

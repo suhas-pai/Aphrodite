@@ -16,3 +16,10 @@ __optimize(3) static inline bool rdrand(uint64_t *const dest) {
 
     return ok;
 }
+
+__optimize(3) static inline bool rdseed(uint64_t *const dest) {
+    unsigned char ok;
+    asm volatile ("rdseed %0; setc %1" : "=r" (*dest), "=qm" (ok) :: "cc");
+
+    return ok;
+}

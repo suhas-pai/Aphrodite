@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/list.h"
 
 typedef void *hashmap_key_t;

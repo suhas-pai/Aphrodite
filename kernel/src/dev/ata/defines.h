@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 enum ata_status {
@@ -31,19 +29,19 @@ enum ata_error {
 };
 
 enum ata_command {
-    ATA_CMD_READ_PIO        = 0x20,
-    ATA_CMD_READ_PIO_EXT    = 0x24,
-    ATA_CMD_READ_DMA        = 0xC8,
-    ATA_CMD_READ_DMA_EXT    = 0x25,
-    ATA_CMD_WRITE_PIO       = 0x30,
-    ATA_CMD_WRITE_PIO_EXT   = 0x34,
-    ATA_CMD_WRITE_DMA       = 0xCA,
-    ATA_CMD_WRITE_DMA_EXT   = 0x35,
-    ATA_CMD_CACHE_FLUSH     = 0xE7,
+    ATA_CMD_READ_PIO = 0x20,
+    ATA_CMD_READ_PIO_EXT = 0x24,
+    ATA_CMD_READ_DMA = 0xC8,
+    ATA_CMD_READ_DMA_EXT = 0x25,
+    ATA_CMD_WRITE_PIO = 0x30,
+    ATA_CMD_WRITE_PIO_EXT = 0x34,
+    ATA_CMD_WRITE_DMA = 0xCA,
+    ATA_CMD_WRITE_DMA_EXT = 0x35,
+    ATA_CMD_CACHE_FLUSH = 0xE7,
     ATA_CMD_CACHE_FLUSH_EXT = 0xEA,
-    ATA_CMD_PACKET          = 0xA0,
+    ATA_CMD_PACKET = 0xA0,
     ATA_CMD_IDENTIFY_PACKET = 0xA1,
-    ATA_CMD_IDENTIFY        = 0xEC,
+    ATA_CMD_IDENTIFY = 0xEC,
 };
 
 enum atapi_commands {

@@ -44,7 +44,7 @@ void pit_sleep_for(const uint32_t ms) {
         pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0xE2);
         const uint8_t status = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
 
-        if (status & (1 << 7)) {
+        if (status & 1 << 7) {
             break;
         }
     } while (true);

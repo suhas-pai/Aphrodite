@@ -5,16 +5,13 @@
 
 #pragma once
 
-#include "dev/pci/bus.h"
 #include "lib/adt/bitmap.h"
 
-#if defined(__x86_64__)
-    #include "cpu/info.h"
-    #include "cpu/isr.h"
-#endif /* defined(__x86_64__) */
+#include "cpu/info.h"
+#include "sys/isr.h"
 
-#include "lib/list.h"
 #include "bar.h"
+#include "bus.h"
 
 #define PCI_ENTITY_MAX_BAR_COUNT 6
 
@@ -79,13 +76,16 @@ struct pci_entity_info {
 
 void pci_entity_enable_msi(struct pci_entity_info *entity);
 
-#if defined(__x86_64__)
-    bool
-    pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
-                                  const struct cpu_info *cpu,
+bool
+pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
+                              const struct cpu_info *cpu,
+                              isr_vector_t vector,
+                              bool masked);
+
+bool
+pci_entity_toggle_msi_vector_mask(struct pci_entity_info *entity,
                                   isr_vector_t vector,
-                                  bool masked);
-#endif
+                                  bool mask);
 
 enum pci_entity_privilege {
     __PCI_ENTITY_PRIVL_PIO_ACCESS = 1ull << 0,

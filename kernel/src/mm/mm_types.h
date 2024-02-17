@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "lib/macros.h"
 #include "mm/types.h"
 
 #define SIZEOF_STRUCTPAGE (sizeof(uint64_t) * 5)
@@ -69,7 +70,7 @@ extern uint64_t HHDM_OFFSET;
 
 void pagezones_init();
 
-static inline
+__optimize(3) static inline
 uint16_t virt_to_pt_index(const uint64_t virt, const pgt_level_t level) {
     return (virt >> PAGE_SHIFTS[level - 1]) & PT_LEVEL_MASKS[level];
 }

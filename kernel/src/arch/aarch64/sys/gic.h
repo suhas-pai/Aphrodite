@@ -10,6 +10,7 @@
 
 #include "lib/adt/array.h"
 #include "mm/mmio.h"
+#include "sys/isr.h"
 
 #define GIC_SGI_INTERRUPT_START 0
 #define GIC_SGI_INTERRUPT_LAST 15
@@ -50,6 +51,24 @@ struct gic_distributor {
     bool supports_security_extensions : 1;
 };
 
+struct gicd_v2m_msi_frame_registers {
+    volatile const uint64_t reserved;
+    volatile uint32_t typer;
+
+    volatile const char reserved_2[52];
+    volatile uint64_t setspi_ns;
+};
+
+struct gic_v2_msi_info {
+    struct list list;
+
+    struct mmio_region *mmio;
+    volatile struct gicd_v2m_msi_frame_registers *regs;
+
+    uint16_t spi_base;
+    uint16_t spi_count;
+};
+
 struct gic_cpu_interface;
 struct cpu_info;
 
@@ -62,6 +81,7 @@ void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 
 struct gic_msi_frame *gicd_add_msi(uint64_t phys_base_address);
 const struct gic_distributor *gic_get_dist();
+struct list *gicd_get_msi_info_list();
 
 typedef uint16_t irq_number_t;
 
@@ -72,7 +92,9 @@ void gicd_set_irq_affinity(irq_number_t irq, uint8_t iface);
 void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
 void gicd_set_irq_priority(irq_number_t irq, uint8_t priority);
 
+volatile uint64_t *gicd_get_msi_address(isr_vector_t vector);
+
 irq_number_t gic_cpu_get_irq_number(uint8_t *cpu_id_out);
 uint32_t gic_cpu_get_irq_priority();
 
-void gic_cpu_eoi(uint8_t cpu_id, irq_number_t number);
+void gic_cpu_eoi(uint8_t cpu_id, irq_number_t irq_number);

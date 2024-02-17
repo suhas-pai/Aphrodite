@@ -89,6 +89,8 @@
 #define __TO_STRING_IMPL(x) #x
 #define TO_STRING(x) __TO_STRING_IMPL(x)
 
+#define SECTOR_SIZE 512
+
 #define container_of(ptr, type, name) \
     ((type *)(uint64_t)((const void *)ptr - offsetof(type, name)))
 

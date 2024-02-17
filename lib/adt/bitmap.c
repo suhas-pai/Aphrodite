@@ -31,11 +31,11 @@ __optimize(3) uint32_t bitmap_capacity(const struct bitmap *const bitmap) {
     return bytes_to_bits(bitmap->gbuffer.capacity);
 }
 
-static inline uint64_t
-find_multiple_unset(struct bitmap *const bitmap,
-                    const uint64_t count,
-                    uint64_t start_index,
-                    const bool set)
+__optimize(3) static inline uint64_t
+find_mult_unset(struct bitmap *const bitmap,
+                const uint64_t count,
+                uint64_t start_index,
+                const bool set)
 {
     void *const begin = bitmap->gbuffer.begin;
     const void *const end = gbuffer_end(bitmap->gbuffer);
@@ -96,10 +96,10 @@ find_multiple_unset(struct bitmap *const bitmap,
                 current_range_zero_count = 0;                                  \
             }                                                                  \
                                                                                \
-            for_every_lsb_zero_bit_rng(word,                                   \
-                                       start_index,                            \
-                                       sizeof_bits(type),                      \
-                                       iter)                                   \
+            for_each_lsb_zero_bit_rng(word,                                    \
+                                      start_index,                             \
+                                      sizeof_bits(type),                       \
+                                      iter)                                    \
             {                                                                  \
                 if (iter.size < count) {                                       \
                     /*
@@ -138,14 +138,14 @@ find_multiple_unset(struct bitmap *const bitmap,
     LOOP_OVER_RANGES_FOR_TYPE(uint8_t);
 #undef LOOP_OVER_RANGES_FOR_TYPE
 
-    return true;
+    return FIND_BIT_INVALID;
 }
 
-static inline uint64_t
-find_multiple_set(struct bitmap *const bitmap,
-                  const uint64_t count,
-                  uint64_t start_index,
-                  const bool unset)
+__optimize(3) static inline uint64_t
+find_mult_set(struct bitmap *const bitmap,
+              const uint64_t count,
+              uint64_t start_index,
+              const bool unset)
 {
     void *const begin = bitmap->gbuffer.begin;
     const void *const end = gbuffer_end(bitmap->gbuffer);
@@ -206,10 +206,10 @@ find_multiple_set(struct bitmap *const bitmap,
                 current_range_zero_count = 0;                                  \
             }                                                                  \
                                                                                \
-            for_every_lsb_zero_bit_rng(word,                                   \
-                                       start_index,                            \
-                                       sizeof_bits(type),                      \
-                                       iter)                                   \
+            for_each_lsb_zero_bit_rng(word,                                    \
+                                      start_index,                             \
+                                      sizeof_bits(type),                       \
+                                      iter)                                    \
             {                                                                  \
                 if (iter.size < count) {                                       \
                     /*
@@ -247,10 +247,10 @@ find_multiple_set(struct bitmap *const bitmap,
     LOOP_OVER_RANGES_FOR_TYPE(uint8_t);
 #undef LOOP_OVER_RANGES_FOR_TYPE
 
-    return true;
+    return FIND_BIT_INVALID;
 }
 
-static uint64_t
+__optimize(3) static uint64_t
 find_single_unset(struct bitmap *const bitmap,
                   uint64_t start_index,
                   const bool set)
@@ -276,7 +276,7 @@ find_single_unset(struct bitmap *const bitmap,
                     *(type *)ptr |= (type)1 << bit_index_in_word;              \
                 }                                                              \
                                                                                \
-                goto done;                                                     \
+                return bit_index_in_word + bit_index_of_ptr;                   \
             }                                                                  \
         }                                                                      \
     }
@@ -287,11 +287,10 @@ find_single_unset(struct bitmap *const bitmap,
     ITERATE_FOR_TYPE(uint8_t);
 #undef ITERATE_FOR_TYPE
 
-done:
-    return bit_index_in_word + bit_index_of_ptr;
+    return FIND_BIT_INVALID;
 }
 
-static uint64_t
+__optimize(3) static uint64_t
 find_single_set(struct bitmap *const bitmap,
                 uint64_t start_index,
                 const bool unset)
@@ -317,7 +316,7 @@ find_single_set(struct bitmap *const bitmap,
                     *(type *)ptr &= ~((type)1 << bit_index_in_word);           \
                 }                                                              \
                                                                                \
-                goto done;                                                     \
+                return bit_index_in_word + bit_index_of_ptr;                   \
             }                                                                  \
         }                                                                      \
     }
@@ -328,30 +327,29 @@ find_single_set(struct bitmap *const bitmap,
     ITERATE_FOR_TYPE(uint8_t);
 #undef ITERATE_FOR_TYPE
 
-done:
-    return bit_index_in_word + bit_index_of_ptr;
+    return FIND_BIT_INVALID;
 }
 
 __optimize(3) uint64_t
 bitmap_find(struct bitmap *const bitmap,
             const uint64_t count,
-            const uint64_t start_index,
+            const uint64_t start_idx,
             const bool expected_value,
             const bool invert)
 {
     if (count != 1) {
         if (expected_value) {
-            return find_multiple_set(bitmap, count, start_index, invert);
+            return find_mult_set(bitmap, count, start_idx, invert);
         }
 
-        return find_multiple_unset(bitmap, count, start_index, invert);
+        return find_mult_unset(bitmap, count, start_idx, invert);
     }
 
     if (expected_value) {
-        return find_single_set(bitmap, start_index, invert);
+        return find_single_set(bitmap, start_idx, invert);
     }
 
-    return find_single_unset(bitmap, start_index, invert);
+    return find_single_unset(bitmap, start_idx, invert);
 }
 
 static uint64_t
@@ -427,10 +425,10 @@ find_unset_at_mult(struct bitmap *const bitmap,
                 current_range_zero_count = 0;                                  \
             }                                                                  \
                                                                                \
-            for_every_lsb_zero_bit_rng(word,                                   \
-                                       start_index,                            \
-                                       sizeof_bits(type),                      \
-                                       bad_iter)                               \
+            for_each_lsb_zero_bit_rng(word,                                    \
+                                      start_index,                             \
+                                      sizeof_bits(type),                       \
+                                      bad_iter)                                \
             {                                                                  \
                 struct range iter =                                            \
                     RANGE_INIT(bit_index_of_ptr + bad_iter.front,              \
@@ -549,10 +547,10 @@ find_set_at_mult(struct bitmap *const bitmap,
                 current_range_zero_count = 0;                                  \
             }                                                                  \
                                                                                \
-            for_every_lsb_zero_bit_rng(word,                                   \
-                                       start_index,                            \
-                                       sizeof_bits(type),                      \
-                                       bad_iter)                               \
+            for_each_lsb_zero_bit_rng(word,                                    \
+                                      start_index,                             \
+                                      sizeof_bits(type),                       \
+                                      bad_iter)                                \
             {                                                                  \
                 const struct range iter = RANGE_EMPTY();                       \
                     /*loc_rng_create_sub_rng_mult_of(bad_iter, mult);*/        \

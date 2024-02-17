@@ -4,7 +4,6 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "ctype.h"
 #include "macros.h"

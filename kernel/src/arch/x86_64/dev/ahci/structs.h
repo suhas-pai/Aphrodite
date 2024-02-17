@@ -82,6 +82,27 @@ enum ahci_hba_port_interrupt_status_flags {
     __AHCI_HBA_IS_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
 
+#define AHCI_HBA_PORT_IS_RESET_REQ_FLAGS \
+    (__AHCI_HBA_IS_OVERFLOW_STATUS | \
+     __AHCI_HBA_IS_INTERFACE_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IS_HOST_BUS_DATA_ERR_STATUS | \
+     __AHCI_HBA_IS_HOST_BUS_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IS_TASK_FILE_ERR_STATUS | \
+     __AHCI_HBA_IS_UNKNOWN_FIS)
+
+#define AHCI_HBA_PORT_IS_ERROR_FLAGS \
+    (__AHCI_HBA_IS_UNKNOWN_FIS | \
+     __AHCI_HBA_IS_PORT_CHANGE | \
+     __AHCI_HBA_IS_DEV_MECH_PRESENCE | \
+     __AHCI_HBA_IS_PHYRDY_CHANGE_STATUS | \
+     __AHCI_HBA_IS_INCORRECT_PORT_MULT_STATUS | \
+     __AHCI_HBA_IS_OVERFLOW_STATUS | \
+     __AHCI_HBA_IS_INTERFACE_NOT_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IS_INTERFACE_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IS_HOST_BUS_DATA_ERR_STATUS | \
+     __AHCI_HBA_IS_HOST_BUS_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IS_TASK_FILE_ERR_STATUS)
+
 enum ahci_hba_port_interrupt_enable_flags {
     __AHCI_HBA_IE_DEV_TO_HOST_FIS = 1ull << 0,
     __AHCI_HBA_IE_PIO_SETUP_FIS = 1ull << 1,
@@ -101,6 +122,19 @@ enum ahci_hba_port_interrupt_enable_flags {
     __AHCI_HBA_IE_TASK_FILE_ERR_STATUS = 1ull << 30,
     __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
+
+#define AHCI_HBA_PORT_IE_ERROR_FLAGS \
+    (__AHCI_HBA_IE_UNKNOWN_FIS | \
+     __AHCI_HBA_IE_PORT_CHANGE | \
+     __AHCI_HBA_IE_DEV_MECH_PRESENCE | \
+     __AHCI_HBA_IE_PHYRDY_CHANGE_STATUS | \
+     __AHCI_HBA_IE_INCORRECT_PORT_MULT_STATUS | \
+     __AHCI_HBA_IE_OVERFLOW_STATUS | \
+     __AHCI_HBA_IE_INTERFACE_NOT_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IE_INTERFACE_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IE_HOST_BUS_DATA_ERR_STATUS | \
+     __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS | \
+     __AHCI_HBA_IE_TASK_FILE_ERR_STATUS)
 
 enum ahci_hba_port_task_file_data_flags {
     __AHCI_HBA_TFD_STATUS_ERROR = 1 << 0,
@@ -155,7 +189,7 @@ enum ahci_hba_port_sata_diag_flags {
     __AHCI_HBA_PORT_SATA_DIAG_TRANSPORT_STATE_TRANSITION_ERROR = 1 << 24,
     __AHCI_HBA_PORT_SATA_DIAG_UNKNOWN_FIS_TYPE = 1 << 25,
 
-    //  When set to one this bit indicates that a change in device presence has
+    // When set to one this bit indicates that a change in device presence has
     // been detected since the last time this bit was cleared.
     __AHCI_HBA_PORT_SATA_DIAG_EXCHANGED = 1 << 26
 };
@@ -252,16 +286,16 @@ struct ahci_spec_hba_registers {
     volatile uint32_t global_host_control;
     volatile uint32_t interrupt_status;
 
-    volatile const uint32_t port_implemented;
+    volatile const uint32_t ports_implemented;
     volatile const uint32_t version;
 
-    volatile uint32_t command_completion_coalescing_control;
+    volatile uint32_t command_completion_coalescing_ctrl;
     volatile uint32_t command_completion_coalescing_ports;
 
-    volatile const uint32_t enclosure_management_location;
-    volatile uint32_t enclosure_management_control;
+    volatile const uint32_t enclosure_management_loc;
+    volatile uint32_t enclosure_management_ctrl;
 
-    volatile const uint32_t host_capabilities_extended;
+    volatile const uint32_t host_capabilities_ext;
     volatile uint32_t bios_os_handoff_ctrl_status;
 
     volatile uint8_t reserved[0xA0-0x2C];
@@ -269,6 +303,9 @@ struct ahci_spec_hba_registers {
 
     volatile struct ahci_spec_hba_port ports[32];
 };
+
+#define AHCI_HBA_MAX_PORT_COUNT \
+    sizeof_bits_field(struct ahci_spec_hba_registers, ports_implemented)
 
 enum ahci_hba_global_host_control_flags {
     /*
@@ -356,15 +393,15 @@ enum sata_sig {
 #define AHCI_DEV_SATAPI 4
 
 enum ahci_spec_hba_prdt_entry_flags {
-    __AHCI_SPEC_HBA_PRDT_ENTRY_DATA_BYTE_COUNT_MINUS_ONE = (1ull << 22) - 1,
+    __AHCI_SPEC_HBA_PRDT_ENTRY_DATA_BYTE_COUNT_MINUS_ONE = mask_for_n_bits(22),
     __AHCI_SPEC_HBA_PRDT_ENTRY_INT_ON_COMPLETION = 1ull << 31,
 };
 
 struct ahci_spec_hba_prdt_entry {
     volatile uint32_t data_base_address_lower32;
     volatile uint32_t data_base_address_upper32;
-    volatile uint32_t reserved;
 
+    volatile uint32_t reserved;
     volatile uint32_t flags;
 };
 
@@ -392,6 +429,10 @@ enum ahci_fis_kind {
 
 enum ahci_fis_reg_h2d_flags {
     __AHCI_FIS_REG_H2D_IS_ATA_CMD = 1 << 7
+};
+
+enum ahci_fis_reg_h2d_features {
+    __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA = 1 << 0
 };
 
 struct ahci_spec_fis_reg_h2d {

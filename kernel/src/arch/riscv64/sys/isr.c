@@ -8,13 +8,11 @@
 #include "asm/cause.h"
 #include "asm/csr.h"
 
-#include "cpu/info.h"
-#include "cpu/panic.h"
+#include "cpu/isr.h"
 #include "cpu/util.h"
 
 #include "dev/printk.h"
 #include "sched/scheduler.h"
-#include "sys/isr.h"
 
 static isr_func_t g_funcs[240] = {0};
 static isr_vector_t g_free_vector = 16;
@@ -23,11 +21,21 @@ void isr_init() {
 
 }
 
-__optimize(3) isr_vector_t isr_alloc_vector() {
+__optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
+    (void)for_msi;
+
     const isr_vector_t result = g_free_vector;
     g_free_vector++;
 
     return result;
+}
+
+__optimize(3) void isr_mask_irq(const isr_vector_t irq) {
+    (void)irq;
+}
+
+__optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
+    (void)irq;
 }
 
 extern void handle_exception(const uint64_t vector, irq_context_t *const frame);
@@ -98,4 +106,27 @@ isr_assign_irq_to_cpu(struct cpu_info *const cpu,
     (void)masked;
 
     panic("isr: isr_assign_irq_to_cpu() but not implemented");
+}
+
+__optimize(3) enum isr_msi_support isr_get_msi_support() {
+    return ISR_MSI_SUPPORT_NONE;
+}
+
+__optimize(3) uint64_t
+isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
+{
+    (void)cpu;
+    (void)vector;
+
+    verify_not_reached();
+}
+
+__optimize(3) uint64_t
+isr_get_msix_address(const struct cpu_info *const cpu,
+                     const isr_vector_t vector)
+{
+    (void)cpu;
+    (void)vector;
+
+    verify_not_reached();
 }

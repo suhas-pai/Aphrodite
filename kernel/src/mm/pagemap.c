@@ -29,11 +29,12 @@ __optimize(3) struct pagemap pagemap_empty() {
     #endif /* defined(__aarch64__) */
 
         .addrspace = ADDRSPACE_INIT(result.addrspace),
+        .addrspace_lock = SPINLOCK_INIT(),
 
         .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
         .cpu_lock = SPINLOCK_INIT(),
 
-        .addrspace_lock = SPINLOCK_INIT(),
+        .refcount = REFCOUNT_CREATE_MAX()
     };
 
     refcount_init(&result.refcount);

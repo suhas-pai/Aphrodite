@@ -11,11 +11,7 @@
 
 void gtdt_init(const struct acpi_gtdt *const gtdt) {
     printk(LOGLEVEL_INFO,
-#if defined(__aarch64__)
            "gtdt:\n"
-#else
-           "gtdt: (only parsed on aarch64)\n"
-#endif /* defined(__aarch64__)*/
            "\tctrl base phys address: 0x%" PRIx64 "\n"
            "\tsecure el1 timer gsiv: %" PRIu32 "\n"
            "\tsecure el1 timer flags: %" PRIu32 "\n"

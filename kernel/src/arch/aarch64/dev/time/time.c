@@ -4,10 +4,10 @@
  */
 
 #include "acpi/api.h"
+#include "cpu/isr.h"
 #include "dev/printk.h"
 
 #include "lib/freq.h"
-#include "lib/time.h"
 
 #include "sys/boot.h"
 #include "sys/gic.h"
@@ -60,6 +60,14 @@ __optimize(3) void oneshot_alarm(const nsec_t nano) {
     printk(LOGLEVEL_INFO, "time: tval is %" PRIu64 "\n", tval);
 }
 
+__optimize(3) static
+void interrupt_handler(const uint64_t int_no, irq_context_t *const frame) {
+    (void)int_no;
+    (void)frame;
+
+    printk(LOGLEVEL_INFO, "time: got interrupt\n");
+}
+
 static void enable_dtb_timer_irqs() {
     struct devicetree *const tree = dtb_get_tree();
     struct devicetree_node *const node =
@@ -95,6 +103,8 @@ static void enable_dtb_timer_irqs() {
             continue;
         }
 
+        isr_set_vector(iter->num, interrupt_handler, &(struct arch_isr_info){});
+
         gicd_set_irq_trigger_mode(iter->num, iter->trigger_mode);
         gicd_unmask_irq(iter->num);
 
@@ -110,14 +120,14 @@ void arch_init_time() {
 
     // Enable and unmask generic timers
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
-    //asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)1));
+    asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)1));
     asm volatile ("msr cntp_tval_el0, %0" :: "r"((uint64_t)0));
 
     asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
     asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)1));
 
-    printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
-
     enable_dtb_timer_irqs();
-    oneshot_alarm(0);
+
+    printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
+    oneshot_alarm(2000);
 }

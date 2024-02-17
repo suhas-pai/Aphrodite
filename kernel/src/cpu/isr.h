@@ -11,7 +11,7 @@
 
 // Returns -1 on alloc failure
 void isr_init();
-isr_vector_t isr_alloc_vector();
+isr_vector_t isr_alloc_vector(bool for_msi);
 
 void
 isr_set_vector(isr_vector_t vector,
@@ -23,3 +23,17 @@ isr_assign_irq_to_cpu(struct cpu_info *cpu,
                       uint8_t irq,
                       isr_vector_t vector,
                       bool masked);
+
+void isr_mask_irq(isr_vector_t irq);
+void isr_unmask_irq(isr_vector_t irq);
+
+enum isr_msi_support {
+    ISR_MSI_SUPPORT_NONE,
+    ISR_MSI_SUPPORT_MSI,
+    ISR_MSI_SUPPORT_MSIX
+};
+
+enum isr_msi_support isr_get_msi_support();
+
+uint64_t isr_get_msi_address(const struct cpu_info *cpu, isr_vector_t vector);
+uint64_t isr_get_msix_address(const struct cpu_info *cpu, isr_vector_t vector);

@@ -4,6 +4,8 @@
  */
 
 #pragma once
+
+#include "lib/bits.h"
 #include "growable_buffer.h"
 
 struct bitmap {

@@ -29,7 +29,7 @@ void sched_algo_init() {
 
 }
 
-void sched_enqueue_thread(struct thread *const thread) {
+__optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_with_irq(&g_run_queue_lock);
 
     list_add(&g_run_queue, &thread->sched_info.list);
@@ -38,7 +38,7 @@ void sched_enqueue_thread(struct thread *const thread) {
     spin_release_with_irq(&g_run_queue_lock, flag);
 }
 
-void sched_dequeue_thread(struct thread *const thread) {
+__optimize(3) void sched_dequeue_thread(struct thread *const thread) {
     const int flag = spin_acquire_with_irq(&g_run_queue_lock);
 
     list_remove(&thread->sched_info.list);
@@ -128,10 +128,10 @@ __optimize(3) void sched_yield(const bool noreturn) {
     disable_interrupts();
     sched_timer_stop();
 
-    const int flag = spin_acquire_with_irq(&g_run_queue_lock);
+    spin_acquire(&g_run_queue_lock);
 
     current_thread()->sched_info.state = SCHED_THREAD_INFO_STATE_ASLEEP;
-    spin_release_with_irq(&g_run_queue_lock, flag);
+    spin_release(&g_run_queue_lock);
 
     enable_interrupts();
     sched_next(/*from_irq=*/false);

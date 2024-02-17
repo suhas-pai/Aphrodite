@@ -18,12 +18,13 @@ struct pagemap {
     pte_t *root;
 #endif /* defined(__aarch64__) */
 
-    struct list cpu_list;
-    struct spinlock cpu_lock;
-    struct refcount refcount;
-
     struct address_space addrspace;
     struct spinlock addrspace_lock;
+
+    struct list cpu_list;
+    struct spinlock cpu_lock;
+
+    struct refcount refcount;
 };
 
 struct pagemap pagemap_empty();

@@ -7,23 +7,23 @@
 #include "util.h"
 
 __optimize(3)
-uint8_t find_lsb_one_bit(const uint64_t number, const uint64_t start_index) {
+uint8_t find_lsb_one_bit(const uint64_t number, const uint8_t start_index) {
     return count_lsb_zero_bits(number, start_index) + start_index;
 }
 
 __optimize(3)
-uint8_t find_lsb_zero_bit(const uint64_t number, const uint64_t start_index) {
+uint8_t find_lsb_zero_bit(const uint64_t number, const uint8_t start_index) {
     // Invert the number so we count the lsb 1's to get the lsb zero index
     return count_lsb_one_bits(number, start_index) + start_index;
 }
 
 __optimize(3)
-uint8_t find_msb_zero_bit(const uint64_t number, const uint64_t start_index) {
+uint8_t find_msb_zero_bit(const uint64_t number, const uint8_t start_index) {
     return count_msb_zero_bits(number, start_index) + start_index;
 }
 
 __optimize(3)
-uint8_t find_msb_one_bit(const uint64_t number, const uint64_t start_index) {
+uint8_t find_msb_one_bit(const uint64_t number, const uint8_t start_index) {
     return count_msb_one_bits(number, start_index) + start_index;
 }
 
@@ -32,14 +32,14 @@ get_range_of_lsb_one_bits(const uint64_t number,
                           const uint64_t start_index,
                           const uint64_t end_index)
 {
-    const uint64_t first_bit_index = find_lsb_one_bit(number, start_index);
-    if ((first_bit_index == FIND_BIT_INVALID ||
-        !index_in_bounds(first_bit_index, end_index)))
+    const uint8_t first_bit_index = find_lsb_one_bit(number, start_index);
+    if (!index_in_bounds(first_bit_index, sizeof(number)) ||
+        !index_in_bounds(first_bit_index, end_index))
     {
         return RANGE_EMPTY();
     }
 
-    const uint64_t one_count = count_lsb_one_bits(number, first_bit_index);
+    const uint8_t one_count = count_lsb_one_bits(number, first_bit_index);
 
     struct range result = RANGE_INIT(first_bit_index, one_count);
     uint64_t result_end = 0;
@@ -72,7 +72,7 @@ get_next_range_of_lsb_zero_bits(const uint64_t number,
                                 const uint64_t end_index)
 {
     const uint64_t prev_end = range_get_end_assert(prev);
-    if (prev_end == sizeof_bits(uint64_t)) {
+    if (!index_in_bounds(prev_end, sizeof_bits(number))) {
         return RANGE_EMPTY();
     }
 
@@ -85,7 +85,7 @@ get_next_range_of_lsb_one_bits(const uint64_t number,
                                const uint64_t end_index)
 {
     const uint64_t prev_end = range_get_end_assert(prev);
-    if (prev_end == sizeof_bits(uint64_t)) {
+    if (!index_in_bounds(prev_end, sizeof_bits(number))) {
         return RANGE_EMPTY();
     }
 

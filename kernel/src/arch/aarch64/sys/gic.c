@@ -7,11 +7,9 @@
 
 #include "cpu/info.h"
 #include "dev/printk.h"
-
 #include "lib/align.h"
-#include "lib/util.h"
 
-#include "sys/irq.h"
+#include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
 #include "gic.h"
@@ -33,7 +31,7 @@ enum gicd_type_flags {
         0b11111ull << GICD_MAX_IMPLD_LOCKABLE_SPIS_SHIFT
 };
 
-struct gicd_registers {
+struct gicd_v2_registers {
     volatile uint32_t control;
 
     volatile const uint32_t interrupt_controller_type;
@@ -102,6 +100,16 @@ struct gicd_registers {
     volatile uint32_t component_id_3;
 };
 
+enum gicd_v2m_msi_frame_setspi_ns_shifts {
+    GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE_SHIFT = 16,
+};
+
+enum gicd_v2m_msi_frame_setspi_ns_flags {
+    __GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_COUNT = 0x3ff,
+    __GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE =
+        0x3ff << GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE_SHIFT,
+};
+
 enum gic_cpu_interrupt_control_flags {
     __GIC_CPU_INTR_CTRL_ENABLE_GROUP_0 = 1ull << 0,
     __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1 = 1ull << 1,
@@ -149,10 +157,11 @@ struct gic_cpu_interface {
     volatile uint32_t deactivation;
 };
 
-_Static_assert(sizeof(struct gicd_registers) == 0x10000,
+_Static_assert(sizeof(struct gicd_v2_registers) == 0x10000,
                "struct gicd_registers has an incorrect size");
 
 #define GICD_CPU_COUNT 8
+#define GICD_BITS_PER_IFACE 8
 #define GICD_DEFAULT_PRIO 0xA0
 
 static struct gic_distributor g_dist = {
@@ -163,10 +172,12 @@ static struct gic_distributor g_dist = {
 };
 
 static struct mmio_region *g_dist_mmio = NULL;
-static volatile struct gicd_registers *g_regs = NULL;
+static volatile struct gicd_v2_registers *g_regs = NULL;
 
 static struct mmio_region *g_cpu_mmio = NULL;
 static volatile struct gic_cpu_interface *g_cpu = NULL;
+
+static struct list g_msi_info_list = LIST_INIT(g_msi_info_list);
 
 static uint64_t g_cpu_phys_addr = 0;
 static uint64_t g_cpu_size = 0;
@@ -196,7 +207,6 @@ void gic_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
     for (uint8_t irq = 0; irq != 32; irq++) {
         gicd_mask_irq(irq);
         gicd_set_irq_priority(irq, GICD_DEFAULT_PRIO);
-        gicd_unmask_irq(irq);
     }
 
     if (g_cpu_mmio != NULL) {
@@ -253,7 +263,7 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
     }
 
     struct range mmio_range =
-        RANGE_INIT(phys_base_address, sizeof(struct gicd_registers));
+        RANGE_INIT(phys_base_address, sizeof(struct gicd_v2_registers));
 
     if (!range_align_out(mmio_range, PAGE_SIZE, &mmio_range)) {
         printk(LOGLEVEL_WARN,
@@ -304,6 +314,53 @@ void gicd_init(const uint64_t phys_base_address, const uint8_t gic_version) {
     g_dist_initialized = true;
 }
 
+__optimize(3)
+volatile uint64_t *gicd_get_msi_address(const isr_vector_t vector) {
+    struct gic_v2_msi_info *iter = NULL;
+    list_foreach(iter, &g_msi_info_list, list) {
+        const struct range spi_range =
+            RANGE_INIT(iter->spi_base, iter->spi_count);
+
+        if (range_has_loc(spi_range, vector)) {
+            return &iter->regs->setspi_ns;
+        }
+    }
+
+    return NULL;
+}
+
+static void init_msi_frame(struct mmio_region *const mmio) {
+    volatile struct gicd_v2m_msi_frame_registers *const regs = mmio->base;
+
+    const uint32_t typer = mmio_read(&regs->typer);
+    const uint16_t spi_count =
+        typer & __GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_COUNT;
+    const uint16_t spi_base =
+        (typer & __GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE) >>
+            GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE_SHIFT;
+
+    printk(LOGLEVEL_INFO,
+           "gicd: msi-frame:\n"
+           "\tspi-base: %" PRIu16 "\n"
+           "\tspi-count: %" PRIu16 "\n",
+           spi_base,
+           spi_count);
+
+    isr_reserve_msi_irqs(spi_base, spi_count);
+
+    struct gic_v2_msi_info *const info = kmalloc(sizeof(*info));
+    if (info == NULL) {
+        return;
+    }
+
+    info->mmio = mmio;
+    info->regs = regs;
+    info->spi_base = spi_base;
+    info->spi_count = spi_count;
+
+    list_add(&g_msi_info_list, &info->list);
+}
+
 struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
     if (!has_align(phys_base_address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
@@ -333,6 +390,7 @@ struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
     assert_msg(array_append(&g_dist.msi_frame_list, &msi_frame),
                "gicd: failed to append msi-frame to list");
 
+    init_msi_frame(mmio);
     return array_back(g_dist.msi_frame_list);
 }
 
@@ -340,6 +398,10 @@ __optimize(3) const struct gic_distributor *gic_get_dist() {
     assert_msg(g_dist_initialized,
                "gic: gic_get_dist() called before gicd_init()");
     return &g_dist;
+}
+
+__optimize(3) struct list *gicd_get_msi_info_list() {
+    return &g_msi_info_list;
 }
 
 __optimize(3) void gicd_mask_irq(const irq_number_t irq) {
@@ -372,7 +434,7 @@ void gicd_set_irq_affinity(const irq_number_t irq, const uint8_t iface) {
         atomic_load_explicit(&g_regs->interrupt_targets[index],
                              memory_order_relaxed);
 
-    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_CPU_COUNT;
+    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_target =
         rm_mask(target, 0xFF << bit_index) |
         (target | (1ull << (iface + bit_index)));
@@ -426,7 +488,7 @@ void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
         atomic_load_explicit(&g_regs->interrupt_priority[index],
                              memory_order_relaxed);
 
-    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_CPU_COUNT;
+    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_priority =
         rm_mask(irq_priority, (0xFF << bit_index)) |
         (irq_priority | (uint32_t)priority << bit_index);
@@ -450,11 +512,15 @@ __optimize(3) uint32_t gic_cpu_get_irq_priority() {
 }
 
 __optimize(3)
-void gic_cpu_eoi(const uint8_t cpu_id, const irq_number_t number) {
+void gic_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     const uint32_t value =
-        number | (uint32_t)cpu_id << GIC_CPU_EOI_CPU_ID_SHIFT;
+        (uint32_t)cpu_id << GIC_CPU_EOI_CPU_ID_SHIFT | irq_number;
 
-    mmio_write(&g_cpu->end_of_interrupt, value);
+    if (g_use_split_eoi) {
+        mmio_write(&g_cpu->deactivation, value);
+    } else {
+        mmio_write(&g_cpu->end_of_interrupt, value);
+    }
 }
 
 bool

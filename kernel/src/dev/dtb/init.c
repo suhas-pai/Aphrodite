@@ -12,11 +12,12 @@
 static struct devicetree_node g_device_tree_root;
 static struct devicetree g_device_tree;
 
-void
+bool
 dtb_init_nodes_for_driver(const struct dtb_driver *const driver,
                           const struct devicetree *const tree,
                           const struct devicetree_node *const node)
 {
+    bool result = false;
     if (driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
         struct devicetree_prop_compat *const compat_prop =
             (struct devicetree_prop_compat *)(uint64_t)
@@ -54,12 +55,16 @@ dtb_init_nodes_for_driver(const struct dtb_driver *const driver,
         }
     }
 
-    driver->init(tree, node);
+    result = driver->init(tree, node);
 
 next:
     devicetree_node_foreach_child(node, iter) {
-        dtb_init_nodes_for_driver(driver, tree, iter);
+        if (dtb_init_nodes_for_driver(driver, tree, iter)) {
+            result = true;
+        }
     }
+
+    return result;
 }
 
 static void dtb_initialize_drivers() {

@@ -30,13 +30,13 @@ sched_switch_to(struct thread *const prev,
                 const bool from_irq)
 {
     if (prev->process == &kernel_process) {
-        xsave_supervisor_into(&prev->arch_info.avx_state);
+        //xsave_supervisor_into(&prev->arch_info.avx_state);
     } else {
         xsave_user_into(&prev->arch_info.avx_state);
     }
 
     if (next->process == &kernel_process) {
-        xrstor_supervisor_from(&next->arch_info.avx_state);
+        //xrstor_supervisor_from(&next->arch_info.avx_state);
     } else {
         xrstor_user_from(&next->arch_info.avx_state);
     }

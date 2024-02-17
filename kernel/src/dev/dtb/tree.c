@@ -203,6 +203,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
 
                 free_prop:
                     kfree(prop);
+                    continue;
             }
 
             verify_not_reached();

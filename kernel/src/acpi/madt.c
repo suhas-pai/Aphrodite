@@ -336,14 +336,14 @@ void madt_init(const struct acpi_madt *const madt) {
                        cpu->cpu_interface_number,
                        cpu->acpi_processor_id,
                        cpu->flags,
-                       (cpu->flags & __ACPI_MADT_ENTRY_GIC_CPU_ENABLED) != 0 ?
+                       cpu->flags & __ACPI_MADT_ENTRY_GIC_CPU_ENABLED ?
                         "yes" : "no",
-                       (cpu->flags &
-                        __ACPI_MADT_ENTRY_GIC_CPU_PERF_INTR_EDGE_TRIGGER) != 0 ?
-                        "yes" : "no",
-                       (cpu->flags &
-                        __ACPI_MADT_ENTRY_GIC_CPU_VGIC_INTR_EDGE_TRIGGER) != 0 ?
-                        "yes" : "no",
+                       cpu->flags &
+                        __ACPI_MADT_ENTRY_GIC_CPU_PERF_INTR_EDGE_TRIGGER ?
+                            "yes" : "no",
+                       cpu->flags &
+                        __ACPI_MADT_ENTRY_GIC_CPU_VGIC_INTR_EDGE_TRIGGER ?
+                            "yes" : "no",
                        cpu->parking_protocol_version,
                        cpu->perf_interrupt_gsiv,
                        cpu->parked_address,
@@ -448,8 +448,8 @@ void madt_init(const struct acpi_madt *const madt) {
                                 mmio_region_get_range(gic_frame->mmio) :
                                 RANGE_EMPTY()),
                        frame->flags,
-                       (frame->flags &
-                        __ACPI_MADT_GICMSI_FRAME_OVERR_MSI_TYPERR) != 0 ?
+                       frame->flags &
+                        __ACPI_MADT_GICMSI_FRAME_OVERR_MSI_TYPERR ?
                             "yes" : "no",
                        frame->spi_count,
                        frame->spi_base);

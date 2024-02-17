@@ -24,6 +24,7 @@ struct string string_alloc(struct string_view sv);
 struct string string_copy(struct string string);
 
 __printf_format(1, 2) struct string string_format(const char *fmt, ...);
+
 struct string string_vformat(const char *fmt, va_list list);
 
 struct string *string_append_char(struct string *string, char ch, uint32_t amt);

@@ -9,7 +9,12 @@
 static struct cpu_info g_base_cpu_info = {
     .process = &kernel_process,
     .pagemap_node = LIST_INIT(g_base_cpu_info.pagemap_node),
-    .spur_int_count = 0
+    .idle_thread = NULL,
+    .spur_int_count = 0,
+    .cbo_size = 0,
+    .cmo_size = 0,
+    .hart_id = 0,
+    .is_active = true
 };
 
 struct cpus_info g_cpus_info = {
