@@ -41,7 +41,7 @@ find_mult_unset(struct bitmap *const bitmap,
     const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
-    start_index = (start_index % sizeof_bits(uint8_t));
+    start_index %= sizeof_bits(uint8_t);
 
     /*
      * Loop over every word, and do the following:
@@ -151,7 +151,7 @@ find_mult_set(struct bitmap *const bitmap,
     const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
-    start_index = (start_index % sizeof_bits(uint8_t));
+    start_index %= sizeof_bits(uint8_t);
 
     /*
      * Loop over every word, and do the following:
@@ -259,7 +259,7 @@ find_single_unset(struct bitmap *const bitmap,
     const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
-    start_index = (start_index % sizeof_bits(uint8_t));
+    start_index %= sizeof_bits(uint8_t);
 
     uint64_t bit_index_in_word = 0;
     uint64_t bit_index_of_ptr = bytes_to_bits(distance(begin, ptr));
@@ -299,7 +299,7 @@ find_single_set(struct bitmap *const bitmap,
     const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
-    start_index = (start_index % sizeof_bits(uint8_t));
+    start_index %= sizeof_bits(uint8_t);
 
     uint64_t bit_index_in_word = 0;
     uint64_t bit_index_of_ptr = bytes_to_bits(distance(begin, ptr));
@@ -367,7 +367,7 @@ find_unset_at_mult(struct bitmap *const bitmap,
     }
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
-    start_index = start_index % sizeof_bits(uint8_t);
+    start_index %= sizeof_bits(uint8_t);
 
     /*
      * Loop over every word, and do the following:
@@ -485,7 +485,7 @@ find_set_at_mult(struct bitmap *const bitmap,
     const void *const end = gbuffer_end(bitmap->gbuffer);
 
     void *ptr = begin + bits_to_bytes_noround(start_index);
-    start_index = (start_index % sizeof_bits(uint8_t));
+    start_index %= sizeof_bits(uint8_t);
 
     if (!round_up(start_index, mult, &start_index)) {
         return false;
@@ -719,7 +719,7 @@ void bitmap_set(struct bitmap *const bitmap, uint32_t index, const bool value) {
     set_bits_for_mask((uint8_t *)ptr, 1ull << index, value);
 }
 
-void
+__optimize(3) void
 bitmap_set_range(struct bitmap *const bitmap,
                  const struct range range,
                  const bool value)

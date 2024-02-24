@@ -98,18 +98,26 @@ ivt_interrupt_func:
 
     eret
 
-.extern handle_exception
-ivt_exception_func:
+.extern handle_sync_exception
+ivt_sync_exception_func:
     save_context
-    bl handle_exception
+    bl handle_sync_exception
     restore_context
 
     eret
 
-.extern handle_sexception
-ivt_sexception_func:
+.extern handle_async_exception
+ivt_async_exception_func:
     save_context
-    bl handle_sexception
+    bl handle_async_exception
+    restore_context
+
+    eret
+
+.extern handle_invalid_exception
+ivt_invalid_exception_func:
+    save_context
+    bl handle_invalid_exception
     restore_context
 
     eret
@@ -119,22 +127,22 @@ ivt_sexception_func:
 .align 11
 ivt_el1:
     // Exceptions taken from Current EL, with SP_EL0
-    ivt_entry ivt_exception_func // Synchronous EL1t
+    ivt_entry ivt_sync_exception_func // Synchronous EL1t
     ivt_entry ivt_interrupt_func // IRQ EL1t
-    ivt_entry ivt_exception_func // FIQ EL1t
-    ivt_entry ivt_exception_func // Error EL1t
+    ivt_entry ivt_invalid_exception_func // FIQ EL1t
+    ivt_entry ivt_async_exception_func // Error EL1t
 
     // Exceptions taken from Current EL, with SP_ELx, x>0
-    ivt_entry ivt_exception_func // Synchronous EL1h
+    ivt_entry ivt_sync_exception_func // Synchronous EL1h
     ivt_entry ivt_interrupt_func // IRQ EL1h
-    ivt_entry ivt_exception_func // FIQ EL1h
-    ivt_entry ivt_sexception_func // Error EL1h
+    ivt_entry ivt_invalid_exception_func // FIQ EL1h
+    ivt_entry ivt_async_exception_func // Error EL1h
 
     // Exceptions from Lower EL, where causing application is in AArch64 mode
-    ivt_entry ivt_exception_func // Synchronous 64-bit EL1h
+    ivt_entry ivt_sync_exception_func // Synchronous 64-bit EL1h
     ivt_entry ivt_interrupt_func // IRQ 64-bit EL1h
-    ivt_entry ivt_exception_func // FIQ 64-bit EL1h
-    ivt_entry ivt_exception_func // Error 64-bit EL1h
+    ivt_entry ivt_sync_exception_func // FIQ 64-bit EL1h
+    ivt_entry ivt_async_exception_func // Error 64-bit EL1h
 
     // aarch32 entries
     ivt_unimpl_entry

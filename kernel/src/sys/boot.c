@@ -3,15 +3,11 @@
  * © suhas pai
  */
 
-#include "dev/printk.h"
-
 #include "mm/memmap.h"
 #include "mm/mm_types.h"
 #include "mm/section.h"
 
 #include "time/kstrftime.h"
-
-#include "boot.h"
 #include "limine.h"
 
 // The Limine requests can be placed anywhere, but it is important that
@@ -132,7 +128,7 @@ __optimize(3) int64_t boot_get_time() {
 }
 
 __optimize(3) uint64_t mm_get_full_section_mask() {
-    return (1ull << mm_page_section_count) - 1;
+    return mask_for_n_bits(mm_page_section_count);
 }
 
 void boot_init() {
@@ -145,10 +141,7 @@ void boot_init() {
         framebuffer_resp = *framebuffer_request.response;
     }
 
-    if (smp_request.response != NULL) {
-        smp_response = smp_request.response;
-    }
-
+    smp_response = smp_request.response;
     if (dtb_request.response != NULL && dtb_request.response->dtb_ptr != NULL) {
         dtb = dtb_request.response->dtb_ptr;
     }
@@ -328,8 +321,10 @@ __optimize(3) void boot_recalculate_pfns() {
     const struct page_section *const end =
         &mm_page_section_list[mm_page_section_count];
 
-    for (uint64_t pfn = 0; section != end; section++) {
+    for (uint64_t pfn = 0;
+         section != end;
+         section++, pfn += PAGE_COUNT(section->range.size))
+    {
         section->pfn = pfn;
-        pfn += PAGE_COUNT(section->range.size);
     }
 }

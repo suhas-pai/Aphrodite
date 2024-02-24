@@ -516,15 +516,15 @@ iso_8601_get_week_number(const enum weekday weekday,
         jan_1_weekday += 7;
     }
 
-    // Get week number, Monday as the first day of week
+    // Get week number, Monday as the first day of week.
     uint8_t week_number =
         get_week_count_at_day(weekday,
                               days_since_jan_1,
                               /*is_monday_first=*/true);
 
-    // According to the ISO 8601 format, January 1 on days Monday through
-    // Thursday are in week 1. Otherwise January 1 is on the last week of the
-    // previous year, which counts in this year as week 0.
+    // According to ISO 8601, January 1 on days Monday through Thursday are in
+    // week 1. Otherwise January 1 is on the last week of the previous year,
+    // which counts in this year as week 0.
 
     switch (jan_1_weekday) {
         case WEEKDAY_INVALID:
@@ -534,7 +534,7 @@ iso_8601_get_week_number(const enum weekday weekday,
         case WEEKDAY_TUESDAY:
         case WEEKDAY_WEDNESDAY:
         case WEEKDAY_THURSDAY:
-            // Fix the calculation from the formula above
+            // Fix the calculation from the formula above.
             week_number += 1;
             break;
         case WEEKDAY_FRIDAY:

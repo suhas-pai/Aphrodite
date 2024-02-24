@@ -81,7 +81,7 @@ struct gdt {
 #define USER_CODE_64_INDEX 9
 #define USER_DATA_64_INDEX 10
 
-// This must be in writable memory
+// This must be in mutable memory
 static struct gdt g_gdt = {
     .entries = {
         [NULL_INDEX] = {0},

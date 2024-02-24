@@ -37,7 +37,7 @@ parse_flags(struct printf_spec_info *const curr_spec,
         }
 
         iter++;
-        if (*iter == '\0') {
+        if (__builtin_expect(*iter == '\0', 0)) {
             return false;
         }
     } while (true);
@@ -57,8 +57,9 @@ read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
             break;
         }
 
-        if (!check_mul(result, 10, &result) ||
-            !check_add(result, digit, &result))
+        if (__builtin_expect(
+            !check_mul(result, 10, &result) ||
+            !check_add(result, digit, &result), 0))
         {
             *iter_out = iter;
             return -1;
@@ -76,7 +77,7 @@ parse_width(struct printf_spec_info *const curr_spec,
 {
     if (*iter != '*') {
         const int width = read_int_from_fmt_string(iter, &iter);
-        if (width == -1) {
+        if (__builtin_expect(width == -1, 0)) {
             return false;
         }
 
@@ -88,7 +89,7 @@ parse_width(struct printf_spec_info *const curr_spec,
         iter++;
     }
 
-    if (*iter == '\0') {
+    if (__builtin_expect(*iter == '\0', 0)) {
         // If we have an incomplete spec, then we exit without writing anything.
         return false;
     }
@@ -114,7 +115,7 @@ parse_precision(struct printf_spec_info *const curr_spec,
             return false;
         case '*':
             // Don't bother reading if we have an incomplete spec
-            if (iter[1] == '\0') {
+            if (__builtin_expect(iter[1] == '\0', 0)) {
                 return false;
             }
 
@@ -124,11 +125,11 @@ parse_precision(struct printf_spec_info *const curr_spec,
             break;
         default:
             curr_spec->precision = read_int_from_fmt_string(iter, &iter);
-            if (curr_spec->precision == -1) {
+            if (__builtin_expect(curr_spec->precision == -1, 0)) {
                 return false;
             }
 
-            if (*iter == '\0') {
+            if (__builtin_expect(*iter == '\0', 0)) {
                 return false;
             }
 
@@ -335,7 +336,7 @@ handle_spec(struct printf_spec_info *const curr_spec,
         case 'o':
             if (curr_spec->length_sv.length == 0) {
                 number = va_arg(list_struct->list, unsigned);
-                *is_zero_out = (number == 0);
+                *is_zero_out = number == 0;
             }
 
             *parsed_out =

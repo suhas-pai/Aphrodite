@@ -38,12 +38,13 @@ __optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
-extern void handle_exception(const uint64_t vector, irq_context_t *const frame);
+extern
+void handle_exception(const uint64_t vector, struct thread_context *frame);
 
 __optimize(3) void
 isr_handle_interrupt(const uint64_t cause,
                      const uint64_t epc,
-                     irq_context_t *const frame)
+                     struct thread_context *const frame)
 {
     const isr_vector_t code = cause & __SCAUSE_CODE;
     if (cause & __SCAUSE_IS_INT) {
@@ -106,10 +107,6 @@ isr_assign_irq_to_cpu(struct cpu_info *const cpu,
     (void)masked;
 
     panic("isr: isr_assign_irq_to_cpu() but not implemented");
-}
-
-__optimize(3) enum isr_msi_support isr_get_msi_support() {
-    return ISR_MSI_SUPPORT_NONE;
 }
 
 __optimize(3) uint64_t

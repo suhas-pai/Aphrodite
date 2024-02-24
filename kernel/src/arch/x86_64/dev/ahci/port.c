@@ -3,7 +3,9 @@
  * © suhas pai
  */
 
+#include "dev/ata/atapi.h"
 #include "dev/ata/defines.h"
+
 #include "dev/scsi/swap.h"
 
 #include "apic/lapic.h"
@@ -46,7 +48,7 @@ static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
         return UINT8_MAX;
     }
 
-    port->ports_bitset |= 1 << slot;
+    port->ports_bitset |= 1ul << slot;
     spin_release_with_irq(&port->lock, flag);
 
     return slot;
@@ -343,10 +345,12 @@ void enable_port_interrupts(volatile struct ahci_spec_hba_port *const port) {
                AHCI_HBA_PORT_IE_ERROR_FLAGS);
 }
 
-__optimize(3)
-void ahci_port_handle_irq(const uint64_t vector, irq_context_t *const frame) {
+__optimize(3) void
+ahci_port_handle_irq(const uint64_t vector,
+                     struct thread_context *const context)
+{
     (void)vector;
-    (void)frame;
+    (void)context;
 
     struct ahci_hba_port *ports_with_results[AHCI_HBA_MAX_PORT_COUNT] = {0};
 
@@ -369,12 +373,11 @@ void ahci_port_handle_irq(const uint64_t vector, irq_context_t *const frame) {
 
             volatile struct ahci_spec_hba_port *const spec = port->spec;
 
-            const uint32_t ci = mmio_read(&spec->command_issue);
+            uint32_t ci = mmio_read(&spec->command_issue);
             const uint32_t interrupt_status =
                 mmio_read(&spec->interrupt_status);
 
             // Write to interrupt-status to clear bits.
-
             mmio_write(&spec->interrupt_status, interrupt_status);
             enable_port_interrupts(spec);
 
@@ -383,6 +386,7 @@ void ahci_port_handle_irq(const uint64_t vector, irq_context_t *const frame) {
                 port->error.interrupt_status = interrupt_status;
 
                 handle_error(port, interrupt_status);
+                ci = UINT32_MAX;
             }
 
             spin_acquire(&port->lock);
@@ -453,7 +457,6 @@ __optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
 __optimize(3) static void
 ahci_hba_port_power_on_and_spin_up(
     volatile struct ahci_spec_hba_port *const port,
-    struct ahci_hba_device *const device,
     const uint8_t index)
 {
     const uint32_t cmd_status = mmio_read(&port->cmd_status);
@@ -470,7 +473,7 @@ ahci_hba_port_power_on_and_spin_up(
                index + 1);
     }
 
-    if (device->supports_staggered_spinup) {
+    if (ahci_hba_get()->supports_staggered_spinup) {
         mmio_write(&port->cmd_status,
                    cmd_status | __AHCI_HBA_PORT_CMDSTATUS_SPINUP_DEVICE);
 
@@ -654,7 +657,7 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
 
     clear_error_bits(spec);
 
-    ahci_hba_port_power_on_and_spin_up(spec, ahci_hba_get(), port->index);
+    ahci_hba_port_power_on_and_spin_up(spec, port->index);
     ahci_hba_port_set_state(spec, AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE);
 
     mmio_write(&spec->cmd_status,
@@ -666,7 +669,7 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         return;
     }
 
-    const bool result =
+    bool result =
         ahci_hba_port_send_scsi_command(port,
                                         SCSI_REQUEST_IDENTITY(),
                                         page_to_phys(resp_page));
@@ -680,8 +683,8 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         return;
     }
 
-    struct atapi_identify *const ident =
-        (struct atapi_identify *)page_to_virt(resp_page);
+    void *const resp_ptr = page_to_virt(resp_page);
+    struct atapi_identify *const ident = (struct atapi_identify *)resp_ptr;
 
     scsi_swap_data(ident->serial, sizeof(ident->serial));
     scsi_swap_data(ident->model, sizeof(ident->model));
@@ -711,10 +714,29 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
            "ahci: port #%" PRIu8 " initialized\n",
            port->index + 1);
 
+    result =
+        ahci_hba_port_send_scsi_command(port,
+                                        SCSI_REQUEST_READ(0, 1),
+                                        page_to_phys(resp_page));
+
+    if (!result) {
+        printk(LOGLEVEL_WARN,
+               "ahci: failed to read sector 0 of port #%" PRIu8 "\n",
+               port->index + 1);
+
+        // TODO: Power down and free cmd-list/cmd-table pages
+        return;
+    }
+
+    printk(LOGLEVEL_INFO,
+           "ahci: magic is 0x%" PRIx32 "\n",
+           *(uint32_t *)resp_ptr);
+
     free_page(resp_page);
 }
 
-__optimize(3) static inline bool ready_port(struct ahci_hba_port *const port) {
+__optimize(3)
+static inline bool fix_any_errors(struct ahci_hba_port *const port) {
     switch (port->state) {
         case AHCI_HBA_PORT_STATE_OK:
             return true;
@@ -730,9 +752,36 @@ __optimize(3) static inline bool ready_port(struct ahci_hba_port *const port) {
     verify_not_reached();
 }
 
+__optimize(3)
+static inline uint8_t prepare_port(struct ahci_hba_port *const port) {
+    if (!fix_any_errors(port)) {
+        return UINT8_MAX;
+    }
+
+    if (!ahci_hba_port_stop_running(port)) {
+        printk(LOGLEVEL_WARN,
+               "ahci: failed to stop port #%" PRIu8 "\n",
+               port->index + 1);
+        return UINT8_MAX;
+    }
+
+    const uint8_t slot = find_free_cmdhdr(port);
+    if (slot == UINT8_MAX) {
+        printk(LOGLEVEL_WARN,
+               "ahci-port: port #%" PRIu8 " has no free command-headers\n",
+               port->index + 1);
+        return UINT8_MAX;
+    }
+
+    // Clear any pending interrupts
+    mmio_write(&port->spec->interrupt_status, 0);
+    return slot;
+}
+
 __optimize(3) static void
 setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
                   const uint8_t command,
+                  const uint8_t feature,
                   const uint64_t sector_offset,
                   const uint8_t sector_count)
 {
@@ -743,7 +792,7 @@ setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
     h2d_fis->flags = __AHCI_FIS_REG_H2D_IS_ATA_CMD;
 
     h2d_fis->command = command;
-    h2d_fis->feature_low8 = 0;
+    h2d_fis->feature_low8 = feature;
 
     h2d_fis->lba0 = (uint8_t)sector_offset;
     h2d_fis->lba1 = (uint8_t)(sector_offset >> 8);
@@ -825,17 +874,6 @@ send_ata_command(struct ahci_hba_port *const port,
                  const uint16_t sector_count,
                  const uint64_t phys_addr)
 {
-    if (!ready_port(port)) {
-        return false;
-    }
-
-    if (!ahci_hba_port_stop_running(port)) {
-        printk(LOGLEVEL_WARN,
-               "ahci: failed to stop port #%" PRIu8 "\n",
-               port->index + 1);
-        return false;
-    }
-
     if (__builtin_expect(sector_count == 0, 0)) {
         printk(LOGLEVEL_WARN,
                "ahci-port: port #%" PRIu8 " got a h2d request of 0 sectors\n",
@@ -843,16 +881,10 @@ send_ata_command(struct ahci_hba_port *const port,
         return true;
     }
 
-    const uint8_t slot = find_free_cmdhdr(port);
+    const uint8_t slot = prepare_port(port);
     if (slot == UINT8_MAX) {
-        printk(LOGLEVEL_WARN,
-               "ahci-port: port #%" PRIu8 " has no free command-headers\n",
-               port->index + 1);
         return false;
     }
-
-    // Clear any pending interrupts
-    mmio_write(&port->spec->interrupt_status, 0);
 
     uint16_t flags = sizeof(struct ahci_spec_fis_reg_h2d) / sizeof(uint32_t);
     switch (command_kind) {
@@ -879,12 +911,97 @@ send_ata_command(struct ahci_hba_port *const port,
 
     volatile struct ahci_spec_port_cmdhdr *const cmd_header =
         &port->headers[slot];
-
     struct ahci_spec_hba_cmd_table *const cmd_table =
-        phys_to_virt(port->cmdtable_phys);
+        (struct ahci_spec_hba_cmd_table *)
+            phys_to_virt(port->cmdtable_phys) + slot;
 
     setup_prdt_table(cmd_header, cmd_table, phys_addr, sector_count, flags);
-    setup_ata_h2d_fis(cmd_table, command_kind, sector_offset, sector_count);
+    setup_ata_h2d_fis(cmd_table,
+                      command_kind,
+                      /*feature=*/0,
+                      sector_offset,
+                      sector_count);
+
+    if (!wait_for_tfd_idle(port) || !ahci_hba_port_start_running(port)) {
+        return false;
+    }
+
+    struct event *const event = &port->cmdhdr_info_list[slot].event;
+    struct await_result await_result = AWAIT_RESULT_NULL();
+
+    mmio_write(&port->spec->command_issue, 1ull << slot);
+    assert(
+        events_await(&event,
+                     /*event_count=*/1,
+                     /*block=*/true,
+                     &await_result) == 0);
+
+    if (!await_result.result_bool) {
+        print_serr_error(port->error.serr);
+        print_serr_diag(port->error.serr);
+    }
+
+    return await_result.result_bool;
+}
+
+__optimize(3) static void
+setup_atapi_command(volatile uint8_t *const atapi_command,
+                    const enum atapi_command command,
+                    const uint64_t sector_offset,
+                    const uint8_t sector_count)
+{
+    atapi_command[0] = command;
+    atapi_command[1] = 0;
+
+    atapi_command[2] = (sector_offset >> 24) & 0xFF;
+    atapi_command[3] = (sector_offset >> 16) & 0xFF;
+    atapi_command[4] = (sector_offset >> 8) & 0xFF;
+    atapi_command[5] = sector_offset & 0xFF;
+
+    atapi_command[6] = (sector_count >> 24) & 0xFF;
+    atapi_command[7] = (sector_count >> 16) & 0xFF;
+    atapi_command[8] = (sector_count >> 8) & 0xFF;
+    atapi_command[9] = sector_count & 0xFF;
+}
+
+static bool
+send_atapi_command(struct ahci_hba_port *const port,
+                   const enum atapi_command command_kind,
+                   const uint64_t sector_offset,
+                   const uint16_t sector_count,
+                   const uint64_t phys_addr)
+{
+    if (__builtin_expect(sector_count == 0, 0)) {
+        printk(LOGLEVEL_WARN,
+               "ahci-port: port #%" PRIu8 " got a h2d request of 0 sectors\n",
+               port->index + 1);
+        return true;
+    }
+
+    const uint8_t slot = prepare_port(port);
+    if (slot == UINT8_MAX) {
+        return false;
+    }
+
+    uint16_t flags =
+        (sizeof(struct ahci_spec_fis_reg_h2d) / sizeof(uint32_t)) |
+        __AHCI_PORT_CMDHDR_ATAPI;
+
+    volatile struct ahci_spec_port_cmdhdr *const cmd_header =
+        &port->headers[slot];
+    struct ahci_spec_hba_cmd_table *const cmd_table =
+        (struct ahci_spec_hba_cmd_table *)
+            phys_to_virt(port->cmdtable_phys) + slot;
+
+    setup_prdt_table(cmd_header, cmd_table, phys_addr, sector_count, flags);
+    setup_ata_h2d_fis(cmd_table,
+                      ATA_CMD_PACKET,
+                      __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA,
+                      /*sector_offset=*/0,
+                      /*sector_count=*/0);
+
+    volatile uint8_t *const atapi_cmd = cmd_table->atapi_command;
+    setup_atapi_command(atapi_cmd, command_kind, sector_offset, sector_count);
 
     if (!wait_for_tfd_idle(port) || !ahci_hba_port_start_running(port)) {
         return false;
@@ -944,11 +1061,11 @@ ahci_hba_port_send_scsi_command(struct ahci_hba_port *const port,
                                             request.read.length,
                                             phys_addr);
                 case SATA_SIG_ATAPI:
-                    return send_ata_command(port,
-                                            ATA_CMD_READ_DMA_EXT,
-                                            request.read.position,
-                                            request.read.length,
-                                            phys_addr);
+                    return send_atapi_command(port,
+                                              ATAPI_CMD_READ,
+                                              request.read.position,
+                                              request.read.length,
+                                              phys_addr);
                 case SATA_SIG_SEMB:
                 case SATA_SIG_PM:
                     verify_not_reached();
@@ -964,11 +1081,11 @@ ahci_hba_port_send_scsi_command(struct ahci_hba_port *const port,
                                             request.read.length,
                                             phys_addr);
                 case SATA_SIG_ATAPI:
-                    return send_ata_command(port,
-                                            ATA_CMD_WRITE_DMA_EXT,
-                                            request.read.position,
-                                            request.read.length,
-                                            phys_addr);
+                    return send_atapi_command(port,
+                                              ATAPI_CMD_WRITE,
+                                              request.read.position,
+                                              request.read.length,
+                                              phys_addr);
                 case SATA_SIG_SEMB:
                 case SATA_SIG_PM:
                     verify_not_reached();

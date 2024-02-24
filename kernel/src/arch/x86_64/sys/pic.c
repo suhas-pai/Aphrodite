@@ -38,11 +38,11 @@
 #define ICW4_BUF_MASTER 0x0C        /* Buffered mode/master */
 #define ICW4_SFNM   0x10        /* Special fully nested (not) */
 
-static inline bool is_irq_in_pic_2(const uint8_t irq) {
+__optimize(3) static inline bool is_irq_in_pic_2(const uint8_t irq) {
     return irq >= 8;
 }
 
-void pic_send_eoi(const uint8_t irq) {
+__optimize(3) void pic_send_eoi(const uint8_t irq) {
     if (is_irq_in_pic_2(irq)) {
         pio_write8(PIC2_COMMAND, PIC_EOI);
     }
@@ -95,12 +95,12 @@ void pic_remap(const uint8_t offset1, const uint8_t offset2) {
     pio_write8(PIC2_DATA, a2);
 }
 
-void pic_disable() {
+__optimize(3) void pic_disable() {
     pio_write8(PIC2_DATA, 0xff);
     pio_write8(PIC1_DATA, 0xff);
 }
 
-void pic_mask_irq(uint8_t irq) {
+__optimize(3) void pic_mask_irq(uint8_t irq) {
     uint16_t port = 0;
     if (is_irq_in_pic_2(irq)) {
         port = PIC2_DATA;
@@ -113,7 +113,7 @@ void pic_mask_irq(uint8_t irq) {
     pio_write8(port, value);
 }
 
-void pic_clear_irq_mask(uint8_t irq) {
+__optimize(3) void pic_clear_irq_mask(uint8_t irq) {
     uint16_t port = 0;
     if (is_irq_in_pic_2(irq)) {
         port = PIC2_DATA;
@@ -125,13 +125,13 @@ void pic_clear_irq_mask(uint8_t irq) {
     pio_write8(port, rm_mask(pio_read8(port), 1 << irq));
 }
 
-void pic_mask_remapped_irqs() {
+__optimize(3) void pic_mask_remapped_irqs() {
     for (uint8_t i = 0; i != 8; i++) {
         pic_mask_irq(i);
     }
 }
 
-void pic_unmask_remapped_irqs() {
+__optimize(3) void pic_unmask_remapped_irqs() {
     for (uint8_t i = 0; i != 8; i++) {
         pic_clear_irq_mask(i);
     }

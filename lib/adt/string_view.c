@@ -133,6 +133,6 @@ sv_has_suffix(const struct string_view sv, const struct string_view suffix) {
         return false;
     }
 
-    const uint64_t index = sv.length - suffix.length;
+    const uint32_t index = sv.length - suffix.length;
     return strncmp(sv.begin + index, suffix.begin, suffix.length) == 0;
 }

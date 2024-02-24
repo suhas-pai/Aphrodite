@@ -32,13 +32,13 @@ struct scsi_request {
 #define SCSI_REQUEST_READ(pos, len) \
     ((struct scsi_request){ \
         .command = SCSI_CMD_READ, \
-        .read.positon = (pos), \
+        .read.position = (pos), \
         .read.length = (len) \
     })
 
 #define SCSI_REQUEST_WRITE(pos, len) \
     ((struct scsi_request){ \
         .command = SCSI_CMD_WRITE, \
-        .read.positon = (pos), \
+        .read.position = (pos), \
         .read.length = (len) \
     })

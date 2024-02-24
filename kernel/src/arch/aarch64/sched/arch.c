@@ -9,6 +9,10 @@ void sched_process_arch_info_init(struct process *const process) {
     (void)process;
 }
 
-void sched_thread_arch_info_init(struct thread *const thread) {
+void
+sched_thread_arch_info_init(struct thread *const thread,
+                            const void *const entry)
+{
     (void)thread;
+    (void)entry;
 }

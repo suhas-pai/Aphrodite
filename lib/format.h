@@ -4,10 +4,6 @@
  */
 
 #pragma once
-
-#include <stdarg.h>
-#include <stdint.h>
-
 #include "adt/string.h"
 
 __printf_format(3, 4)

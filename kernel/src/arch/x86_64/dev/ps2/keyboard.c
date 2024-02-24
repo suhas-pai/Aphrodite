@@ -76,7 +76,9 @@ __optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
 }
 
 void
-ps2_keyboard_interrupt(const uint64_t int_no, irq_context_t *const context) {
+ps2_keyboard_interrupt(const uint64_t int_no,
+                       struct thread_context *const context)
+{
     (void)int_no;
     (void)context;
 

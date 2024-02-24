@@ -55,8 +55,8 @@ struct string string_vformat(const char *const fmt, va_list list) {
     return result;
 }
 
-__optimize(3)
-static bool prepare_append(struct string *const string, const uint32_t length) {
+__optimize(3) static inline
+bool prepare_append(struct string *const string, const uint32_t length) {
     return gbuffer_ensure_can_add_capacity(&string->gbuffer, length + 1);
 }
 
@@ -65,11 +65,12 @@ string_append_char(struct string *const string,
                    const char ch,
                    const uint32_t amount)
 {
-    if (!prepare_append(string, amount)) {
+    if (__builtin_expect(!prepare_append(string, amount), 0)) {
         return NULL;
     }
 
-    if (!gbuffer_append_byte(&string->gbuffer, ch, amount)) {
+    if (__builtin_expect(!gbuffer_append_byte(&string->gbuffer, ch, amount), 0))
+    {
         return NULL;
     }
 
@@ -79,12 +80,12 @@ string_append_char(struct string *const string,
 
 __optimize(3) struct string *
 string_append_sv(struct string *const string, const struct string_view sv) {
-    if (!prepare_append(string, sv.length)) {
+    if (__builtin_expect(!prepare_append(string, sv.length), 0)) {
         gbuffer_destroy(&string->gbuffer);
         return NULL;
     }
 
-    if (!gbuffer_append_sv(&string->gbuffer, sv)) {
+    if (__builtin_expect(!gbuffer_append_sv(&string->gbuffer, sv), 0)) {
         gbuffer_destroy(&string->gbuffer);
         return NULL;
     }
@@ -115,11 +116,13 @@ string_append_vformat(struct string *const string,
 
 __optimize(3) struct string *
 string_append(struct string *const string, const struct string *const append) {
-    if (!prepare_append(string, string_length(*string))) {
+    if (__builtin_expect(!prepare_append(string, string_length(*string)), 0)) {
         return NULL;
     }
 
-    if (gbuffer_append_gbuffer_data(&string->gbuffer, &append->gbuffer)) {
+    if (__builtin_expect(
+            gbuffer_append_gbuffer_data(&string->gbuffer, &append->gbuffer), 0))
+    {
         return NULL;
     }
 
@@ -128,7 +131,7 @@ string_append(struct string *const string, const struct string *const append) {
 }
 
 __optimize(3) char string_front(const struct string string) {
-    if (!gbuffer_empty(string.gbuffer)) {
+    if (__builtin_expect(!gbuffer_empty(string.gbuffer), 1)) {
         return ((uint8_t *)string.gbuffer.begin)[0];
     }
 
@@ -137,7 +140,7 @@ __optimize(3) char string_front(const struct string string) {
 
 __optimize(3) char string_back(const struct string string) {
     const uint32_t length = string_length(string);
-    if (length != 0) {
+    if (__builtin_expect(length != 0, 1)) {
         return ((uint8_t *)string.gbuffer.begin)[length - 1];
     }
 

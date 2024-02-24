@@ -11,3 +11,7 @@ __hidden isr_vector_t g_sched_vector = 0;
 void sched_init_irq() {
 
 }
+
+__optimize(3) isr_vector_t sched_get_isr_vector() {
+    return g_sched_vector;
+}

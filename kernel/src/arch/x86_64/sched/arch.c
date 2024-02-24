@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "asm/context.h"
 #include "asm/xsave.h"
 
 #include "mm/kmalloc.h"
@@ -18,7 +19,10 @@ void sched_process_arch_info_init(struct process *const process) {
     (void)process;
 }
 
-__optimize(3) void sched_thread_arch_info_init(struct thread *const thread) {
+__optimize(3) void
+sched_thread_arch_info_init(struct thread *const thread,
+                            const void *const entry)
+{
     if (thread->process == &kernel_process) {
         thread->arch_info.avx_state =
             kmalloc(sizeof(struct xsave_fx_legacy_regs));
@@ -33,4 +37,8 @@ __optimize(3) void sched_thread_arch_info_init(struct thread *const thread) {
 
     assert(thread->arch_info.avx_state != NULL);
     assert(thread->arch_info.kernel_stack != NULL);
+
+    void *const stack = page_to_virt(thread->arch_info.kernel_stack);
+    thread->context =
+        THREAD_CONTEXT_INIT(thread->process, stack, entry, /*arg=*/NULL);
 }

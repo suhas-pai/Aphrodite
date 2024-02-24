@@ -102,7 +102,6 @@ void sched_next(const bool from_irq) {
         return;
     }
 
-    next_thread->cpu = this_cpu_mut();
     if (next_thread == this_cpu()->idle_thread) {
         sched_set_current_thread(next_thread);
         if (from_irq) {
@@ -115,6 +114,7 @@ void sched_next(const bool from_irq) {
         return;
     }
 
+    next_thread->cpu = this_cpu_mut();
     next_thread->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNING;
 
     sched_prepare_thread(next_thread);
@@ -134,7 +134,7 @@ __optimize(3) void sched_yield(const bool noreturn) {
     spin_release(&g_run_queue_lock);
 
     enable_interrupts();
-    sched_next(/*from_irq=*/false);
+    sched_self_ipi();
 
     if (noreturn) {
         sched_set_current_thread(this_cpu()->idle_thread);

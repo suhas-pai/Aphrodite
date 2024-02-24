@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <stdint.h>
 
 enum atapi_command {
     ATAPI_CMD_TEST_UNIT_READY = 0x00,
@@ -44,7 +45,7 @@ enum atapi_command {
     ATAPI_CMD_REPORT_KEY = 0xA4,
     ATAPI_CMD_LOAD_UNLOAD_MEDIUM = 0xA6,
     ATAPI_CMD_SET_READ_AHEAD    = 0xA7,
-    ATAPI_CMD_READ =    0xA8,
+    ATAPI_CMD_READ = 0xA8,
     ATAPI_CMD_WRITE = 0xAA,
     ATAPI_CMD_READ_MEDIA_SERIAL_NUMBER = 0xAB,
     ATAPI_CMD_GET_PERFORMANCE = 0xAC,
@@ -57,3 +58,5 @@ enum atapi_command {
     ATAPI_CMD_READ_CD = 0xBE,
     ATAPI_CMD_SEND_DISC_STRUCTURE = 0xBF,
 };
+
+#define ATAPI_SECTOR_SIZE 2048

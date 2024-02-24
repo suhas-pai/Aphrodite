@@ -32,6 +32,7 @@ find_pending(struct event *const *const events,
             *result_out =
                 *(struct await_result *)array_front(events[i]->pending);
 
+            array_remove_index(&events[i]->pending, /*index=*/0);
             return i;
         }
     }

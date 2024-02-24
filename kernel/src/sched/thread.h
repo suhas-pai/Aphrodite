@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "asm/context.h"
 #include "cpu/info.h"
 #include "sched/arch.h"
 
@@ -21,13 +22,19 @@ struct thread {
     struct array events_hearing;
     int64_t event_index;
 
-    struct sched_thread_info sched_info;
+    struct thread_context context;
     struct thread_arch_info arch_info;
+
+    struct sched_thread_info sched_info;
 };
 
 extern struct thread kernel_main_thread;
 
-void sched_thread_init(struct thread *thread, struct process *process);
+void
+sched_thread_init(struct thread *thread,
+                  struct process *process,
+                  const void *entry);
+
 struct thread *current_thread();
 
 void prempt_disable();

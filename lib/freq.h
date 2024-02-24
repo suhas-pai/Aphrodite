@@ -58,13 +58,13 @@ enum freq_unit_kind {
 
 #define FREQ_TO_UNIT_FMT "%" PRIu64 ".%" PRIu64 " " SV_FMT
 #define FREQ_TO_UNIT_FMT_ARGS(freq) \
-    (freq) / freq_to_units(freq), \
-    (freq) % freq_to_units(freq), \
+    (uint64_t)(freq) / freq_to_units(freq), \
+    (uint64_t)(freq) % freq_to_units(freq), \
     SV_FMT_ARGS(freq_units_to_sv(freq_to_units(freq)))
 
 #define FREQ_TO_UNIT_FMT_ARGS_ABBREV(freq) \
-    (freq) / freq_to_units(freq), \
-    (freq) % freq_to_units(freq), \
+    (uint64_t)(freq) / freq_to_units(freq), \
+    (uint64_t)(freq) % freq_to_units(freq), \
     SV_FMT_ARGS(freq_units_to_sv_abbrev(freq_to_units(freq)))
 
 struct string_view freq_units_to_sv(enum freq_unit_kind kind);

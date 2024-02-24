@@ -52,7 +52,7 @@ void collect_cpu_features() {
     const uint64_t id_aa64mmfr0 = read_id_aa64mmfr0_el1();
     const uint64_t id_aa64mmfr1 = read_id_aa64mmfr1_el1();
     const uint64_t id_aa64mmfr2 = read_id_aa64mmfr2_el1();
-    //const uint64_t id_aa64mmfr3 = read_id_aa64mmfr3_el1();
+    const uint64_t id_aa64mmfr3 = read_id_aa64mmfr3_el1();
     //const uint64_t id_aa64smfr0 = read_id_aa64smfr0_el1();
     //const uint64_t id_aa64zfr0 = read_id_aa64zfr0_el1();
     const uint64_t id_aa64dfr0 = read_id_aa64dfr0_el1();
@@ -370,7 +370,7 @@ void collect_cpu_features() {
             break;
     }
 
-    #if 0
+#if 0
     const enum id_aa64zfr0_el1_sve_support id_aa64zfr0_el1_sve_support =
         (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SVEVER) >>
             ID_AA64ZFR0_EL1_SVE_SUPPORT_SHIFT;
@@ -415,7 +415,7 @@ void collect_cpu_features() {
             g_cpu_features.sve_bf16 = CPU_FEAT_SVE_EBF16;
             break;
     }
-    #endif
+#endif
 
     g_cpu_features.sel2 = (id_aa64pfr0 & __ID_AA64PFR0_EL1_SEL2) != 0;
     const enum id_aa64pfr0_el1_amu_support id_aa64pfr0_el1_amu_support =
@@ -678,8 +678,6 @@ void collect_cpu_features() {
         g_cpu_features.csv3 = true;
     }
 
-    // FIXME: gcc doesn't register the id_aa64smfr0 register
-#if 0
     const enum id_aa64mmfr3_anerr_support id_aa64mmfr3_anerr_support =
         (id_aa64mmfr3 & __ID_AA64MMFR3_ANERR) >>
             ID_AA64MMFR3_ANERR_SUPPORT_SHIFT;
@@ -712,6 +710,7 @@ void collect_cpu_features() {
     g_cpu_features.s2pie = (id_aa64mmfr3 & __ID_AA64MMFR3_S2PIE) != 0;
     g_cpu_features.s1poe = (id_aa64mmfr3 & __ID_AA64MMFR3_S1POE) != 0;
     g_cpu_features.s2poe = (id_aa64mmfr3 & __ID_AA64MMFR3_S2POE) != 0;
+#if 0
     g_cpu_features.sve_bitperm = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_BITPERM) != 0;
 
     g_cpu_features.sme_f16f16 = (id_aa64smfr0 & __ID_AA64SMFR0_F16F16) != 0;
@@ -725,10 +724,10 @@ void collect_cpu_features() {
     g_cpu_features.b16b16 =
         (id_aa64zfr0 & __ID_AA64ZFR0_EL1_B16B16) != 0 &&
         (id_aa64smfr0 & __ID_AA64SMFR0_B16B16) != 0;
-#endif
 
-    //g_cpu_features.sve_sha3 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SHA3) != 0;
-    //g_cpu_features.sve_sm4 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SM4) != 0;
+    g_cpu_features.sve_sha3 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SHA3) != 0;
+    g_cpu_features.sve_sm4 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SM4) != 0;
+#endif
     g_cpu_features.i8mm = (id_aa64isar1 & __ID_AA64ISAR1_EL1_I8MM) != 0;
     g_cpu_features.xs = (id_aa64isar1 & __ID_AA64ISAR1_EL1_XS) != 0;
     g_cpu_features.ls64 = (id_aa64isar1 & __ID_AA64ISAR1_EL1_LS64) != 0;

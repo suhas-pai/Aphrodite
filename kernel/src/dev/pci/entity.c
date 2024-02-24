@@ -7,6 +7,8 @@
 #include "dev/printk.h"
 
 #include "lib/util.h"
+
+#include "sys/isr.h"
 #include "sys/mmio.h"
 
 #include "entity.h"
@@ -118,8 +120,8 @@ bind_msix_to_vector(struct pci_entity_info *const entity,
 
     if (msix_vector == FIND_BIT_INVALID) {
         printk(LOGLEVEL_WARN,
-                "pcie: no free msix table entry found for binding "
-                "address %p to msix vector " ISR_VECTOR_FMT "\n",
+                "pcie: no free msix table entry found for binding address %p "
+                "to msix vector " ISR_VECTOR_FMT "\n",
                 (void *)address,
                 vector);
         return;
@@ -162,8 +164,8 @@ bind_msix_to_vector(struct pci_entity_info *const entity,
     const uint8_t bar_index = table_offset & __PCI_BARSPEC_TABLE_OFFSET_BIR;
     if (!index_in_bounds(bar_index, entity->max_bar_count)) {
         printk(LOGLEVEL_WARN,
-                "pcie: got invalid bar index while trying to bind "
-                "address %p to msix vector " ISR_VECTOR_FMT "\n",
+                "pcie: got invalid bar index while trying to bind address %p "
+                "to msix vector " ISR_VECTOR_FMT "\n",
                 (void *)address,
                 vector);
         return;
@@ -212,10 +214,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                               const isr_vector_t vector,
                               const bool masked)
 {
-    if (isr_get_msi_support() == ISR_MSI_SUPPORT_NONE) {
-        return false;
-    }
-
+#if ISR_SUPPORTS_MSI
     const uint64_t msi_address = isr_get_msi_address(cpu, vector);
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
@@ -233,74 +232,79 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
             bind_msix_to_vector(entity, msi_address, vector, masked);
             return true;
     }
+#else
+    (void)entity;
+    (void)cpu;
+    (void)vector;
+    (void)masked;
+#endif /* defined(ISR_SUPPORTS_MSI) */
 
     verify_not_reached();
 }
 
-__optimize(3) static void
-mask_msi_vector(const struct pci_entity_info *const entity,
-                const isr_vector_t vector,
-                const bool masked)
-{
-    if (!masked) {
-        return;
+#if ISR_SUPPORTS_MSI
+    __optimize(3) static void
+    mask_msi_vector(const struct pci_entity_info *const entity,
+                    const isr_vector_t vector,
+                    const bool masked)
+    {
+        if (!masked) {
+            return;
+        }
+
+        uint16_t msg_control =
+            pci_read_from_base(entity,
+                               entity->pcie_msi_offset,
+                               struct pci_spec_cap_msi,
+                               msg_control);
+
+        const bool is_64_bit = msg_control & __PCI_CAPMSI_CTRL_64BIT_CAPABLE;
+        if (is_64_bit) {
+            pci_write_from_base(entity,
+                                entity->pcie_msi_offset,
+                                struct pci_spec_cap_msi,
+                                bits64.mask_bits,
+                                1ull << vector);
+        } else {
+            pci_write_from_base(entity,
+                                entity->pcie_msi_offset,
+                                struct pci_spec_cap_msi,
+                                bits32.mask_bits,
+                                1ull << vector);
+        }
     }
 
-    uint16_t msg_control =
-        pci_read_from_base(entity,
-                           entity->pcie_msi_offset,
-                           struct pci_spec_cap_msi,
-                           msg_control);
+    __optimize(3) static void
+    mask_msix_vector(const struct pci_entity_info *const entity,
+                    const isr_vector_t vector,
+                    const bool masked)
+    {
+        const uint32_t table_offset =
+            pci_read_from_base(entity,
+                               entity->pcie_msix_offset,
+                               struct pci_spec_cap_msix,
+                               table_offset);
 
-    const bool is_64_bit = msg_control & __PCI_CAPMSI_CTRL_64BIT_CAPABLE;
-    if (is_64_bit) {
-        pci_write_from_base(entity,
-                            entity->pcie_msi_offset,
-                            struct pci_spec_cap_msi,
-                            bits64.mask_bits,
-                            1ull << vector);
-    } else {
-        pci_write_from_base(entity,
-                            entity->pcie_msi_offset,
-                            struct pci_spec_cap_msi,
-                            bits32.mask_bits,
-                            1ull << vector);
+        const uint8_t bar_index = table_offset & __PCI_BARSPEC_TABLE_OFFSET_BIR;
+        struct pci_entity_bar_info *const bar = &entity->bar_list[bar_index];
+
+        const uint64_t bar_address = (uint64_t)bar->mmio->base;
+        const uint64_t table_addr =
+            bar_address + rm_mask(table_offset, __PCI_BARSPEC_TABLE_OFFSET_BIR);
+
+        volatile struct pci_spec_cap_msix_table_entry *const table =
+            (volatile struct pci_spec_cap_msix_table_entry *)table_addr;
+
+        mmio_write(&table[vector].control, masked);
     }
-}
-
-__optimize(3) static void
-mask_msix_vector(const struct pci_entity_info *const entity,
-                 const isr_vector_t vector,
-                 const bool masked)
-{
-    const uint32_t table_offset =
-        pci_read_from_base(entity,
-                           entity->pcie_msix_offset,
-                           struct pci_spec_cap_msix,
-                           table_offset);
-
-    const uint8_t bar_index = table_offset & __PCI_BARSPEC_TABLE_OFFSET_BIR;
-    struct pci_entity_bar_info *const bar = &entity->bar_list[bar_index];
-
-    const uint64_t bar_address = (uint64_t)bar->mmio->base;
-    const uint64_t table_addr =
-        bar_address + rm_mask(table_offset, __PCI_BARSPEC_TABLE_OFFSET_BIR);
-
-    volatile struct pci_spec_cap_msix_table_entry *const table =
-        (volatile struct pci_spec_cap_msix_table_entry *)table_addr;
-
-    mmio_write(&table[vector].control, masked);
-}
+#endif /* defined(ISR_SUPPORTS_MSI) */
 
 bool
 pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
                                   const isr_vector_t vector,
                                   const bool mask)
 {
-    if (isr_get_msi_support() == ISR_MSI_SUPPORT_NONE) {
-        return false;
-    }
-
+#if ISR_SUPPORTS_MSI
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
@@ -315,6 +319,13 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
             mask_msix_vector(entity, vector, mask);
             return true;
     }
+#else
+    (void)entity;
+    (void)vector;
+    (void)mask;
+#endif /* defined(ISR_SUPPORTS_MSI) */
+
+    verify_not_reached();
 }
 
 __optimize(3) void
@@ -324,7 +335,8 @@ pci_entity_enable_privl(struct pci_entity_info *const entity,
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
-        (old_command | privl) ^ __PCI_DEVCMDREG_INT_DISABLE;
+        (old_command | (privl & __PCI_ENTITY_PRIVL_MASK)) ^
+        __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
 }

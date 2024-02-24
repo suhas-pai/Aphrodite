@@ -217,7 +217,7 @@ enum virtio_device_status {
     // valid virtio device.
     __VIRTIO_DEVSTATUS_ACKNOWLEDGE = 1 << 0,
 
-    // Indicates that the guest OS knows how to drive the device
+    // Indicates that the guest OS knows how to drive the device.
     __VIRTIO_DEVSTATUS_DRIVER = 1 << 1,
 
     // Indicates that the driver is set up and ready to drive the device.

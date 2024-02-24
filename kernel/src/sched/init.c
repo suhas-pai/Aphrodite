@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "cpu/util.h"
 #include "mm/kmalloc.h"
 
 #include "irq.h"
@@ -15,7 +16,7 @@ void sched_init() {
     struct thread *const idle_thread = kmalloc(sizeof(struct thread));
     assert(idle_thread != NULL);
 
-    sched_thread_init(idle_thread, &kernel_process);
+    sched_thread_init(idle_thread, &kernel_process, cpu_idle);
     g_base_cpu_info.idle_thread = idle_thread;
 
     sched_init_irq();
@@ -24,5 +25,5 @@ void sched_init() {
     sched_process_arch_info_init(&kernel_process);
     sched_process_algo_info_init(&kernel_process);
 
-    sched_thread_init(&kernel_main_thread, &kernel_process);
+    sched_thread_init(&kernel_main_thread, &kernel_process, /*entry=*/NULL);
 }

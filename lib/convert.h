@@ -36,12 +36,12 @@ struct str_to_num_options {
     bool dont_allow_0x_prefix : 1;
     bool dont_allow_0X_prefix : 1;
 
-    // Leading zeros after the prefix, should not be set with allow_0_prefix
+    // Leading zeros after the prefix, should not be set with allow_0_prefix.
     bool allow_leading_zeros : 1;
     bool dont_allow_pos_sign : 1;
     bool skip_leading_whitespace : 1;
 
-    // Parse to end-of-string, or return E_STR_TO_NUM_INVALID_CHAR
+    // Parse to end-of-string, or return E_STR_TO_NUM_INVALID_CHAR.
     bool dont_parse_to_end : 1;
 };
 

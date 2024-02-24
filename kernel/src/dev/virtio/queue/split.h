@@ -33,4 +33,4 @@ virtio_split_queue_add(struct virtio_split_queue *queue,
 
 void
 virtio_split_queue_commit(struct virtio_device *device,
-                            struct virtio_split_queue *queue);
+                          struct virtio_split_queue *queue);

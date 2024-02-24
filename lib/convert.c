@@ -42,18 +42,18 @@ convert_cstr_to_64int(const char *string,
         }
 
         ch = *(++string);
-        if (ch == '\0') {
+        if (__builtin_expect(ch == '\0', 0)) {
             return E_STR_TO_NUM_NO_DIGITS;
         }
 
         is_neg = true;
     } else if (ch == '+') {
-        if (options.dont_allow_pos_sign) {
+        if (__builtin_expect(options.dont_allow_pos_sign, 0)) {
             return E_STR_TO_NUM_UNALLOWED_POS_SIGN;
         }
 
         ch = *(++string);
-        if (ch == '\0') {
+        if (__builtin_expect(ch == '\0', 0)) {
             return E_STR_TO_NUM_NO_DIGITS;
         }
     }
@@ -200,13 +200,15 @@ convert_cstr_to_64int(const char *string,
     }
 
     if (is_signed) {
-        if (*result_out > INT64_MAX) {
+        if (__builtin_expect(*result_out > INT64_MAX, 0)) {
             return E_STR_TO_NUM_OVERFLOW;
         }
     }
 
     if (is_neg) {
-        if (check_sub(0, *result_out, (int64_t *)result_out)) {
+        if (__builtin_expect(
+                check_sub(0, *result_out, (int64_t *)result_out), 0))
+        {
             return E_STR_TO_NUM_UNDERFLOW;
         }
     }
@@ -232,7 +234,7 @@ convert_sv_to_64int(struct string_view sv,
             }
 
             sv = sv_drop_front(sv);
-            if (sv.length == 0) {
+            if (__builtin_expect(sv.length == 0, 0)) {
                 return E_STR_TO_NUM_NO_DIGITS;
             }
         } while (true);
@@ -246,7 +248,7 @@ convert_sv_to_64int(struct string_view sv,
         }
 
         sv = sv_drop_front(sv);
-        if (sv.length == 0) {
+        if (__builtin_expect(sv.length == 0, 0)) {
             return E_STR_TO_NUM_NO_DIGITS;
         }
 
@@ -257,7 +259,7 @@ convert_sv_to_64int(struct string_view sv,
         }
 
         sv = sv_drop_front(sv);
-        if (sv.length == 0) {
+        if (__builtin_expect(sv.length == 0, 0)) {
             return E_STR_TO_NUM_NO_DIGITS;
         }
     }
@@ -404,13 +406,15 @@ convert_sv_to_64int(struct string_view sv,
     }
 
     if (is_signed) {
-        if (*result_out > INT64_MAX) {
+        if (__builtin_expect(*result_out > INT64_MAX, 0)) {
             return E_STR_TO_NUM_OVERFLOW;
         }
     }
 
     if (is_negative) {
-        if (check_sub(0, *result_out, (int64_t *)result_out)) {
+        if (__builtin_expect(
+                check_sub(0, *result_out, (int64_t *)result_out), 0))
+        {
             return E_STR_TO_NUM_UNDERFLOW;
         }
     }

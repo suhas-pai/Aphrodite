@@ -15,12 +15,12 @@ struct driver {
     const struct pci_driver *pci;
 };
 
-extern struct driver drivers_start;
-extern struct driver drivers_end;
+extern char drivers_start[];
+extern char drivers_end[];
 
 #define driver_foreach(iter) \
-    for (struct driver *iter = &drivers_start; \
-         iter < &drivers_end;                  \
-         iter++)                               \
+    for (struct driver *iter = (struct driver *)(uint64_t)drivers_start; \
+         iter < (struct driver *)(uint64_t)drivers_end; \
+         iter++) \
 
 #define __driver __attribute__((used, section(".drivers")))

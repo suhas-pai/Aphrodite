@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "asm/irq_context.h"
+#include "asm/context.h"
 #include "driver.h"
 
 enum ps2_keyboard_command {
@@ -47,4 +47,4 @@ enum ps2_keyboard_byte_flags {
 };
 
 void ps2_keyboard_init(const enum ps2_port_id device_id);
-void ps2_keyboard_interrupt(uint64_t int_no, irq_context_t *context);
+void ps2_keyboard_interrupt(uint64_t int_no, struct thread_context *context);

@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 typedef uint16_t le16_t;
@@ -16,48 +14,50 @@ typedef uint16_t be16_t;
 typedef uint32_t be32_t;
 typedef uint64_t be64_t;
 
+__optimize(3) static inline uint16_t swap_endian_16(const uint16_t num) {
+    return (num << 8) | (num >> 8);
+}
+
+__optimize(3) static inline uint32_t swap_endian_32(const uint32_t num) {
+    return ((num & 0xFF) << 24) |
+           ((num & 0xFF00) << 8) |
+           ((num & 0xFF0000) >> 8) |
+           ((num & 0xFF000000) >> 24);
+}
+
+__optimize(3) static inline be64_t swap_endian_64(const uint64_t num) {
+    return ((num & 0xFFULL) << 56) |
+           ((num & 0xFF00ULL) << 40) |
+           ((num & 0xFF0000ULL) << 24) |
+           ((num & 0xFF000000ULL) << 8) |
+           ((num & 0xFF00000000ULL) >> 8) |
+           ((num & 0xFF0000000000ULL) >> 24) |
+           ((num & 0xFF000000000000ULL) >> 40) |
+           ((num & 0xFF00000000000000ULL) >> 56);
+}
+
 __optimize(3) static inline be16_t le16_to_be(const le16_t le) {
-    return (le << 8) | (le >> 8);
+    return swap_endian_16(le);
 }
 
 __optimize(3) static inline be32_t le32_to_be(const le32_t le) {
-    return ((le & 0xFF) << 24) |
-           ((le & 0xFF00) << 8) |
-           ((le & 0xFF0000) >> 8) |
-           ((le & 0xFF000000) >> 24);
+    return swap_endian_32(le);
 }
 
 __optimize(3) static inline be64_t le64_to_be(const le64_t le) {
-    return ((le & 0xFFULL) << 56) |
-           ((le & 0xFF00ULL) << 40) |
-           ((le & 0xFF0000ULL) << 24) |
-           ((le & 0xFF000000ULL) << 8) |
-           ((le & 0xFF00000000ULL) >> 8) |
-           ((le & 0xFF0000000000ULL) >> 24) |
-           ((le & 0xFF000000000000ULL) >> 40) |
-           ((le & 0xFF00000000000000ULL) >> 56);
+    return swap_endian_64(le);
 }
 
 __optimize(3) static inline le16_t be16_to_le(const be16_t be) {
-    return (be << 8) | (be >> 8);
+    return swap_endian_16(be);
 }
 
 __optimize(3) static inline le32_t be32_to_le(const be32_t be) {
-    return ((be & 0xFF) << 24) |
-           ((be & 0xFF00) << 8) |
-           ((be & 0xFF0000) >> 8) |
-           ((be & 0xFF000000) >> 24);
+    return swap_endian_32(be);
 }
 
 __optimize(3) static inline le64_t be64_to_le(const be64_t be) {
-    return ((be & 0xFFULL) << 56) |
-           ((be & 0xFF00ULL) << 40) |
-           ((be & 0xFF0000ULL) << 24) |
-           ((be & 0xFF000000ULL) << 8) |
-           ((be & 0xFF00000000ULL) >> 8) |
-           ((be & 0xFF0000000000ULL) >> 24) |
-           ((be & 0xFF000000000000ULL) >> 40) |
-           ((be & 0xFF00000000000000ULL) >> 56);
+    return swap_endian_64(be);
 }
 
 #define le_to_be(num) \

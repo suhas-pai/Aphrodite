@@ -236,7 +236,8 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
         return;
     }
 
-    // On x86_64, the fadt may provide a flag indicating the MSI is disabled.
+    // On x86_64, the fadt may provide a flag indicating that the MSI feature is
+    // disabled.
 #if defined(__x86_64__)
     bool supports_msi = true;
     const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
@@ -657,8 +658,6 @@ parse_function(const struct pci_bus *const bus,
                    "pcie: cardbus bridge not supported. ignoring");
             break;
     }
-
-    // pci_write(&info, struct pci_spec_entity_info_base, command, info.command);
 
     struct pci_entity_info *const info_out = kmalloc(sizeof(*info_out));
     if (info_out == NULL) {

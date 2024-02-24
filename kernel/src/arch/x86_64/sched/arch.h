@@ -4,7 +4,6 @@
  */
 
 #pragma once
-#include "asm/context.h"
 
 struct process_arch_info {
 
@@ -15,10 +14,10 @@ void sched_process_arch_info_init(struct process *process);
 
 struct thread_arch_info {
     struct page *kernel_stack;
-    struct register_context *context;
+    struct irq_register_context *context;
 
     void *avx_state;
 };
 
 struct thread;
-void sched_thread_arch_info_init(struct thread *thread);
+void sched_thread_arch_info_init(struct thread *thread, const void *entry);

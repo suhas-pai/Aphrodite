@@ -44,11 +44,6 @@ enum ata_command {
     ATA_CMD_IDENTIFY = 0xEC,
 };
 
-enum atapi_commands {
-    ATAPI_CMD_READ = 0xA8,
-    ATAPI_CMD_EJECT = 0x1B,
-};
-
 enum ata_ident_capabilities {
     __ATA_IDENTITY_CAP_DMA_SUPPORT = 1 << 8,
     __ATA_IDENTITY_CAP_LBA_SUPPORT = 1 << 9,
@@ -154,3 +149,5 @@ enum ata_register {
 enum {
     __ATA_USE_LBA_ADDRESSING = 1 << 6
 };
+
+#define ATA_SECTOR_SIZE 512

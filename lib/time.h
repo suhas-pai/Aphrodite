@@ -310,7 +310,7 @@ int timespec_compare(const struct timespec left, const struct timespec right) {
 enum weekday {
     WEEKDAY_INVALID = -1,
 
-    WEEKDAY_SUNDAY = 0,
+    WEEKDAY_SUNDAY,
     WEEKDAY_MONDAY,
     WEEKDAY_TUESDAY,
     WEEKDAY_WEDNESDAY,

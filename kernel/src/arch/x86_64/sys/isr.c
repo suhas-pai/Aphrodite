@@ -46,10 +46,13 @@ __optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
-extern void handle_exception(const uint64_t vector, irq_context_t *const frame);
+extern void
+handle_exception(const uint64_t vector, struct thread_context *const frame);
 
-__optimize(3)
-void isr_handle_interrupt(const uint64_t vector, irq_context_t *const frame) {
+__optimize(3) void
+isr_handle_interrupt(const uint64_t vector,
+                     struct thread_context *const frame)
+{
     if (g_funcs[vector] != NULL) {
         g_funcs[vector](vector, frame);
     } else {
@@ -65,8 +68,8 @@ void isr_handle_interrupt(const uint64_t vector, irq_context_t *const frame) {
     }
 }
 
-__optimize(3)
-static void spur_tick(const uint64_t int_no, irq_context_t *const frame) {
+__optimize(3) static
+void spur_tick(const uint64_t int_no, struct thread_context *const frame) {
     (void)int_no;
     (void)frame;
 
@@ -109,10 +112,6 @@ isr_assign_irq_to_cpu(struct cpu_info *const cpu,
 __optimize(3) void isr_eoi(const uint64_t int_no) {
     (void)int_no;
     lapic_eoi();
-}
-
-__optimize(3) enum isr_msi_support isr_get_msi_support() {
-    return ISR_MSI_SUPPORT_MSIX;
 }
 
 __optimize(3) uint64_t

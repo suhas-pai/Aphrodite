@@ -1355,15 +1355,12 @@ __optimize(3) static inline uint64_t read_id_aa64mmfr2_el1() {
     return result;
 }
 
-// FIXME: gcc doesn't recognize the ID_AA64MMFR3_EL1 register
-#if 0
 __optimize(3) static inline uint64_t read_id_aa64mmfr3_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64mmfr3_el1" : "=r"(result));
 
     return result;
 }
-#endif
 
 __optimize(3) static inline uint64_t read_id_aa64mmfr4_el1() {
     uint64_t result = 0;
@@ -1372,7 +1369,7 @@ __optimize(3) static inline uint64_t read_id_aa64mmfr4_el1() {
     return result;
 }
 
-// FIXME: gcc doesn't recognize the id_aa64smfr0 register
+// FIXME: clang doesn't yet recognize these registers
 #if 0
 __optimize(3) static inline uint64_t read_id_aa64smfr0_el1() {
     uint64_t result = 0;
@@ -1380,10 +1377,7 @@ __optimize(3) static inline uint64_t read_id_aa64smfr0_el1() {
 
     return result;
 }
-#endif
 
-// FIXME: clang doesn't recognize the id_aa64zfr0 register
-#if 0
 __optimize(3) static inline uint64_t read_id_aa64zfr0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64zfr0_el1" : "=r"(result));

@@ -13,7 +13,7 @@ __optimize(3) struct thread *current_thread() {
     return thread;
 }
 
-void sched_set_current_thread(struct thread *const thread) {
+__optimize(3) void sched_set_current_thread(struct thread *const thread) {
     asm volatile ("msr tpidr_el1, %0" :: "r"(thread));
 }
 

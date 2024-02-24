@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "asm/irq_context.h"
+#include "asm/context.h"
 #include "sys/idt.h"
 
 struct arch_isr_info {
@@ -18,9 +18,11 @@ struct arch_isr_info {
     })
 
 typedef idt_vector_t isr_vector_t;
+
+#define ISR_SUPPORTS_MSI 1
 #define ISR_VECTOR_FMT "%" PRIu8
 
-typedef void (*isr_func_t)(uint64_t int_no, irq_context_t *frame);
+typedef void (*isr_func_t)(uint64_t int_no, struct thread_context *frame);
 
 isr_vector_t isr_get_spur_vector();
 isr_vector_t isr_get_timer_vector();

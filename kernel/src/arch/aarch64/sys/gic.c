@@ -10,8 +10,9 @@
 #include "lib/align.h"
 
 #include "mm/kmalloc.h"
-#include "sys/mmio.h"
+#include "mm/mmio.h"
 
+#include "sys/mmio.h"
 #include "gic.h"
 
 #define GIC_DIST_IMPLEMENTER_ID_RESET 0x0001043B
@@ -329,7 +330,7 @@ volatile uint64_t *gicd_get_msi_address(const isr_vector_t vector) {
     return NULL;
 }
 
-static void init_msi_frame(struct mmio_region *const mmio) {
+static bool init_msi_frame(struct mmio_region *const mmio) {
     volatile struct gicd_v2m_msi_frame_registers *const regs = mmio->base;
 
     const uint32_t typer = mmio_read(&regs->typer);
@@ -346,11 +347,23 @@ static void init_msi_frame(struct mmio_region *const mmio) {
            spi_base,
            spi_count);
 
+    const uint16_t gic_spi_count =
+        distance_incl(GIC_SPI_INTERRUPT_START, GIC_SPI_INTERRUPT_LAST);
+    const struct range gic_spi_range =
+        RANGE_INIT(GIC_SPI_INTERRUPT_START, gic_spi_count);
+
+    const struct range spi_range = RANGE_INIT(spi_base, spi_count);
+    if (!range_has(gic_spi_range, spi_range)) {
+        printk(LOGLEVEL_WARN,
+               "gic: msi-frame is outside of spi interrupt range\n");
+        return false;
+    }
+
     isr_reserve_msi_irqs(spi_base, spi_count);
 
     struct gic_v2_msi_info *const info = kmalloc(sizeof(*info));
     if (info == NULL) {
-        return;
+        return false;
     }
 
     info->mmio = mmio;
@@ -359,16 +372,17 @@ static void init_msi_frame(struct mmio_region *const mmio) {
     info->spi_count = spi_count;
 
     list_add(&g_msi_info_list, &info->list);
+    return true;
 }
 
-struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
+void gicd_add_msi(const uint64_t phys_base_address) {
     if (!has_align(phys_base_address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
-                "gicd: msi frame's physical base address (%p) is not aligned "
+                "gicd: msi frame's physical base address %p is not aligned "
                 "to the page-size (%" PRIu32 ")\n",
                 (void *)phys_base_address,
                 (uint32_t)PAGE_SIZE);
-        return NULL;
+        return;
     }
 
     const struct range mmio_range = RANGE_INIT(phys_base_address, PAGE_SIZE);
@@ -379,7 +393,12 @@ struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
         printk(LOGLEVEL_WARN,
                "gicd: failed to mmio-map msi-frame at phys address %p\n",
                (void *)phys_base_address);
-        return NULL;
+        return;
+    }
+
+    if (!init_msi_frame(mmio)) {
+        vunmap_mmio(mmio);
+        return;
     }
 
     const struct gic_msi_frame msi_frame = {
@@ -389,9 +408,6 @@ struct gic_msi_frame *gicd_add_msi(const uint64_t phys_base_address) {
 
     assert_msg(array_append(&g_dist.msi_frame_list, &msi_frame),
                "gicd: failed to append msi-frame to list");
-
-    init_msi_frame(mmio);
-    return array_back(g_dist.msi_frame_list);
 }
 
 __optimize(3) const struct gic_distributor *gic_get_dist() {

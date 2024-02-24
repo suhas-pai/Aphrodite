@@ -132,7 +132,7 @@ void set_pages_dirty(struct page *const page, const uint64_t amount) {
                                   memory_order_relaxed);
 
             const uint8_t order =
-                largepage_level_info_list[iter->largehead.level].order;
+                largepage_level_info_list[iter->largehead.level - 1].order;
 
             struct page *tail = iter + 1;
             const struct page *const end = iter + (1ull << order);

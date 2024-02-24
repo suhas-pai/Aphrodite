@@ -310,7 +310,7 @@ __optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
     }
 }
 
-bool
+__optimize(3) bool
 addrspace_add_node(struct address_space *const addrspace,
                    struct addrspace_node *const node)
 {
@@ -322,7 +322,7 @@ addrspace_add_node(struct address_space *const addrspace,
                        /*added_node=*/add_node_cb);
 }
 
-void addrspace_remove_node(struct addrspace_node *const node) {
+__optimize(3) void addrspace_remove_node(struct addrspace_node *const node) {
     avltree_delete_node(&node->addrspace->avltree,
                         &node->avlnode,
                         avltree_update);

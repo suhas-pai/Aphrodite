@@ -15,7 +15,7 @@ __optimize(3) static void tlb_flush_range(const struct range range) {
     }
 }
 
-void tlb_flush_pageop(struct pageop *const pageop) {
+__optimize(3) void tlb_flush_pageop(struct pageop *const pageop) {
     tlb_flush_range(pageop->flush_range);
 
     struct page *page = NULL;

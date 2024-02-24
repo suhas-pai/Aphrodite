@@ -89,11 +89,9 @@ range_round_up(const struct range range,
     uint64_t front = 0;
     uint64_t size = 0;
 
-    if (!round_up(range.front, mult, &front)) {
-        return false;
-    }
-
-    if (!round_up(range.size, mult, &size)) {
+    if (!round_up(range.front, mult, &front) ||
+        !round_up(range.size, mult, &size))
+    {
         return false;
     }
 

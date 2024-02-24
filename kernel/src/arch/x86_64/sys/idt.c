@@ -112,7 +112,8 @@ void idt_init() {
     idt_load();
 }
 
-void handle_exception(const uint64_t int_no, irq_context_t *const context) {
+void
+handle_exception(const uint64_t int_no, struct thread_context *const context) {
     const char *except_str = NULL;
     switch ((enum exception)int_no) {
         case EXCEPTION_DIVIDE_BY_ZERO:

@@ -288,9 +288,9 @@ ide_init(const uint32_t bar0,
         }
 
         printk(LOGLEVEL_INFO,
-               "ide: found device %s, drive " SIZE_TO_UNIT_FMT " - %s\n",
+               "ide: found device %s, drive " SIZE_UNIT_FMT " - %s\n",
                device_name_list[g_devices_list[i].type],
-               SIZE_TO_UNIT_FMT_ARGS(g_devices_list[i].size),
+               SIZE_UNIT_FMT_ARGS(g_devices_list[i].size),
                g_devices_list[i].model);
 
         found_device = true;

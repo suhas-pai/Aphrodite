@@ -420,8 +420,8 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     if (src > dst) {
     #if defined(__x86_64__)
         if (n >= REP_MOVSB_MIN) {
-            asm volatile ("cld;"
-                          "rep movsb;"
+            asm volatile ("cld\n"
+                          "rep movsb\n"
                           : "+D"(dst), "+S"(src), "+c"(n)
                           :: "memory");
             return ret;
@@ -447,8 +447,8 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
             void *dst_back = &((uint8_t *)dst)[n - 1];
             const void *src_back = &((const uint8_t *)src)[n - 1];
 
-            asm volatile ("std;"
-                          "rep movsb;"
+            asm volatile ("std\n"
+                          "rep movsb\n"
                           "cld"
                           : "+D"(dst_back), "+S"(src_back), "+c"(n)
                           :: "memory");
@@ -490,7 +490,7 @@ __optimize(3) void *memset(void *dst, const int val, unsigned long n) {
     void *ret = dst;
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
-        asm volatile ("cld;"
+        asm volatile ("cld\n"
                       "rep stosb"
                       : "+D"(dst), "+c"(n)
                       : "a"(val)
@@ -571,7 +571,7 @@ void *memchr(const void *const ptr, const int ch, const size_t count) {
 __optimize(3) void bzero(void *dst, unsigned long n) {
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
-        asm volatile ("cld;"
+        asm volatile ("cld\n"
                       "rep stosb"
                       : "+D"(dst), "+c"(n)
                       : "a"(0)

@@ -154,7 +154,7 @@ gbuffer_increment_ptr(struct growable_buffer *const gbuffer,
 __optimize(3) uint32_t
 gbuffer_decrement_ptr(struct growable_buffer *const gbuffer, const uint32_t amt)
 {
-    const uint32_t delta = min(gbuffer->index, amt);
+    const uint32_t delta = min((uint32_t)gbuffer->index, amt);
     gbuffer->index -= delta;
 
     return delta;
@@ -227,18 +227,18 @@ gbuffer_remove_range(struct growable_buffer *const gbuffer,
     assert(index_range_in_bounds(range, used));
 
     const uint32_t end = range_get_end_assert(range);
-    if (end != used - 1) {
+    if (end != used) {
         memmove(gbuffer->begin + range.front, gbuffer->begin + end, used - end);
     }
 
-    gbuffer->index = used - 1;
+    gbuffer->index = used - range.size;
 }
 
 __optimize(3) void
 gbuffer_truncate(struct growable_buffer *const gbuffer,
                  const uint32_t byte_index)
 {
-    gbuffer->index = min(gbuffer->index, byte_index);
+    gbuffer->index = min((uint32_t)gbuffer->index, byte_index);
 }
 
 __optimize(3) void *gbuffer_take_data(struct growable_buffer *const gbuffer) {

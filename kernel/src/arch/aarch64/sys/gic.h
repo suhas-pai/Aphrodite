@@ -8,8 +8,6 @@
 #include "dev/dtb/node.h"
 #include "dev/dtb/tree.h"
 
-#include "lib/adt/array.h"
-#include "mm/mmio.h"
 #include "sys/isr.h"
 
 #define GIC_SGI_INTERRUPT_START 0
@@ -79,9 +77,10 @@ gic_init_from_dtb(const struct devicetree *tree,
 void gic_init_on_this_cpu(uint64_t phys_address, uint64_t size);
 void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 
-struct gic_msi_frame *gicd_add_msi(uint64_t phys_base_address);
 const struct gic_distributor *gic_get_dist();
 struct list *gicd_get_msi_info_list();
+
+void gicd_add_msi(uint64_t phys_base_address);
 
 typedef uint16_t irq_number_t;
 

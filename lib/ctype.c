@@ -158,12 +158,12 @@ __optimize(3) static inline bool is_ascii(const C_TYPE c) {
     (void)c;
     return true;
 #else
-    return (c > 0 && c < 128);
+    return c > 0 && c < 128;
 #endif
 }
 
 __optimize(3) int isalnum(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -172,7 +172,7 @@ __optimize(3) int isalnum(const C_TYPE c) {
 }
 
 __optimize(3) int isalpha(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -180,7 +180,7 @@ __optimize(3) int isalpha(const C_TYPE c) {
 }
 
 __optimize(3) int iscntrl(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -188,7 +188,7 @@ __optimize(3) int iscntrl(const C_TYPE c) {
 }
 
 __optimize(3) int isdigit(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -196,7 +196,7 @@ __optimize(3) int isdigit(const C_TYPE c) {
 }
 
 __optimize(3) int isgraph(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -204,7 +204,7 @@ __optimize(3) int isgraph(const C_TYPE c) {
 }
 
 __optimize(3) int islower(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -212,7 +212,7 @@ __optimize(3) int islower(const C_TYPE c) {
 }
 
 __optimize(3) int isprint(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -220,7 +220,7 @@ __optimize(3) int isprint(const C_TYPE c) {
 }
 
 __optimize(3) int ispunct(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -228,7 +228,7 @@ __optimize(3) int ispunct(const C_TYPE c) {
 }
 
 __optimize(3) int isspace(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -236,7 +236,7 @@ __optimize(3) int isspace(const C_TYPE c) {
 }
 
 __optimize(3) int isupper(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 
@@ -244,7 +244,7 @@ __optimize(3) int isupper(const C_TYPE c) {
 }
 
 __optimize(3) int isxdigit(const C_TYPE c) {
-    if (!is_ascii(c)) {
+    if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
 

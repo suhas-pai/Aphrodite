@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "asm/context.h"
 #include "asm/irqs.h"
-#include "asm/irq_context.h"
 
 #include "dev/printk.h"
 
@@ -15,7 +15,7 @@ static uint64_t g_tick = 0;
 static enum pit_granularity g_gran = 0;
 
 // TODO: Implement callbacks, sleep, etc.
-void irq$pit(const uint64_t int_no, irq_context_t *const regs) {
+void irq$pit(const uint64_t int_no, struct thread_context *const regs) {
     (void)int_no;
     (void)regs;
 
@@ -36,7 +36,7 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     //isr_register_for_vector(IRQ_TIMER, irq$pit);
 }
 
-void pit_sleep_for(const uint32_t ms) {
+__optimize(3) void pit_sleep_for(const uint32_t ms) {
     pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0x30);
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, ms);
 
@@ -50,7 +50,7 @@ void pit_sleep_for(const uint32_t ms) {
     } while (true);
 }
 
-uint16_t pit_get_current_tick() {
+__optimize(3) uint16_t pit_get_current_tick() {
     const bool flag = disable_interrupts_if_not();
     pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0);
 
@@ -61,7 +61,7 @@ uint16_t pit_get_current_tick() {
     return (uint16_t)high << 8 | low;
 }
 
-void pit_set_reload_value(const uint16_t count) {
+__optimize(3) void pit_set_reload_value(const uint16_t count) {
     const bool flag = disable_interrupts_if_not();
 
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, count & 0xFF);

@@ -18,7 +18,10 @@ __hidden struct thread kernel_main_thread = {
 };
 
 void
-sched_thread_init(struct thread *const thread, struct process *const process) {
+sched_thread_init(struct thread *const thread,
+                  struct process *const process,
+                  const void *const entry)
+{
     thread->process = process;
     thread->cpu = this_cpu_mut();
 
@@ -28,7 +31,7 @@ sched_thread_init(struct thread *const thread, struct process *const process) {
 
     thread->event_index = -1;
 
-    sched_thread_arch_info_init(thread);
+    sched_thread_arch_info_init(thread, entry);
     sched_thread_algo_info_init(thread);
 }
 

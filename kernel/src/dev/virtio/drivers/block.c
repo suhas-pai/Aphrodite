@@ -69,7 +69,7 @@ virtio_block_driver_init(struct virtio_device *const device,
     const uint64_t capacity = virtio_block_read_config_field(device, capacity);
     printk(LOGLEVEL_INFO,
            "virtio-block: device has the following info:\n"
-           "\tcapacity: " SIZE_TO_UNIT_FMT "\n"
+           "\tcapacity: " SIZE_UNIT_FMT "\n"
            "\tgeometry:\n"
            "\t\tcylinders: %" PRIu16 "\n"
            "\t\theads: %" PRIu8 "\n"
@@ -81,7 +81,7 @@ virtio_block_driver_init(struct virtio_device *const device,
            "\t\tmin io-size: %" PRIu16 "\n"
            "\t\toptimal io-size: %" PRIu32 "\n"
            "\tqueue count: %" PRIu16 "\n",
-           SIZE_TO_UNIT_FMT_ARGS(capacity),
+           SIZE_UNIT_FMT_ARGS(capacity),
            virtio_block_read_config_field(device, geometry.cylinders),
            virtio_block_read_config_field(device, geometry.heads),
            virtio_block_read_config_field(device, geometry.sectors),

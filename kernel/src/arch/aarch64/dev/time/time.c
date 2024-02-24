@@ -49,19 +49,15 @@ __optimize(3) nsec_t nsec_since_boot() {
 }
 
 __optimize(3) void oneshot_alarm(const nsec_t nano) {
-    const sec_t seconds = nano_to_seconds(g_frequency * nano);
-    asm volatile ("msr cntp_tval_el0, %0" :: "r"(seconds));
+    sec_t timestamp = 0;
+    asm volatile ("mrs %0, cntpct_el0" : "=r"(timestamp));
 
-    printk(LOGLEVEL_INFO, "time: seconds is %" PRIu64 "\n", seconds);
-
-    uint64_t tval = 1;
-    asm volatile ("mrs %0, cntp_tval_el0" : "+r"(tval));
-
-    printk(LOGLEVEL_INFO, "time: tval is %" PRIu64 "\n", tval);
+    const uint64_t compare = timestamp + nano_to_seconds(g_frequency * nano);
+    asm volatile ("msr cntp_cval_el0, %0" :: "r"(compare));
 }
 
-__optimize(3) static
-void interrupt_handler(const uint64_t int_no, irq_context_t *const frame) {
+__optimize(3) static void
+interrupt_handler(const uint64_t int_no, struct thread_context *const frame) {
     (void)int_no;
     (void)frame;
 
@@ -129,5 +125,5 @@ void arch_init_time() {
     enable_dtb_timer_irqs();
 
     printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
-    oneshot_alarm(2000);
+    oneshot_alarm(20);
 }

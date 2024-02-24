@@ -113,6 +113,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
     info.max_redirect_count =
         ioapic_version_reg_get_max_redirect_count(ioapic_version_reg);
 
+    const struct range mmio_range = mmio_region_get_range(info.regs_mmio);
     printk(LOGLEVEL_INFO,
            "ioapic: added ioapic\n"
            "\tversion: %" PRIu8 "\n"
@@ -120,7 +121,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
            "\tmmio: " RANGE_FMT "\n",
            info.version,
            info.max_redirect_count,
-           RANGE_FMT_ARGS(mmio_region_get_range(info.regs_mmio)));
+           RANGE_FMT_ARGS(mmio_range));
 
     assert_msg(array_append(&g_ioapic_list, &info),
                "ioapic: failed to add io-apic base to array");

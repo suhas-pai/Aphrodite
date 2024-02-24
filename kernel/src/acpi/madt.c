@@ -10,14 +10,12 @@
     #include "apic/ioapic.h"
     #include "apic/lapic.h"
     #include "apic/init.h"
-#elif defined(__aarch64__)
-    #include "cpu/info.h"
 #endif /* defined(__x86_64__) */
 
 #include "dev/printk.h"
 
 #if defined(__aarch64__)
-    #include "mm/mmio.h"
+    #include "mm/mm_types.h"
     #include "sys/gic.h"
 #endif /* defined(__aarch64__) */
 
@@ -429,24 +427,17 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_entry_gic_msi_frame *const frame =
                     (const struct acpi_madt_entry_gic_msi_frame *)iter;
 
-                struct gic_msi_frame *const gic_frame =
-                    gicd_add_msi(frame->phys_base_address);
-
+                gicd_add_msi(frame->phys_base_address);
                 printk(LOGLEVEL_INFO,
                        "madt: found msi-frame\n"
                        "\tmsi frame id: %" PRIu32 "\n"
                        "\tphys base address: 0x%" PRIx64 "\n"
-                       "\t\tmmio: " RANGE_FMT "\n"
                        "\tflags: 0x%" PRIx8 "\n"
                        "\t\toverride msi_typer: %s\n"
                        "\tspi count: %" PRIu16 "\n"
                        "\tspi base: %" PRIu16 "\n",
                        frame->msi_frame_id,
                        frame->phys_base_address,
-                       RANGE_FMT_ARGS(
-                            gic_frame != NULL ?
-                                mmio_region_get_range(gic_frame->mmio) :
-                                RANGE_EMPTY()),
                        frame->flags,
                        frame->flags &
                         __ACPI_MADT_GICMSI_FRAME_OVERR_MSI_TYPERR ?

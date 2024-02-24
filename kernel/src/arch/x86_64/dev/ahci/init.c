@@ -27,8 +27,8 @@ __optimize(3) static
 bool ahci_hba_probe_port(volatile struct ahci_spec_hba_port *const port) {
     const uint32_t sata_status = mmio_read(&port->sata_status);
     const enum ahci_hba_port_ipm ipm =
-        (sata_status & __AHCI_HBA_PORT_SATA_STAT_CTRL_IPM)
-            >> AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT;
+        (sata_status & __AHCI_HBA_PORT_SATA_STAT_CTRL_IPM) >>
+            AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT;
 
     const enum ahci_hba_port_det det =
         sata_status & __AHCI_HBA_PORT_SATA_STAT_CTRL_DET;

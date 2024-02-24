@@ -26,6 +26,9 @@ preprocess_for_append(struct mutable_buffer *const mbuffer,
 
 __optimize(3) struct mutable_buffer
 mbuffer_open(void *const buffer, const uint32_t used, const uint32_t capacity) {
+    assert(used <= capacity);
+    check_add_assert((uint64_t)buffer, used);
+
     return mbuffer_open_static(buffer, used, capacity);
 }
 
@@ -34,14 +37,12 @@ mbuffer_open_static(void *const buffer,
                     const uint32_t used,
                     const uint32_t capacity)
 {
-    assert(used <= capacity);
     struct mutable_buffer mbuffer = {
         .begin = buffer,
         .index = used,
         .end = buffer + capacity
     };
 
-    check_add_assert((uint64_t)mbuffer.begin, used);
     return mbuffer;
 }
 
@@ -49,8 +50,7 @@ __optimize(3) void *mbuffer_current_ptr(const struct mutable_buffer mbuffer) {
     return mbuffer.begin + mbuffer.index;
 }
 
-__optimize(3)
-uint32_t mbuffer_free_space(const struct mutable_buffer mbuffer) {
+__optimize(3) uint32_t mbuffer_free_space(const struct mutable_buffer mbuffer) {
     return distance(mbuffer_current_ptr(mbuffer), mbuffer.end);
 }
 
