@@ -11,6 +11,7 @@
 #include "sched/process.h"
 
 #include "page.h"
+#include "section.h"
 #include "zone.h"
 
 // Caller is required to set section->min_order
@@ -381,7 +382,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
     }
 
     // Iterate over each section and try to acquire the section's lock.
-    // Immediately continue if someone is currently holding the lock, and if the
+    // Immediately continue if someone is currently holding the lock.
 
     int flag = 0;
 

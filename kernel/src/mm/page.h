@@ -4,12 +4,12 @@
  */
 
 #pragma once
+
 #include "lib/refcount.h"
 
-#include "mm/section.h"
-#include "mm/slab.h"
-
 #include "mm_types.h"
+#include "slab.h"
+#include "section.h"
 
 enum page_state {
     // In free-list is the only state not guaranteed to be set.

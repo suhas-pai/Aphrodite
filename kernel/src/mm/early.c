@@ -69,6 +69,7 @@ __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
                "early; failed to claim memmap at phys-range " RANGE_FMT ", "
                "couldn't align to 16kib page size\n",
                RANGE_FMT_ARGS(phys_range));
+        return;
     }
 #else
     const struct range phys_range = memmap->range;
@@ -175,9 +176,7 @@ __optimize(3) uint64_t early_alloc_page() {
     return free_page;
 }
 
-__optimize(3)
-uint64_t early_alloc_large_page(const pgt_level_t level, void *const cb_info) {
-    (void)cb_info;
+__optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");
         return INVALID_PHYS;
@@ -231,11 +230,11 @@ uint64_t early_alloc_large_page(const pgt_level_t level, void *const cb_info) {
             struct freepages_info *const info_prev =
                 list_prev_safe(info, asc_list, &g_asc_freelist);
 
-            if (info_prev != NULL &&
-                info_prev->avail_page_count > info->avail_page_count)
-            {
-                list_remove(&info->asc_list);
-                add_to_asc_list(info);
+            if (info_prev != NULL) {
+                if (info_prev->avail_page_count > info->avail_page_count) {
+                    list_remove(&info->asc_list);
+                    add_to_asc_list(info);
+                }
             }
         } else {
             prev = list_prev(info, list);
@@ -263,19 +262,19 @@ uint64_t early_alloc_large_page(const pgt_level_t level, void *const cb_info) {
         }
     } else {
         info->avail_page_count -= alloc_amount;
-        if (info->avail_page_count == 0) {
-            list_delete(&info->list);
-            list_delete(&info->asc_list);
-        } else {
+        if (info->avail_page_count != 0) {
             const struct freepages_info *const prev =
                 list_prev_safe(info, asc_list, &g_asc_freelist);
 
-            if (prev != NULL &&
-                prev->avail_page_count > info->avail_page_count)
-            {
-                list_remove(&info->asc_list);
-                add_to_asc_list(info);
+            if (prev != NULL) {
+                if (prev->avail_page_count > info->avail_page_count) {
+                    list_remove(&info->asc_list);
+                    add_to_asc_list(info);
+                }
             }
+        } else {
+            list_delete(&info->list);
+            list_delete(&info->asc_list);
         }
     }
 

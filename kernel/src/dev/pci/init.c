@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/pci/entity.h"
 #if defined(__x86_64__)
     #include "dev/pci/legacy.h"
     #include "acpi/api.h"
@@ -532,7 +531,7 @@ parse_function(const struct pci_bus *const bus,
     const uint16_t disable_flags =
         __PCI_DEVCMDREG_IOSPACE |
         __PCI_DEVCMDREG_MEMSPACE |
-        __PCI_ENTITY_PRIVL_BUS_MASTER;
+        __PCI_DEVCMDREG_BUS_MASTER;
     const uint16_t old_command =
         pci_read(&info, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =

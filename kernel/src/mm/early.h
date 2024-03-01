@@ -22,7 +22,7 @@ mm_early_identity_map_phys(uint64_t root_phys,
 void mm_remove_early_identity_map();
 
 uint64_t early_alloc_page();
-uint64_t early_alloc_large_page(pgt_level_t level, void *cb_info);
+uint64_t early_alloc_large_page(pgt_level_t level);
 
 void
 early_free_pages_from_section(struct page *page,

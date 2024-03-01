@@ -15,7 +15,7 @@ struct cpu_info {
 
     struct thread *idle_thread;
 
-    uint64_t spur_int_count;
+    uint64_t spur_intr_count;
     uint16_t hart_id;
 
     uint16_t cbo_size;

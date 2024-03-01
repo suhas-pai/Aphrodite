@@ -47,4 +47,4 @@ enum ps2_keyboard_byte_flags {
 };
 
 void ps2_keyboard_init(const enum ps2_port_id device_id);
-void ps2_keyboard_interrupt(uint64_t int_no, struct thread_context *context);
+void ps2_keyboard_interrupt(uint64_t intr_no, struct thread_context *context);

@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "asm/irqs.h"
 #include "cpu/info.h"
 
 #if __has_include("mm/tlb.h")
@@ -144,6 +145,7 @@ __optimize(3) void pageop_finish(struct pageop *const pageop) {
         return;
     }
 
+    assert(!are_interrupts_enabled());
     if (&this_cpu()->process->pagemap == pageop->pagemap) {
     #if defined(__x86_64__)
         tlb_flush_pageop(pageop);

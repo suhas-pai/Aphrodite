@@ -22,7 +22,9 @@ static isr_vector_t g_timer_vector = 0;
 
 __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
-    assert(g_free_vector != 0xff);
+    if (__builtin_expect(g_free_vector == 0xFF, 0)) {
+        return ISR_INVALID_VECTOR;
+    }
 
     const isr_vector_t result = g_free_vector;
     g_free_vector++;
@@ -69,19 +71,21 @@ isr_handle_interrupt(const uint64_t vector,
 }
 
 __optimize(3) static
-void spur_tick(const uint64_t int_no, struct thread_context *const frame) {
-    (void)int_no;
+void spur_tick(const uint64_t intr_no, struct thread_context *const frame) {
+    (void)intr_no;
     (void)frame;
 
-    this_cpu_mut()->spur_int_count++;
+    this_cpu_mut()->spur_intr_count++;
 }
 
 void isr_init() {
     // Setup Timer
     g_timer_vector = isr_alloc_vector(/*for_msi=*/false);
+    assert(g_timer_vector != ISR_INVALID_VECTOR);
 
     // Setup Spurious Interrupt
     g_spur_vector = isr_alloc_vector(/*for_msi=*/false);
+    assert(g_spur_vector != ISR_INVALID_VECTOR);
 
     isr_set_vector(g_spur_vector, spur_tick, &ARCH_ISR_INFO_NONE());
     idt_register_exception_handlers();
@@ -109,8 +113,8 @@ isr_assign_irq_to_cpu(struct cpu_info *const cpu,
     ioapic_redirect_irq(cpu->lapic_id, irq, vector, masked);
 }
 
-__optimize(3) void isr_eoi(const uint64_t int_no) {
-    (void)int_no;
+__optimize(3) void isr_eoi(const uint64_t intr_no) {
+    (void)intr_no;
     lapic_eoi();
 }
 

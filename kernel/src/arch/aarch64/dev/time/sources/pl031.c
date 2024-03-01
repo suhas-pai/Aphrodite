@@ -18,12 +18,12 @@ struct pl031_header {
     volatile uint32_t match;
     volatile uint32_t load;
     volatile uint32_t control;
-    volatile uint32_t int_mask;
+    volatile uint32_t intr_mask;
 
-    volatile const uint32_t raw_int_status;
-    volatile const uint32_t masked_int_status;
+    volatile const uint32_t raw_intr_status;
+    volatile const uint32_t masked_intr_status;
 
-    volatile uint32_t int_clear_status; // Write-only
+    volatile uint32_t intr_clear_status; // Write-only
 };
 
 static struct mmio_region *g_mmio = NULL;

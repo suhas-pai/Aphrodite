@@ -15,8 +15,8 @@ static uint64_t g_tick = 0;
 static enum pit_granularity g_gran = 0;
 
 // TODO: Implement callbacks, sleep, etc.
-void irq$pit(const uint64_t int_no, struct thread_context *const regs) {
-    (void)int_no;
+void irq$pit(const uint64_t intr_no, struct thread_context *const regs) {
+    (void)intr_no;
     (void)regs;
 
     printk(LOGLEVEL_INFO, "pit: tick at %" PRIu64, g_tick);

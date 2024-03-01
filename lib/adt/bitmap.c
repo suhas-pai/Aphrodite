@@ -65,7 +65,7 @@ find_mult_unset(struct bitmap *const bitmap,
             if (current_range_zero_count != 0) {                               \
                 const uint8_t lsb_zero_count =                                 \
                     min(sizeof_bits(type),                                     \
-                        count_lsb_one_bits(word, /*start_index=*/0));          \
+                        count_lsb_zero_bits(word, /*start_index=*/0));         \
                                                                                \
                 if (current_range_zero_count + lsb_zero_count >= count) {      \
                     if (set) {                                                 \
@@ -163,7 +163,7 @@ find_mult_set(struct bitmap *const bitmap,
      */
 
     uint64_t current_range_start_index = 0;
-    uint64_t current_range_zero_count = 0;
+    uint64_t current_range_one_count = 0;
 
 #define LOOP_OVER_RANGES_FOR_TYPE(type)                                        \
     if (has_align((uint64_t)ptr, sizeof(type))) {                              \
@@ -172,12 +172,12 @@ find_mult_set(struct bitmap *const bitmap,
              ptr += sizeof(type), start_index = 0)                             \
         {                                                                      \
             const type word = *(type *)ptr;                                    \
-            if (current_range_zero_count != 0) {                               \
-                const uint8_t lsb_zero_count =                                 \
+            if (current_range_one_count != 0) {                                \
+                const uint8_t lsb_one_count =                                  \
                     min(sizeof_bits(type),                                     \
-                        count_lsb_zero_bits(word, /*start_index=*/0));         \
+                        count_lsb_one_bits(word, /*start_index=*/0));          \
                                                                                \
-                if (current_range_zero_count + lsb_zero_count >= count) {      \
+                if (current_range_one_count + lsb_one_count >= count) {        \
                     if (unset) {                                               \
                         bitmap_set_range(bitmap,                               \
                                          RANGE_INIT(start_index, count),       \
@@ -187,41 +187,41 @@ find_mult_set(struct bitmap *const bitmap,
                     return current_range_start_index;                          \
                 }                                                              \
                                                                                \
-                if (lsb_zero_count == sizeof_bits(type)) {                     \
-                    current_range_zero_count += lsb_zero_count;                \
+                if (lsb_one_count == sizeof_bits(type)) {                      \
+                    current_range_one_count += lsb_one_count;                  \
                     continue;                                                  \
                 }                                                              \
                                                                                \
                 /*
-                 * If the lsb sequence of zeroes plus the msb zeros of the last
+                 * If the lsb sequence of onees plus the msb ones of the last
                  * word wasn't long enough, the lsb sequence isn't long enough
                  * by itself.
                  *
-                 * Avoid re-finding this same sequence of lsb zeros by pointing
+                 * Avoid re-finding this same sequence of lsb ones by pointing
                  * start_index to the sequence's end.
                  */                                                            \
                                                                                \
-                start_index = lsb_zero_count;                                  \
+                start_index = lsb_one_count;                                   \
                 current_range_start_index = 0;                                 \
-                current_range_zero_count = 0;                                  \
+                current_range_one_count = 0;                                   \
             }                                                                  \
                                                                                \
-            for_each_lsb_zero_bit_rng(word,                                    \
-                                      start_index,                             \
-                                      sizeof_bits(type),                       \
-                                      iter)                                    \
+            for_each_lsb_one_bit_rng(word,                                     \
+                                     start_index,                              \
+                                     sizeof_bits(type),                        \
+                                     iter)                                     \
             {                                                                  \
                 if (iter.size < count) {                                       \
                     /*
                      * If the range isn't long enough, but goes to the end of
-                     * the word, then the next word can have the remaining
-                     * zeroes needed in its lsb.
+                     * the word, then the next word can have the remaining ones
+                     * needed in its lsb.
                      */                                                        \
                     if (range_get_end_assert(iter) == sizeof_bits(type)) {     \
                         current_range_start_index =                            \
                             bytes_to_bits(distance(begin, ptr)) + iter.front;  \
                                                                                \
-                        current_range_zero_count = iter.size;                  \
+                        current_range_one_count = iter.size;                   \
                         break;                                                 \
                     }                                                          \
                                                                                \
@@ -313,7 +313,8 @@ find_single_set(struct bitmap *const bitmap,
             bit_index_in_word = find_lsb_one_bit(*(type *)ptr, start_index);   \
             if (bit_index_in_word < sizeof_bits(type)) {                       \
                 if (unset) {                                                   \
-                    *(type *)ptr &= ~((type)1 << bit_index_in_word);           \
+                    *(type *)ptr =                                             \
+                        rm_mask(*(type *)ptr, 1 << bit_index_in_word);         \
                 }                                                              \
                                                                                \
                 return bit_index_in_word + bit_index_of_ptr;                   \
@@ -464,7 +465,6 @@ find_unset_at_mult(struct bitmap *const bitmap,
         }                                                                      \
     }
 
-
     ITERATE_FOR_TYPE(uint64_t);
     ITERATE_FOR_TYPE(uint32_t);
     ITERATE_FOR_TYPE(uint16_t);
@@ -613,7 +613,7 @@ bool bitmap_at(const struct bitmap *const bitmap, uint32_t index) {
     const void *const begin = bitmap->gbuffer.begin;
     const void *const ptr = begin + bits_to_bytes_noround(index);
 
-    index = (index % sizeof_bits(uint8_t));
+    index %= sizeof_bits(uint8_t);
     return *(const uint8_t *)ptr & (1 << index);
 }
 
@@ -639,7 +639,7 @@ bitmap_has(const struct bitmap *const bitmap,
     uint64_t count = range.size;
 
     const uint8_t single_byte_value_bits = value ? UINT8_MAX : 0;
-    const uint64_t first_byte_bit_index = range.front % sizeof_bits(uint8_t);
+    const uint8_t first_byte_bit_index = range.front % sizeof_bits(uint8_t);
 
     if (first_byte_bit_index != 0) {
         const uint8_t first_byte_shifted =
@@ -715,7 +715,7 @@ void bitmap_set(struct bitmap *const bitmap, uint32_t index, const bool value) {
     void *const begin = bitmap->gbuffer.begin;
     void *ptr = begin + bits_to_bytes_noround(index);
 
-    index = (index % sizeof_bits(uint8_t));
+    index %= sizeof_bits(uint8_t);
     set_bits_for_mask((uint8_t *)ptr, 1ull << index, value);
 }
 
@@ -745,7 +745,7 @@ bitmap_set_range(struct bitmap *const bitmap,
 
     const uint8_t first_byte_bit_index = bit_index % sizeof_bits(uint8_t);
     if (first_byte_bit_index != 0) {
-        const uint64_t first_byte_bit_count =
+        const uint8_t first_byte_bit_count =
             min(bits_left, sizeof_bits(uint8_t) - first_byte_bit_index);
         const uint8_t first_byte_mask =
             mask_for_n_bits(first_byte_bit_count) << first_byte_bit_index;

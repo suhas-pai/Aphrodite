@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "mm/mm_types.h"
+#include "mm_types.h"
 
 #define PTWALKER_CLEAR 0
 #define PTWALKER_DONE -1

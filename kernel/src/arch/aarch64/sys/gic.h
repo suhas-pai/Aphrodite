@@ -65,6 +65,8 @@ struct gic_v2_msi_info {
 
     uint16_t spi_base;
     uint16_t spi_count;
+
+    bool initialized : 1;
 };
 
 struct gic_cpu_interface;
@@ -80,7 +82,8 @@ void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
 const struct gic_distributor *gic_get_dist();
 struct list *gicd_get_msi_info_list();
 
-void gicd_add_msi(uint64_t phys_base_address);
+void gicd_add_msi(uint64_t phys_base_address, bool init_later);
+void gicd_init_all_msi();
 
 typedef uint16_t irq_number_t;
 

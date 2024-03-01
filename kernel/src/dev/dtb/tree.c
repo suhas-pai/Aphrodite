@@ -161,10 +161,10 @@ void devicetree_node_free(struct devicetree_node *const node) {
                 case DEVICETREE_PROP_DEVICE_TYPE:
                     goto free_prop;
                 case DEVICETREE_PROP_INTERRUPTS: {
-                    struct devicetree_prop_interrupts *const int_prop =
+                    struct devicetree_prop_interrupts *const intr_prop =
                         (struct devicetree_prop_interrupts *)(uint64_t)prop;
 
-                    array_destroy(&int_prop->list);
+                    array_destroy(&intr_prop->list);
                     goto free_prop;
                 }
                 case DEVICETREE_PROP_INTERRUPT_MAP: {

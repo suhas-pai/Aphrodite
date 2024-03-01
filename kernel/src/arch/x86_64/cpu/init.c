@@ -439,7 +439,8 @@ void cpu_init() {
     init_cpuid_features();
 
     write_gsbase((uint64_t)&kernel_main_thread);
-    list_add(&kernel_process.pagemap.cpu_list, &this_cpu_mut()->pagemap_node);
+    msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)&kernel_main_thread);
 
+    list_add(&kernel_process.pagemap.cpu_list, &this_cpu_mut()->pagemap_node);
     g_base_cpu_init = true;
 }

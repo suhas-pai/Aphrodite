@@ -76,10 +76,10 @@ __optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
 }
 
 void
-ps2_keyboard_interrupt(const uint64_t int_no,
+ps2_keyboard_interrupt(const uint64_t intr_no,
                        struct thread_context *const context)
 {
-    (void)int_no;
+    (void)intr_no;
     (void)context;
 
     const uint8_t scan_code = ps2_read_input_byte();
@@ -231,7 +231,10 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
         return;
     }
 
+    const bool flag = disable_interrupts_if_not();
     g_ps2_vector = isr_alloc_vector(/*for_msi=*/false);
+
+    assert(g_ps2_vector != ISR_INVALID_VECTOR);
 
     isr_set_vector(g_ps2_vector, ps2_keyboard_interrupt, &ARCH_ISR_INFO_NONE());
     isr_assign_irq_to_cpu(this_cpu_mut(),
@@ -239,5 +242,6 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
                           g_ps2_vector,
                           /*masked=*/false);
 
+    enable_interrupts_if_flag(flag);
     printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
 }

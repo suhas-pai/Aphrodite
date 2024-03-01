@@ -32,16 +32,12 @@ enum esr_error_code {
     ESR_ERROR_CODE_UNKNOWN,
     ESR_ERROR_CODE_TRAPPED_WF,
 
-    /*
-     * Trapped MCR or MRC access with (coproc==0b1111) that is not reported
-     * using EC 0b000000.
-     */
+    // Trapped MCR or MRC access with (coproc==0b1111) that is not reported
+    // using EC 0b000000.
     ESR_ERROR_CODE_TRAPPED_MCR_OR_MRC_EC0 = 0b11,
 
-    /*
-     * Trapped MCRR or MRRC access with (coproc==0b1111) that is not reported
-     * using EC 0b000000.
-     */
+    // Trapped MCRR or MRRC access with (coproc==0b1111) that is not reported
+    // using EC 0b000000.
     ESR_ERROR_CODE_TRAPPED_MCRR_OR_MRRC,
 
     // Trapped MCR or MRC access with (coproc==0b1110).

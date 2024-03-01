@@ -14,6 +14,12 @@
 
 static uint64_t g_frequency = 0;
 
+enum cntp_ctl {
+    __CNTP_CTL_ENABLE = 1 << 0,
+    __CNTP_CTL_INT_MASK = 1 << 1,
+    __CNTP_CTL_COND_MET = 1 << 2,
+};
+
 __optimize(3) static inline sec_t read_syscount() {
     uint64_t value = 0;
     asm volatile ("isb\n"
@@ -57,8 +63,8 @@ __optimize(3) void oneshot_alarm(const nsec_t nano) {
 }
 
 __optimize(3) static void
-interrupt_handler(const uint64_t int_no, struct thread_context *const frame) {
-    (void)int_no;
+interrupt_handler(const uint64_t intr_no, struct thread_context *const frame) {
+    (void)intr_no;
     (void)frame;
 
     printk(LOGLEVEL_INFO, "time: got interrupt\n");
@@ -75,15 +81,17 @@ static void enable_dtb_timer_irqs() {
                    "in ACPI, or '/timer' node in dtb");
     }
 
-    struct devicetree_prop_interrupts *const int_prop =
+    struct devicetree_prop_interrupts *const intr_prop =
         (struct devicetree_prop_interrupts *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPTS);
 
-    assert_msg(int_prop != NULL,
+    assert_msg(intr_prop != NULL,
                "time: 'interrupts' prop not found in '/timer' dtb-node");
 
     uint8_t index = 0;
-    array_foreach(&int_prop->list, const struct devicetree_prop_int_info, iter)
+    array_foreach(&intr_prop->list,
+                  const struct devicetree_prop_intr_info,
+                  iter)
     {
         if (iter->polarity != IRQ_POLARITY_HIGH) {
             printk(LOGLEVEL_WARN,
@@ -99,7 +107,7 @@ static void enable_dtb_timer_irqs() {
             continue;
         }
 
-        isr_set_vector(iter->num, interrupt_handler, &(struct arch_isr_info){});
+        isr_set_vector(iter->num, interrupt_handler, &ARCH_ISR_INFO_NONE());
 
         gicd_set_irq_trigger_mode(iter->num, iter->trigger_mode);
         gicd_unmask_irq(iter->num);
@@ -116,14 +124,19 @@ void arch_init_time() {
 
     // Enable and unmask generic timers
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
-    asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)1));
+    asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)__CNTP_CTL_ENABLE));
     asm volatile ("msr cntp_tval_el0, %0" :: "r"((uint64_t)0));
 
     asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
     asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)1));
 
-    enable_dtb_timer_irqs();
+    if (boot_get_dtb() != NULL) {
+        enable_dtb_timer_irqs();
+    } else {
+        assert_msg(get_acpi_info()->gtdt != NULL,
+                   "time: dtb is missing and acpi is missing 'gtdt' table");
+    }
 
     printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
-    oneshot_alarm(20);
+    oneshot_alarm(seconds_to_nano(2));
 }

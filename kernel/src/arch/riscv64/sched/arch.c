@@ -10,6 +10,10 @@ void sched_process_arch_info_init(struct process *const proc) {
     (void)proc;
 }
 
-void sched_thread_arch_info_init(struct thread *const thread) {
+void
+sched_thread_arch_info_init(struct thread *const thread,
+                            const void *const entry)
+{
+    (void)entry;
     thread->arch_info.frame = STACK_FRAME_INIT();
 }

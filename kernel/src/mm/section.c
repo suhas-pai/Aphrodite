@@ -4,8 +4,11 @@
  */
 
 #include "lib/overflow.h"
-#include "mm/page.h"
 #include "sys/boot.h"
+
+#include "section.h"
+#include "page.h"
+#include "zone.h"
 
 __optimize(3) void
 page_section_init(struct page_section *const section,

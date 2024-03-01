@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include "lib/adt/addrspace.h"
 #include "lib/refcount.h"
-
 #include "vma.h"
 
 struct pagemap {

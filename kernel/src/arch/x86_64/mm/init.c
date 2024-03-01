@@ -16,6 +16,17 @@
 
 #include "sys/boot.h"
 
+__optimize(3) static uint64_t alloc_page(void *const info) {
+    (void)info;
+    return early_alloc_page();
+}
+
+__optimize(3)
+static uint64_t alloc_large_page(const pgt_level_t level, void *const cb_info) {
+    (void)cb_info;
+    return early_alloc_large_page(level);
+}
+
 __optimize(3) static void
 alloc_region(const uint64_t virt_addr,
              const uint64_t map_size,
@@ -35,8 +46,8 @@ alloc_region(const uint64_t virt_addr,
     };
 
     const struct pgmap_alloc_options alloc_options = {
-        .alloc_page = early_alloc_page,
-        .alloc_large_page = early_alloc_large_page,
+        .alloc_page = alloc_page,
+        .alloc_large_page = alloc_large_page,
 
         .alloc_page_cb_info = NULL,
         .alloc_large_page_cb_info = NULL,

@@ -12,6 +12,10 @@ void sched_init_irq() {
 
 }
 
+void sched_self_ipi() {
+
+}
+
 __optimize(3) isr_vector_t sched_get_isr_vector() {
     return g_sched_vector;
 }

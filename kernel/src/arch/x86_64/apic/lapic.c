@@ -4,6 +4,8 @@
  */
 
 #include "acpi/api.h"
+
+#include "asm/irqs.h"
 #include "asm/msr.h"
 
 #include "cpu/info.h"
@@ -50,6 +52,8 @@ static void calibrate_timer() {
      * obtain the lapic-timer frequency.
      */
 
+    const bool flag = disable_interrupts_if_not();
+
     const uint32_t sample_count = 0xFFFFF;
     const uint16_t pit_init_tick_number = pit_get_current_tick();
 
@@ -75,6 +79,8 @@ static void calibrate_timer() {
 
     this_cpu_mut()->lapic_timer_frequency =
         lapic_timer_freq_multiple * PIT_FREQUENCY;
+
+    enable_interrupts_if_flag(flag);
 }
 
 __optimize(3) uint32_t lapic_read(const enum x2apic_lapic_reg reg) {
@@ -136,7 +142,7 @@ void lapic_enable() {
 
         mmio_write(&lapic_regs->lvt_lint0, (uint32_t)lint0_value);
         mmio_write(&lapic_regs->lvt_lint1, (uint32_t)lint1_value);
-        mmio_write(&lapic_regs->spur_int_vector, spur_vector_mask);
+        mmio_write(&lapic_regs->spur_intr_vector, spur_vector_mask);
     }
 
     printk(LOGLEVEL_INFO, "apic: lapic enabled\n");
@@ -156,7 +162,7 @@ void lapic_send_ipi(const uint32_t lapic_id, const uint32_t vector) {
         lapic_write(X2APIC_LAPIC_REG_ICR, (uint64_t)lapic_id << 32 | vector);
     } else {
         mmio_write(&lapic_regs->icr[1].value, lapic_id << 24);
-        mmio_write(&lapic_regs->icr[0].value, vector | (1 << 14));
+        mmio_write(&lapic_regs->icr[0].value, (1 << 14) | vector);
     }
 }
 
@@ -164,7 +170,11 @@ __optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     if (get_acpi_info()->using_x2apic) {
         lapic_write(X2APIC_LAPIC_REG_SELF_IPI, vector);
     } else {
-        lapic_send_ipi(this_cpu()->lapic_id, vector);
+        const bool flag = disable_interrupts_if_not();
+        const uint32_t lapic_id = this_cpu()->lapic_id;
+        enable_interrupts_if_flag(flag);
+
+        lapic_send_ipi(lapic_id, vector);
     }
 }
 
@@ -193,6 +203,8 @@ lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
 }
 
 void lapic_init() {
+    const bool flag = disable_interrupts_if_not();
+
     lapic_enable();
     lapic_timer_stop();
 
@@ -202,6 +214,8 @@ void lapic_init() {
     printk(LOGLEVEL_INFO,
            "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
            FREQ_TO_UNIT_FMT_ARGS_ABBREV(this_cpu()->lapic_timer_frequency));
+
+    enable_interrupts_if_flag(flag);
 }
 
 void lapic_add(const struct lapic_info *const lapic_info) {

@@ -7,11 +7,13 @@
 #include "dev/dtb/init.h"
 
 #include "dev/psci.h"
+
+#include "sys/boot.h"
 #include "sys/gic.h"
 
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();
-    if (tree != NULL) {
+    if (boot_get_dtb() != NULL) {
         struct dtb_driver gic_driver = {
             .init = gic_init_from_dtb,
             .match_flags = __DTB_DRIVER_MATCH_COMPAT,

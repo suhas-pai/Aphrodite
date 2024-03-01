@@ -6,11 +6,10 @@
 #include "cpu/info.h"
 #include "lib/align.h"
 
-#include "mm/early.h"
-#include "mm/pagemap.h"
-
+#include "lib/util.h"
 #include "sched/process.h"
 
+#include "early.h"
 #include "page_alloc.h"
 #include "walker.h"
 
@@ -355,7 +354,7 @@ ptwalker_next_with_options(
     pgt_index_t *indices_ptr = &walker->indices[level - 1];
     pgt_index_t index = ++*indices_ptr;
 
-    if (index < PGT_PTE_COUNT(level)) {
+    if (index_in_bounds(index, PGT_PTE_COUNT(level))) {
         if (level == 1) {
             return E_PT_WALKER_OK;
         }
@@ -621,7 +620,7 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
     walker->level = level;
 }
 
-// TODO: This is arch-dependent
+// FIXME: This doesn't work and is also arch-dependent
 uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     uint64_t result = 0;
     for (pgt_level_t level = walker->level; level <= walker->top_level; level++)

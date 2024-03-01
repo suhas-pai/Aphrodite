@@ -16,7 +16,7 @@
 struct hpet_addrspace_timer_info {
     volatile uint64_t config_and_capability;
     volatile uint64_t comparator_value;
-    volatile uint64_t fsb_int_route;
+    volatile uint64_t fsb_intr_route;
 } __packed;
 
 enum hpet_addrspace_timer_flags {
@@ -39,7 +39,7 @@ struct hpet_addrspace {
     volatile uint64_t general_config;
     volatile uint64_t padding_2;
 
-    volatile uint64_t general_int_status;
+    volatile uint64_t general_intr_status;
     volatile char padding_3[200];
 
     volatile uint64_t main_counter_value;

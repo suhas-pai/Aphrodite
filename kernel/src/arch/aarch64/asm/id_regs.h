@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 enum id_aa64isar0_el1_shifts {

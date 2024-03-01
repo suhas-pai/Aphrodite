@@ -18,4 +18,4 @@ struct thread_arch_info {
 };
 
 struct thread;
-void sched_thread_arch_info_init(struct thread *thread);
+void sched_thread_arch_info_init(struct thread *thread, const void *entry);

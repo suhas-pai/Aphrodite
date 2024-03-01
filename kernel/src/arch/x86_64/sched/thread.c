@@ -16,46 +16,19 @@ __optimize(3) struct thread *current_thread() {
 
 __optimize(3) void sched_set_current_thread(struct thread *const thread) {
     write_gsbase((uint64_t)thread);
+    msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)thread);
 }
 
 void sched_prepare_thread(struct thread *const thread) {
     (void)thread;
 }
 
-__optimize(3)
-__noreturn static void thread_spinup(struct thread_context *const context) {
-    asm volatile (
-        "mov %0, %%rsp\n"
-        "pop %%r15\n"
-        "pop %%r14\n"
-        "pop %%r13\n"
-        "pop %%r12\n"
-        "pop %%r11\n"
-        "pop %%r10\n"
-        "pop %%r9\n"
-        "pop %%r8\n"
-        "pop %%rbp\n"
-        "pop %%rdi\n"
-        "pop %%rsi\n"
-        "pop %%rdx\n"
-        "pop %%rcx\n"
-        "pop %%rax\n"
-        "pop %%rbx\n"
-        "pop %%rax\n"
-        "swapgs\n"
-        "iretq\n"
-        :
-        : "rm" (context)
-        : "memory"
-    );
-
-    verify_not_reached();
-}
-
+extern __noreturn void thread_spinup(const struct thread_context *context);
 
 void
 sched_switch_to(struct thread *const prev,
                 struct thread *const next,
+                struct thread_context *const prev_context,
                 const bool from_irq)
 {
     if (prev->process == &kernel_process) {
@@ -70,6 +43,7 @@ sched_switch_to(struct thread *const prev,
         xrstor_user_from(&next->arch_info.avx_state);
     }
 
+    prev->context = *prev_context;
     if (from_irq) {
         thread_spinup(&next->context);
     }

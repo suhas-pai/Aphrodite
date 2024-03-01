@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 enum xcr0_flags {

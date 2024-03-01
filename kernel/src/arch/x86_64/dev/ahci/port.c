@@ -353,14 +353,20 @@ ahci_port_handle_irq(const uint64_t vector,
     (void)context;
 
     struct ahci_hba_port *ports_with_results[AHCI_HBA_MAX_PORT_COUNT] = {0};
+    uint8_t port_count = 0;
 
     uint32_t port_interrupt_status[AHCI_HBA_MAX_PORT_COUNT] = {0};
     uint32_t finished_cmdhdrs[AHCI_HBA_CMD_HDR_COUNT] = {0};
 
-    uint8_t port_count = 0;
-
     struct ahci_hba_device *const hba = ahci_hba_get();
     const uint32_t pending_ports = mmio_read(&hba->regs->interrupt_status);
+
+    if (pending_ports == 0) {
+        printk(LOGLEVEL_INFO, "ahci: got spurious interrupt\n");
+        lapic_eoi();
+
+        return;
+    }
 
     // Write to interrupt-status to clear bits
     mmio_write(&hba->regs->interrupt_status, pending_ports);
@@ -379,14 +385,12 @@ ahci_port_handle_irq(const uint64_t vector,
 
             // Write to interrupt-status to clear bits.
             mmio_write(&spec->interrupt_status, interrupt_status);
-            enable_port_interrupts(spec);
-
             if (interrupt_status & AHCI_HBA_PORT_IS_ERROR_FLAGS) {
                 port->error.serr = mmio_read(&spec->sata_error);
                 port->error.interrupt_status = interrupt_status;
 
                 handle_error(port, interrupt_status);
-                ci = UINT32_MAX;
+                ci = ~port->ports_bitset;
             }
 
             spin_acquire(&port->lock);
@@ -416,6 +420,8 @@ ahci_port_handle_irq(const uint64_t vector,
             struct event *const event = &port->cmdhdr_info_list[iter].event;
             event_trigger(event, &await_result, /*drop_if_no_listeners=*/false);
         }
+
+        enable_port_interrupts(port->spec);
     }
 }
 
@@ -729,10 +735,75 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     }
 
     printk(LOGLEVEL_INFO,
-           "ahci: magic is 0x%" PRIx32 "\n",
-           *(uint32_t *)resp_ptr);
+           "ahci: magic is 0x%" PRIx16 "\n",
+           *(uint16_t *)resp_ptr);
 
     free_page(resp_page);
+}
+
+__optimize(3)
+static void print_interrupt_status(const uint32_t interrupt_status) {
+    enum ahci_hba_port_interrupt_status_flags flag =
+        __AHCI_HBA_IS_DEV_TO_HOST_FIS;
+
+    if (interrupt_status == 0) {
+        printk(LOGLEVEL_WARN, "ahci: interrupt status is 0\n");
+        return;
+    }
+
+    switch (flag) {
+        case __AHCI_HBA_IS_DEV_TO_HOST_FIS:
+        case __AHCI_HBA_IS_PIO_SETUP_FIS:
+        case __AHCI_HBA_IS_DMA_SETUP_FIS:
+        case __AHCI_HBA_IS_SET_DEV_BITS_FIS:
+        case __AHCI_HBA_IS_DESC_PROCESSED:
+            [[fallthrough]];
+
+        #define ERROR_CASE(flag, msg, ...) \
+            case flag: \
+                do { \
+                    if (interrupt_status & flag) { \
+                        printk(LOGLEVEL_WARN, msg "\n", ##__VA_ARGS__); \
+                    } \
+                } while (false)
+
+        ERROR_CASE(__AHCI_HBA_IS_UNKNOWN_FIS, "ahci: got unknown-fis error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_PORT_CHANGE, "ahci: got port-change error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_DEV_MECH_PRESENCE, "ahci: got dev-mech error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_PHYRDY_CHANGE_STATUS,
+                   "ahci: got phyrdy change error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_INCORRECT_PORT_MULT_STATUS,
+                   "ahci: got incorrect port-mult error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_OVERFLOW_STATUS, "ahci: got overflow error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_INTERFACE_NOT_FATAL_ERR_STATUS,
+                   "ahci: got interface not-fatal error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_INTERFACE_FATAL_ERR_STATUS,
+                   "ahci: got unknown-fis error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_HOST_BUS_DATA_ERR_STATUS,
+                   "ahci: got host-bus data error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_HOST_BUS_FATAL_ERR_STATUS,
+                   "ahci: got host bus fatal error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_TASK_FILE_ERR_STATUS,
+                   "ahci: got task file error");
+            [[fallthrough]];
+        ERROR_CASE(__AHCI_HBA_IS_COLD_PORT_DETECT_STATUS,
+                   "ahci: got cold-port detect error");
+            return;
+
+        #undef ERROR_CASE
+    }
+
+    verify_not_reached();
 }
 
 __optimize(3)
@@ -937,6 +1008,8 @@ send_ata_command(struct ahci_hba_port *const port,
                      &await_result) == 0);
 
     if (!await_result.result_bool) {
+        print_interrupt_status(port->error.interrupt_status);
+
         print_serr_error(port->error.serr);
         print_serr_diag(port->error.serr);
     }
@@ -1018,6 +1091,8 @@ send_atapi_command(struct ahci_hba_port *const port,
                      &await_result) == 0);
 
     if (!await_result.result_bool) {
+        print_interrupt_status(port->error.interrupt_status);
+
         print_serr_error(port->error.serr);
         print_serr_diag(port->error.serr);
     }

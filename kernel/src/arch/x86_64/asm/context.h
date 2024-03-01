@@ -36,7 +36,7 @@ struct thread_context {
         .rax = 0, \
         .err_code = 0, \
         .rip = (uint64_t)(func), \
-        .cs = (process == &kernel_process) ? 0x4b : 0x28, \
+        .cs = (process == &kernel_process) ? 0x28 : 0x4b, \
         .rflags = __RFLAGS_INTERRUPTS_ENABLED, \
         .rsp = (uint64_t)(stack), \
         .ss = 0x30, \

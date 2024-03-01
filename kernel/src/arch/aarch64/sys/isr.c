@@ -29,7 +29,8 @@ static struct bitmap g_bitmap = BITMAP_INIT();
 static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 
 __optimize(3) void isr_init() {
-    g_bitmap = bitmap_alloc(ISR_IRQ_COUNT);
+    g_bitmap =
+        bitmap_alloc(distance_incl(GIC_SPI_INTERRUPT_START, ISR_IRQ_COUNT));
 }
 
 __optimize(3)
@@ -52,7 +53,11 @@ void isr_install_vbar() {
 __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     if (for_msi) {
         struct gic_v2_msi_info *iter = NULL;
-        list_foreach(iter, gicd_get_msi_info_list(), list) {
+        struct list *const list = gicd_get_msi_info_list();
+
+        list_foreach(iter, list, list) {
+            assert(iter->initialized);
+
             const uint16_t end = iter->spi_base + iter->spi_count;
             for (uint16_t irq = iter->spi_base; irq != end; irq++) {
                 assert(g_irq_info_list[irq].for_msi);
@@ -62,20 +67,20 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
                 }
             }
         }
+    } else {
+        const uint64_t result =
+            bitmap_find(&g_bitmap,
+                        /*count=*/1,
+                        /*start_index=*/0,
+                        /*expected_value=*/false,
+                        /*value=*/true);
 
-        verify_not_reached();
+        if (result != FIND_BIT_INVALID) {
+            return result;
+        }
     }
 
-    (void)for_msi;
-    const uint64_t result =
-        bitmap_find(&g_bitmap,
-                    /*count=*/1,
-                    /*start_index=*/GIC_SPI_INTERRUPT_START,
-                    /*expected_value=*/false,
-                    /*value=*/true);
-
-    assert_msg(result != FIND_BIT_INVALID, "isr: ran out of free vectors");
-    return (isr_vector_t)result;
+    return ISR_INVALID_VECTOR;
 }
 
 __optimize(3) void
@@ -113,8 +118,8 @@ __optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     gicd_unmask_irq(irq);
 }
 
-__optimize(3) void isr_eoi(const uint64_t int_info) {
-    gic_cpu_eoi(int_info >> 16, /*irq_number=*/(uint16_t)int_info);
+__optimize(3) void isr_eoi(const uint64_t intr_info) {
+    gic_cpu_eoi(intr_info >> 16, /*irq_number=*/(uint16_t)intr_info);
 }
 
 __optimize(3) uint64_t
@@ -136,14 +141,14 @@ __optimize(3) void handle_interrupt(struct thread_context *const context) {
     uint8_t cpu_id = 0;
     const irq_number_t irq = gic_cpu_get_irq_number(&cpu_id);
 
-    if (irq >= ISR_IRQ_COUNT) {
+    if (__builtin_expect(irq >= ISR_IRQ_COUNT, 0)) {
         printk(LOGLEVEL_WARN,
                "isr: got spurious interrupt " ISR_VECTOR_FMT " on "
                "cpu %" PRIu8 "\n",
                irq,
                cpu_id);
 
-        cpu_mut_for_intr_number(cpu_id)->spur_int_count++;
+        cpu_mut_for_intr_number(cpu_id)->spur_intr_count++;
         gic_cpu_eoi(cpu_id, irq);
 
         return;
@@ -205,7 +210,7 @@ __optimize(3) void handle_sync_exception(struct thread_context *const context) {
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MRRC:
             printk(LOGLEVEL_WARN,
-                   "isr: received a trapped mrcc instruction exception\n");
+                   "isr: received a trapped mrrc instruction exception\n");
             cpu_idle();
         case ESR_ERROR_CODE_BRANCH_TARGET_EXCEPTION:
             printk(LOGLEVEL_WARN, "isr: received a branch target exception\n");

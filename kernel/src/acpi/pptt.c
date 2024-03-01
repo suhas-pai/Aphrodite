@@ -12,7 +12,7 @@ void pptt_init(const struct acpi_pptt *const pptt) {
     uint32_t offset = offsetof(struct acpi_pptt, buffer);
     while (index_in_bounds(offset, pptt->sdt.length)) {
         struct acpi_pptt_node_base *const base =
-            (struct acpi_pptt_node_base *)((uint64_t)pptt + offset);
+            reg_to_ptr(struct acpi_pptt_node_base, pptt, offset);
 
         switch (base->kind) {
             case ACPI_PPTT_NODE_PROCESSOR_HIERARCHY: {
@@ -22,8 +22,8 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                 offset += sizeof(*node);
                 if (!ordinal_in_bounds(offset, pptt->sdt.length)) {
                     printk(LOGLEVEL_WARN,
-                           "pptt: processor-hierarchy node goes beyond end "
-                           "of node\n");
+                           "pptt: processor-hierarchy node goes beyond end of "
+                           "node\n");
                     return;
                 }
 
@@ -71,7 +71,7 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                     }
                 }
 
-                break;
+                continue;
             }
             case ACPI_PPTT_NODE_CACHE_TYPE: {
                 struct acpi_pptt_cache_type_node *const node =
@@ -193,13 +193,13 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                        wr_policy_str,
                        node->line_size,
                        node->cache_id);
-                break;
+                continue;
             }
-            default:
-                printk(LOGLEVEL_WARN,
-                       "pptt: unrecognized node: %" PRIu8 "\n",
-                       base->kind);
-                return;
         }
+
+        printk(LOGLEVEL_WARN,
+                "pptt: unrecognized node: %" PRIu8 "\n",
+                base->kind);
+        return;
     }
 }

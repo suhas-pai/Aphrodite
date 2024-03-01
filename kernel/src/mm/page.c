@@ -4,9 +4,10 @@
  */
 
 #include <stdatomic.h>
-
 #include "lib/overflow.h"
+
 #include "page.h"
+#include "section.h"
 
 #if defined(__riscv)
     // FIXME: 64 is the cache-block size in qemu. This should instead be read

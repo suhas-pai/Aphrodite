@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "lib/assert.h"
 #include "lib/overflow.h"
 
 __hidden uint64_t HHDM_OFFSET = 0;

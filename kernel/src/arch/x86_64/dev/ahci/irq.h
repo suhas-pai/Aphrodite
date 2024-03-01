@@ -6,4 +6,4 @@
 #pragma once
 #include "sys/isr.h"
 
-void ahci_port_handle_irq(uint64_t int_no, struct thread_context *context);
+void ahci_port_handle_irq(uint64_t intr_no, struct thread_context *context);

@@ -5,9 +5,12 @@
 
 #include <stdatomic.h>
 
+#include "asm/irqs.h"
 #include "cpu/info.h"
 #include "dev/printk.h"
+
 #include "lib/align.h"
+#include "lib/bits.h"
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
@@ -189,7 +192,9 @@ static bool g_use_split_eoi = false;
 static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
 
+    const bool flag = disable_interrupts_if_not();
     const uint8_t intr_number = this_cpu()->interface_number;
+
     for (uint16_t irq = GIC_SPI_INTERRUPT_START;
          irq < g_dist.interrupt_lines_count;
          irq++)
@@ -201,42 +206,71 @@ static void init_with_regs() {
     }
 
     mmio_write(&g_regs->control, /*value=*/1);
+    enable_interrupts_if_flag(flag);
+
     printk(LOGLEVEL_INFO, "gic: finished initializing gicd\n");
 }
 
+static uint8_t get_cpu_iface_no() {
+    for (uint8_t i = 0; i != 8; i++) {
+        const uint32_t target =
+            atomic_load_explicit(&g_regs->interrupt_targets[i],
+                                 memory_order_relaxed);
+
+        if (target == 0) {
+            continue;
+        }
+
+        const uint32_t mask =
+            ((target >> 24) & 0xFF) |
+            ((target >> 16) & 0xFF) |
+            ((target >> 8) & 0xFF) |
+            (target & 0xFF);
+
+        return count_lsb_zero_bits(mask, /*start_index=*/0);
+    }
+
+    verify_not_reached();
+}
+
 void gic_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
-    for (uint8_t irq = 0; irq != 32; irq++) {
+    for (uint8_t irq = GIC_SGI_INTERRUPT_START;
+         irq <= GIC_PPI_INTERRUPT_LAST;
+         irq++)
+    {
         gicd_mask_irq(irq);
         gicd_set_irq_priority(irq, GICD_DEFAULT_PRIO);
     }
 
     if (g_cpu_mmio != NULL) {
         assert(phys_addr == g_cpu_phys_addr && size == g_cpu_size);
-        return;
+    } else {
+        assert_msg(has_align(size, PAGE_SIZE),
+                "gic: cpu interface mmio-region isn't aligned to page-size\n");
+
+        g_cpu_mmio =
+            vmap_mmio(RANGE_INIT(phys_addr, size),
+                      PROT_READ | PROT_WRITE | PROT_DEVICE,
+                      /*flags=*/0);
+
+        assert_msg(g_cpu_mmio != NULL,
+                   "gic: failed to allocate mmio-region for cpu-interface");
+
+        g_cpu_phys_addr = phys_addr;
+        g_cpu_size = size;
+
+        g_cpu = g_cpu_mmio->base;
+        g_use_split_eoi = size > PAGE_SIZE;
+
+        if (g_use_split_eoi) {
+            printk(LOGLEVEL_INFO, "gic: using split-eoi for cpu-interface\n");
+        }
+
+        printk(LOGLEVEL_INFO,
+               "gic: cpu interface at %p, size: 0x%" PRIx64 "\n",
+               g_cpu,
+               size);
     }
-
-    assert_msg(has_align(size, PAGE_SIZE),
-               "gic: cpu interface mmio-region isn't aligned to page-size\n");
-
-    g_cpu_mmio =
-        vmap_mmio(RANGE_INIT(phys_addr, size),
-                  PROT_READ | PROT_WRITE | PROT_DEVICE,
-                  /*flags=*/0);
-
-    assert_msg(g_cpu_mmio != NULL,
-               "gic: failed to allocate mmio-region for cpu-interface");
-
-    g_cpu = g_cpu_mmio->base;
-    g_use_split_eoi = size > PAGE_SIZE;
-
-    if (g_use_split_eoi) {
-        printk(LOGLEVEL_INFO, "gic: using split-eoi for cpu-interface\n");
-    }
-
-    printk(LOGLEVEL_INFO,
-           "gic: cpu interface at %p, size: 0x%" PRIx64 "\n",
-           g_cpu,
-           size);
 
     mmio_write(&g_cpu->priority_mask, 0xF0);
     mmio_write(&g_cpu->active_priority_base[0], /*value=*/0);
@@ -252,6 +286,10 @@ void gic_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
                 __GIC_CPU_INTR_CTRL_ENABLE |
                 bypass |
                 (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
+
+    printk(LOGLEVEL_INFO,
+           "gic: cpu iface no is %" PRIu8 "\n",
+           get_cpu_iface_no());
 
     printk(LOGLEVEL_INFO, "gic: initialized cpu interface\n");
 }
@@ -330,7 +368,8 @@ volatile uint64_t *gicd_get_msi_address(const isr_vector_t vector) {
     return NULL;
 }
 
-static bool init_msi_frame(struct mmio_region *const mmio) {
+static
+bool init_msi_frame(struct mmio_region *const mmio, const bool init_later) {
     volatile struct gicd_v2m_msi_frame_registers *const regs = mmio->base;
 
     const uint32_t typer = mmio_read(&regs->typer);
@@ -359,7 +398,9 @@ static bool init_msi_frame(struct mmio_region *const mmio) {
         return false;
     }
 
-    isr_reserve_msi_irqs(spi_base, spi_count);
+    if (!init_later) {
+        isr_reserve_msi_irqs(spi_base, spi_count);
+    }
 
     struct gic_v2_msi_info *const info = kmalloc(sizeof(*info));
     if (info == NULL) {
@@ -370,12 +411,13 @@ static bool init_msi_frame(struct mmio_region *const mmio) {
     info->regs = regs;
     info->spi_base = spi_base;
     info->spi_count = spi_count;
+    info->initialized = !init_later;
 
     list_add(&g_msi_info_list, &info->list);
     return true;
 }
 
-void gicd_add_msi(const uint64_t phys_base_address) {
+void gicd_add_msi(const uint64_t phys_base_address, const bool init_later) {
     if (!has_align(phys_base_address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
                 "gicd: msi frame's physical base address %p is not aligned "
@@ -396,7 +438,7 @@ void gicd_add_msi(const uint64_t phys_base_address) {
         return;
     }
 
-    if (!init_msi_frame(mmio)) {
+    if (!init_msi_frame(mmio, init_later)) {
         vunmap_mmio(mmio);
         return;
     }
@@ -408,6 +450,16 @@ void gicd_add_msi(const uint64_t phys_base_address) {
 
     assert_msg(array_append(&g_dist.msi_frame_list, &msi_frame),
                "gicd: failed to append msi-frame to list");
+}
+
+void gicd_init_all_msi() {
+    struct gic_v2_msi_info *iter = NULL;
+    list_foreach(iter, &g_msi_info_list, list) {
+        if (!iter->initialized) {
+            isr_reserve_msi_irqs(iter->spi_base, iter->spi_count);
+            iter->initialized = true;
+        }
+    }
 }
 
 __optimize(3) const struct gic_distributor *gic_get_dist() {
@@ -452,8 +504,8 @@ void gicd_set_irq_affinity(const irq_number_t irq, const uint8_t iface) {
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_target =
-        rm_mask(target, 0xFF << bit_index) |
-        (target | (1ull << (iface + bit_index)));
+        rm_mask(target, (uint32_t)0xFF << bit_index) |
+        1ull << (iface + bit_index);
 
     atomic_store_explicit(&g_regs->interrupt_targets[index],
                           new_target,
@@ -497,7 +549,7 @@ gicd_set_irq_trigger_mode(const irq_number_t irq,
 __optimize(3)
 void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
-               "gicd_mask_irq() called on invalid interrupt");
+               "gicd_set_irq_priority() called on invalid interrupt");
 
     const uint16_t index = irq / sizeof(uint32_t);
     const uint32_t irq_priority =
@@ -506,8 +558,8 @@ void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_priority =
-        rm_mask(irq_priority, (0xFF << bit_index)) |
-        (irq_priority | (uint32_t)priority << bit_index);
+        rm_mask(irq_priority, (uint32_t)0xFF << bit_index) |
+        (uint32_t)priority << bit_index;
 
     atomic_store_explicit(&g_regs->interrupt_priority[index],
                           new_priority,
@@ -544,10 +596,10 @@ gic_init_from_dtb(const struct devicetree *const tree,
                   const struct devicetree_node *const node)
 {
     (void)tree;
-    const struct devicetree_prop *const int_controller_node =
+    const struct devicetree_prop *const intr_controller_node =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPT_CONTROLLER);
 
-    if (int_controller_node == NULL) {
+    if (intr_controller_node == NULL) {
         printk(LOGLEVEL_WARN,
                "gic: dtb-node is missing interrupt-controller property\n");
         return false;
@@ -619,7 +671,7 @@ gic_init_from_dtb(const struct devicetree *const tree,
             return false;
         }
 
-        gicd_add_msi(msi_reg_info->address);
+        gicd_add_msi(msi_reg_info->address, /*init_later=*/false);
     }
 
     struct devicetree_prop_reg_info *const cpu_reg_info =

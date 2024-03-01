@@ -32,9 +32,8 @@ bool array_append(struct array *const array, const void *const item) {
 __optimize(3)
 void array_remove_index(struct array *const array, const uint32_t index) {
     const uint32_t byte_index = check_mul_assert(index, array->object_size);
-    const uint32_t end = check_add_assert(byte_index, array->object_size);
-
-    gbuffer_remove_range(&array->gbuffer, RANGE_INIT(byte_index, end));
+    gbuffer_remove_range(&array->gbuffer,
+                         RANGE_INIT(byte_index, array->object_size));
 }
 
 __optimize(3)

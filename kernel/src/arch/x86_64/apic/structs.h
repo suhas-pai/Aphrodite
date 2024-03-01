@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 struct lapic_aligned_value {
@@ -35,7 +33,7 @@ struct lapic_registers {
     _Alignas(16) volatile const uint32_t register_read;
     _Alignas(16) volatile uint32_t logical_destination;
     _Alignas(16) volatile uint32_t destination_format;
-    _Alignas(16) volatile uint32_t spur_int_vector;
+    _Alignas(16) volatile uint32_t spur_intr_vector;
 
     _Alignas(16) volatile const struct lapic_aligned_value in_service[8];
     _Alignas(16) volatile const struct lapic_aligned_value trigger_mode[8];

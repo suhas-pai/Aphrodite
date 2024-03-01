@@ -6,17 +6,16 @@
 #if defined(__x86_64__)
     #include "asm/regs.h"
 #elif defined(__aarch64__)
-    #include "asm/ttbr.h"
     #if defined(AARCH64_USE_16K_PAGES)
         #include "asm/tcr.h"
     #endif /* defined(AARCH64_USE_16K_PAGES) */
+    #include "asm/ttbr.h"
 #elif defined(__riscv64)
     #include "asm/satp.h"
+    #include "sched/process.h"
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
-#include "sched/process.h"
-
 #include "pgmap.h"
 
 __optimize(3) struct pagemap pagemap_empty() {

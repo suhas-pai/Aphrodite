@@ -61,12 +61,12 @@ enum size_unit_kind {
 #define SIZE_UNIT_FMT "%" PRIu64 ".%" PRIu64 " " SV_FMT
 #define SIZE_UNIT_FMT_ARGS(size) \
     (uint64_t)((size) / size_to_units(size)), \
-    (uint64_t)(((size) % size_to_units(size)) % 100), \
+    (uint64_t)(((size) % size_to_units(size)) / 1000), \
     SV_FMT_ARGS(size_units_to_sv(size_to_units(size)))
 
 #define SIZE_UNIT_FMT_ARGS_ABBREV(size) \
     (uint64_t)(size) / size_to_units(size), \
-    (uint64_t)(((size) % size_to_units(size)) % 100), \
+    (uint64_t)(((size) % size_to_units(size)) / 1000), \
     SV_FMT_ARGS(size_units_to_sv_abbrev(size_to_units(size)))
 
 struct string_view size_units_to_sv(enum size_unit_kind kind);

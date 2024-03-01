@@ -4,8 +4,8 @@
  */
 
 #include "lib/align.h"
-#include "mm/kmalloc.h"
 
+#include "kmalloc.h"
 #include "pagemap.h"
 
 __optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {

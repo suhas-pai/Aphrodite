@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lib/adt/addrspace.h"
-#include "mm/mm_types.h"
+#include "mm_types.h"
 
 struct mmio_region {
     struct addrspace_node node;

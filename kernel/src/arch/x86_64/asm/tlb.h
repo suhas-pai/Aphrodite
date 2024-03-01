@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 __optimize(3) static inline void invlpg(const uint64_t addr) {

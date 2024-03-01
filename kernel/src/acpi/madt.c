@@ -427,7 +427,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_entry_gic_msi_frame *const frame =
                     (const struct acpi_madt_entry_gic_msi_frame *)iter;
 
-                gicd_add_msi(frame->phys_base_address);
+                gicd_add_msi(frame->phys_base_address, /*init_later=*/true);
                 printk(LOGLEVEL_INFO,
                        "madt: found msi-frame\n"
                        "\tmsi frame id: %" PRIu32 "\n"
@@ -507,5 +507,6 @@ void madt_init(const struct acpi_madt *const madt) {
 
     gicd_init(gic_dist->phys_base_address, gic_dist->gic_version);
     gic_init_on_this_cpu(gic_cpu_intr_phys_addr, PAGE_SIZE);
+    gicd_init_all_msi();
 #endif /* defined(__x86_64__) */
 }

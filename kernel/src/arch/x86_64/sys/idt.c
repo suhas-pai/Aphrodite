@@ -113,9 +113,9 @@ void idt_init() {
 }
 
 void
-handle_exception(const uint64_t int_no, struct thread_context *const context) {
+handle_exception(const uint64_t intr_no, struct thread_context *const context) {
     const char *except_str = NULL;
-    switch ((enum exception)int_no) {
+    switch ((enum exception)intr_no) {
         case EXCEPTION_DIVIDE_BY_ZERO:
             except_str = "Divide by zero exception";
             break;

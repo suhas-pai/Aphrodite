@@ -154,16 +154,16 @@ void check_bitmap(const uint64_t size) {
             const uint64_t unset_index = 3;
             const uint64_t unset_count = 8;
 
-            for (uint8_t i = unset_index; i != unset_count; i++) {
-                bitmap_set(&bitmap, i, true);
+            for (uint8_t i = 0; i != unset_count; i++) {
+                bitmap_set(&bitmap, unset_index + i, false);
             }
 
             const uint64_t actual_unset_index =
                 bitmap_find(&bitmap,
                             unset_count,
                             unset_index,
-                            /*expected_value=*/true,
-                            /*invert=*/false);
+                            /*expected_value=*/false,
+                            /*invert=*/true);
 
             assert(actual_unset_index != FIND_BIT_INVALID);
             const struct range unset_range =

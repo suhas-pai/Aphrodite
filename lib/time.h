@@ -232,14 +232,14 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
     };
 #endif /* _TIME_H_ */
 
-#define TIMESPEC_NONE() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
+#define TIMESPEC_NULL() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
 
 __optimize(3) static inline bool
 timespec_add(const struct timespec left,
              const struct timespec right,
              struct timespec *const result_out)
 {
-    struct timespec result = TIMESPEC_NONE();
+    struct timespec result = TIMESPEC_NULL();
     if (nano_to_seconds(left.tv_nsec + right.tv_nsec) != 0) {
         result.tv_nsec = nano_mod_seconds(left.tv_nsec + right.tv_nsec);
         if (!check_add(left.tv_sec, 1, &result.tv_sec)) {
@@ -268,7 +268,7 @@ timespec_sub(const struct timespec left,
         return false;
     }
 
-    struct timespec result = TIMESPEC_NONE();
+    struct timespec result = TIMESPEC_NULL();
     result.tv_sec = left.tv_sec - right.tv_sec;
 
     if (left.tv_nsec < right.tv_nsec) {

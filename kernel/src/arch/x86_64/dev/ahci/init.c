@@ -5,7 +5,9 @@
 
 #include "dev/pci/structs.h"
 
+#include "asm/irqs.h"
 #include "asm/pause.h"
+
 #include "cpu/isr.h"
 
 #include "dev/driver.h"
@@ -86,22 +88,24 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                             __PCI_ENTITY_PRIVL_INTERRUPTS);
 
     g_hba_vector = isr_alloc_vector(/*for_msi=*/true);
-    isr_set_vector(g_hba_vector,
-                   ahci_port_handle_irq,
-                   &(struct arch_isr_info){});
+    assert(g_hba_vector != ISR_INVALID_VECTOR);
 
+    isr_set_vector(g_hba_vector, ahci_port_handle_irq, &ARCH_ISR_INFO_NONE());
     pci_entity_enable_msi(pci_entity);
+
+    const bool flag = disable_interrupts_if_not();
     pci_entity_bind_msi_to_vector(pci_entity,
                                   this_cpu(),
                                   g_hba_vector,
                                   /*masked=*/false);
 
+    enable_interrupts_if_flag(flag);
     volatile struct ahci_spec_hba_registers *const regs =
         (volatile struct ahci_spec_hba_registers *)bar->mmio->base;
 
     const uint32_t version = mmio_read(&regs->version);
     printk(LOGLEVEL_INFO,
-           "ahci: version is %" PRIu32 ".%" PRIu32 "\n",
+           "ahci: version is %" PRIu16 ".%" PRIu16 "\n",
            version >> 16,
            (uint16_t)version);
 

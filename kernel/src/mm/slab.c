@@ -10,7 +10,7 @@
 #include "lib/overflow.h"
 #include "lib/string.h"
 
-#include "mm/page_alloc.h"
+#include "page_alloc.h"
 #include "slab.h"
 
 struct free_slab_object {

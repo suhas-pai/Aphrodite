@@ -18,7 +18,7 @@ struct cpu_info {
     struct list pagemap_node;
     struct list cpu_list;
 
-    uint64_t spur_int_count;
+    uint64_t spur_intr_count;
 
     uint32_t interface_number;
     uint32_t acpi_processor_id;

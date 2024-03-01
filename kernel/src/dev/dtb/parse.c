@@ -399,13 +399,13 @@ fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
 }
 
 __optimize(3) static inline bool
-parse_int_info(const fdt32_t *const data,
-               const fdt32_t *const data_end,
-               const uint32_t parent_int_cells,
-               const uint32_t phandle,
-               struct devicetree_prop_int_info *const int_info)
+parse_intr_info(const fdt32_t *const data,
+                const fdt32_t *const data_end,
+                const uint32_t parent_intr_cells,
+                const uint32_t phandle,
+                struct devicetree_prop_intr_info *const intr_info)
 {
-    if (parent_int_cells != 3) {
+    if (parent_intr_cells != 3) {
         printk(LOGLEVEL_WARN,
                "devicetree: interrupt-map's phandle %" PRIu32 "'s "
                "corresponding node #interrupt-cells property doesn't have a "
@@ -414,33 +414,33 @@ parse_int_info(const fdt32_t *const data,
         return false;
     }
 
-    if (data + parent_int_cells > data_end) {
+    if (data + parent_intr_cells > data_end) {
         return false;
     }
 
-    int_info->is_ppi = fdt32_to_cpu(data[0]);
-    int_info->flags = fdt32_to_cpu(data[2]);
-    int_info->num = fdt32_to_cpu(data[1]) + (int_info->is_ppi ? 16 : 32);
+    intr_info->is_ppi = fdt32_to_cpu(data[0]);
+    intr_info->flags = fdt32_to_cpu(data[2]);
+    intr_info->num = fdt32_to_cpu(data[1]) + (intr_info->is_ppi ? 16 : 32);
 
-    switch (int_info->flags & 0xF) {
+    switch (intr_info->flags & 0xF) {
         case 1:
-            int_info->polarity = IRQ_POLARITY_HIGH;
-            int_info->trigger_mode = IRQ_TRIGGER_MODE_EDGE;
+            intr_info->polarity = IRQ_POLARITY_HIGH;
+            intr_info->trigger_mode = IRQ_TRIGGER_MODE_EDGE;
 
             return true;
         case 2:
-            int_info->polarity = IRQ_POLARITY_LOW;
-            int_info->trigger_mode = IRQ_TRIGGER_MODE_EDGE;
+            intr_info->polarity = IRQ_POLARITY_LOW;
+            intr_info->trigger_mode = IRQ_TRIGGER_MODE_EDGE;
 
             return true;
         case 4:
-            int_info->polarity = IRQ_POLARITY_HIGH;
-            int_info->trigger_mode = IRQ_TRIGGER_MODE_LEVEL;
+            intr_info->polarity = IRQ_POLARITY_HIGH;
+            intr_info->trigger_mode = IRQ_TRIGGER_MODE_LEVEL;
 
             return true;
         case 8:
-            int_info->polarity = IRQ_POLARITY_LOW;
-            int_info->trigger_mode = IRQ_TRIGGER_MODE_LEVEL;
+            intr_info->polarity = IRQ_POLARITY_LOW;
+            intr_info->trigger_mode = IRQ_TRIGGER_MODE_LEVEL;
 
             return true;
     }
@@ -462,9 +462,9 @@ parse_interrupt_map_prop(const void *const dtb,
                          bool *const has_flags_out)
 {
     const int child_unit_addr_cells = fdt_address_cells(dtb, nodeoff);
-    const int child_int_cells = fdt_cells(dtb, nodeoff, "#interrupt-cells");
+    const int child_intr_cells = fdt_cells(dtb, nodeoff, "#interrupt-cells");
 
-    if (child_unit_addr_cells < 0 || child_int_cells < 0) {
+    if (child_unit_addr_cells < 0 || child_intr_cells < 0) {
         return false;
     }
 
@@ -472,11 +472,11 @@ parse_interrupt_map_prop(const void *const dtb,
         *has_flags_out = true;
     }
 
-    if (child_int_cells > 2) {
+    if (child_intr_cells > 2) {
         printk(LOGLEVEL_WARN,
                "devicetree: couldn't parse child-interrupt pair with an "
                "invalid #interrupt-cells value of %" PRIu32 "\n",
-               child_int_cells);
+               child_intr_cells);
         return false;
     }
 
@@ -505,8 +505,8 @@ parse_interrupt_map_prop(const void *const dtb,
 
         if (!parse_cell_pair(&data,
                              data_end,
-                             child_int_cells,
-                             (uint64_t *)&info.child_int_specifier))
+                             child_intr_cells,
+                             (uint64_t *)&info.child_intr_specifier))
         {
             return false;
         }
@@ -534,18 +534,18 @@ parse_interrupt_map_prop(const void *const dtb,
             if (!parse_cell_pair(&data,
                                  data_end,
                                  (int)phandle_prop_info->addr_cells,
-                                 (uint64_t *)&info.child_int_specifier))
+                                 (uint64_t *)&info.child_intr_specifier))
             {
                 return false;
             }
         }
 
-        const struct devicetree_prop_interrupt_cells *const int_cells_prop =
+        const struct devicetree_prop_interrupt_cells *const intr_cells_prop =
             (const struct devicetree_prop_interrupt_cells *)
                 devicetree_node_get_prop(phandle_node,
                                          DEVICETREE_PROP_INTERRUPT_CELLS);
 
-        if (int_cells_prop == NULL) {
+        if (intr_cells_prop == NULL) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map's phandle 0x%" PRIx32 "'s "
                    "corresponding node is missing the #interrupt-cells "
@@ -554,11 +554,11 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        const struct devicetree_prop *const int_ctrl_prop =
+        const struct devicetree_prop *const intr_ctrl_prop =
             devicetree_node_get_prop(phandle_node,
                                      DEVICETREE_PROP_INTERRUPT_CONTROLLER);
 
-        if (int_ctrl_prop == NULL) {
+        if (intr_ctrl_prop == NULL) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map's phandle 0x%" PRIx32 "'s "
                    "corresponding node is missing the interrupt-controller "
@@ -567,11 +567,11 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        if (!parse_int_info(data,
-                            data_end,
-                            /*parent_int_cells=*/int_cells_prop->count,
-                            info.phandle,
-                            &info.parent_int_info))
+        if (!parse_intr_info(data,
+                             data_end,
+                             /*parent_intr_cells=*/intr_cells_prop->count,
+                             info.phandle,
+                             &info.parent_intr_info))
         {
             return false;
         }
@@ -580,7 +580,7 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        data += int_cells_prop->count;
+        data += intr_cells_prop->count;
     }
 
     return true;
@@ -652,14 +652,21 @@ parse_specifier_map_prop(const void *const dtb,
     return true;
 }
 
-struct int_map_info {
+struct intr_map_info {
     const struct fdt_property *fdt_prop;
     struct devicetree_node *node;
 
     uint32_t prop_length;
 };
 
-struct int_node_info {
+#define INTR_MAP_INFO_INIT(prop_, node_, prop_len_) \
+    ((struct intr_map_info){ \
+        .fdt_prop = (prop_), \
+        .node = (node_), \
+        .prop_length = (prop_len_), \
+    })
+
+struct intr_node_info {
     struct devicetree_node *node;
     int nodeoff;
 
@@ -667,8 +674,8 @@ struct int_node_info {
     uint32_t count;
 };
 
-#define INT_NODE_INFO_INIT(node_, nodeoff_, data_, count_) \
-    ((struct int_node_info){ \
+#define INTR_NODE_INFO_INIT(node_, nodeoff_, data_, count_) \
+    ((struct intr_node_info){ \
         .node = (node_), \
         .nodeoff = (nodeoff_), \
         .data = (data_), \
@@ -676,24 +683,24 @@ struct int_node_info {
     })
 
 struct parse_later_info {
-    struct array int_map_list;
-    struct array int_node_list;
+    struct array intr_map_list;
+    struct array intr_node_list;
 
     struct devicetree_prop_addr_size_cells addr_size_cells_prop;
 };
 
 #define PARSE_LATER_INFO_INIT() \
     ((struct parse_later_info){ \
-        .int_map_list = ARRAY_INIT(sizeof(struct int_map_info)), \
-        .int_node_list = ARRAY_INIT(sizeof(struct int_node_info)), \
+        .intr_map_list = ARRAY_INIT(sizeof(struct intr_map_info)), \
+        .intr_node_list = ARRAY_INIT(sizeof(struct intr_node_info)), \
         .addr_size_cells_prop.addr_cells = 0, \
         .addr_size_cells_prop.size_cells = 0 \
     })
 
 __optimize(3) static
 void parse_later_info_destroy(struct parse_later_info *const later_info) {
-    array_destroy(&later_info->int_map_list);
-    array_destroy(&later_info->int_node_list);
+    array_destroy(&later_info->intr_map_list);
+    array_destroy(&later_info->intr_node_list);
 }
 
 static bool
@@ -1087,10 +1094,10 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                const struct int_node_info info =
-                    INT_NODE_INFO_INIT(node, nodeoff, data, count);
+                const struct intr_node_info info =
+                    INTR_NODE_INFO_INIT(node, nodeoff, data, count);
 
-                if (!array_append(&later_info->int_node_list, &info)) {
+                if (!array_append(&later_info->intr_node_list, &info)) {
                     return false;
                 }
 
@@ -1100,13 +1107,10 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPT_MAP:
             if (sv_equals(name, SV_STATIC("interrupt-map"))) {
-                const struct int_map_info info = {
-                    .fdt_prop = fdt_prop,
-                    .node = node,
-                    .prop_length = (uint32_t)prop_len
-                };
+                const struct intr_map_info info =
+                    INTR_MAP_INFO_INIT(fdt_prop, node, (uint32_t)prop_len);
 
-                if (!array_append(&later_info->int_map_list, &info)) {
+                if (!array_append(&later_info->intr_map_list, &info)) {
                     return false;
                 }
 
@@ -1560,7 +1564,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         return false;
     }
 
-    array_foreach(&later_info.int_map_list, const struct int_map_info, iter) {
+    array_foreach(&later_info.intr_map_list, const struct intr_map_info, iter) {
         bool has_flags = false;
         struct array list =
             ARRAY_INIT(sizeof(struct devicetree_prop_interrupt_map_entry));
@@ -1611,16 +1615,19 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         }
     }
 
-    array_foreach(&later_info.int_node_list, const struct int_node_info, iter) {
+    array_foreach(&later_info.intr_node_list,
+                  const struct intr_node_info,
+                  iter)
+    {
         struct devicetree_node *const node = iter->node;
         struct devicetree_node *const parent = node->parent;
 
-        const struct devicetree_prop_interrupt_parent *const int_parent =
+        const struct devicetree_prop_interrupt_parent *const intr_parent =
             (const struct devicetree_prop_interrupt_parent *)(uint64_t)
                 devicetree_node_get_prop(parent,
                                          DEVICETREE_PROP_INTERRUPT_PARENT);
 
-        if (int_parent == NULL) {
+        if (intr_parent == NULL) {
             printk(LOGLEVEL_WARN,
                    "devicetree: node " SV_FMT "'s parent is missing an "
                    "'interrupt-parent' prop necessary to parse 'interrupts' "
@@ -1635,7 +1642,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
 
         struct devicetree_node *const intc_node =
             (struct devicetree_node *)(uint64_t)
-                devicetree_get_node_for_phandle(tree, int_parent->phandle);
+                devicetree_get_node_for_phandle(tree, intr_parent->phandle);
 
         if (intc_node == NULL) {
             printk(LOGLEVEL_WARN,
@@ -1659,12 +1666,12 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             continue;
         }
 
-        const struct devicetree_prop_interrupt_cells *const int_cells_prop =
+        const struct devicetree_prop_interrupt_cells *const intr_cells_prop =
             (const struct devicetree_prop_interrupt_cells *)
                 devicetree_node_get_prop(intc_node,
                                          DEVICETREE_PROP_INTERRUPT_CELLS);
 
-        if (int_cells_prop == NULL) {
+        if (intr_cells_prop == NULL) {
             printk(LOGLEVEL_WARN,
                    "devicetree: node " SV_FMT "'s parent's 'interrupt-parent' "
                    "prop points to an interrupt-controller prop that's missing "
@@ -1689,7 +1696,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             return false;
         }
 
-        if ((iter->count % int_cells_prop->count) != 0) {
+        if ((iter->count % intr_cells_prop->count) != 0) {
             printk(LOGLEVEL_WARN,
                    "devicetree: node " SV_FMT "'s 'interrupts' prop's "
                    "data-length isn't a multiple of the parent's "
@@ -1702,22 +1709,24 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             return false;
         }
 
-        struct array int_info_list =
-            ARRAY_INIT(sizeof(struct devicetree_prop_int_info));
+        struct array intr_info_list =
+            ARRAY_INIT(sizeof(struct devicetree_prop_intr_info));
 
-        const uint32_t int_count = iter->count / int_cells_prop->count;
+        const uint32_t intr_count = iter->count / intr_cells_prop->count;
 
         const fdt32_t *data = iter->data;
         const fdt32_t *const end = iter->data + iter->count;
 
-        for (uint32_t i = 0; i != int_count; i++, data += int_cells_prop->count)
+        for (uint32_t i = 0;
+             i != intr_count; i++,
+             data += intr_cells_prop->count)
         {
-            struct devicetree_prop_int_info info = {};
-            if (!parse_int_info(data,
-                                end,
-                                int_cells_prop->count,
-                                int_parent->phandle,
-                                &info))
+            struct devicetree_prop_intr_info info = {};
+            if (!parse_intr_info(data,
+                                 end,
+                                 intr_cells_prop->count,
+                                 intr_parent->phandle,
+                                 &info))
             {
                 parse_later_info_destroy(&later_info);
                 devicetree_node_free(tree->root);
@@ -1725,7 +1734,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                 return false;
             }
 
-            if (!array_append(&int_info_list, &info)) {
+            if (!array_append(&intr_info_list, &info)) {
                 parse_later_info_destroy(&later_info);
                 devicetree_node_free(tree->root);
 
@@ -1745,7 +1754,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         }
 
         prop->kind = DEVICETREE_PROP_INTERRUPTS,
-        prop->list = int_info_list;
+        prop->list = intr_info_list;
 
         if (!hashmap_add(&node->known_props,
                          hashmap_key_create(DEVICETREE_PROP_INTERRUPTS),

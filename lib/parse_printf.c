@@ -162,7 +162,7 @@ parse_length(struct printf_spec_info *const curr_spec,
                     return false;
                 case 'h': {
                     const uint64_t number =
-                        (uint64_t)(signed char)va_arg(list_struct->list, int);
+                        (uint64_t)va_arg(list_struct->list, int);
 
                     *number_out = number;
                     *is_zero_out = number == 0;
@@ -174,7 +174,7 @@ parse_length(struct printf_spec_info *const curr_spec,
                 }
                 default: {
                     const uint64_t number =
-                        (uint64_t)(short int)va_arg(list_struct->list, int);
+                        (uint64_t)va_arg(list_struct->list, int);
 
                     *number_out = number;
                     *is_zero_out = number == 0;

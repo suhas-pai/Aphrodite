@@ -12,7 +12,7 @@
 #include "sched/process.h"
 #include "sched/thread.h"
 
-#define KERNEL_STACK_SIZE_ORDER 1
+#define KERNEL_STACK_SIZE_ORDER 2
 #define USER_STACK_SIZE_ORDER 2
 
 void sched_process_arch_info_init(struct process *const process) {

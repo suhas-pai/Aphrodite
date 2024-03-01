@@ -6,8 +6,6 @@
 #pragma once
 
 #include <stdbool.h>
-#include <stdint.h>
-
 #include "lib/macros.h"
 
 #define KMALLOC_MAX 8192

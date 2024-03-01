@@ -9,7 +9,6 @@
 #include "lib/adt/hashmap.h"
 
 #include "fdt/libfdt_env.h"
-#include "lib/list.h"
 #include "sys/irq.h"
 
 enum devicetree_prop_kind {
@@ -119,17 +118,17 @@ struct devicetree_prop_device_type {
     struct string_view name;
 };
 
-enum devicetree_prop_int_polarity {
-    DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_LOW,
-    DEVTREE_PROP_INT_MAP_INT_ENTRY_POLARITY_HIGH,
+enum devicetree_prop_intr_polarity {
+    DEVTREE_PROP_INT_MAP_INTR_ENTRY_POLARITY_LOW,
+    DEVTREE_PROP_INT_MAP_INTR_ENTRY_POLARITY_HIGH,
 };
 
-enum devicetree_prop_int_trigger_mode {
-    DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_EDGE,
-    DEVTREE_PROP_INT_MAP_INT_ENTRY_TRIGGER_MODE_LEVEL,
+enum devicetree_prop_intr_trigger_mode {
+    DEVTREE_PROP_INT_MAP_INTR_ENTRY_TRIGGER_MODE_EDGE,
+    DEVTREE_PROP_INT_MAP_INTR_ENTRY_TRIGGER_MODE_LEVEL,
 };
 
-struct devicetree_prop_int_info {
+struct devicetree_prop_intr_info {
     uint32_t num;
     uint32_t flags;
 
@@ -156,14 +155,14 @@ struct devicetree_prop_interrupt_cells {
 
 struct devicetree_prop_interrupt_map_entry {
     uint64_t child_unit_address;
-    uint32_t child_int_specifier;
+    uint32_t child_intr_specifier;
     uint32_t phandle;
     uint64_t parent_unit_address;
 
     uint32_t flags;
     bool has_flags;
 
-    struct devicetree_prop_int_info parent_int_info;
+    struct devicetree_prop_intr_info parent_intr_info;
 };
 
 struct devicetree_prop_interrupt_map {

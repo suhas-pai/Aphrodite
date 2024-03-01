@@ -21,7 +21,7 @@ __hidden struct cpu_info g_base_cpu_info = {
     .pagemap_node = LIST_INIT(g_base_cpu_info.pagemap_node),
 
     .cpu_list = LIST_INIT(g_base_cpu_info.cpu_list),
-    .spur_int_count = 0,
+    .spur_intr_count = 0,
 
     .interface_number = 0,
     .acpi_processor_id = 0,
@@ -34,7 +34,7 @@ static struct cpu_features g_cpu_features = {0};
 struct list g_cpu_list = LIST_INIT(g_cpu_list);
 static bool g_base_cpu_init = false;
 
-__optimize(3) const struct cpu_info *get_base_cpu_info() {
+__optimize(3) const struct cpu_info *base_cpu() {
     assert(g_base_cpu_init);
     return &g_base_cpu_info;
 }
@@ -1263,102 +1263,84 @@ void print_cpu_features() {
            g_cpu_features.wfxt ? "yes" : "no",
            g_cpu_features.xs ? "yes" : "no",
            g_cpu_features.dpb == CPU_FEAT_DPB_NONE ?
-            "none" :
-                g_cpu_features.dpb == CPU_FEAT_DPB2 ?
-                    "dpb2" : "dpb",
+            "none" : g_cpu_features.dpb == CPU_FEAT_DPB2 ? "dpb2" : "dpb",
            g_cpu_features.adv_simd == CPU_FEAT_ADV_SIMD_NONE ?
             "none" :
-                g_cpu_features.adv_simd == CPU_FEAT_ADV_SIMD_FULL ?
-                    "full" : "partial",
+            g_cpu_features.adv_simd == CPU_FEAT_ADV_SIMD_FULL ?
+                "full" : "partial",
            g_cpu_features.aes == CPU_FEAT_AES_NONE ?
             "none" :
-                g_cpu_features.aes == CPU_FEAT_AES ?
-                    "aes" : "aes-with-pmull",
+            g_cpu_features.aes == CPU_FEAT_AES ? "aes" : "aes-with-pmull",
            g_cpu_features.sha2 == CPU_FEAT_SHA2_NONE ?
             "none" :
-                g_cpu_features.sha2 == CPU_FEAT_SHA256 ?
-                    "sha256" : "sha512",
+            g_cpu_features.sha2 == CPU_FEAT_SHA256 ? "sha256" : "sha512",
            g_cpu_features.atomic == CPU_FEAT_ATOMIC_NONE ?
             "none" :
-                g_cpu_features.atomic == CPU_FEAT_ATOMIC_LSE ?
-                    "lse" : "lse128",
+            g_cpu_features.atomic == CPU_FEAT_ATOMIC_LSE ? "lse" : "lse128",
            g_cpu_features.ts == CPU_FEAT_NONE ?
             "none" :
-                g_cpu_features.ts == CPU_FEAT_TS_FLAG_M ?
-                    "flag-m" : "flag-m2",
+            g_cpu_features.ts == CPU_FEAT_TS_FLAG_M ? "flag-m" : "flag-m2",
            g_cpu_features.tlb == CPU_FEAT_TLB_NONE ?
             "none" :
-                g_cpu_features.tlb == CPU_FEAT_TLBIOS ?
-                    "tlbios" : "tlbirange",
+            g_cpu_features.tlb == CPU_FEAT_TLBIOS ? "tlbios" : "tlbirange",
            pauth_string,
            lrcpc_string,
            g_cpu_features.fgt == CPU_FEAT_FGT_NONE ?
             "none" :
-                g_cpu_features.fgt == CPU_FEAT_FGT ? "fgt" : "fgt2",
+            g_cpu_features.fgt == CPU_FEAT_FGT ? "fgt" : "fgt2",
            ls64_string,
            g_cpu_features.fp == CPU_FEAT_FP_NONE ?
             "none" :
-                g_cpu_features.fp == CPU_FEAT_FP_PARTIAL ? "partial" : "full",
+            g_cpu_features.fp == CPU_FEAT_FP_PARTIAL ? "partial" : "full",
            g_cpu_features.gic == CPU_FEAT_GIC_NONE ?
-            "none" :
-                g_cpu_features.gic == CPU_FEAT_GIC_V4 ? "v4" : "v4.1",
+            "none" : g_cpu_features.gic == CPU_FEAT_GIC_V4 ? "v4" : "v4.1",
            ras_string,
            g_cpu_features.sve == CPU_FEAT_SVE ?
             "sve" :
-                g_cpu_features.sve == CPU_FEAT_SVE2 ? "v2" : "v2.1",
+            g_cpu_features.sve == CPU_FEAT_SVE2 ? "v2" : "v2.1",
            g_cpu_features.sve_aes == CPU_FEAT_SVE_AES_NONE ?
             "none" :
-                g_cpu_features.sve_aes == CPU_FEAT_SVE_AES ?
-                    "sve-aes" : "sve-aes-with-pmull",
+            g_cpu_features.sve_aes == CPU_FEAT_SVE_AES ?
+                "sve-aes" : "sve-aes-with-pmull",
            g_cpu_features.sve_bf16 == CPU_FEAT_SVE_BF16_NONE ?
             "none" :
-                g_cpu_features.sve_bf16 == CPU_FEAT_SVE_BF16 ?
-                    "bf16" : "ebf16",
+            g_cpu_features.sve_bf16 == CPU_FEAT_SVE_BF16 ? "bf16" : "ebf16",
            g_cpu_features.amu == CPU_FEAT_AMU_NONE ?
             "none" :
-                g_cpu_features.amu == CPU_FEAT_AMU_AMUv1 ?
-                    "v1" : "v1.1",
+            g_cpu_features.amu == CPU_FEAT_AMU_AMUv1 ? "v1" : "v1.1",
            csv2_string,
            g_cpu_features.specres == CPU_FEAT_NONE ?
             "none" :
-                g_cpu_features.specres == CPU_FEAT_SPECRES ?
-                    "specres" : "specres2",
+            g_cpu_features.specres == CPU_FEAT_SPECRES ? "specres" : "specres2",
            g_cpu_features.ssbs == CPU_FEAT_SSBS_NONE ?
             "none" :
-                g_cpu_features.ssbs == CPU_FEAT_SSBS ?
-                    "ssbs" : "ssbs2",
+            g_cpu_features.ssbs == CPU_FEAT_SSBS ? "ssbs" : "ssbs2",
            mte_string,
            sme_string,
            parange_string,
            g_cpu_features.ecv == CPU_FEAT_ECV_NONE ?
             "none" :
-                g_cpu_features.ecv == CPU_FEAT_ECV_FULL ?
-                    "full" : "partial",
+            g_cpu_features.ecv == CPU_FEAT_ECV_FULL ? "full" : "partial",
            hafdbs_string,
            g_cpu_features.hpds == CPU_FEAT_HPDS_NONE ?
             "none" :
-                g_cpu_features.hpds == CPU_FEAT_HPDS ?
-                    "hpds" : "hpds2",
+            g_cpu_features.hpds == CPU_FEAT_HPDS ? "hpds" : "hpds2",
            pan_string,
            g_cpu_features.nv == CPU_FEAT_NV_NONE ?
             "none" :
-                g_cpu_features.nv == CPU_FEAT_NV ?
-                    "nv" : "nv2",
+            g_cpu_features.nv == CPU_FEAT_NV ? "nv" : "nv2",
            g_cpu_features.bbm == CPU_FEAT_BBM_LVL0 ?
             "lvl-0" :
-                g_cpu_features.bbm == CPU_FEAT_BBM_LVL1 ?
-                    "lvl-2" : "lvl-1",
+            g_cpu_features.bbm == CPU_FEAT_BBM_LVL1 ? "lvl-2" : "lvl-1",
            debug_string,
            pmu_string,
            g_cpu_features.mtpmu == CPU_FEAT_MTPMU ? "mtpmu" : "mtpmu-maybe-3",
            g_cpu_features.brbe == CPU_FEAT_BRBE_NONE ?
             "none" :
-                g_cpu_features.brbe == CPU_FEAT_BRBE ?
-                    "brbe" : "brbe-v1.1",
+            g_cpu_features.brbe == CPU_FEAT_BRBE ? "brbe" : "brbe-v1.1",
            g_cpu_features.bf16 == CPU_FEAT_BF16_NONE ?
             "none" :
-                g_cpu_features.bf16 == CPU_FEAT_BF16 ?
-                    "bf16" : "ebf16",
+            g_cpu_features.bf16 == CPU_FEAT_BF16 ? "bf16" : "ebf16",
            g_cpu_features.csv3 ? "yes" : "no",
            g_cpu_features.dgh ? "yes" : "no",
            g_cpu_features.double_lock ? "yes" : "no",
@@ -1465,7 +1447,7 @@ cpu_add_gic_interface(
         list_add(&g_cpu_list, &cpu->cpu_list);
     }
 
-    cpu->spur_int_count = 0;
+    cpu->spur_intr_count = 0;
     cpu->acpi_processor_id = intr->acpi_processor_id;
     cpu->interface_number = intr->cpu_interface_number;
     cpu->spe_overflow_interrupt = intr->spe_overflow_interrupt;

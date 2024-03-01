@@ -36,7 +36,7 @@ struct cpu_info {
 
     // Keep track of spurious interrupts for every lapic.
     struct thread *idle_thread;
-    uint64_t spur_int_count;
+    uint64_t spur_intr_count;
 
     struct sched_percpu_info sched_info;
 };

@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdint.h>
 #include "lib/macros.h"
 
 #define PCI_MAX_BUS_COUNT 255 // Maximum number of PCI Buses
@@ -323,7 +321,7 @@ enum pci_spec_cap_msi_control_flags {
     __PCI_CAPMSI_CTRL_MULTIMSG_CAPABLE = 0b111 << 1,
     __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE = 0b111 << 4,
 
-    __PCI_CAPMSI_CTRL_64BIT_CAPABLE  = 1 << 7,
+    __PCI_CAPMSI_CTRL_64BIT_CAPABLE = 1 << 7,
     __PCI_CAPMSI_CTRL_PER_VECTOR_MASK = 1 << 8
 };
 

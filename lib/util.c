@@ -19,7 +19,7 @@ bool ordinal_in_bounds(const uint64_t ordinal, const uint64_t bounds) {
 __optimize(3)
 bool index_range_in_bounds(const struct range range, const uint64_t bounds) {
     uint64_t end = 0;
-    if (!range_get_end(range, &end)) {
+    if (__builtin_expect(!range_get_end(range, &end), 0)) {
         return false;
     }
 

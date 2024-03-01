@@ -3,13 +3,13 @@
  * © suhas pai
  */
 
+#include "asm/irqs.h"
 #include "dev/printk.h"
 #include "lib/align.h"
 
-#include "mm/page_alloc.h"
-#include "mm/walker.h"
-
+#include "page_alloc.h"
 #include "pgmap.h"
+#include "walker.h"
 
 enum map_result {
     MAP_DONE,
@@ -1298,7 +1298,9 @@ pgmap_at(struct pagemap *const pagemap,
         return false;
     }
 
+    const bool flag = disable_interrupts_if_not();
     struct pt_walker walker;
+
     if (options->is_in_early) {
         ptwalker_create_for_pagemap(&walker,
                                     pagemap,
@@ -1313,7 +1315,7 @@ pgmap_at(struct pagemap *const pagemap,
      * There's a chance the virtual address is pointing into the middle of a
      * large page, in which case we have to split the large page and
      * appropriately setup the current_split_info, but only if the large page
-     * needs to be replaced (has a different phys-addr or different flags)
+     * needs to be replaced (has a different phys-addr or different flags).
      */
 
     struct current_split_info curr_split = CURRENT_SPLIT_INFO_INIT();
@@ -1342,6 +1344,7 @@ pgmap_at(struct pagemap *const pagemap,
                     virt_addr;
 
                 if (!range_has_index(phys_range, offset)) {
+                    enable_interrupts_if_flag(flag);
                     return OVERRIDE_DONE;
                 }
 
@@ -1366,6 +1369,8 @@ pgmap_at(struct pagemap *const pagemap,
 
                 if (!result) {
                     pageop_finish(&pageop);
+                    enable_interrupts_if_flag(flag);
+
                     return result;
                 }
 
@@ -1388,6 +1393,7 @@ pgmap_at(struct pagemap *const pagemap,
         pageop_finish(&pageop);
     }
 
+    enable_interrupts_if_flag(flag);
     return result;
 }
 
@@ -1544,7 +1550,9 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         return false;
     }
 
+    const bool flag = disable_interrupts_if_not();
     struct pt_walker walker;
+
     if (options->is_in_early) {
         ptwalker_create_for_pagemap(&walker,
                                     pagemap,
@@ -1591,6 +1599,8 @@ pgmap_alloc_at(struct pagemap *const pagemap,
 
             if (!result) {
                 pageop_finish(&pageop);
+                enable_interrupts_if_flag(flag);
+
                 return result;
             }
 
@@ -1611,6 +1621,7 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         pageop_finish(&pageop);
     }
 
+    enable_interrupts_if_flag(flag);
     return result;
 }
 
@@ -1628,6 +1639,8 @@ pgunmap_at(struct pagemap *const pagemap,
 
     struct pt_walker walker;
     struct pageop pageop;
+
+    const bool flag = disable_interrupts_if_not();
 
     ptwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
     pageop_init(&pageop, pagemap, virt_range);
@@ -1654,6 +1667,8 @@ pgunmap_at(struct pagemap *const pagemap,
                 walker.level > 1 && !pte_level_can_have_large(walker.level), 0))
         {
             pageop_finish(&pageop);
+            enable_interrupts_if_flag(flag);
+
             return false;
         }
 
@@ -1663,6 +1678,8 @@ pgunmap_at(struct pagemap *const pagemap,
 
             if (dont_split_large_pages) {
                 pageop_finish(&pageop);
+                enable_interrupts_if_flag(flag);
+
                 return false;
             }
 
@@ -1676,6 +1693,8 @@ pgunmap_at(struct pagemap *const pagemap,
             const pte_t entry = pte_read(pte);
             if (__builtin_expect(!pte_is_large(entry), 0)) {
                 pageop_finish(&pageop);
+                enable_interrupts_if_flag(flag);
+
                 return false;
             }
 
@@ -1699,6 +1718,8 @@ pgunmap_at(struct pagemap *const pagemap,
 
             if (!map_result) {
                 pageop_finish(&pageop);
+                enable_interrupts_if_flag(flag);
+
                 return false;
             }
         } else {
@@ -1730,6 +1751,8 @@ pgunmap_at(struct pagemap *const pagemap,
 
         if (__builtin_expect(walker_result != E_PT_WALKER_OK, 0)) {
             pageop_finish(&pageop);
+            enable_interrupts_if_flag(flag);
+
             return false;
         }
 
@@ -1739,5 +1762,7 @@ pgunmap_at(struct pagemap *const pagemap,
     } while (true);
 
     pageop_finish(&pageop);
+    enable_interrupts_if_flag(flag);
+
     return true;
 }

@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include <stdint.h>
 #include "lib/macros.h"
 
 struct gdt_descriptor {

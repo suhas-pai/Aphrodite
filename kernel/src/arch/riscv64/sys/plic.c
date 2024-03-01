@@ -36,8 +36,8 @@ struct hart_interrupt_context {
 struct plic_registers {
     char reserved[0x2000];
 
-    struct hart_interrupt_enable_control hart_int_enable[240];
-    struct hart_interrupt_context hart_int_context[240];
+    struct hart_interrupt_enable_control hart_intr_enable[240];
+    struct hart_interrupt_context hart_intr_context[240];
 };
 
 static volatile struct plic_registers *g_regs = NULL;
@@ -101,10 +101,10 @@ plic_init_from_dtb(const struct devicetree *const tree,
                    const struct devicetree_node *const node)
 {
     (void)tree;
-    const struct devicetree_prop *const int_controller_prop =
+    const struct devicetree_prop *const intr_cntlr_prop =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPT_CONTROLLER);
 
-    if (int_controller_prop == NULL) {
+    if (intr_cntlr_prop == NULL) {
         printk(LOGLEVEL_WARN,
                "plic: dtb-node is missing a 'interrupt-controller' property\n");
         return false;
@@ -126,10 +126,10 @@ plic_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const struct devicetree_prop_other *const int_ext_prop =
+    const struct devicetree_prop_other *const intr_ext_prop =
         devicetree_node_get_other_prop(node, SV_STATIC("interrupts-extended"));
 
-    if (int_ext_prop == NULL) {
+    if (intr_ext_prop == NULL) {
         printk(LOGLEVEL_WARN,
                "plic: dtb-node is missing 'interrupts-extended' property\n");
         return false;
@@ -171,13 +171,13 @@ plic_init_from_dtb(const struct devicetree *const tree,
 
     g_regs = g_mmio->base;
 
-    const fdt32_t *int_ext_list = NULL;
-    uint32_t int_ext_count = 0;
+    const fdt32_t *intr_ext_list = NULL;
+    uint32_t intr_ext_count = 0;
 
-    if (!devicetree_prop_other_get_u32_list(int_ext_prop,
+    if (!devicetree_prop_other_get_u32_list(intr_ext_prop,
                                             /*u32_in_elem_count=*/2,
-                                            &int_ext_list,
-                                            &int_ext_count))
+                                            &intr_ext_list,
+                                            &intr_ext_count))
     {
         printk(LOGLEVEL_WARN,
                "plic: dtb-node has a malformed 'interrupts-extended' "
@@ -185,10 +185,10 @@ plic_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const fdt32_t *int_ext_ptr = int_ext_list;
-    for (uint32_t i = 0; i != int_ext_count; i++, int_ext_ptr += 2) {
-        const uint32_t hart_id = fdt32_to_cpu(int_ext_ptr[0]);
-        const enum plic_irq_kind kind = fdt32_to_cpu(int_ext_ptr[1]);
+    const fdt32_t *intr_ext_ptr = intr_ext_list;
+    for (uint32_t i = 0; i != intr_ext_count; i++, intr_ext_ptr += 2) {
+        const uint32_t hart_id = fdt32_to_cpu(intr_ext_ptr[0]);
+        const enum plic_irq_kind kind = fdt32_to_cpu(intr_ext_ptr[1]);
 
         if (!plic_irq_kind_is_valid(kind)) {
             printk(LOGLEVEL_WARN,
