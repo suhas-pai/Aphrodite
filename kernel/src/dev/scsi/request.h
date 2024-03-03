@@ -9,7 +9,9 @@
 enum scsi_command {
     SCSI_CMD_IDENTIFY,
     SCSI_CMD_READ,
-    SCSI_CMD_WRITE
+    SCSI_CMD_WRITE,
+
+    SCSI_CMD_ATAPI_SENSE
 };
 
 struct scsi_request {
@@ -42,3 +44,6 @@ struct scsi_request {
         .read.position = (pos), \
         .read.length = (len) \
     })
+
+#define SCSI_REQUEST_ATAPI_SENSE() \
+    ((struct scsi_request){ .command = SCSI_CMD_ATAPI_SENSE })

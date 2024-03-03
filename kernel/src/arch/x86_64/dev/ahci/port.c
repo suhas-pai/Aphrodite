@@ -722,23 +722,37 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
            "ahci: port #%" PRIu8 " initialized\n",
            port->index + 1);
 
-    result =
-        ahci_hba_port_send_scsi_command(port,
-                                        SCSI_REQUEST_READ(0, 1),
-                                        page_to_phys(resp_page));
+    if (port->sig == SATA_SIG_ATAPI) {
+        result =
+            ahci_hba_port_send_scsi_command(port,
+                                            SCSI_REQUEST_ATAPI_SENSE(),
+                                            page_to_phys(resp_page));
 
-    if (!result) {
-        printk(LOGLEVEL_WARN,
-               "ahci: failed to read sector 0 of port #%" PRIu8 "\n",
-               port->index + 1);
+        if (!result) {
+            free_page(resp_page);
+            printk(LOGLEVEL_WARN,
+                   "ahci: failed to request sense of satapi port #%" PRIu8 "\n",
+                   port->index + 1);
 
-        // TODO: Power down and free cmd-list/cmd-table pages
-        return;
+            // TODO: Power down and free cmd-list/cmd-table pages
+            return false;
+        }
+
+        struct atapi_sense_response *const resp =
+            (struct atapi_sense_response *)page_to_virt(resp_page);
+
+        if (resp->sense != ATAPI_SENSE_NONE) {
+            free_page(resp_page);
+            printk(LOGLEVEL_WARN,
+                   "ahci: atapi sense request for port #%" PRIu8 " "
+                   "returned \"%s\". aborting init\n",
+                   port->index + 1,
+                   atapi_sense_to_cstr(resp->sense));
+
+            // TODO: Power down and free cmd-list/cmd-table pages
+            return false;
+        }
     }
-
-    printk(LOGLEVEL_INFO,
-           "ahci: magic is 0x%" PRIx16 "\n",
-           *(uint16_t *)resp_ptr);
 
     free_page(resp_page);
     return true;
@@ -1170,6 +1184,13 @@ ahci_hba_port_send_scsi_command(struct ahci_hba_port *const port,
             }
 
             verify_not_reached();
+        case SCSI_CMD_ATAPI_SENSE:
+            assert(port->sig == SATA_SIG_ATAPI);
+            return send_atapi_command(port,
+                                      ATAPI_CMD_REQUEST_SENSE,
+                                      /*sector_offset=*/18 << 8,
+                                      /*sector_count=*/1,
+                                      phys_addr);
     }
 
     verify_not_reached();

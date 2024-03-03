@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include <stdint.h>
+#include "lib/macros.h"
 
 enum atapi_command {
     ATAPI_CMD_TEST_UNIT_READY = 0x00,
@@ -58,5 +58,36 @@ enum atapi_command {
     ATAPI_CMD_READ_CD = 0xBE,
     ATAPI_CMD_SEND_DISC_STRUCTURE = 0xBF,
 };
+
+enum atapi_sense {
+    ATAPI_SENSE_NONE,
+    ATAPI_SENSE_RECOVERED_ERROR,
+    ATAPI_SENSE_NOT_READY,
+    ATAPI_SENSE_MEDIUM_ERROR,
+    ATAPI_SENSE_HARDWARE_ERROR,
+    ATAPI_SENSE_ILLEGAL_REQUEST,
+    ATAPI_SENSE_UNIT_ATTENTION,
+    ATAPI_SENSE_DATA_PROTECT,
+    ATAPI_SENSE_BLANK_CHECK,
+    ATAPI_SENSE_COPY_ABORTED = 0x0a,
+    ATAPI_SENSE_ABORTED_COMMAND,
+    ATAPI_SENSE_VOLUME_OVERFLOW = 0x0d,
+    ATAPI_SENSE_MISCOMPARE,
+};
+
+const char *atapi_sense_to_cstr(enum atapi_sense sense);
+
+struct atapi_sense_response {
+    uint8_t flags;
+    uint8_t reserved_1;
+
+    uint8_t sense;
+    uint32_t reserved_2;
+
+    uint8_t field;
+    uint32_t reserved_3;
+
+    uint8_t asc;
+} __packed;
 
 #define ATAPI_SECTOR_SIZE 2048
