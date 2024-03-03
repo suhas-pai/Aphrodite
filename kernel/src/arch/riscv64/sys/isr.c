@@ -53,7 +53,7 @@ isr_handle_interrupt(const uint64_t cause,
                 return;
             case CAUSE_INTERRUPT_SUPERVISOR_TIMER:
                 stimer_stop();
-                sched_next(/*from_irq=*/true);
+                sched_next(frame, /*from_irq=*/true);
 
                 return;
             case CAUSE_INTERRUPT_MACHINE_IPI:
