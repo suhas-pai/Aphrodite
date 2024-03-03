@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <stdint.h>
-
 #include "lib/adt/array.h"
 #include "location.h"
 
