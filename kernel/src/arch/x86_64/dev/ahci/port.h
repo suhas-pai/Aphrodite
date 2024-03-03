@@ -54,7 +54,7 @@ enum ahci_hba_port_command_kind {
     AHCI_HBA_PORT_CMDKIND_WRITE
 };
 
-void ahci_spec_hba_port_init(struct ahci_hba_port *port);
+bool ahci_spec_hba_port_init(struct ahci_hba_port *port);
 
 bool ahci_hba_port_start(struct ahci_hba_port *port);
 bool ahci_hba_port_stop(struct ahci_hba_port *port);

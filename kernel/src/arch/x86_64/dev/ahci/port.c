@@ -529,17 +529,17 @@ static inline bool recognize_port_sig(struct ahci_hba_port *const port) {
     verify_not_reached();
 }
 
-__optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
+__optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_stop_running(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to stop port #%" PRIu8 " before init\n",
                port->index + 1);
-        return;
+        return false;
     }
 
     port->sig = (enum sata_sig)mmio_read(&port->spec->signature);
     if (!recognize_port_sig(port)) {
-        return;
+        return false;
     }
 
     struct page *cmd_list_page = NULL;
@@ -573,14 +573,14 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         }
 
         printk(LOGLEVEL_WARN, "ahci: failed to allocate page for cmd-table\n");
-        return;
+        return false;
     }
 
     if (cmd_table_pages == NULL) {
         free_page(cmd_list_page);
         printk(LOGLEVEL_WARN, "ahci: failed to allocate pages for hba port\n");
 
-        return;
+        return false;
     }
 
     const struct range phys_range =
@@ -608,7 +608,7 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         free_page(cmd_list_page);
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
-        return;
+        return false;
     }
 
     volatile struct ahci_spec_port_cmdhdr *cmd_header =
@@ -642,7 +642,7 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
         kfree(cmdhdr_info_list);
-        return;
+        return false;
     }
 
     port->cmdhdr_info_list = cmdhdr_info_list;
@@ -658,7 +658,7 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
         kfree(cmdhdr_info_list);
-        return;
+        return false;
     }
 
     clear_error_bits(spec);
@@ -672,7 +672,8 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
 
     flush_writes(spec);
     if (!ahci_hba_port_start(port)) {
-        return;
+        free_page(resp_page);
+        return false;
     }
 
     bool result =
@@ -681,12 +682,13 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
                                         page_to_phys(resp_page));
 
     if (!result) {
+        free_page(resp_page);
         printk(LOGLEVEL_WARN,
                "ahci: failed to get identity of port #%" PRIu8 "\n",
                port->index + 1);
 
         // TODO: Power down and free cmd-list/cmd-table pages
-        return;
+        return false;
     }
 
     void *const resp_ptr = page_to_virt(resp_page);
@@ -739,6 +741,7 @@ __optimize(3) void ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
            *(uint16_t *)resp_ptr);
 
     free_page(resp_page);
+    return true;
 }
 
 __optimize(3)

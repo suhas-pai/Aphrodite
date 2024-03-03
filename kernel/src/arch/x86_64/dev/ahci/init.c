@@ -116,6 +116,14 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                            /*end_index=*/sizeof_bits(ports_impled));
 
     if (__builtin_expect(ports_impled_count == 0, 0)) {
+        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        pci_entity_toggle_msi_vector_mask(pci_entity,
+                                          g_hba_vector,
+                                          /*mask=*/true);
+
+        pci_entity_enable_privl(pci_entity, 0);
+        pci_unmap_bar(bar);
+
         printk(LOGLEVEL_WARN, "ahci: no ports are implemented\n");
         return;
     }
@@ -138,8 +146,17 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         host_cap & __AHCI_HBA_HOST_CAP_SUPPORTS_STAGGERED_SPINUP;
 
     if (hba->port_list == NULL) {
+        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        pci_entity_toggle_msi_vector_mask(pci_entity,
+                                          g_hba_vector,
+                                          /*mask=*/true);
+
+        pci_entity_enable_privl(pci_entity, 0);
+        pci_unmap_bar(bar);
+
         printk(LOGLEVEL_WARN,
                "ahci: failed to allocate memory for port list\n");
+
         return;
     }
 
@@ -175,6 +192,17 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         }
 
         if (!handoff_successful) {
+            isr_set_vector(g_hba_vector,
+                           /*handler=*/NULL,
+                           &ARCH_ISR_INFO_NONE());
+
+            pci_entity_toggle_msi_vector_mask(pci_entity,
+                                              g_hba_vector,
+                                              /*mask=*/true);
+
+            pci_entity_enable_privl(pci_entity, 0);
+            pci_unmap_bar(bar);
+
             printk(LOGLEVEL_WARN, "ahci: bios-os handoff failed\n");
             return;
         }
@@ -210,6 +238,14 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     if (usable_port_count == 0) {
+        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        pci_entity_toggle_msi_vector_mask(pci_entity,
+                                          g_hba_vector,
+                                          /*mask=*/true);
+
+        pci_entity_enable_privl(pci_entity, 0);
+        pci_unmap_bar(bar);
+
         kfree(hba->port_list);
         printk(LOGLEVEL_WARN,
                "ahci: no implemented ports are both present and active\n");
@@ -218,8 +254,25 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     hba->port_count = usable_port_count;
+
+    bool init_one_port = false;
     for (uint8_t index = 0; index != usable_port_count; index++) {
-        ahci_spec_hba_port_init(&hba->port_list[index]);
+        if (ahci_spec_hba_port_init(&hba->port_list[index])) {
+            init_one_port = true;
+        }
+    }
+
+    if (!init_one_port) {
+        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        pci_entity_toggle_msi_vector_mask(pci_entity,
+                                          g_hba_vector,
+                                          /*mask=*/true);
+
+        pci_entity_enable_privl(pci_entity, 0);
+        pci_unmap_bar(bar);
+
+        kfree(hba->port_list);
+        return;
     }
 
     printk(LOGLEVEL_INFO, "ahci: fully initialized\n");
@@ -237,7 +290,7 @@ static const struct pci_driver pci_driver = {
     .init = init_from_pci
 };
 
-__driver const struct driver driver = {
+__driver static const struct driver driver = {
     .name = SV_STATIC("x86_64-ahci-driver"),
     .dtb = NULL,
     .pci = &pci_driver
