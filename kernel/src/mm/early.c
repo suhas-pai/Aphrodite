@@ -31,13 +31,13 @@ _Static_assert(sizeof(struct freepages_info) <= PAGE_SIZE,
                "freepages_info struct must be small enough to store on a "
                "single page");
 
-// Use two lists to store info on areas of usuable pages;
-//  One that stores areas in ascending address order,
-//  One that stores areas in ascending order of the number of free pages.
+// Use two lists of usuable pages:
+//  One that stores pages in ascending address order,
+//  One that stores pages in ascending order of the number of free pages.
 
 // The address ascending order is needed later in post-arch setup to mark all
 // system-crucial pages, while the ascending free-page list is used so smaller
-// areas emptied out while larger areas are only used when absolutely necessary.
+// areas are emptied before larger areas are used.
 
 static struct list g_freepage_list = LIST_INIT(g_freepage_list);
 static struct list g_asc_freelist = LIST_INIT(g_asc_freelist);
@@ -427,57 +427,99 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         .should_ref = false,
     };
 
+    enum pt_walker_result advance_result =
+        ptwalker_next_with_options(&walker, walker.level, &iterate_options);
+
+    if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
+    fail:
+        panic("mm: failed to setup kernel pagemap, result=%d\n",
+              advance_result);
+    }
+
+    struct page *page = virt_to_page(walker.tables[walker.level - 1]);
     for (uint64_t i = 0; i < length;) {
-        const enum pt_walker_result advance_result =
-            ptwalker_next_with_options(&walker, walker.level, &iterate_options);
+        if (__builtin_expect(prev_was_at_end, 0)) {
+            // Here, we were previously at the end of a table, and have
+            // incremented to a new table, possibly at a different level.
 
-        if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
-            panic("mm: failed to setup kernel pagemap, result=%d\n",
-                  advance_result);
-        }
+            page = virt_to_page(walker.tables[walker.level - 1]);
 
-        // When either condition is true, all levels below the highest level
-        // incremented will have their index set to 0.
-        // To initialize only the tables that have been updated, we start from
-        // the current level and ascend to the top level. If an index is
-        // non-zero, then we have reached the level that was incremented, and
-        // can then exit.
+            // From our current level, and to some higher level, we have tables
+            // whose pages have yet to be initialized. The highest level where
+            // such a page exists is the highest level where the corresponding
+            // index is also zero.
 
-        if (prev_was_at_end || prev_level > walker.level) {
-            pgt_level_t level_end = walker.level;
-            for (pgt_level_t level = (pgt_level_t)walker.level;
+            for (pgt_level_t level = (pgt_level_t)walker.level + 1;
                  level <= walker.top_level;
                  level++)
             {
-                const uint64_t index = walker.indices[level - 1];
-                if (index != 0) {
-                    level_end = level;
+                pte_t *const table = walker.tables[level - 1];
+                struct page *const table_page = virt_to_page(table);
+
+                // On the page of the table just above the highest level table
+                // with an uninitialized page, we just have to increment the
+                // refcount and exit.
+
+                if (walker.indices[level - 1] != 0) {
+                    table_page->table.refcount.count++;
                     break;
                 }
 
-                pte_t *const table = walker.tables[level - 1];
-                struct page *const page = virt_to_page(table);
-
-                init_table_page(page);
+                init_table_page(table_page);
             }
 
-            for (pgt_level_t level = (pgt_level_t)walker.level + 1;
-                 level <= level_end;
+            init_table_page(page);
+
+            // Because we're refcounting only contiguous regions, we know that
+            // `prev_was_at_end` must be false for the next iteration.
+
+            prev_level = walker.level;
+            prev_was_at_end = false;
+        } else if (__builtin_expect(prev_level > walker.level, 0)) {
+            // Here, we were at a higher level, pointing to a large page, before
+            // going down to either a smaller large page or a normal sized leaf
+            // page.
+
+            // Initialize the tables inbetween our previous table, and our
+            // current table.
+
+            for (pgt_level_t level = (pgt_level_t)walker.level;
+                 level < prev_level;
                  level++)
             {
-                struct page *const page =
-                    virt_to_page(walker.tables[level - 1]);
+                pte_t *const table = walker.tables[level - 1];
+                struct page *const table_page = virt_to_page(table);
 
-                page->table.refcount.count++;
+                init_table_page(table_page);
             }
+
+            struct page *const prev_table_page =
+                virt_to_page(walker.tables[prev_level - 1]);
+
+            prev_table_page->table.refcount.count++;
+
+            page = virt_to_page(walker.tables[walker.level - 1]);
+            page->table.refcount.count++;
+
+            // Because we're refcounting only contiguous regions, we know that
+            // `prev_was_at_end` must be false for the next iteration, which is
+            // also the present value/
+
+            prev_level = walker.level;
+        } else {
+            page->table.refcount.count++;
+
+            prev_level = walker.level;
+            prev_was_at_end =
+                walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
         }
 
-        struct page *const page = virt_to_page(walker.tables[walker.level - 1]);
-        page->table.refcount.count++;
+        advance_result =
+            ptwalker_next_with_options(&walker, walker.level, &iterate_options);
 
-        prev_level = walker.level;
-        prev_was_at_end =
-            walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
+        if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
+            goto fail;
+        }
 
         i += PAGE_SIZE_AT_LEVEL(walker.level);
     }
