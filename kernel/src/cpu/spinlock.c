@@ -8,12 +8,20 @@
 #include "asm/irqs.h"
 #include "asm/pause.h"
 
+#if defined(DEBUG_LOCKS)
+    #include "lib/assert.h"
+#endif /* defined(DEBUG_LOCKS) */
+
 #include "spinlock.h"
 
 __optimize(3) void spin_acquire(struct spinlock *const lock) {
     const uint32_t ticket = atomic_fetch_add(&lock->back, 1);
     while (true) {
         if (atomic_load(&lock->front) == ticket) {
+        #if defined(DEBUG_LOCKS)
+            assert(lock->front <= lock->back);
+        #endif /* defined(DEBUG_LOCKS) */
+
             return;
         }
 
@@ -23,6 +31,10 @@ __optimize(3) void spin_acquire(struct spinlock *const lock) {
 
 __optimize(3) void spin_release(struct spinlock *const lock) {
     atomic_fetch_add(&lock->front, 1);
+
+#if defined(DEBUG_LOCKS)
+    assert(lock->front <= lock->back);
+#endif /* defined(DEBUG_LOCKS) */
 }
 
 __optimize(3) bool spin_try_acquire(struct spinlock *const lock) {

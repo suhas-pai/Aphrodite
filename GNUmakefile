@@ -73,10 +73,13 @@ endif
 DEFAULT_DISABLE_FLANTERM=0
 $(eval $(call DEFAULT_VAR,DISABLE_FLANTERM,$(DEFAULT_DISABLE_FLANTERM)))
 
+DEFAULT_DEBUG_LOCKS=0
+$(eval $(call DEFAULT_VAR,DEBUG_LOCKS,$(DEFAULT_DEBUG_LOCKS)))
+
 VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
 
-ifeq ($(DRIVE_KIND) ,block)
+ifeq ($(DRIVE_KIND),block)
 	ifeq ($(ARCH), riscv64)
 		$(error "block device not supported on riscv64")
 	endif
@@ -86,6 +89,12 @@ ifeq ($(DRIVE_KIND) ,block)
 else ifeq ($(DRIVE_KIND), scsi)
 	DRIVE_CD_QEMU_ARG=-device virtio-scsi-pci,id=scsi -device scsi-cd,drive=cd0 -drive id=cd0,if=none,format=raw,file=$(IMAGE_NAME).iso
 	DRIVE_HDD_QEMU_ARG=-device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd0 -drive id=hd0,format=raw,file=$(IMAGE_NAME).hdd
+else ifeq ($(DRIVE_KIND),nvme)
+DEFAULT_NVME_QUEUE_COUNT=4
+$(eval $(call DEFAULT_VAR,NVME_QUEUE_COUNT,$(DEFAULT_NVME_QUEUE_COUNT)))
+
+	DRIVE_CD_QEMU_ARG=-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,num_queues=$(NVME_QUEUE_COUNT)
+	DRIVE_HDD_QEMU_ARG=-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,num_queues=$(NVME_QUEUE_COUNT)
 else
 	$(error "Unrecognized value for variable DRIVE_KIND")
 endif
@@ -105,12 +114,12 @@ run-hdd: run-hdd-$(ARCH)
 .PHONY: run-x86_64
 run-x86_64: QEMU_RUN = 1
 run-x86_64: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-x86_64
 run-hdd-x86_64: QEMU_RUN = 1
 run-hdd-x86_64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd -hda $(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-aarch64
 run-aarch64: QEMU_RUN = 1
@@ -158,7 +167,7 @@ ovmf-riscv64:
 	cd ovmf-riscv64 && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT_CODE.fd && dd if=/dev/zero of=OVMF.fd bs=1 count=0 seek=33554432
 
 limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=binary --depth=1
+	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
 	$(MAKE) -C limine \
 		CC="$(HOST_CC)" \
 		CFLAGS="$(HOST_CFLAGS)" \
@@ -168,7 +177,7 @@ limine:
 
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel DEBUG=$(DEBUG) DISABLE_FLANTERM=$(DISABLE_FLANTERM)
+	$(MAKE) -C kernel DEBUG=$(DEBUG) DISABLE_FLANTERM=$(DISABLE_FLANTERM) DEBUG_LOCKS=$(DEBUG_LOCKS)
 
 $(IMAGE_NAME).iso: limine kernel
 	rm -rf iso_root

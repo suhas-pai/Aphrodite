@@ -71,6 +71,10 @@ ifeq ($(DISABLE_FLANTERM), 1)
     override COMMON_CFLAGS += -DDISABLE_FLANTERM
 endif
 
+ifeq ($(DEBUG_LOCKS), 1)
+    override COMMON_CFLAGS += -DDEBUG_LOCKS
+endif
+
 # User controllable C flags.
 override DEFAULT_CFLAGS += $(COMMON_CFLAGS)
 $(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
