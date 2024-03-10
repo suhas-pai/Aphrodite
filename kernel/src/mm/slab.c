@@ -3,15 +3,11 @@
  * © suhas pai
  */
 
-#include "cpu/panic.h"
-#include "cpu/spinlock.h"
-
 #include "lib/align.h"
 #include "lib/overflow.h"
 #include "lib/string.h"
 
 #include "page_alloc.h"
-#include "slab.h"
 
 struct free_slab_object {
     uint32_t next;

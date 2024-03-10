@@ -51,9 +51,6 @@ ptwalker_early_alloc_pgtable_cb(struct pt_walker *walker,
                                 pgt_level_t level,
                                 void *cb_info);
 
-// ptwalker with default settings expects a `struct pageop *` to be provided as
-// the cb_info for free_pgtable.
-
 void ptwalker_default(struct pt_walker *walker, uint64_t virt_addr);
 
 struct pagemap;
@@ -96,8 +93,6 @@ enum pt_walker_result {
     E_PT_WALKER_ALLOC_FAIL,
     E_PT_WALKER_BAD_INCR
 };
-
-struct pageop;
 
 enum pt_walker_result ptwalker_prev(struct pt_walker *walker);
 enum pt_walker_result ptwalker_next(struct pt_walker *walker);
