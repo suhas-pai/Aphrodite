@@ -11,36 +11,36 @@
 #define MAX_ORDER 31
 
 #if defined(AARCH64_USE_16K_PAGES)
-    #define PML1_SHIFT 14
-    #define PML2_SHIFT 25
-    #define PML3_SHIFT 36
-    #define PML4_SHIFT 47
+    #define PML1_SHIFT 14ul
+    #define PML2_SHIFT 25ul
+    #define PML3_SHIFT 36ul
+    #define PML4_SHIFT 47ul
 
-    #define PGT_LEVEL_COUNT 4
+    #define PGT_LEVEL_COUNT 4ul
     #define PGT_PTE_COUNT(level) ((level) != 4 ? (uint64_t)2048 : (uint64_t)2)
 
-    #define PML1_MASK 0xb
+    #define PML1_MASK 0xbull
     #define PML2_MASK PML1_MASK
     #define PML3_MASK PML1_MASK
     #define PML4_MASK 0x1
 #else
-    #define PML1_SHIFT 12
-    #define PML2_SHIFT 21
-    #define PML3_SHIFT 30
-    #define PML4_SHIFT 39
-    #define PML5_SHIFT 48
+    #define PML1_SHIFT 12ul
+    #define PML2_SHIFT 21ul
+    #define PML3_SHIFT 30ul
+    #define PML4_SHIFT 39ul
+    #define PML5_SHIFT 48ul
 
-    #define PGT_LEVEL_COUNT 5
+    #define PGT_LEVEL_COUNT 5ul
     #define PGT_PTE_COUNT(level) ({ (void)(level); (uint64_t)512; })
 
-    #define PML1_MASK 0x1ff
+    #define PML1_MASK 0x1ffull
     #define PML2_MASK PML1_MASK
     #define PML3_MASK PML1_MASK
     #define PML4_MASK PML1_MASK
     #define PML5_MASK 0xf
 #endif /* defined(AARCH64_USE_16K_PAGES) */
 
-#define PTE_PHYS_MASK 0x0000fffffffff000
+#define PTE_PHYS_MASK 0x0000fffffffff000ull
 #define PAGE_SHIFT PML1_SHIFT
 
 #define PML1(phys) (((phys) >> PML1_SHIFT) & PML1_MASK)

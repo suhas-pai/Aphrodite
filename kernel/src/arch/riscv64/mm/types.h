@@ -8,21 +8,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MAX_ORDER 31
+#define MAX_ORDER 31ul
 
-#define PML1_SHIFT 12
-#define PML2_SHIFT 21
-#define PML3_SHIFT 30
-#define PML4_SHIFT 39
-#define PML5_SHIFT 48
+#define PML1_SHIFT 12ul
+#define PML2_SHIFT 21ul
+#define PML3_SHIFT 30ul
+#define PML4_SHIFT 39ul
+#define PML5_SHIFT 48ul
 
 #define PAGE_SHIFT PML1_SHIFT
-#define PTE_PHYS_MASK 0x003ffffffffffc00
+#define PTE_PHYS_MASK 0x003ffffffffffc00ull
 
-#define PGT_LEVEL_COUNT 5
+#define PGT_LEVEL_COUNT 5ul
 #define PGT_PTE_COUNT(level) ({ (void)(level); (uint64_t)512; })
 
-#define PML1_MASK 0x1ff
+#define PML1_MASK 0x1ffull
 #define PML2_MASK PML1_MASK
 #define PML3_MASK PML1_MASK
 #define PML4_MASK PML1_MASK
