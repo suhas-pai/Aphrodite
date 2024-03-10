@@ -28,7 +28,7 @@
 // base revision described by the Limine boot protocol specification.
 // See specification for further info.
 
-LIMINE_BASE_REVISION(1)
+static volatile LIMINE_BASE_REVISION(1)
 
 static void test_alloc_largepage() {
     struct page *const largepage =
