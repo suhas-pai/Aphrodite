@@ -165,7 +165,7 @@ handle_exception(const uint64_t intr_no, struct thread_context *const context) {
                    (void *)context->rip);
 
             print_stack_trace(/*max_lines=*/10);
-            return;
+            cpu_idle();
         case EXCEPTION_FPU_FAULT:
             except_str = "FPU fault exception";
             break;
