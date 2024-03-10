@@ -514,14 +514,13 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
                 walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
         }
 
+        i += PAGE_SIZE_AT_LEVEL(walker.level);
         advance_result =
             ptwalker_next_with_options(&walker, walker.level, &iterate_options);
 
         if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
             goto fail;
         }
-
-        i += PAGE_SIZE_AT_LEVEL(walker.level);
     }
 }
 
@@ -537,8 +536,8 @@ mm_early_identity_map_phys(const uint64_t root_phys,
                            const uint64_t pte_flags)
 {
     assert_msg(!g_mapped_early_identity,
-               "mm: mm_early_identity_map_phys() only supports "
-               "identity-mapping early a single page!");
+               "mm: mm_early_identity_map_phys() only supports identity "
+               "mapping early a single page!");
 
     struct pt_walker walker;
     ptwalker_create_from_root_phys(&walker,
@@ -572,8 +571,6 @@ __optimize(3) void mm_remove_early_identity_map() {
         return;
     }
 
-    // Temporarily disable freeing early-alloced tables
-#if 0
     struct pt_walker walker;
     ptwalker_create_from_root_phys(&walker,
                                    g_mapped_early_root_phys,
@@ -595,7 +592,6 @@ __optimize(3) void mm_remove_early_identity_map() {
 
         free_page(page);
     }
-#endif
 }
 
 __optimize(3)
@@ -608,7 +604,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
         }
 
         // Mark the range from the beginning of the memmap, to the first free
-        // page.
+        // page as unusable.
 
         struct page *const start = phys_to_page(memmap->range.front);
         struct page *page = start;
