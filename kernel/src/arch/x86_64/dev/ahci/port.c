@@ -395,8 +395,6 @@ ahci_port_handle_irq(const uint64_t vector,
 
             spin_acquire(&port->lock);
             finished_cmdhdrs[port_count] = port->ports_bitset & ~ci;
-            port->ports_bitset =
-                rm_mask(port->ports_bitset, finished_cmdhdrs[port_count]);
             spin_release(&port->lock);
 
             ports_with_results[port_count] = port;
@@ -418,7 +416,9 @@ ahci_port_handle_irq(const uint64_t vector,
         const struct await_result await_result = AWAIT_RESULT_BOOL(result);
         for_each_lsb_one_bit(finished_cmdhdrs[i], /*start_index=*/0, iter) {
             struct event *const event = &port->cmdhdr_info_list[iter].event;
-            event_trigger(event, &await_result, /*drop_if_no_listeners=*/false);
+            port->cmdhdr_info_list[iter].result = await_result;
+
+            event_trigger(event, /*drop_if_no_listeners=*/false);
         }
 
         enable_port_interrupts(port->spec);
@@ -1015,14 +1015,15 @@ send_ata_command(struct ahci_hba_port *const port,
     }
 
     struct event *const event = &port->cmdhdr_info_list[slot].event;
-    struct await_result await_result = AWAIT_RESULT_NULL();
 
     mmio_write(&port->spec->command_issue, 1ull << slot);
-    assert(
-        events_await(&event,
-                     /*event_count=*/1,
-                     /*block=*/true,
-                     &await_result) == 0);
+    assert(events_await(&event, /*event_count=*/1, /*block=*/true) == 0);
+
+    struct await_result await_result = port->cmdhdr_info_list[slot].result;
+
+    const int flag = spin_acquire_with_irq(&port->lock);
+    port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
+    spin_release_with_irq(&port->lock, flag);
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);
@@ -1098,14 +1099,15 @@ send_atapi_command(struct ahci_hba_port *const port,
     }
 
     struct event *const event = &port->cmdhdr_info_list[slot].event;
-    struct await_result await_result = AWAIT_RESULT_NULL();
 
     mmio_write(&port->spec->command_issue, 1ull << slot);
-    assert(
-        events_await(&event,
-                     /*event_count=*/1,
-                     /*block=*/true,
-                     &await_result) == 0);
+    assert(events_await(&event, /*event_count=*/1, /*block=*/true) == 0);
+
+    struct await_result await_result = port->cmdhdr_info_list[slot].result;
+
+    const int flag = spin_acquire_with_irq(&port->lock);
+    port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
+    spin_release_with_irq(&port->lock, flag);
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);

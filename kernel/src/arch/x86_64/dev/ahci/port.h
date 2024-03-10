@@ -13,6 +13,7 @@
 
 struct ahci_hba_port_cmdhdr_info {
     struct event event;
+    struct await_result result;
 };
 
 #define AHCI_HBA_PORT_CMDHDR_INFO_INIT() \

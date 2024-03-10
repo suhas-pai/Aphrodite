@@ -4,7 +4,6 @@
  */
 
 #pragma once
-
 #include "lib/adt/array.h"
 
 #include "cpu/spinlock.h"
@@ -59,16 +58,16 @@ struct await_result {
 
 struct event {
     struct spinlock lock;
-
     struct array listeners;
-    struct array pending;
+
+    uint32_t pending;
 };
 
 #define EVENT_INIT() \
     ((struct event){ \
         .lock = SPINLOCK_INIT(), \
         .listeners = ARRAY_INIT(sizeof(struct event_listener)), \
-        .pending = ARRAY_INIT(sizeof(struct await_result)), \
+        .pending = 0, \
     })
 
 struct thread;
@@ -86,10 +85,6 @@ struct event_listener {
 int64_t
 events_await(struct event *const *events,
              uint32_t events_count,
-             bool block,
-             struct await_result *const result_out);
+             bool block);
 
-void
-event_trigger(struct event *event,
-              const struct await_result *result,
-              bool drop_if_no_listeners);
+void event_trigger(struct event *event, bool drop_if_no_listeners);
