@@ -388,8 +388,8 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
 
     uint8_t section_index = 0;
     uint8_t alloced_order = 0;
-    uint8_t locked_section_mask = 0;
 
+    uint64_t locked_section_mask = 0;
     struct page_section *iter =
         list_head(&zone->section_list, typeof(*iter), zone_list);
 
@@ -425,7 +425,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
             break;
         }
 
-        locked_section_mask |= 1 << section_index;
+        locked_section_mask |= 1ull << section_index;
         section_index++;
     } while (true);
 
