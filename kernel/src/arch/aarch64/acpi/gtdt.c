@@ -106,7 +106,7 @@ void gtdt_init(const struct acpi_gtdt *const gtdt) {
            gtdt->virtual_el2_timer_flags,
            virtual_el2_trigger_mode == IRQ_TRIGGER_MODE_EDGE ? "edge" : "level",
            virtual_el2_polarity == IRQ_POLARITY_HIGH ? "high" : "low",
-           gtdt->virtual_el2_timer_flags == __ACPI_GTDT_ALWAYS_ON_CAP ?
+           gtdt->virtual_el2_timer_flags & __ACPI_GTDT_ALWAYS_ON_CAP ?
             "yes" : "off");
 
     gicd_set_irq_trigger_mode(gtdt->secure_el1_timer_gsiv,
