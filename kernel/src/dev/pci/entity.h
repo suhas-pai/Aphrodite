@@ -43,16 +43,23 @@ struct pci_entity_info {
     uint8_t interrupt_pin;
 
     bool supports_pcie : 1;
+    bool msix_enabled : 1;
+
     uint8_t max_bar_count : 3;
+    uint8_t msi_pcie_offset;
 
     enum pci_entity_msi_support msi_support : 2;
 
     union {
-        uint64_t pcie_msi_offset;
         struct {
-            uint64_t pcie_msix_offset;
-            struct bitmap msix_table;
-        };
+            bool supports_64bit : 1;
+            bool supports_msi_masking : 1;
+            bool msi_enabled : 1;
+        } msi;
+        struct {
+            struct bitmap table;
+            uint32_t table_size;
+        } msix;
     };
 
     // Array of uint8_t

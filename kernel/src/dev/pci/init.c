@@ -117,7 +117,7 @@ pci_parse_bar(struct pci_entity_info *const dev,
 
     base_addr = bar_0 & PCI_BAR_32B_ADDR_SIZE_MASK;
     const enum pci_spec_devbar_memspace_kind memory_kind =
-        (bar_0 & __PCI_DEVBAR_MEMKIND_MASK) >> __PCI_DEVBAR_MEMKIND_SHIFT;
+        (bar_0 & __PCI_DEVBAR_MEMKIND_MASK) >> PCI_DEVBAR_MEMKIND_SHIFT;
 
     enum parse_bar_result result = E_PARSE_BAR_OK;
     if (memory_kind == PCI_DEVBAR_MEMSPACE_32B) {
@@ -303,8 +303,32 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                     break;
                 }
 
+                uint16_t msg_control =
+                    pci_read_cap_field(struct pci_spec_cap_msi, msg_control);
+
                 dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSI;
-                dev->pcie_msi_offset = cap_offset;
+                dev->msi_pcie_offset = cap_offset;
+
+                dev->msi.msi_enabled = false;
+                dev->msi.supports_64bit =
+                    msg_control & __PCI_CAPMSI_CTRL_64BIT_CAPABLE;
+                dev->msi.supports_msi_masking =
+                    msg_control & __PCI_CAPMSI_CTRL_PER_VECTOR_MASK;
+
+                if (msg_control & __PCI_CAPMSI_CTRL_ENABLE ||
+                    msg_control & __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE)
+                {
+                    msg_control =
+                        rm_mask(msg_control,
+                                __PCI_CAPMSI_CTRL_ENABLE |
+                                __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE);
+
+                    pci_write_from_base(dev,
+                                        dev->msi_pcie_offset,
+                                        struct pci_spec_cap_msi,
+                                        msg_control,
+                                        msg_control);
+                }
 
                 break;
             }
@@ -331,24 +355,40 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                     break;
                 }
 
-                dev->pcie_msix_offset = cap_offset;
-
-                const uint16_t msg_control =
+                uint16_t msg_control =
                     pci_read_cap_field(struct pci_spec_cap_msix, msg_control);
-                const uint16_t bitmap_size =
-                    (msg_control & __PCI_CAP_MSIX_TABLE_SIZE_MASK) + 1;
+                const uint16_t table_size =
+                    (msg_control & __PCI_CAP_MSIX_CTRL_TABLE_SIZE) + 1;
 
-                const struct bitmap bitmap = bitmap_alloc(bitmap_size);
+                const struct bitmap bitmap = bitmap_alloc(table_size);
                 if (bitmap.gbuffer.begin == NULL) {
                     printk(LOGLEVEL_WARN,
                            "\t\tfailed to allocate msix table "
                            "(size: %" PRIu16 " bytes). disabling msix\n",
-                           bitmap_size);
+                           table_size);
                     break;
                 }
 
+                if (msg_control & __PCI_CAPMSI_CTRL_ENABLE ||
+                    msg_control & __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE)
+                {
+                    msg_control =
+                        rm_mask(msg_control,
+                                __PCI_CAPMSI_CTRL_ENABLE |
+                                __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE);
+
+                    pci_write_from_base(dev,
+                                        dev->msi_pcie_offset,
+                                        struct pci_spec_cap_msi,
+                                        msg_control,
+                                        msg_control);
+                }
+
+                dev->msi_pcie_offset = cap_offset;
                 dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSIX;
-                dev->msix_table = bitmap;
+
+                dev->msix.table = bitmap;
+                dev->msix.table_size = table_size;
 
                 break;
             }
@@ -446,7 +486,7 @@ static void free_inside_entity_info(struct pci_entity_info *const entity) {
     }
 
     if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
-        bitmap_destroy(&entity->msix_table);
+        bitmap_destroy(&entity->msix.table);
     }
 
     array_destroy(&entity->vendor_cap_list);
@@ -841,9 +881,9 @@ __optimize(3) void pci_init() {
         }
     } else {
         printk(LOGLEVEL_INFO, "pci: no root-bus found. Aborting init\n");
+        pci_release_root_bus_list_lock(flag);
     }
 #endif /* defined(__x86_64__) */
 
-    pci_release_root_bus_list_lock(flag);
     pci_init_drivers();
 }

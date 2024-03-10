@@ -127,7 +127,7 @@ enum pci_spec_entity_cmdreg_flags {
 
     // If set to 1 the device can respond to the Parity Error Response command;
     // otherwise, the device's response is disabled.
-    __PCI_DEVCMDREG_PAITY_ERR_RESP = 1ull << 6,
+    __PCI_DEVCMDREG_PARITY_ERR_RESP = 1ull << 6,
 
     // If set to 1 the device can respond to the SERR# Response command;
     // otherwise, the device's response is disabled.
@@ -163,12 +163,12 @@ enum pci_spec_devbar_memspace_kind {
 };
 
 enum pci_spec_device_bar_shifts {
-    __PCI_DEVBAR_MEMKIND_SHIFT = 1,
+    PCI_DEVBAR_MEMKIND_SHIFT = 1,
 };
 
 enum pci_spec_device_bar_flags {
     __PCI_DEVBAR_IO = 1ull << 0,
-    __PCI_DEVBAR_MEMKIND_MASK = 0b11 << __PCI_DEVBAR_MEMKIND_SHIFT,
+    __PCI_DEVBAR_MEMKIND_MASK = 0b11 << PCI_DEVBAR_MEMKIND_SHIFT,
     __PCI_DEVBAR_PREFETCHABLE = 1ull << 3,
 };
 
@@ -326,7 +326,7 @@ enum pci_spec_cap_msi_control_flags {
 };
 
 enum pci_spec_cap_msix_control_flags {
-    __PCI_CAP_MSIX_TABLE_SIZE_MASK = (1ull << 10) - 1,
+    __PCI_CAP_MSIX_CTRL_TABLE_SIZE = mask_for_n_bits(10),
     __PCI_CAP_MSIX_CTRL_ENABLE = 1 << 15
 };
 
