@@ -72,7 +72,7 @@ take_off_freelist_to_add_later(struct page_section *const section,
                                const uint8_t freelist_order,
                                struct page *const page)
 {
-    list_delete(&page->freelist_head.freelist);
+    list_deinit(&page->freelist_head.freelist);
     struct page_freelist *const freelist =
         &section->freelist_list[freelist_order];
 
@@ -126,7 +126,7 @@ take_off_freelist_order(struct page_section *const section,
         struct page_freelist *const freelist =
             &section->freelist_list[freelist_order];
 
-        list_delete(&page->freelist_head.freelist);
+        list_deinit(&page->freelist_head.freelist);
         freelist->count--;
 
         return page;

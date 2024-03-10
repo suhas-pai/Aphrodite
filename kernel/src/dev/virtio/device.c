@@ -51,7 +51,7 @@ __optimize(3) void virtio_device_destroy(struct virtio_device *const device) {
     array_destroy(&device->shmem_regions);
     array_destroy(&device->vendor_cfg_list);
 
-    list_delete(&device->list);
+    list_deinit(&device->list);
     switch (device->transport_kind) {
         case VIRTIO_DEVICE_TRANSPORT_MMIO:
             vunmap_mmio(device->mmio.region);

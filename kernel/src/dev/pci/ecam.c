@@ -78,7 +78,7 @@ bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
     pci_remove_domain(&ecam_domain->domain);
 
     vunmap_mmio(ecam_domain->mmio);
-    list_delete(&ecam_domain->list);
+    list_deinit(&ecam_domain->list);
 
     g_ecam_entity_count--;
 

@@ -148,7 +148,7 @@ void *slab_alloc(struct slab_allocator *const alloc) {
     head->slab.head.free_obj_count--;
 
     if (head->slab.head.free_obj_count == 0) {
-        list_delete(&head->slab.head.slab_list);
+        list_deinit(&head->slab.head.slab_list);
     }
 
     struct free_slab_object *const result = get_free_ptr(head, alloc);
@@ -195,7 +195,7 @@ void slab_free(void *const mem) {
             alloc->free_obj_count -= alloc->object_count_per_slab;
             alloc->slab_count -= 1;
 
-            list_delete(&head->slab.head.slab_list);
+            list_deinit(&head->slab.head.slab_list);
             free_pages(head, alloc->slab_order);
 
             if (needs_lock) {

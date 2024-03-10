@@ -229,7 +229,7 @@ hashmap_remove(struct hashmap *const hashmap,
             continue;
         }
 
-        list_delete(&iter->list);
+        list_deinit(&iter->list);
         if (list_empty(&bucket->node_list)) {
             hashmap->buckets[key_hash] = NULL;
             free(bucket);

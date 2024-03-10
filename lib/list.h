@@ -66,7 +66,7 @@ static inline void list_radd(struct list *const head, struct list *const item) {
     list_add_common(item, head->prev, head);
 }
 
-__optimize(3) static inline bool list_empty(struct list *const list) {
+__optimize(3) static inline bool list_empty(const struct list *const list) {
     return list == list->prev;
 }
 
@@ -94,7 +94,7 @@ void slist_remove(struct slist *const head, struct slist *const elem) {
     verify_not_reached();
 }
 
-__optimize(3) static inline void list_delete(struct list *const elem) {
+__optimize(3) static inline void list_deinit(struct list *const elem) {
     elem->next->prev = elem->prev;
     elem->prev->next = elem->next;
 

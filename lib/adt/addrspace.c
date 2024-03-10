@@ -327,7 +327,7 @@ __optimize(3) void addrspace_remove_node(struct addrspace_node *const node) {
                         &node->avlnode,
                         avltree_update);
 
-    list_delete(&node->list);
+    list_deinit(&node->list);
 }
 
 __optimize(3)

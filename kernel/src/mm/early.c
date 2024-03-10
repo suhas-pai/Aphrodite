@@ -119,7 +119,7 @@ __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
                 info->avail_page_count += page_count;
                 info->total_page_count += page_count;
 
-                list_delete(&next->list);
+                list_deinit(&next->list);
             }
         }
 
@@ -163,8 +163,8 @@ __optimize(3) uint64_t early_alloc_page() {
 
     info->avail_page_count -= 1;
     if (info->avail_page_count == 0) {
-        list_delete(&info->asc_list);
-        list_delete(&info->list);
+        list_deinit(&info->asc_list);
+        list_deinit(&info->list);
     }
 
     const uint64_t free_page =
@@ -239,8 +239,8 @@ __optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
         } else {
             prev = list_prev(info, list);
 
-            list_delete(&info->asc_list);
-            list_delete(&info->list);
+            list_deinit(&info->asc_list);
+            list_deinit(&info->list);
         }
 
         const uint64_t new_info_phys = free_page + (alloc_amount << PAGE_SHIFT);
@@ -273,8 +273,8 @@ __optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
                 }
             }
         } else {
-            list_delete(&info->list);
-            list_delete(&info->asc_list);
+            list_deinit(&info->list);
+            list_deinit(&info->asc_list);
         }
     }
 
@@ -789,7 +789,7 @@ __optimize(3) static uint64_t free_all_pages() {
             section = page_to_section(page);
         } while (true);
 
-        list_delete(&iter->list);
+        list_deinit(&iter->list);
         free_page_count += iter->avail_page_count;
     }
 
