@@ -174,5 +174,6 @@ void page_set_state(struct page *const page, const enum page_state state) {
 
 __optimize(3)
 struct page_section *page_to_section(const struct page *const page) {
+    assert(page->section != 0);
     return &mm_get_page_section_list()[page->section - 1];
 }
