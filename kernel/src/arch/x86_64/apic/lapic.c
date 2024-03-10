@@ -162,7 +162,7 @@ void lapic_send_ipi(const uint32_t lapic_id, const uint32_t vector) {
         lapic_write(X2APIC_LAPIC_REG_ICR, (uint64_t)lapic_id << 32 | vector);
     } else {
         mmio_write(&lapic_regs->icr[1].value, lapic_id << 24);
-        mmio_write(&lapic_regs->icr[0].value, (1 << 14) | vector);
+        mmio_write(&lapic_regs->icr[0].value, vector);
     }
 }
 
