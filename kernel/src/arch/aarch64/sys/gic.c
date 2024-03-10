@@ -518,7 +518,6 @@ gicd_set_irq_trigger_mode(const irq_number_t irq,
 {
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
                "gicd_set_irq_trigger_mode() called on sgi interrupt");
-
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
                "gicd_set_irq_trigger_mode() called on invalid interrupt");
 
@@ -638,7 +637,7 @@ gic_init_from_dtb(const struct devicetree *const tree,
         if (msi_controller_prop == NULL) {
             printk(LOGLEVEL_WARN,
                    "gic: msi child of interrupt-controller dtb node is missing "
-                   "msi-controller property\n");
+                   "a msi-controller property\n");
 
             return true;
         }
@@ -649,7 +648,7 @@ gic_init_from_dtb(const struct devicetree *const tree,
 
         if (msi_reg_prop == NULL) {
             printk(LOGLEVEL_WARN,
-                   "gic: msi dtb-node is missing reg property\n");
+                   "gic: msi dtb-node is missing 'reg' property\n");
 
             return false;
         }
