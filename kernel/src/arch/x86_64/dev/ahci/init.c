@@ -121,7 +121,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                           g_hba_vector,
                                           /*mask=*/true);
 
-        pci_entity_enable_privl(pci_entity, 0);
+        pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
 
         printk(LOGLEVEL_WARN, "ahci: no ports are implemented\n");
@@ -151,7 +151,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                           g_hba_vector,
                                           /*mask=*/true);
 
-        pci_entity_enable_privl(pci_entity, 0);
+        pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
 
         printk(LOGLEVEL_WARN,
@@ -200,7 +200,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                               g_hba_vector,
                                               /*mask=*/true);
 
-            pci_entity_enable_privl(pci_entity, 0);
+            pci_entity_disable_privls(pci_entity);
             pci_unmap_bar(bar);
 
             printk(LOGLEVEL_WARN, "ahci: bios-os handoff failed\n");
@@ -243,7 +243,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                           g_hba_vector,
                                           /*mask=*/true);
 
-        pci_entity_enable_privl(pci_entity, 0);
+        pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
 
         kfree(hba->port_list);
@@ -268,7 +268,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                           g_hba_vector,
                                           /*mask=*/true);
 
-        pci_entity_enable_privl(pci_entity, 0);
+        pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
 
         kfree(hba->port_list);

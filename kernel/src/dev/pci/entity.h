@@ -4,7 +4,6 @@
  */
 
 #pragma once
-
 #include "lib/adt/bitmap.h"
 
 #include "cpu/info.h"
@@ -75,6 +74,7 @@ struct pci_entity_info {
     (device)->subclass
 
 void pci_entity_enable_msi(struct pci_entity_info *entity);
+void pci_entity_disable_msi(struct pci_entity_info *entity);
 
 bool
 pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
@@ -100,4 +100,5 @@ enum pci_entity_privilege {
         __PCI_ENTITY_PRIVL_INTERRUPTS
 };
 
-void pci_entity_enable_privl(struct pci_entity_info *device, uint16_t privl);
+void pci_entity_enable_privl(struct pci_entity_info *entity, uint16_t privl);
+void pci_entity_disable_privls(struct pci_entity_info *entity);
