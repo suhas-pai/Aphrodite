@@ -101,7 +101,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     enable_interrupts_if_flag(flag);
     volatile struct ahci_spec_hba_registers *const regs =
-        (volatile struct ahci_spec_hba_registers *)bar->mmio->base;
+        (volatile struct ahci_spec_hba_registers *)
+            (bar->mmio->base + bar->index_in_mmio);
 
     const uint32_t version = mmio_read(&regs->version);
     printk(LOGLEVEL_INFO,

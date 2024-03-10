@@ -14,18 +14,12 @@ struct sched_process_info {
 
 };
 
-enum sched_thread_info_state {
-    SCHED_THREAD_INFO_STATE_RUNNING,
-    SCHED_THREAD_INFO_STATE_RUNNABLE,
-    SCHED_THREAD_INFO_STATE_ASLEEP,
-    SCHED_THREAD_INFO_STATE_BLOCKED
-};
-
 struct sched_thread_info {
     struct list list;
-
-    enum sched_thread_info_state state : 2;
     usec_t timeslice : 32;
+
+    bool awaiting : 1;
+    _Atomic bool enqueued;
 };
 
 struct sched_percpu_info {

@@ -36,6 +36,7 @@ sched_thread_init(struct thread *thread,
                   const void *entry);
 
 struct thread *current_thread();
+bool thread_enqueued(const struct thread *thread);
 
 void prempt_disable();
 void prempt_enable();

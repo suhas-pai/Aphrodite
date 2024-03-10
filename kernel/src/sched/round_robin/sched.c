@@ -3,8 +3,10 @@
  * © suhas pai
  */
 
+#include <stdatomic.h>
+
 #include "asm/irqs.h"
-#include "cpu/util.h"
+#include "asm/pause.h"
 
 #include "sched/irq.h"
 #include "sched/scheduler.h"
@@ -19,8 +21,8 @@ void sched_process_algo_info_init(struct process *const process) {
 }
 
 void sched_thread_algo_info_init(struct thread *const thread) {
-    thread->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNABLE;
     thread->sched_info.timeslice = SCHED_ROUND_ROBIN_DEF_TIMESLICE_US;
+    thread->sched_info.awaiting = false;
 
     list_init(&thread->sched_info.list);
 }
@@ -29,11 +31,17 @@ void sched_algo_init() {
 
 }
 
+__optimize(3) void sched_algo_post_init() {
+    list_add(&g_run_queue, &current_thread()->sched_info.list);
+}
+
 __optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_with_irq(&g_run_queue_lock);
 
-    thread->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNABLE;
     list_radd(&g_run_queue, &thread->sched_info.list);
+    atomic_store_explicit(&thread->sched_info.enqueued,
+                          true,
+                          memory_order_relaxed);
 
     spin_release_with_irq(&g_run_queue_lock, flag);
 }
@@ -41,10 +49,17 @@ __optimize(3) void sched_enqueue_thread(struct thread *const thread) {
 __optimize(3) void sched_dequeue_thread(struct thread *const thread) {
     const int flag = spin_acquire_with_irq(&g_run_queue_lock);
 
-    list_remove(&thread->sched_info.list);
-    thread->sched_info.state = SCHED_THREAD_INFO_STATE_ASLEEP;
+    atomic_store_explicit(&thread->sched_info.enqueued,
+                          false,
+                          memory_order_relaxed);
 
+    list_remove(&thread->sched_info.list);
     spin_release_with_irq(&g_run_queue_lock, flag);
+}
+
+__optimize(3) bool thread_enqueued(const struct thread *const thread) {
+    return atomic_load_explicit(&thread->sched_info.enqueued,
+                                memory_order_relaxed);
 }
 
 extern void sched_set_current_thread(struct thread *thread);
@@ -54,30 +69,19 @@ __optimize(3) static struct thread *get_next_thread(struct thread *const prev) {
     struct thread *next = NULL;
 
     list_foreach(next, &g_run_queue, sched_info.list) {
-        if (next == prev) {
-            continue;
+        if (next != prev) {
+            spin_release_with_irq(&g_run_queue_lock, flag);
+            return next;
         }
-
-        list_remove(&next->sched_info.list);
-        if (prev->sched_info.state == SCHED_THREAD_INFO_STATE_RUNNABLE) {
-            list_radd(&g_run_queue, &prev->sched_info.list);
-        }
-
-        spin_release_with_irq(&g_run_queue_lock, flag);
-        return next;
     }
 
-    if (prev->sched_info.state == SCHED_THREAD_INFO_STATE_RUNNABLE) {
-        prev->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNING;
+    if (thread_enqueued(prev)) {
         spin_release_with_irq(&g_run_queue_lock, flag);
-
         return prev;
     }
 
-    struct thread *const result = prev->cpu->idle_thread;
     spin_release_with_irq(&g_run_queue_lock, flag);
-
-    return result;
+    return prev->cpu->idle_thread;
 }
 
 void sched_next(struct thread_context *const context, const bool from_irq) {
@@ -89,6 +93,10 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
 
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
         return;
+    }
+
+    if (curr_thread->sched_info.awaiting) {
+        curr_thread->sched_info.awaiting = false;
     }
 
     struct thread *const next_thread = get_next_thread(curr_thread);
@@ -105,7 +113,8 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
         return;
     }
 
-    if (next_thread == this_cpu()->idle_thread) {
+    const struct thread *const idle_thread = this_cpu()->idle_thread;
+    if (next_thread == idle_thread) {
         sched_set_current_thread(next_thread);
         if (from_irq) {
             sched_irq_eoi();
@@ -114,31 +123,38 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
         sched_timer_oneshot(next_thread->sched_info.timeslice);
         sched_switch_to(/*prev=*/curr_thread, next_thread, context, from_irq);
 
-        return;
+        verify_not_reached();
     }
 
-    next_thread->cpu = this_cpu_mut();
-    next_thread->sched_info.state = SCHED_THREAD_INFO_STATE_RUNNING;
+    next_thread->cpu = curr_thread->cpu;
+    if (curr_thread != idle_thread) {
+        curr_thread->cpu = NULL;
+    }
 
     sched_prepare_thread(next_thread);
     sched_set_current_thread(next_thread);
+
+    if (from_irq) {
+        sched_irq_eoi();
+    }
 
     sched_timer_oneshot(next_thread->sched_info.timeslice);
     sched_switch_to(/*prev=*/curr_thread, next_thread, context, from_irq);
 }
 
-__optimize(3) void sched_yield(const bool noreturn) {
+__optimize(3) void sched_yield() {
     disable_interrupts();
     sched_timer_stop();
 
-    spin_acquire(&g_run_queue_lock);
-    current_thread()->sched_info.state = SCHED_THREAD_INFO_STATE_ASLEEP;
-    spin_release(&g_run_queue_lock);
+    struct thread *const curr_thread = current_thread();
+
+    assert(!curr_thread->premption_disabled);
+    curr_thread->sched_info.awaiting = true;
 
     sched_self_ipi();
     enable_interrupts();
 
-    if (noreturn) {
-        cpu_idle();
+    while (curr_thread->sched_info.awaiting) {
+        cpu_pause();
     }
 }

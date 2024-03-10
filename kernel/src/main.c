@@ -98,7 +98,10 @@ void _start(void) {
 
     printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
 #if defined(__x86_64__) || defined(__riscv64)
-    sched_yield(/*noreturn=*/true);
+    sched_dequeue_thread(current_thread());
+    sched_yield();
+
+    verify_not_reached();
 #else
     cpu_idle();
 #endif

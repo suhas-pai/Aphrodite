@@ -29,5 +29,7 @@ void sched_init() {
     sched_process_algo_info_init(&kernel_process);
 
     sched_thread_init(&kernel_main_thread, &kernel_process, /*entry=*/NULL);
+    sched_algo_post_init();
+
     enable_interrupts_if_flag(flag);
 }

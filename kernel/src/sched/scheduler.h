@@ -8,11 +8,12 @@
 
 void sched_init();
 void sched_algo_init();
+void sched_algo_post_init();
 
 struct thread_context;
 
 void sched_next(struct thread_context *context, bool from_irq);
-void sched_yield(bool noreturn);
+void sched_yield();
 
 struct thread;
 void sched_prepare_thread(struct thread *thread);
