@@ -24,6 +24,10 @@ __optimize(3) void sched_init_irq() {
     isr_set_vector(g_sched_vector, sched_handle_irq, &ARCH_ISR_INFO_NONE());
 }
 
+__optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
+    lapic_send_ipi(cpu->lapic_id, g_sched_vector);
+}
+
 __optimize(3) void sched_self_ipi() {
     lapic_send_self_ipi(g_sched_vector);
 }
