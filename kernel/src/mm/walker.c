@@ -150,8 +150,8 @@ ptwalker_create_from_root_phys(struct pt_walker *const walker,
 
             const pte_t entry = pte_read(&prev_table[index]);
             if (pte_is_present(entry)) {
-                if (!pte_level_can_have_large(parent_level) ||
-                    !pte_is_large(entry))
+                if (!pte_level_can_have_large(parent_level)
+                    || !pte_is_large(entry))
                 {
                     table = pte_to_virt(entry);
                     walker->level = level;
@@ -239,8 +239,8 @@ setup_levels_lower_than(struct pt_walker *const walker,
         pte = table;
         entry = pte_read(pte);
 
-        if (!pte_is_present(entry) ||
-            (pte_level_can_have_large(level) && pte_is_large(entry)))
+        if (!pte_is_present(entry)
+            || (pte_level_can_have_large(level) && pte_is_large(entry)))
         {
             walker->level = level;
             break;

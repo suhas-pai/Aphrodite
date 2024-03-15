@@ -778,8 +778,8 @@ find_nearby_free_pages(struct page *const page,
             // Only take off freelist if we can add the combined range to a
             // higher order.
 
-            if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
-                (1ull << order) + extra >= (1ull << (order + 1)))
+            if (__builtin_expect(order < MAX_ORDER - 1, 1)
+                && (1ull << order) + extra >= (1ull << (order + 1)))
             {
                 take_off_freelist_to_add_later(section, order, free_head);
 

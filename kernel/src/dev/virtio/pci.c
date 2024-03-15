@@ -86,8 +86,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     uint8_t cap_index = 0;
     pci_entity_enable_privl(pci_entity,
-                            __PCI_ENTITY_PRIVL_BUS_MASTER |
-                            __PCI_ENTITY_PRIVL_MEM_ACCESS);
+                            __PCI_ENTITY_PRIVL_BUS_MASTER
+                            | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
 #define pci_read_virtio_cap_field(cap, field) \
     pci_read_from_base(pci_entity, \

@@ -84,15 +84,15 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     }
 
     mmio_write(&spec->cmd_status,
-               mmio_read(&spec->cmd_status) |
-                __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
+               mmio_read(&spec->cmd_status)
+                | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
 
     mmio_write(&spec->cmd_status,
                mmio_read(&spec->cmd_status) | __AHCI_HBA_PORT_CMDSTATUS_START);
 
     mmio_write(&spec->cmd_status,
-               mmio_read(&spec->cmd_status) |
-                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE);
+               mmio_read(&spec->cmd_status)
+                | __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE);
 
     flush_writes(spec);
     return true;
@@ -148,8 +148,8 @@ inline void clear_error_bits(volatile struct ahci_spec_hba_port *const port) {
 __optimize(3)
 static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
     const uint32_t tfd_flags =
-        __AHCI_HBA_TFD_STATUS_BUSY |
-        __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED;
+        __AHCI_HBA_TFD_STATUS_BUSY
+        | __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED;
 
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
@@ -173,8 +173,8 @@ __optimize(3) static void comreset_port(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     {
         const uint32_t new_sata_control =
-             AHCI_HBA_PORT_DET_INIT |
-            __AHCI_HBA_PORT_SATA_STAT_CTRL_IPM <<
+            AHCI_HBA_PORT_DET_INIT
+            | __AHCI_HBA_PORT_SATA_STAT_CTRL_IPM <<
                 AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT;
 
         mmio_write(&spec->sata_control, new_sata_control);
@@ -183,8 +183,8 @@ __optimize(3) static void comreset_port(struct ahci_hba_port *const port) {
     {
         const uint32_t new_sata_control =
             rm_mask(mmio_read(&spec->sata_control),
-                    __AHCI_HBA_PORT_SATA_STAT_CTRL_DET) |
-            AHCI_HBA_PORT_DET_NO_INIT;
+                    __AHCI_HBA_PORT_SATA_STAT_CTRL_DET)
+            | AHCI_HBA_PORT_DET_NO_INIT;
 
         mmio_write(&spec->sata_control, new_sata_control);
         flush_writes(spec);
@@ -340,9 +340,9 @@ handle_error(struct ahci_hba_port *const port, const uint32_t interrupt_status)
 __optimize(3) static
 void enable_port_interrupts(volatile struct ahci_spec_hba_port *const port) {
     mmio_write(&port->interrupt_enable,
-               __AHCI_HBA_IE_DEV_TO_HOST_FIS |
-               __AHCI_HBA_IE_PORT_CHANGE |
-               AHCI_HBA_PORT_IE_ERROR_FLAGS);
+               __AHCI_HBA_IE_DEV_TO_HOST_FIS
+               | __AHCI_HBA_IE_PORT_CHANGE
+               | AHCI_HBA_PORT_IE_ERROR_FLAGS);
 }
 
 __optimize(3) void
@@ -495,8 +495,8 @@ ahci_hba_port_set_state(volatile struct ahci_spec_hba_port *const port,
 {
     uint32_t cmd_status = mmio_read(&port->cmd_status);
     cmd_status =
-        rm_mask(cmd_status, __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL) |
-        ctrl << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT;
+        rm_mask(cmd_status, __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL)
+        | ctrl << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT;
 
     mmio_write(&port->cmd_status, cmd_status);
 }
@@ -667,8 +667,8 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     ahci_hba_port_set_state(spec, AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE);
 
     mmio_write(&spec->cmd_status,
-               mmio_read(&spec->cmd_status) |
-                __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
+               mmio_read(&spec->cmd_status)
+                | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
 
     flush_writes(spec);
     if (!ahci_hba_port_start(port)) {
@@ -1079,8 +1079,8 @@ send_atapi_command(struct ahci_hba_port *const port,
     }
 
     uint16_t flags =
-        (sizeof(struct ahci_spec_fis_reg_h2d) / sizeof(uint32_t)) |
-        __AHCI_PORT_CMDHDR_ATAPI;
+        (sizeof(struct ahci_spec_fis_reg_h2d) / sizeof(uint32_t))
+        | __AHCI_PORT_CMDHDR_ATAPI;
 
     volatile struct ahci_spec_port_cmdhdr *const cmd_header =
         &port->headers[slot];

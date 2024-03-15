@@ -25,9 +25,9 @@ static const struct virtio_driver virtio_drivers[] = {
         .init = virtio_block_driver_init,
         .virtqueue_count = 2,
         .required_features =
-            __VIRTIO_BLOCK_HAS_SEG_MAX |
-            __VIRTIO_BLOCK_HAS_BLOCK_SIZE |
-            __VIRTIO_BLOCK_SUPPORTS_MULTI_QUEUE,
+            __VIRTIO_BLOCK_HAS_SEG_MAX
+            | __VIRTIO_BLOCK_HAS_BLOCK_SIZE
+            | __VIRTIO_BLOCK_SUPPORTS_MULTI_QUEUE,
     },
     [VIRTIO_DEVICE_KIND_SCSI_HOST] = {
         .init = virtio_scsi_driver_init,

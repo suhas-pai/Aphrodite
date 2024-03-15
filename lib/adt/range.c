@@ -24,8 +24,8 @@ range_multiply(const struct range range,
                struct range *const result_out)
 {
     struct range result = RANGE_EMPTY();
-    if (!check_mul(range.front, mult, &result.front) ||
-        !check_mul(range.size, mult, &result.size))
+    if (!check_mul(range.front, mult, &result.front)
+        || !check_mul(range.size, mult, &result.size))
     {
         return false;
     }
@@ -52,8 +52,8 @@ range_align_in(const struct range range,
                struct range *const result_out)
 {
     uint64_t front = 0;
-    if (!align_up(range.front, boundary, &front) ||
-        (front - range.front) >= range.size)
+    if (!align_up(range.front, boundary, &front)
+        || (front - range.front) >= range.size)
     {
         return false;
     }
@@ -89,8 +89,8 @@ range_round_up(const struct range range,
     uint64_t front = 0;
     uint64_t size = 0;
 
-    if (!round_up(range.front, mult, &front) ||
-        !round_up(range.size, mult, &size))
+    if (!round_up(range.front, mult, &front)
+        || !round_up(range.size, mult, &size))
     {
         return false;
     }
@@ -239,6 +239,6 @@ bool range_has_index_range(struct range range, struct range other) {
 
 __optimize(3)
 bool range_overlaps(const struct range range, const struct range other) {
-    return range_has_loc(range, other.front) ||
-           range_has_loc(other, range.front);
+    return range_has_loc(range, other.front)
+           || range_has_loc(other, range.front);
 }

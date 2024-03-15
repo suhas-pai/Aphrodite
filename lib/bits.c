@@ -33,8 +33,8 @@ get_range_of_lsb_one_bits(const uint64_t number,
                           const uint64_t end_index)
 {
     const uint8_t first_bit_index = find_lsb_one_bit(number, start_index);
-    if (!index_in_bounds(first_bit_index, sizeof(number)) ||
-        !index_in_bounds(first_bit_index, end_index))
+    if (!index_in_bounds(first_bit_index, sizeof(number))
+        || !index_in_bounds(first_bit_index, end_index))
     {
         return RANGE_EMPTY();
     }

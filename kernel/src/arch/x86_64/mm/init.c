@@ -178,8 +178,8 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
 
     for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
         const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
-            memmap->kind == MM_MEMMAP_KIND_RESERVED)
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
+            || memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }
@@ -224,19 +224,19 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 
     assert_msg(
         addrspace_add_node(&kernel_process.pagemap.addrspace,
-                           &null_area->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
+                           &null_area->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
         "mm: failed to setup kernel-pagemap");
 }
 
 void mm_arch_init() {
     const uint64_t pat_msr_orig = msr_read(IA32_MSR_PAT);
     const uint64_t pat_msr =
-        pat_msr_orig |
-        (~((MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2) |
-           (MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT3)));
+        pat_msr_orig
+        | (~((MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2)
+        |    (MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT3)));
 
     printk(LOGLEVEL_INFO,
            "mm: pat msr original value is 0x%" PRIx64 "\n",

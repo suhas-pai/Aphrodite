@@ -17,11 +17,11 @@ seek_to_space_location(const struct pci_location *const config_space,
                        const uint32_t offset)
 {
     const uint32_t address =
-        align_down(offset, /*boundary=*/4) |
-        ((uint32_t)config_space->function << 8) |
-        ((uint32_t)config_space->slot << 11)  |
-        ((uint32_t)config_space->bus << 16) |
-        __PCI_CONFIG_ADDR_ENABLE;
+        align_down(offset, /*boundary=*/4)
+        | ((uint32_t)config_space->function << 8)
+        | ((uint32_t)config_space->slot << 11)
+        | ((uint32_t)config_space->bus << 16)
+        | __PCI_CONFIG_ADDR_ENABLE;
 
     pio_write32(PIO_PORT_PCI_CONFIG_ADDRESS, address);
 }

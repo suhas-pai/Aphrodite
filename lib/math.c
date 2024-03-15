@@ -16,8 +16,8 @@ round_up(const uint64_t number,
         return multiple;
     }
 
-    if (!check_add(number, multiple - 1, result_out) ||
-        !check_mul(*result_out / multiple, multiple, result_out))
+    if (!check_add(number, multiple - 1, result_out)
+        || !check_mul(*result_out / multiple, multiple, result_out))
     {
         return false;
     }

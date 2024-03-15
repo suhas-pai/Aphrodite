@@ -168,8 +168,8 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     mm_early_refcount_alloced_map(kib(64), gib(4) - kib(64));
     for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
         const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
-            memmap->kind == MM_MEMMAP_KIND_RESERVED)
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
+            || memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }
@@ -217,10 +217,10 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 
     assert_msg(
         addrspace_add_node(&kernel_process.pagemap.addrspace,
-                           &null_area->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
+                           &null_area->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
         "mm: failed to setup kernel-pagemap");
 }
 

@@ -156,8 +156,8 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     uint64_t kernel_memmap_size = 0;
     for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
         const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
-            memmap->kind == MM_MEMMAP_KIND_RESERVED)
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
+            || memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }
@@ -194,8 +194,8 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
 
     for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
         const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
-            memmap->kind == MM_MEMMAP_KIND_RESERVED)
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
+            || memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }
@@ -242,10 +242,10 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 
     assert_msg(
         addrspace_add_node(&kernel_process.pagemap.addrspace,
-                           &null_area->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &vmap->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node) &&
-        addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
+                           &null_area->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &vmap->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node)
+        && addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
         "mm: failed to setup kernel-pagemap");
 }
 
@@ -262,11 +262,11 @@ static void setup_mair() {
     const uint64_t memory_write_back_encoding = 0b11111111;
 
     const uint64_t mair_value =
-        memory_write_back_encoding |
-        device_write_combining_encoding << 8 |
-        memory_writethrough_encoding << 16 |
-        device_uncacheable_encoding << 24 |
-        memory_uncacheable_encoding << 32;
+        memory_write_back_encoding
+        | device_write_combining_encoding << 8
+        | memory_writethrough_encoding << 16
+        | device_uncacheable_encoding << 24
+        | memory_uncacheable_encoding << 32;
 
     write_mair_el1(mair_value);
 }

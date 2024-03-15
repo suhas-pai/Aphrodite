@@ -143,8 +143,8 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
         return false;
     }
 
-    if (!nvme_create_completion_queue(controller, namespace) ||
-        !nvme_create_submit_queue(controller, namespace))
+    if (!nvme_create_completion_queue(controller, namespace)
+        || !nvme_create_submit_queue(controller, namespace))
     {
         return false;
     }

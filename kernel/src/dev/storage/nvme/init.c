@@ -29,9 +29,9 @@
 #define NVME_QUEUE_PAGE_ALLOC_ORDER 0
 
 #define NVME_VERSION(major, minor, tertiary) \
-    ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT | \
-     (uint32_t)minor << NVME_VERSION_MINOR_SHIFT | \
-     (uint32_t)tertiary)
+    ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT \
+     | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
+     | (uint32_t)tertiary)
 
 #define MAX_ATTEMPTS 100
 
@@ -109,9 +109,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     pci_entity_enable_privl(pci_entity,
-                            __PCI_ENTITY_PRIVL_BUS_MASTER |
-                            __PCI_ENTITY_PRIVL_MEM_ACCESS |
-                            __PCI_ENTITY_PRIVL_INTERRUPTS);
+                            __PCI_ENTITY_PRIVL_BUS_MASTER
+                            | __PCI_ENTITY_PRIVL_MEM_ACCESS
+                            | __PCI_ENTITY_PRIVL_INTERRUPTS);
 
     volatile struct nvme_registers *const regs =
         (volatile struct nvme_registers *)bar->mmio->base;
@@ -189,8 +189,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     mmio_write(&regs->admin_queue_attributes,
                (NVME_ADMIN_QUEUE_COUNT - 1) <<
-                NVME_ADMIN_QUEUE_ATTR_SUBMIT_QUEUE_SIZE_SHIFT |
-               (NVME_ADMIN_QUEUE_COUNT - 1));
+                NVME_ADMIN_QUEUE_ATTR_SUBMIT_QUEUE_SIZE_SHIFT
+               | (NVME_ADMIN_QUEUE_COUNT - 1));
 
     mmio_write(&regs->admin_submit_queue_base_addr,
                page_to_phys(controller->admin_queue.submit_queue_pages));
@@ -199,10 +199,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     mmio_write(&regs->config,
                NVME_SUBMIT_QUEUE_SIZE <<
-                NVME_CONFIG_IO_SUBMIT_QUEUE_ENTRY_SIZE_SHIFT |
-               NVME_COMPLETION_QUEUE_SIZE <<
-                NVME_CONFIG_IO_COMPL_QUEUE_ENTRY_SIZE_SHIFT |
-               __NVME_CONFIG_ENABLE);
+                NVME_CONFIG_IO_SUBMIT_QUEUE_ENTRY_SIZE_SHIFT
+               | NVME_COMPLETION_QUEUE_SIZE <<
+                NVME_CONFIG_IO_COMPL_QUEUE_ENTRY_SIZE_SHIFT
+               | __NVME_CONFIG_ENABLE);
 
     if (!wait_until_ready(regs)) {
         nvme_controller_destroy(controller);

@@ -193,9 +193,9 @@ ps2_keyboard_interrupt(const uint64_t intr_no,
     }
 
     if (g_kbd_state.cmd != 0) {
-        if (g_kbd_state.shift != 0 ||
-            g_kbd_state.ctrl != 0 ||
-            g_kbd_state.alt)
+        if (g_kbd_state.shift != 0
+            || g_kbd_state.ctrl != 0
+            || g_kbd_state.alt)
         {
             string_append_sv(&string, SV_STATIC("-"));
         }

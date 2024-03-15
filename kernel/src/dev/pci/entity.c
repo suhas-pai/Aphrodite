@@ -334,8 +334,8 @@ pci_entity_enable_privl(struct pci_entity_info *const entity,
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
-        (old_command | (privl & __PCI_ENTITY_PRIVL_MASK)) ^
-        __PCI_DEVCMDREG_INT_DISABLE;
+        (old_command | (privl & __PCI_ENTITY_PRIVL_MASK))
+        ^ __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     spin_release_with_irq(&entity->lock, flag);
@@ -347,8 +347,8 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
-        rm_mask(old_command, __PCI_ENTITY_PRIVL_MASK) |
-        __PCI_DEVCMDREG_INT_DISABLE;
+        rm_mask(old_command, __PCI_ENTITY_PRIVL_MASK)
+        | __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     spin_release_with_irq(&entity->lock, flag);

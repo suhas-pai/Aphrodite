@@ -305,13 +305,13 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                 uint16_t msg_control =
                     pci_read_cap_field(struct pci_spec_cap_msi, msg_control);
 
-                if (msg_control & __PCI_CAP_MSI_CTRL_ENABLE ||
-                    msg_control & __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE)
+                if (msg_control & __PCI_CAP_MSI_CTRL_ENABLE
+                    || msg_control & __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE)
                 {
                     msg_control =
                         rm_mask(msg_control,
-                                __PCI_CAP_MSI_CTRL_ENABLE |
-                                __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE);
+                                __PCI_CAP_MSI_CTRL_ENABLE
+                                | __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE);
 
                     pci_write_from_base(entity,
                                         entity->msi_pcie_offset,
@@ -361,13 +361,13 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                 uint16_t msg_control =
                     pci_read_cap_field(struct pci_spec_cap_msix, msg_control);
 
-                if (msg_control & __PCI_CAP_MSIX_CTRL_ENABLE ||
-                    msg_control & __PCI_CAP_MSIX_CTRL_FUNC_MASK)
+                if (msg_control & __PCI_CAP_MSIX_CTRL_ENABLE
+                    || msg_control & __PCI_CAP_MSIX_CTRL_FUNC_MASK)
                 {
                     msg_control =
                         rm_mask(msg_control,
-                                __PCI_CAP_MSIX_CTRL_ENABLE |
-                                __PCI_CAP_MSIX_CTRL_FUNC_MASK);
+                                __PCI_CAP_MSIX_CTRL_ENABLE
+                                | __PCI_CAP_MSIX_CTRL_FUNC_MASK);
 
                     pci_write_from_base(entity,
                                         entity->msi_pcie_offset,
@@ -534,9 +534,9 @@ parse_function(struct pci_bus *const bus,
            pci_entity_get_vendor_name(entity));
 
     const bool class_is_pci_bridge =
-        entity->class == PCI_ENTITY_CLASS_BRIDGE_DEVICE &&
-        (entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE ||
-         entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
+        entity->class == PCI_ENTITY_CLASS_BRIDGE_DEVICE
+        && (entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE
+            || entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
 
     const bool hdrkind_is_pci_bridge =
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE;
@@ -552,9 +552,9 @@ parse_function(struct pci_bus *const bus,
 
     // Disable I/O Space and Memory domain flags to parse bars.
     const uint16_t disable_flags =
-        __PCI_DEVCMDREG_IOSPACE |
-        __PCI_DEVCMDREG_MEMSPACE |
-        __PCI_DEVCMDREG_BUS_MASTER;
+        __PCI_DEVCMDREG_IOSPACE
+        | __PCI_DEVCMDREG_MEMSPACE
+        | __PCI_DEVCMDREG_BUS_MASTER;
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =

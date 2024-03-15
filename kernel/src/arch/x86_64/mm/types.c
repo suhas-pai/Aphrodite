@@ -66,8 +66,8 @@ __optimize(3)
 bool pte_flags_equal(pte_t pte, const pgt_level_t level, const uint64_t flags) {
     (void)level;
     const uint64_t mask =
-        __PTE_PRESENT | __PTE_WRITE | __PTE_USER | __PTE_PWT | __PTE_PCD |
-        __PTE_GLOBAL | __PTE_NOEXEC;
+        __PTE_PRESENT | __PTE_WRITE | __PTE_USER | __PTE_PWT | __PTE_PCD
+        | __PTE_GLOBAL | __PTE_NOEXEC;
 
     return (pte & mask) == flags;
 }

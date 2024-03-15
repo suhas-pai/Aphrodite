@@ -119,8 +119,8 @@ enum gic_cpu_interrupt_control_flags {
     __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1 = 1ull << 1,
 
     __GIC_CPU_INTR_CTRL_ENABLE =
-        __GIC_CPU_INTR_CTRL_ENABLE_GROUP_0 |
-        __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1,
+        __GIC_CPU_INTR_CTRL_ENABLE_GROUP_0
+        | __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1,
 
     // Only valid on GICv2
     __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_0 = 1ull << 5,
@@ -129,10 +129,10 @@ enum gic_cpu_interrupt_control_flags {
     __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_3 = 1ull << 8,
 
     __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE =
-        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_0 |
-        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_1 |
-        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_2 |
-        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_3,
+        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_0
+        | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_1
+        | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_2
+        | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_3,
 
     __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI = 1 << 9,
 };
@@ -222,10 +222,10 @@ static uint8_t get_cpu_iface_no() {
         }
 
         const uint32_t mask =
-            ((target >> 24) & 0xFF) |
-            ((target >> 16) & 0xFF) |
-            ((target >> 8) & 0xFF) |
-            (target & 0xFF);
+            ((target >> 24) & 0xFF)
+            | ((target >> 16) & 0xFF)
+            | ((target >> 8) & 0xFF)
+            | (target & 0xFF);
 
         return count_lsb_zero_bits(mask, /*start_index=*/0);
     }
@@ -284,8 +284,8 @@ void gic_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
 
     mmio_write(&g_cpu->interrupt_control,
                 __GIC_CPU_INTR_CTRL_ENABLE |
-                bypass |
-                (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
+                bypass
+                | (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
 
     printk(LOGLEVEL_INFO,
            "gic: cpu iface no is %" PRIu8 "\n",

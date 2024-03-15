@@ -72,8 +72,8 @@ traverse_tree(const struct address_space *const addrspace,
         const struct range hole_range =
             range_create_end(prev_end, node->range.front);
 
-        if (range_has(hole_range, aligned_range) &&
-            range_has(in_range, aligned_range))
+        if (range_has(hole_range, aligned_range)
+            && range_has(in_range, aligned_range))
         {
             *prev_out = prev;
             *result_out = aligned_front;
@@ -110,8 +110,8 @@ traverse_tree(const struct address_space *const addrspace,
                 uint64_t aligned_result =
                     range_get_end_assert(rightmost->range);
 
-                if (aligned_result >= range_get_end_assert(in_range) ||
-                    !align_up(aligned_result, align, &aligned_result))
+                if (aligned_result >= range_get_end_assert(in_range)
+                    || !align_up(aligned_result, align, &aligned_result))
                 {
                     *result_out = ADDRSPACE_INVALID_ADDR;
                     return TRAVERSAL_DONE;
@@ -175,8 +175,8 @@ find_from_start(const struct address_space *const addrspace,
         // Move to the very left of the address space to find the left-most free
         // area available.
 
-        if (node->avlnode.left != NULL &&
-            range_is_loc_above(in_range, node->range.front))
+        if (node->avlnode.left != NULL
+            && range_is_loc_above(in_range, node->range.front))
         {
             struct addrspace_node *const left =
                 addrspace_node_of(node->avlnode.left);

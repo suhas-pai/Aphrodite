@@ -166,8 +166,8 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     write_ttbr1_el1(virt_to_phys(pagemap->higher_root));
 
     #if defined(AARCH64_USE_16K_PAGES)
-        write_tcr_el1(rm_mask(read_tcr_el1(), __TCR_TG1) |
-                      TCR_TG1_16KIB << TCR_TG1_SHIFT);
+        write_tcr_el1(rm_mask(read_tcr_el1(), __TCR_TG1)
+                      | TCR_TG1_16KIB << TCR_TG1_SHIFT);
     #endif /* defined(AARCH64_USE_16K_PAGES) */
 
     asm volatile ("dsb sy; isb" ::: "memory");

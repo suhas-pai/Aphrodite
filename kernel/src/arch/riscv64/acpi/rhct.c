@@ -37,9 +37,11 @@ print_rhct_node(const struct acpi_rhct *const rhct,
             struct acpi_rhct_cmo_node *const cmo_node =
                 (struct acpi_rhct_cmo_node *)node;
 
-            if (!index_in_bounds(cmo_node->cbom_shift, sizeof_bits(uint64_t)) ||
-                !index_in_bounds(cmo_node->cbop_shift, sizeof_bits(uint64_t)) ||
-                !index_in_bounds(cmo_node->cboz_shift, sizeof_bits(uint64_t)))
+            if (!index_in_bounds(cmo_node->cbom_shift, sizeof_bits(uint64_t))
+                || !index_in_bounds(cmo_node->cbop_shift,
+                                    sizeof_bits(uint64_t))
+                || !index_in_bounds(cmo_node->cboz_shift,
+                                    sizeof_bits(uint64_t)))
             {
                 printk(LOGLEVEL_WARN,
                        "%srhct: cmo-node has invalid fields\n",

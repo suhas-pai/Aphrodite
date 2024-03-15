@@ -43,38 +43,38 @@ uint8_t g_xsave_feat_flags[XSAVE_FEAT_MAX] = {
 };
 
 #define __XSAVE_FEAT_USER_MASK \
-    (__XSAVE_FEAT_MASK(XSAVE_FEAT_X87) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_SSE) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDREGS) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDCSR) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_OPMASK) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_ZMM_HI256) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_HI16_ZMM))
+    (__XSAVE_FEAT_MASK(XSAVE_FEAT_X87) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_SSE) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDREGS) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDCSR) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_OPMASK) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_ZMM_HI256) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_HI16_ZMM))
 
 #define __XSAVE_FEAT_SUPERVISOR_MASK \
-    (__XSAVE_FEAT_MASK(XSAVE_FEAT_PASID) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_USER))
+    (__XSAVE_FEAT_MASK(XSAVE_FEAT_PASID) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_USER))
 
 // List of features that are disabled in XSTATE. User programs running these
 // instructions will trap, and the xstate space will be enlarged.
 
 #define XSAVE_FEAT_XFD_MASK \
-    (__XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_OPMASK) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_ZMM_HI256) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_HI16_ZMM) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILECFG) | \
-     __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILEDATA))
+    (__XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_OPMASK) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_ZMM_HI256) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX_512_HI16_ZMM) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILECFG) \
+     | __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILEDATA))
 
 static void xsave_init() {
     const xsave_feat_mask_t xsave_supervisor_features =
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_X87) |
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_SSE) |
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX) |
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDREGS) |
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDCSR) |
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_USER) |
-        __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_SUPERVISOR);
+        __XSAVE_FEAT_MASK(XSAVE_FEAT_X87)
+        | __XSAVE_FEAT_MASK(XSAVE_FEAT_SSE)
+        | __XSAVE_FEAT_MASK(XSAVE_FEAT_AVX)
+        | __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDREGS)
+        | __XSAVE_FEAT_MASK(XSAVE_FEAT_MPX_BNDCSR)
+        | __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_USER)
+        | __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_SUPERVISOR);
 
     const xsave_feat_mask_t xsave_user_features =
         g_cpu_capabilities.xsave_user_features & __XSAVE_FEAT_USER_MASK;
@@ -94,8 +94,8 @@ static void xsave_init() {
         sizeof_field(struct xsave_fx_regs, xmm);
 
     const xsave_feat_mask_t all_features_supported =
-        g_cpu_capabilities.xsave_supervisor_features |
-        g_cpu_capabilities.xsave_user_features;
+        g_cpu_capabilities.xsave_supervisor_features
+        | g_cpu_capabilities.xsave_user_features;
 
     printk(LOGLEVEL_INFO,
            "cpu: xsave full feature set is 0x%" XSAVE_FEATURE_MASK_FMT "\n",
@@ -170,29 +170,29 @@ static void init_cpuid_features() {
                edx);
 
         const uint32_t expected_ecx_features =
-            __CPUID_FEAT_ECX_SSE3   |
-            __CPUID_FEAT_ECX_SSSE3  |
-            __CPUID_FEAT_ECX_SSE4_1 |
-            __CPUID_FEAT_ECX_SSE4_2 |
-            __CPUID_FEAT_ECX_POPCNT |
-            __CPUID_FEAT_ECX_XSAVE  |
-            __CPUID_FEAT_ECX_RDRAND;
+            __CPUID_FEAT_ECX_SSE3
+            | __CPUID_FEAT_ECX_SSSE3
+            | __CPUID_FEAT_ECX_SSE4_1
+            | __CPUID_FEAT_ECX_SSE4_2
+            | __CPUID_FEAT_ECX_POPCNT
+            | __CPUID_FEAT_ECX_XSAVE
+            | __CPUID_FEAT_ECX_RDRAND;
         const uint32_t expected_edx_features =
-            __CPUID_FEAT_EDX_FPU   |
-            __CPUID_FEAT_EDX_DE    |
-            __CPUID_FEAT_EDX_PSE   |
-            __CPUID_FEAT_EDX_TSC   |
-            __CPUID_FEAT_EDX_MSR   |
-            __CPUID_FEAT_EDX_PAE   |
-            __CPUID_FEAT_EDX_APIC  |
-            __CPUID_FEAT_EDX_SEP   |
-            __CPUID_FEAT_EDX_MTRR  |
-            __CPUID_FEAT_EDX_CMOV  |
-            __CPUID_FEAT_EDX_PAT   |
-            __CPUID_FEAT_EDX_PSE36 |
-            __CPUID_FEAT_EDX_PGE   |
-            __CPUID_FEAT_EDX_SSE   |
-            __CPUID_FEAT_EDX_SSE2;
+            __CPUID_FEAT_EDX_FPU
+            | __CPUID_FEAT_EDX_DE
+            | __CPUID_FEAT_EDX_PSE
+            | __CPUID_FEAT_EDX_TSC
+            | __CPUID_FEAT_EDX_MSR
+            | __CPUID_FEAT_EDX_PAE
+            | __CPUID_FEAT_EDX_APIC
+            | __CPUID_FEAT_EDX_SEP
+            | __CPUID_FEAT_EDX_MTRR
+            | __CPUID_FEAT_EDX_CMOV
+            | __CPUID_FEAT_EDX_PAT
+            | __CPUID_FEAT_EDX_PSE36
+            | __CPUID_FEAT_EDX_PGE
+            | __CPUID_FEAT_EDX_SSE
+            | __CPUID_FEAT_EDX_SSE2;
 
         assert((ecx & expected_ecx_features) == expected_ecx_features);
         assert((edx & expected_edx_features) == expected_edx_features);
@@ -222,11 +222,11 @@ static void init_cpuid_features() {
                edx);
 
         const uint32_t expected_ebx_features =
-            __CPUID_FEAT_EXT7_ECX0_EBX_FSGSBASE |
-            __CPUID_FEAT_EXT7_ECX0_EBX_BMI1 |
-            __CPUID_FEAT_EXT7_ECX0_EBX_BMI2 |
-            __CPUID_FEAT_EXT7_ECX0_EBX_REP_MOVSB_STOSB |
-            __CPUID_FEAT_EXT7_ECX0_EBX_SMAP;
+            __CPUID_FEAT_EXT7_ECX0_EBX_FSGSBASE
+            | __CPUID_FEAT_EXT7_ECX0_EBX_BMI1
+            | __CPUID_FEAT_EXT7_ECX0_EBX_BMI2
+            | __CPUID_FEAT_EXT7_ECX0_EBX_REP_MOVSB_STOSB
+            | __CPUID_FEAT_EXT7_ECX0_EBX_SMAP;
 
         assert((ebx & expected_ebx_features) == expected_ebx_features);
         if (!g_base_cpu_init) {
@@ -276,9 +276,9 @@ static void init_cpuid_features() {
                eax, ebx, ecx, edx);
 
         const uint32_t expected_eax_features =
-            __CPUID_FEAT_EXT7_ECX1_EAX_FAST_ZEROLEN_REP_MOVSB |
-            __CPUID_FEAT_EXT7_ECX1_EAX_FAST_ZEROLEN_REP_STOSB |
-            __CPUID_FEAT_EXT7_ECX1_EAX_FAST_SHORT_REP_CMPSB_SCASB;
+            __CPUID_FEAT_EXT7_ECX1_EAX_FAST_ZEROLEN_REP_MOVSB
+            | __CPUID_FEAT_EXT7_ECX1_EAX_FAST_ZEROLEN_REP_STOSB
+            | __CPUID_FEAT_EXT7_ECX1_EAX_FAST_SHORT_REP_CMPSB_SCASB;
 
         assert((eax & expected_eax_features) == expected_eax_features);
     }
@@ -367,11 +367,11 @@ static void init_cpuid_features() {
                edx);
 
         const uint32_t expected_eax_features =
-            __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVEOPT |
-            __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVE_COMPACTED |
-            __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XGETBV |
-            __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVES_XSTORS |
-            __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XFD;
+            __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVEOPT
+            | __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVE_COMPACTED
+            | __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XGETBV
+            | __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVES_XSTORS
+            | __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XFD;
 
         assert((eax & expected_eax_features) == expected_eax_features);
 
@@ -393,15 +393,15 @@ static void init_cpuid_features() {
 
     const uint64_t cr4 = read_cr4();
     const uint64_t cr4_bits =
-        __CR4_BIT_TSD |
-        __CR4_BIT_DE |
-        __CR4_BIT_PGE |
-        __CR4_BIT_OSFXSR |
-        __CR4_BIT_OSXMMEXCPTO |
-        __CR4_BIT_FSGSBASE |
-        __CR4_BIT_SMEP |
-        __CR4_BIT_SMAP |
-        __CR4_BIT_OSXSAVE;
+        __CR4_BIT_TSD
+        | __CR4_BIT_DE
+        | __CR4_BIT_PGE
+        | __CR4_BIT_OSFXSR
+        | __CR4_BIT_OSXMMEXCPTO
+        | __CR4_BIT_FSGSBASE
+        | __CR4_BIT_SMEP
+        | __CR4_BIT_SMAP
+        | __CR4_BIT_OSXSAVE;
 
     write_cr4(cr4 | cr4_bits);
     printk(LOGLEVEL_INFO,
@@ -417,13 +417,13 @@ static void init_cpuid_features() {
 
     // Setup Syscall MSRs
     msr_write(IA32_MSR_STAR,
-              ((uint64_t)gdt_get_kernel_code_segment() << 32 |
-               (uint64_t)gdt_get_user_data_segment() << 48));
+              ((uint64_t)gdt_get_kernel_code_segment() << 32
+               | (uint64_t)gdt_get_user_data_segment() << 48));
 
     msr_write(IA32_MSR_FMASK, /*value=*/0);
     msr_write(IA32_MSR_MISC_ENABLE,
-              (msr_read(IA32_MSR_MISC_ENABLE) |
-               __IA32_MSR_MISC_FAST_STRING_ENABLE));
+              (msr_read(IA32_MSR_MISC_ENABLE)
+               | __IA32_MSR_MISC_FAST_STRING_ENABLE));
 
     xsave_init();
     printk(LOGLEVEL_INFO,

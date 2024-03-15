@@ -57,9 +57,9 @@ enum pit_granularity {
 };
 
 _Static_assert(
-    (PIT_TIMER_CHANNEL_0 |
-     PIT_TIMER_ACCESS_MODE_FULL_BYTE |
-     PIT_TIMER_OP_MODE_SQUARE_WAVE) == 0x36,
+    (PIT_TIMER_CHANNEL_0
+     | PIT_TIMER_ACCESS_MODE_FULL_BYTE
+     | PIT_TIMER_OP_MODE_SQUARE_WAVE) == 0x36,
     "");
 
 void pit_init(uint8_t flags, enum pit_granularity granularity);

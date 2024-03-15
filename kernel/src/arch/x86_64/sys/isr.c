@@ -151,8 +151,8 @@ isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
     (void)vector;
     return
-        align_down(msr_read(IA32_MSR_APIC_BASE), PAGE_SIZE) |
-        cpu->lapic_id << 12;
+        align_down(msr_read(IA32_MSR_APIC_BASE), PAGE_SIZE)
+        | cpu->lapic_id << 12;
 }
 
 __optimize(3) uint64_t
@@ -161,6 +161,6 @@ isr_get_msix_address(const struct cpu_info *const cpu,
 {
     (void)vector;
     return
-        align_down(msr_read(IA32_MSR_APIC_BASE), PAGE_SIZE) |
-        cpu->lapic_id << 12;
+        align_down(msr_read(IA32_MSR_APIC_BASE), PAGE_SIZE)
+        | cpu->lapic_id << 12;
 }

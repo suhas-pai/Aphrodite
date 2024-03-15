@@ -115,8 +115,8 @@ bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out) {
         read_rtc_cmos_info(&info);
         read_rtc_cmos_info(&check);
 
-        if (info.reg_status_b != UINT16_MAX &&
-            memcmp(&info, &check, sizeof(info)) == 0)
+        if (info.reg_status_b != UINT16_MAX
+            && memcmp(&info, &check, sizeof(info)) == 0)
         {
             should_return = false;
             break;

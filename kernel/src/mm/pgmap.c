@@ -196,9 +196,9 @@ override_pte(struct pt_walker *const walker,
     // that is mapped with the same flags.
 
     uint64_t phys_addr = phys_begin + *offset_in;
-    if (!is_alloc_mapping &&
-        pte_to_phys(entry) == phys_addr &&
-        pte_flags_equal(entry, walker->level, options->pte_flags))
+    if (!is_alloc_mapping
+        && pte_to_phys(entry) == phys_addr
+        && pte_flags_equal(entry, walker->level, options->pte_flags))
     {
         *offset_in += PAGE_SIZE_AT_LEVEL(walker->level);
         if (*offset_in >= size) {
@@ -381,9 +381,9 @@ map_normal_overwrite(struct pt_walker *const walker,
 
         do {
             const pte_t new_pte_value =
-                phys_create_pte(phys_begin + offset) |
-                PTE_LEAF_FLAGS |
-                pte_flags;
+                phys_create_pte(phys_begin + offset)
+                | PTE_LEAF_FLAGS
+                | pte_flags;
 
             const enum override_result override_result =
                 override_pte(walker,
@@ -753,9 +753,9 @@ map_large_at_top_level_overwrite(struct pt_walker *const walker,
     uint64_t offset = *offset_in;
     do {
         const pte_t new_pte_value =
-            phys_create_pte(phys_begin + offset) |
-            PTE_LARGE_FLAGS(level) |
-            pte_flags;
+            phys_create_pte(phys_begin + offset)
+            | PTE_LARGE_FLAGS(level)
+            | pte_flags;
 
         const enum override_result override_result =
             override_pte(walker,
@@ -874,9 +874,9 @@ map_large_at_level_overwrite(struct pt_walker *const walker,
     uint64_t offset = *offset_in;
     do {
         const pte_t new_pte_value =
-            phys_create_pte(phys_begin + offset) |
-            PTE_LARGE_FLAGS(level) |
-            pte_flags;
+            phys_create_pte(phys_begin + offset)
+            | PTE_LARGE_FLAGS(level)
+            | pte_flags;
 
         const enum override_result override_result =
             override_pte(walker,
@@ -1355,8 +1355,8 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                     }
 
                     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-                    if (!has_align(phys_range.front + offset, largepage_size) ||
-                        offset + largepage_size > phys_range.size)
+                    if (!has_align(phys_range.front + offset, largepage_size)
+                        || offset + largepage_size > phys_range.size)
                     {
                         continue;
                     }
@@ -1489,9 +1489,9 @@ pgmap_at(struct pagemap *const pagemap,
                 walker.indices[walker.level - 1];
 
             const pte_t entry = pte_read(pte);
-            if (phys_range.front >= offset &&
-                pte_to_phys(entry) == (phys_range.front - offset) &&
-                pte_flags_equal(entry, walker.level, options->pte_flags))
+            if (phys_range.front >= offset
+                && pte_to_phys(entry) == (phys_range.front - offset)
+                && pte_flags_equal(entry, walker.level, options->pte_flags))
             {
                 offset =
                     walker_virt_addr +
@@ -1595,8 +1595,8 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                 }
 
                 const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-                if (!has_align(virt_range.front + offset, largepage_size) ||
-                    offset + largepage_size > virt_range.size)
+                if (!has_align(virt_range.front + offset, largepage_size)
+                    || offset + largepage_size > virt_range.size)
                 {
                     continue;
                 }

@@ -58,8 +58,8 @@ read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
         }
 
         if (__builtin_expect(
-            !check_mul(result, 10, &result) ||
-            !check_add(result, digit, &result), 0))
+                !check_mul(result, 10, &result)
+                || !check_add(result, digit, &result), 0))
         {
             *iter_out = iter;
             return -1;
@@ -772,10 +772,10 @@ parse_printf(const char *const fmt,
 
         if (parsed_length < curr_spec.width) {
             const bool pad_with_zeros =
-                curr_spec.leftpad_zeros &&
-                is_int_specifier(curr_spec.spec) &&
-                curr_spec.precision == -1 &&
-                !curr_spec.left_justify; // Zeros are never left-justified
+                curr_spec.leftpad_zeros
+                && is_int_specifier(curr_spec.spec)
+                && curr_spec.precision == -1
+                && !curr_spec.left_justify; // Zeros are never left-justified
 
             if (pad_with_zeros) {
                 // We're always resetting padded_zero_count if it was set before

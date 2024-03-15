@@ -83,8 +83,8 @@ pte_flags_equal(const pte_t pte, const pgt_level_t level, const uint64_t flags)
 {
     (void)level;
     const uint64_t mask =
-        __PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC | __PTE_USER |
-        __PTE_GLOBAL | __PTE_IO;
+        __PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC | __PTE_USER
+        | __PTE_GLOBAL | __PTE_IO;
 
     return (pte & mask) == flags;
 }

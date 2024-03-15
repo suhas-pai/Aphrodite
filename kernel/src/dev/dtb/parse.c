@@ -921,8 +921,8 @@ parse_node_prop(const void *const dtb,
 
             [[fallthrough]];
         case DEVICETREE_PROP_PHANDLE:
-            if (sv_equals(name, SV_STATIC("phandle")) ||
-                sv_equals(name, SV_STATIC("linux,phandle")))
+            if (sv_equals(name, SV_STATIC("phandle"))
+                || sv_equals(name, SV_STATIC("linux,phandle")))
             {
                 uint32_t phandle = 0;
                 if (!parse_integer_prop(fdt_prop, prop_len, &phandle)) {

@@ -42,8 +42,8 @@
             .cqid = (queue)->id, \
             .size = (queue)->entry_count - 1, \
             .cqflags = \
-                __NVME_CREATE_CQ_PHYS_CONTIG | \
-                __NVME_CREATE_CQ_IRQS_ENABLED, \
+                __NVME_CREATE_CQ_PHYS_CONTIG \
+                | __NVME_CREATE_CQ_IRQS_ENABLED, \
             .irqvec = (vector) \
         } \
     })

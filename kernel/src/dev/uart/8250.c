@@ -36,10 +36,10 @@ enum uart_lsr {
     __UART_LSR_FIFO_ERROR = 1 << 7,
 
     __UART_LSR_BRK_ERROR =
-        __UART_LSR_BREAK_INTERRUPT |
-        __UART_LSR_FRAME_ERROR |
-        __UART_LSR_PARITY_ERROR |
-        __UART_LSR_OVERRUN_ERROR
+        __UART_LSR_BREAK_INTERRUPT
+        | __UART_LSR_FRAME_ERROR
+        | __UART_LSR_PARITY_ERROR
+        | __UART_LSR_OVERRUN_ERROR
 };
 
 struct uart8250_info {

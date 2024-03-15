@@ -244,8 +244,8 @@ void ps2_init() {
     }
 
     ps2_config |=
-        __PS2_CNTRLR_CONFIG_1ST_PORT_INTERRUPT |
-        __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
+        __PS2_CNTRLR_CONFIG_1ST_PORT_INTERRUPT
+        | __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
 
     const bool has_second_port =
         ps2_config & __PS2_CNTRLR_CONFIG_2ND_PORT_CLOCK;
@@ -262,8 +262,8 @@ void ps2_init() {
     }
 
     bool first_port_enabled = true;
-    if (ps2_send_command(PS2_CMD_TEST_1ST_DEVICE) &&
-        ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
+    if (ps2_send_command(PS2_CMD_TEST_1ST_DEVICE)
+        && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
     {
         first_port_enabled = true;
     } else {
@@ -272,8 +272,8 @@ void ps2_init() {
 
     bool second_port_enabled = false;
     if (has_second_port) {
-        if (ps2_send_command(PS2_CMD_TEST_2ND_DEVICE) &&
-            ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
+        if (ps2_send_command(PS2_CMD_TEST_2ND_DEVICE)
+            && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
         {
             second_port_enabled = true;
         } else {

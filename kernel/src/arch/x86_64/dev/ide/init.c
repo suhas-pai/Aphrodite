@@ -199,8 +199,8 @@ handle_device(struct ide_device *const device,
             break;
         }
 
-        if ((status & __ATA_STATUS_REG_BSY) == 0 &&
-            (status & __ATA_STATUS_REG_DRQ))
+        if ((status & __ATA_STATUS_REG_BSY) == 0
+            && (status & __ATA_STATUS_REG_DRQ))
         {
             break;
         }
