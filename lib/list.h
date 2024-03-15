@@ -4,9 +4,7 @@
  */
 
 #pragma once
-
 #include <stdbool.h>
-#include <stddef.h>
 
 #include "lib/assert.h"
 #include "macros.h"
