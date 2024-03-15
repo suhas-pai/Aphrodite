@@ -437,7 +437,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     }
 
     struct page *page = virt_to_page(walker.tables[walker.level - 1]);
-    for (uint64_t i = 0; i < length;) {
+    for (uint64_t i = 0;;) {
         if (__builtin_expect(prev_was_at_end, 0)) {
             // Here, we were previously at the end of a table, and have
             // incremented to a new table, possibly at a different level.
@@ -515,6 +515,10 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         }
 
         i += PAGE_SIZE_AT_LEVEL(walker.level);
+        if (i >= length) {
+            break;
+        }
+
         advance_result =
             ptwalker_next_with_options(&walker, walker.level, &iterate_options);
 
