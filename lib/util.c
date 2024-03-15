@@ -23,7 +23,7 @@ bool index_range_in_bounds(const struct range range, const uint64_t bounds) {
         return false;
     }
 
-    return ordinal_in_bounds(end, bounds);
+    return end <= bounds;
 }
 
 __optimize(3) const char *get_alphanumeric_upper_string() {
