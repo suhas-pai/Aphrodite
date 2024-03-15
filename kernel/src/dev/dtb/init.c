@@ -67,7 +67,7 @@ next:
     return result;
 }
 
-static void dtb_initialize_drivers() {
+static void dtb_init_drivers() {
     driver_foreach(driver) {
         assert_msg(driver->name.length != 0, "driver is missing a name");
 
@@ -126,7 +126,7 @@ void dtb_init() {
         return;
     }
 
-    dtb_initialize_drivers();
+    dtb_init_drivers();
     printk(LOGLEVEL_INFO, "dtb: finished initializing\n");
 }
 
