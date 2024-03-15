@@ -7,6 +7,8 @@
     #include "dev/pci/legacy.h"
 #endif /* defined(__x86_64__) */
 
+#include "lib/adt/array.h"
+
 #include "cpu/spinlock.h"
 #include "ecam.h"
 

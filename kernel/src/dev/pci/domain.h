@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/adt/array.h"
+#include <stdbool.h>
 #include "location.h"
 
 enum pci_domain_kind {
@@ -17,9 +17,17 @@ enum pci_domain_kind {
 
 struct pci_domain {
     enum pci_domain_kind kind;
+
     uint16_t segment;
     uint64_t padding;
 };
+
+#define PCI_DOMAIN_INIT(kind_) \
+    ((struct pci_domain){ \
+        .kind = (kind_), \
+        .segment = 0, \
+        .padding = 0, \
+    })
 
 #define PCI_SPACE_MAX_OFFSET 0x1000
 

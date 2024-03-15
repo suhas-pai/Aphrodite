@@ -36,6 +36,7 @@ pci_add_ecam_domain(const struct range bus_range,
         return NULL;
     }
 
+    ecam_domain->domain = PCI_DOMAIN_INIT(PCI_DOMAIN_ECAM);
     list_init(&ecam_domain->list);
 
     ecam_domain->domain.kind = PCI_DOMAIN_ECAM;
@@ -374,8 +375,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg_info *const mmio_reg =
-        (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
-
+        array_front(reg_prop->list);
     const struct range mmio_range =
         RANGE_INIT(mmio_reg->address, mmio_reg->size);
 
