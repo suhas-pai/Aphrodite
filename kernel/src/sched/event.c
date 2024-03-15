@@ -44,7 +44,6 @@ add_listeners_to_events(struct event *const *const events,
             EVENT_LISTENER_INIT(thread, array_item_count(events[i]->listeners));
 
         assert(array_append(&events[i]->listeners, &listener));
-        assert(array_append(&thread->events_hearing, &listener));
     }
 }
 

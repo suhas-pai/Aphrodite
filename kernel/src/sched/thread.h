@@ -19,7 +19,6 @@ struct thread {
     bool preemption_disabled : 1;
     bool signal_enqueued : 1;
 
-    struct array events_hearing;
     int64_t event_index;
 
     struct thread_context context;

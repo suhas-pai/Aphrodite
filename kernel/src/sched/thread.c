@@ -14,7 +14,6 @@ __hidden struct thread kernel_main_thread = {
     .preemption_disabled = false,
     .signal_enqueued = false,
 
-    .events_hearing = ARRAY_INIT(sizeof(struct event *)),
     .event_index = -1
 };
 
@@ -26,7 +25,6 @@ sched_thread_init(struct thread *const thread,
     thread->process = process;
     thread->cpu = this_cpu_mut();
 
-    thread->events_hearing = ARRAY_INIT(sizeof(struct event *));
     thread->preemption_disabled = false;
     thread->signal_enqueued = false;
 
