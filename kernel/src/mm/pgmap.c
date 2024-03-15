@@ -1854,13 +1854,14 @@ pgunmap_at(struct pagemap *const pagemap,
             }
 
             pte_write(pte, /*value=*/0);
-            ptwalker_deref_from_level(&walker, walker.level, &pageop);
 
             const uint64_t pte_phys = pte_to_phys(entry);
             if (pte_is_dirty(entry)) {
                 set_pages_dirty(phys_to_page(pte_phys),
                                 PAGE_SIZE_AT_LEVEL(walker.level) / PAGE_SIZE);
             }
+
+            ptwalker_deref_from_level(&walker, walker.level, &pageop);
 
             const uint64_t map_size = virt_range.size - offset;
             const bool map_result =
@@ -1877,26 +1878,28 @@ pgunmap_at(struct pagemap *const pagemap,
 
                 return false;
             }
-        } else {
-            pte_t *const pte =
-                &walker.tables[level - 1][walker.indices[level - 1]];
 
-            if (should_free_pages) {
-                const pte_t entry = pte_read(pte);
-
-                pte_write(pte, /*value=*/0);
-                pageop_flush_pte_in_current_range(&pageop,
-                                                  entry,
-                                                  level,
-                                                  should_free_pages);
-            } else {
-                pte_write(pte, /*value=*/0);
-            }
-
-            ptwalker_deref_from_level(&walker, walker.level, &pageop);
+            break;
         }
 
+        pte_t *const pte =
+            &walker.tables[level - 1][walker.indices[level - 1]];
+
+        if (should_free_pages) {
+            const pte_t entry = pte_read(pte);
+
+            pte_write(pte, /*value=*/0);
+            pageop_flush_pte_in_current_range(&pageop,
+                                                entry,
+                                                level,
+                                                should_free_pages);
+        } else {
+            pte_write(pte, /*value=*/0);
+        }
+
+        ptwalker_deref_from_level(&walker, walker.level, &pageop);
         offset += PAGE_SIZE_AT_LEVEL(level);
+
         if (offset == virt_range.size) {
             break;
         }
