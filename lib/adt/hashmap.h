@@ -25,6 +25,8 @@ struct hashmap;
 typedef uint32_t
 (*hashmap_hash_t)(hashmap_key_t key, const struct hashmap *hashmap);
 
+uint32_t hashmap_no_hash(hashmap_key_t key, const struct hashmap *hashmap);
+
 struct hashmap {
     struct hashmap_bucket **buckets;
 

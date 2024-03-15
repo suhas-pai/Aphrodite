@@ -10,12 +10,6 @@
 
 #define DEVICETREE_PHANDLE_MAP_BUCKET_COUNT 10
 
-__optimize(3) static inline uint32_t
-phandle_hash(const hashmap_key_t key, const struct hashmap *const map) {
-    (void)map;
-    return (uint32_t)(uint64_t)key;
-}
-
 __optimize(3) struct devicetree *devicetree_alloc() {
     struct devicetree_node *const root = kmalloc(sizeof(*root));
     if (root == NULL) {
@@ -48,7 +42,7 @@ devicetree_init_fields(struct devicetree *const tree,
     tree->phandle_map =
         HASHMAP_INIT(sizeof(struct devicetree_node *),
                      DEVICETREE_PHANDLE_MAP_BUCKET_COUNT,
-                     phandle_hash,
+                     hashmap_no_hash,
                      /*hash_cb_info=*/NULL);
 }
 

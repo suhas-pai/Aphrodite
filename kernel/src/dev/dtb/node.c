@@ -5,12 +5,6 @@
 
 #include "node.h"
 
-__optimize(3) static inline
-uint32_t prop_hash(const hashmap_key_t key, const struct hashmap *const map) {
-    (void)map;
-    return (uint32_t)(uint64_t)key;
-}
-
 #define DEVICETREE_PROP_MAP_BUCKET_COUNT 6
 
 __optimize(3) void
@@ -25,7 +19,7 @@ devicetree_node_init_fields(struct devicetree_node *const node,
     node->known_props =
         HASHMAP_INIT(sizeof(struct devicetree_prop *),
                      DEVICETREE_PROP_MAP_BUCKET_COUNT,
-                     prop_hash,
+                     hashmap_no_hash,
                      /*hash_cb_info=*/NULL);
 
     node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
