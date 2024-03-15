@@ -67,17 +67,21 @@ void spin_release_with_irq(struct spinlock *const lock, const int flag) {
 
 __optimize(3) bool
 spin_try_acquire_with_irq(struct spinlock *const lock, int *const flag_out) {
-    const bool irqs_enabled = are_interrupts_enabled();
-    disable_interrupts();
-
+    const bool irqs_enabled = disable_interrupts_if_not();
     if (!spin_try_acquire(lock)) {
-        if (irqs_enabled) {
-            enable_interrupts();
-        }
-
+        enable_interrupts_if_flag(irqs_enabled);
         return false;
     }
 
     *flag_out = irqs_enabled;
     return true;
+}
+
+void spinlock_deinit(struct spinlock *const lock) {
+#if defined(DEBUG_LOCKS)
+    assert(lock->front == lock->back);
+#endif /* defined(DEBUG_LOCKS) */
+
+    lock->front = 0;
+    lock->back = 0;
 }

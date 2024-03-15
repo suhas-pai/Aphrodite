@@ -27,3 +27,5 @@ void spin_release_with_irq(struct spinlock *lock, int flag);
 
 bool spin_try_acquire(struct spinlock *lock);
 bool spin_try_acquire_with_irq(struct spinlock *lock, int *flag_out);
+
+void spinlock_deinit(struct spinlock *lock);
