@@ -3,33 +3,57 @@
  * © suhas pai
  */
 
+#include "lib/adt/bitset.h"
+
 #include "apic/ioapic.h"
-
 #include "apic/lapic.h"
-#include "asm/msr.h"
 
-#include "cpu/info.h"
+#include "asm/msr.h"
 #include "cpu/isr.h"
 
 #include "dev/printk.h"
+
 #include "lib/align.h"
+#include "lib/util.h"
 
-static isr_func_t g_funcs[256] = {0};
+#define ISR_EXCEPTION_COUNT 32
+#define ISR_IRQ_COUNT 256
 
-static isr_vector_t g_free_vector = 0x21;
+static struct spinlock g_lock = SPINLOCK_INIT();
+
+static bitset_decl(g_bitset, ISR_IRQ_COUNT);
+static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
+
 static isr_vector_t g_spur_vector = 0;
 static isr_vector_t g_timer_vector = 0;
 
 __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
-    if (__builtin_expect(g_free_vector == 0xFF, 0)) {
+
+    const int flag = spin_acquire_with_irq(&g_lock);
+    const uint64_t result = bitset_find_unset(g_bitset, /*invert=*/true);
+    spin_release_with_irq(&g_lock, flag);
+
+    if (result == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
 
-    const isr_vector_t result = g_free_vector;
-    g_free_vector++;
+    return (isr_vector_t)result;
+}
 
-    return result;
+__optimize(3)
+void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
+    (void)for_msi;
+
+    assert_msg(vector > ISR_EXCEPTION_COUNT,
+               "isr_free_vector() called on x86 exception vector");
+
+    const int flag = spin_acquire_with_irq(&g_lock);
+
+    bitset_unset(g_bitset, vector);
+    isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+
+    spin_release_with_irq(&g_lock, flag);
 }
 
 __optimize(3) isr_vector_t isr_get_timer_vector() {
@@ -58,7 +82,7 @@ isr_handle_interrupt(const uint64_t vector,
     if (g_funcs[vector] != NULL) {
         g_funcs[vector](vector, frame);
     } else {
-        if (vector < 0x20) {
+        if (index_in_bounds(vector, ISR_EXCEPTION_COUNT)) {
             handle_exception(vector, frame);
         } else {
             printk(LOGLEVEL_INFO,
@@ -79,6 +103,9 @@ void spur_tick(const uint64_t intr_no, struct thread_context *const frame) {
 }
 
 void isr_init() {
+    // Set first 32 exception interrupts as allocated.
+    g_bitset[0] = mask_for_n_bits(ISR_EXCEPTION_COUNT);
+
     // Setup Timer
     g_timer_vector = isr_alloc_vector(/*for_msi=*/false);
     assert(g_timer_vector != ISR_INVALID_VECTOR);

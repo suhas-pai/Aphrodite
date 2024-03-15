@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include <stdbool.h>
+#include "thread.h"
 
 void sched_init();
 void sched_algo_init();

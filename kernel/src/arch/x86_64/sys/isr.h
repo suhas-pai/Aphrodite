@@ -27,5 +27,3 @@ typedef void (*isr_func_t)(uint64_t intr_no, struct thread_context *frame);
 
 isr_vector_t isr_get_spur_vector();
 isr_vector_t isr_get_timer_vector();
-
-void isr_eoi(uint64_t intr_no);

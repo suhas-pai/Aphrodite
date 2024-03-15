@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/adt/bitmap.h"
+#include "lib/adt/bitset.h"
 
 #include "asm/esr.h"
 #include "asm/irqs.h"
@@ -25,12 +25,12 @@ struct irq_info {
 
 extern void *const ivt_el1;
 
-static struct bitmap g_bitmap = BITMAP_INIT();
+static
+bitset_decl(g_bitset, distance_incl(GIC_SPI_INTERRUPT_START, ISR_IRQ_COUNT));
+
 static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 
 __optimize(3) void isr_init() {
-    g_bitmap =
-        bitmap_alloc(distance_incl(GIC_SPI_INTERRUPT_START, ISR_IRQ_COUNT));
 }
 
 __optimize(3)
@@ -40,9 +40,9 @@ void isr_reserve_msi_irqs(const uint16_t base, const uint16_t count) {
 
         gicd_set_irq_priority(irq, IRQ_POLARITY_HIGH);
         gicd_set_irq_trigger_mode(irq, IRQ_TRIGGER_MODE_EDGE);
-    }
 
-    bitmap_set_range(&g_bitmap, RANGE_INIT(base, count), /*value=*/true);
+        bitset_set(g_bitset, irq);
+    }
 }
 
 void isr_install_vbar() {
@@ -68,19 +68,38 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
             }
         }
     } else {
-        const uint64_t result =
-            bitmap_find(&g_bitmap,
-                        /*count=*/1,
-                        /*start_index=*/0,
-                        /*expected_value=*/false,
-                        /*value=*/true);
-
-        if (result != FIND_BIT_INVALID) {
+        const uint64_t result = bitset_find_unset(g_bitset, /*invert=*/true);
+        if (result != BITSET_INVALID) {
             return result;
         }
     }
 
     return ISR_INVALID_VECTOR;
+}
+
+__optimize(3)
+void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
+    if (for_msi) {
+        struct gic_v2_msi_info *iter = NULL;
+        struct list *const list = gicd_get_msi_info_list();
+
+        list_foreach(iter, list, list) {
+            assert(iter->initialized);
+
+            const struct range spi_range =
+                RANGE_INIT(iter->spi_base, iter->spi_count);
+
+            if (!range_has_loc(spi_range, vector)) {
+                continue;
+            }
+
+            assert(g_irq_info_list[vector].for_msi);
+            g_irq_info_list[vector].alloced_in_msi = false;
+        }
+    } else {
+        assert_no_msg(bitset_has(g_bitset, vector));
+        bitset_unset(g_bitset, /*invert=*/true);
+    }
 }
 
 __optimize(3) void

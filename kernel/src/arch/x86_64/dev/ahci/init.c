@@ -117,7 +117,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                            /*end_index=*/sizeof_bits(ports_impled));
 
     if (__builtin_expect(ports_impled_count == 0, 0)) {
-        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        isr_free_vector(g_hba_vector, /*for_msi=*/false);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -147,7 +147,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         host_cap & __AHCI_HBA_HOST_CAP_SUPPORTS_STAGGERED_SPINUP;
 
     if (hba->port_list == NULL) {
-        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        isr_free_vector(g_hba_vector, /*for_msi=*/false);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -193,10 +193,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         }
 
         if (!handoff_successful) {
-            isr_set_vector(g_hba_vector,
-                           /*handler=*/NULL,
-                           &ARCH_ISR_INFO_NONE());
-
+            isr_free_vector(g_hba_vector, /*for_msi=*/false);
             pci_entity_toggle_msi_vector_mask(pci_entity,
                                               g_hba_vector,
                                               /*mask=*/true);
@@ -239,7 +236,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     if (usable_port_count == 0) {
-        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        isr_free_vector(g_hba_vector, /*for_msi=*/false);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -264,7 +261,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     if (!init_one_port) {
-        isr_set_vector(g_hba_vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+        isr_free_vector(g_hba_vector, /*for_msi=*/false);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -273,6 +270,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         pci_unmap_bar(bar);
 
         kfree(hba->port_list);
+        printk(LOGLEVEL_WARN,
+               "ahci: no implemented port is usavle. aborting init\n");
+
         return;
     }
 

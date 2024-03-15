@@ -11,7 +11,11 @@
 
 // Returns -1 on alloc failure
 void isr_init();
+
 isr_vector_t isr_alloc_vector(bool for_msi);
+void isr_free_vector(isr_vector_t vector, bool for_msi);
+
+void isr_eoi(uint64_t intr_no);
 
 void
 isr_set_vector(isr_vector_t vector,

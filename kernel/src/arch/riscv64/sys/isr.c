@@ -4,18 +4,23 @@
  */
 
 #include "dev/time/stime.h"
+#include "lib/adt/bitset.h"
 
 #include "asm/cause.h"
 #include "asm/csr.h"
 
 #include "cpu/isr.h"
+#include "cpu/spinlock.h"
 #include "cpu/util.h"
 
 #include "dev/printk.h"
 #include "sched/scheduler.h"
 
-static isr_func_t g_funcs[240] = {0};
-static isr_vector_t g_free_vector = 16;
+#define ISR_IRQ_COUNT 240
+static bitset_decl(g_bitset, ISR_IRQ_COUNT);
+
+static struct spinlock g_lock = SPINLOCK_INIT();
+static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
 
 void isr_init() {
 
@@ -24,10 +29,26 @@ void isr_init() {
 __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
 
-    const isr_vector_t result = g_free_vector;
-    g_free_vector++;
+    const int flag = spin_acquire_with_irq(&g_lock);
+    const uint64_t result = bitset_find_unset(g_bitset, /*invert=*/true);
+    spin_release_with_irq(&g_lock, flag);
 
-    return result;
+    if (result == BITSET_INVALID) {
+        return ISR_INVALID_VECTOR;
+    }
+
+    return (isr_vector_t)result;
+}
+
+__optimize(3)
+void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
+    (void)for_msi;
+    const int flag = spin_acquire_with_irq(&g_lock);
+
+    bitset_unset(g_bitset, vector);
+    isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+
+    spin_release_with_irq(&g_lock, flag);
 }
 
 __optimize(3) void isr_mask_irq(const isr_vector_t irq) {
