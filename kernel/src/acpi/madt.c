@@ -6,6 +6,10 @@
 #include "acpi/api.h"
 #include "acpi/structs.h"
 
+#if __has_include("acpi/extra_structs.h")
+    #include "acpi/extra_structs.h"
+#endif /* __has_include("acpi/extra_structs.h") */
+
 #if defined(__x86_64__)
     #include "apic/ioapic.h"
     #include "apic/lapic.h"

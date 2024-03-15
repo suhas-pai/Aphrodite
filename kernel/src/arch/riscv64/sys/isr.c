@@ -59,6 +59,10 @@ __optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
+void isr_eoi(const uint64_t int_no) {
+    (void)int_no;
+}
+
 extern
 void handle_exception(const uint64_t vector, struct thread_context *frame);
 
@@ -83,7 +87,7 @@ isr_handle_interrupt(const uint64_t cause,
         }
 
         if (g_funcs[code] != NULL) {
-            g_funcs[code](code, epc, frame);
+            g_funcs[code](code, frame);
         } else {
             printk(LOGLEVEL_INFO,
                    "isr: got unhandled interrupt: " ISR_VECTOR_FMT "\n",
