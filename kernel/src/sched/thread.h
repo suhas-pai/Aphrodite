@@ -16,7 +16,7 @@ struct thread {
     struct process *process;
     struct cpu_info *cpu;
 
-    bool premption_disabled : 1;
+    bool preemption_disabled : 1;
     bool signal_enqueued : 1;
 
     struct array events_hearing;
@@ -36,7 +36,9 @@ sched_thread_init(struct thread *thread,
                   const void *entry);
 
 struct thread *current_thread();
-bool thread_enqueued(const struct thread *thread);
 
-void prempt_disable();
-void prempt_enable();
+bool thread_enqueued(const struct thread *thread);
+bool preemption_enabled();
+
+void preempt_disable();
+void preempt_enable();
