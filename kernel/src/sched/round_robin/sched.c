@@ -95,10 +95,6 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
         return;
     }
 
-    if (curr_thread->sched_info.awaiting) {
-        curr_thread->sched_info.awaiting = false;
-    }
-
     struct thread *const next_thread = get_next_thread(curr_thread);
 
     // Only possible if we were idle and will still be idle, or if our current
@@ -111,6 +107,10 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
 
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
         return;
+    }
+
+    if (curr_thread->sched_info.awaiting) {
+        curr_thread->sched_info.awaiting = false;
     }
 
     const struct thread *const idle_thread = this_cpu()->idle_thread;
@@ -154,7 +154,10 @@ __optimize(3) void sched_yield() {
     sched_self_ipi();
     enable_interrupts();
 
-    while (curr_thread->sched_info.awaiting) {
+    while (
+        atomic_load_explicit(&curr_thread->sched_info.awaiting,
+                             memory_order_relaxed))
+    {
         cpu_pause();
     }
 }
