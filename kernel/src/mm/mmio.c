@@ -13,7 +13,6 @@
 #include "kmalloc.h"
 #include "mmio.h"
 #include "pgmap.h"
-#include "zone.h"
 
 static struct address_space mmio_space = ADDRSPACE_INIT(mmio_space);
 static struct spinlock mmio_space_lock = SPINLOCK_INIT();
@@ -151,54 +150,6 @@ map_mmio_region(const struct range phys_range,
 }
 
 struct mmio_region *
-vmap_mmio_low4g(const prot_t prot, const uint8_t order, const uint64_t flags) {
-    switch (verify_prot(prot)) {
-        case PROT_FAIL_NONE:
-            break;
-        case PROT_FAIL_PROT_NONE:
-            printk(LOGLEVEL_WARN,
-                   "vmap_mmio_low4g(): attempting to map a low-4g mmio range "
-                   "w/o access permissions\n");
-            return NULL;
-        case PROT_FAIL_PROT_EXEC:
-            printk(LOGLEVEL_WARN,
-                   "vmap_mmio_low4g(): attempting to map a low-4g mmio range "
-                   "with execute permissions\n");
-            return NULL;
-        case PROT_FAIL_PROT_USER:
-            printk(LOGLEVEL_WARN,
-                   "vmap_mmio_low4g(): attempting to map a low-4g mmio range "
-                   "with user permissions\n");
-            return NULL;
-    }
-
-    struct page *const page =
-        alloc_pages_from_zone(page_zone_low4g(),
-                              PAGE_STATE_USED,
-                              __ALLOC_ZERO,
-                              order,
-                              /*fallback=*/true);
-
-    if (page == NULL) {
-        printk(LOGLEVEL_WARN,
-               "vmap_mmio_low4g(): failed to allocate low-4g pages to map a "
-               "mmio range\n");
-        return NULL;
-    }
-
-    const struct range phys_range =
-        RANGE_INIT(page_to_phys(page), PAGE_SIZE << order);
-
-    struct mmio_region *const mmio = map_mmio_region(phys_range, prot, flags);
-    if (mmio == NULL) {
-        free_pages(page, order);
-        return NULL;
-    }
-
-    return mmio;
-}
-
-struct mmio_region *
 vmap_mmio(const struct range phys_range,
           const prot_t prot,
           const uint64_t flags)
@@ -245,7 +196,7 @@ vmap_mmio(const struct range phys_range,
 
 bool vunmap_mmio(struct mmio_region *const region) {
     const struct pgunmap_options options = {
-        .free_pages = region->flags & __MMIO_REGION_LOW4G,
+        .free_pages = false,
         .dont_split_large_pages = true
     };
 
