@@ -7,54 +7,104 @@
 #include "dev/printk.h"
 
 #include "lib/util.h"
-
-#include "sys/isr.h"
+#include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
 #include "entity.h"
 #include "structs.h"
 
-__optimize(3) void pci_entity_enable_msi(struct pci_entity_info *const entity) {
-    if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
-        printk(LOGLEVEL_WARN,
-               "pci: pci_entity_enable_msi() called on entity that doesn't "
-               "support msi\n");
-        return;
+__optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
+    switch (entity->msi_support) {
+        case PCI_ENTITY_MSI_SUPPORT_NONE:
+            printk(LOGLEVEL_WARN,
+                   "pci: pci_entity_enable_msi() called on entity that doesn't "
+                   "support msi\n");
+            return false;
+        case PCI_ENTITY_MSI_SUPPORT_MSI: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+            const uint32_t msg_control =
+                pci_read_from_base(entity,
+                                   entity->msi_pcie_offset,
+                                   struct pci_spec_cap_msi,
+                                   msg_control);
+
+            pci_write_from_base(entity,
+                                entity->msi_pcie_offset,
+                                struct pci_spec_cap_msi,
+                                msg_control,
+                                msg_control | __PCI_CAP_MSI_CTRL_ENABLE);
+
+            spin_release_with_irq(&entity->lock, flag);
+            return true;
+        }
+        case PCI_ENTITY_MSI_SUPPORT_MSIX: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+            const uint32_t msg_control =
+                pci_read_from_base(entity,
+                                   entity->msi_pcie_offset,
+                                   struct pci_spec_cap_msix,
+                                   msg_control);
+
+            pci_write_from_base(entity,
+                                entity->msi_pcie_offset,
+                                struct pci_spec_cap_msix,
+                                msg_control,
+                                msg_control | __PCI_CAP_MSIX_CTRL_ENABLE);
+
+            spin_release_with_irq(&entity->lock, flag);
+            return true;
+        }
     }
 
-    const uint32_t msi_control =
-        pci_read_from_base(entity,
-                           entity->msi_pcie_offset,
-                           struct pci_spec_cap_msi,
-                           msg_control);
-
-    pci_write_from_base(entity,
-                        entity->msi_pcie_offset,
-                        struct pci_spec_cap_msi,
-                        msg_control,
-                        msi_control | __PCI_CAPMSI_CTRL_ENABLE);
+    verify_not_reached();
 }
 
 __optimize(3)
-void pci_entity_disable_msi(struct pci_entity_info *const entity) {
-    if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
-        printk(LOGLEVEL_WARN,
-               "pci: pci_entity_enable_msi() called on entity that doesn't "
-               "support msi\n");
-        return;
+bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
+    switch (entity->msi_support) {
+        case PCI_ENTITY_MSI_SUPPORT_NONE:
+            printk(LOGLEVEL_WARN,
+                   "pci: pci_entity_disable_msi() called on entity that doesn't "
+                   "support msi\n");
+            return false;
+        case PCI_ENTITY_MSI_SUPPORT_MSI: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+            const uint32_t msg_control =
+                pci_read_from_base(entity,
+                                   entity->msi_pcie_offset,
+                                   struct pci_spec_cap_msi,
+                                   msg_control);
+
+            pci_write_from_base(entity,
+                                entity->msi_pcie_offset,
+                                struct pci_spec_cap_msi,
+                                msg_control,
+                                rm_mask(msg_control, __PCI_CAP_MSI_CTRL_ENABLE));
+
+            spin_release_with_irq(&entity->lock, flag);
+            return true;
+        }
+        case PCI_ENTITY_MSI_SUPPORT_MSIX: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+            const uint32_t msg_control =
+                pci_read_from_base(entity,
+                                   entity->msi_pcie_offset,
+                                   struct pci_spec_cap_msix,
+                                   msg_control);
+
+            pci_write_from_base(entity,
+                                entity->msi_pcie_offset,
+                                struct pci_spec_cap_msix,
+                                msg_control,
+                                rm_mask(msg_control,
+                                        __PCI_CAP_MSIX_CTRL_ENABLE));
+
+            spin_release_with_irq(&entity->lock, flag);
+            return true;
+        }
     }
 
-    const uint32_t msi_control =
-        pci_read_from_base(entity,
-                           entity->msi_pcie_offset,
-                           struct pci_spec_cap_msi,
-                           msg_control);
-
-    pci_write_from_base(entity,
-                        entity->msi_pcie_offset,
-                        struct pci_spec_cap_msi,
-                        msg_control,
-                        rm_mask(msi_control, __PCI_CAPMSI_CTRL_ENABLE));
+    verify_not_reached();
 }
 
 #if ISR_SUPPORTS_MSI
@@ -67,7 +117,7 @@ void pci_entity_disable_msi(struct pci_entity_info *const entity) {
         // If we're supposed to mask the vector, but masking isn't supported,
         // then simply bail.
 
-        if (masked && !entity->msi.supports_msi_masking) {
+        if (masked && !entity->msi.supports_masking) {
             return;
         }
 
@@ -124,82 +174,32 @@ void pci_entity_disable_msi(struct pci_entity_info *const entity) {
          * MSI-X Table in the BAR.
          */
 
-        const uint32_t table_offset =
-            pci_read_from_base(entity,
-                               entity->msi_pcie_offset,
-                               struct pci_spec_cap_msix,
-                               table_offset);
-
-        const uint8_t bar_index = table_offset & __PCI_BARSPEC_TABLE_OFFSET_BIR;
-        if (!index_in_bounds(bar_index, entity->max_bar_count)) {
+        if (!index_in_bounds(vector, entity->msix.table_size)) {
             printk(LOGLEVEL_WARN,
-                   "pcie: got invalid bar index while trying to bind "
-                   "address %p to isr vector " ISR_VECTOR_FMT "\n",
+                   "pcie: msix table is too small to bind address %p to "
+                   "vector " ISR_VECTOR_FMT "\n",
                    (void *)address,
                    vector);
             return;
         }
 
-        if (!entity->bar_list[bar_index].is_present) {
-            printk(LOGLEVEL_WARN,
-                   "pcie: encountered non-present bar for msix table while "
-                   "trying to bind address %p to isr "
-                   "vector " ISR_VECTOR_FMT "n",
-                   (void *)address,
-                   vector);
-            return;
-        }
-
-        struct pci_entity_bar_info *const bar = &entity->bar_list[bar_index];
-        if (!bar->is_mmio) {
-            printk(LOGLEVEL_WARN, "pcie: base-address-reg bar is not mmio\n");
-            return;
-        }
-
-        const uint64_t msix_index =
-            bitmap_find(&entity->msix.table,
-                        /*count=*/1,
-                        /*start_index=*/0,
-                        /*expected_value=*/false,
-                        /*invert=*/true);
-
-        if (msix_index == FIND_BIT_INVALID) {
-            printk(LOGLEVEL_WARN,
-                    "pcie: no free msix table entry found for binding "
-                    "address %p to msix vector " ISR_VECTOR_FMT "\n",
-                    (void *)address,
-                    vector);
-            return;
-        }
-
-        uint16_t msg_control =
-            pci_read_from_base(entity,
-                               entity->msi_pcie_offset,
-                               struct pci_spec_cap_msix,
-                               msg_control);
-
-        const uint32_t table_size =
-            (msg_control & __PCI_CAP_MSIX_CTRL_TABLE_SIZE) + 1;
-
-        if (!index_in_bounds(msix_index, table_size)) {
-            printk(LOGLEVEL_WARN,
-                   "pcie: msix table is too small to bind address %p to msix "
-                   "vector %" PRIu16 " for isr vector " ISR_VECTOR_FMT "\n",
-                   (void *)address,
-                   (uint16_t)msix_index,
-                   vector);
+        struct pci_entity_bar_info *const bar = entity->msix.table_bar;
+        if (!pci_map_bar(bar)) {
+            printk(LOGLEVEL_WARN, "pcie: failed to map msix table bar\n");
             return;
         }
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
             reg_to_ptr(volatile struct pci_spec_cap_msix_table_entry,
                        bar->mmio->base + bar->index_in_mmio,
-                       rm_mask(table_offset, __PCI_BARSPEC_TABLE_OFFSET_BIR));
+                       entity->msix.table_offset);
 
-        mmio_write(&table[msix_index].msg_address_lower32, (uint32_t)address);
-        mmio_write(&table[msix_index].msg_address_upper32, 0);
-        mmio_write(&table[msix_index].data, vector);
-        mmio_write(&table[msix_index].control, masked);
+        mmio_write(&table[vector].msg_address_lower32, (uint32_t)address);
+        mmio_write(&table[vector].msg_address_upper32,
+                   (uint32_t)(address >> 32));
+
+        mmio_write(&table[vector].data, vector);
+        mmio_write(&table[vector].control, (uint32_t)masked);
     }
 #endif /* defined(ISR_SUPPORTS_MSI) */
 
@@ -210,7 +210,6 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                               const bool masked)
 {
 #if ISR_SUPPORTS_MSI
-    const uint64_t msi_address = isr_get_msi_address(cpu, vector);
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
@@ -219,13 +218,26 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                    "vector " ISR_VECTOR_FMT "\n",
                    PCI_ENTITY_INFO_FMT_ARGS(entity),
                    vector);
+
             return false;
-        case PCI_ENTITY_MSI_SUPPORT_MSI:
+        case PCI_ENTITY_MSI_SUPPORT_MSI: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+            const uint64_t msi_address = isr_get_msi_address(cpu, vector);
+
             bind_msi_to_vector(entity, msi_address, vector, masked);
+            spin_release_with_irq(&entity->lock, flag);
+
             return true;
-        case PCI_ENTITY_MSI_SUPPORT_MSIX:
+        }
+        case PCI_ENTITY_MSI_SUPPORT_MSIX: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+            const uint64_t msi_address = isr_get_msi_address(cpu, vector);
+
             bind_msix_to_vector(entity, msi_address, vector, masked);
+            spin_release_with_irq(&entity->lock, flag);
+
             return true;
+        }
     }
 #else
     (void)entity;
@@ -267,19 +279,11 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                      const isr_vector_t vector,
                      const bool masked)
     {
-        const uint32_t table_offset =
-            pci_read_from_base(entity,
-                               entity->msi_pcie_offset,
-                               struct pci_spec_cap_msix,
-                               table_offset);
-
-        const uint8_t bar_index = table_offset & __PCI_BARSPEC_TABLE_OFFSET_BIR;
-        struct pci_entity_bar_info *const bar = &entity->bar_list[bar_index];
-
+        struct pci_entity_bar_info *const bar = entity->msix.table_bar;
         volatile struct pci_spec_cap_msix_table_entry *const table =
             reg_to_ptr(volatile struct pci_spec_cap_msix_table_entry,
                        bar->mmio->base + bar->index_in_mmio,
-                       rm_mask(table_offset, __PCI_BARSPEC_TABLE_OFFSET_BIR));
+                       entity->msix.table_offset);
 
         mmio_write(&table[vector].control, masked);
     }
@@ -297,13 +301,24 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
                    "pcie: entity " PCI_ENTITY_INFO_FMT " does not support msi "
                    "or msix\n",
                    PCI_ENTITY_INFO_FMT_ARGS(entity));
+
             return false;
-        case PCI_ENTITY_MSI_SUPPORT_MSI:
+        case PCI_ENTITY_MSI_SUPPORT_MSI: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+
             mask_msi_vector(entity, vector, mask);
+            spin_release_with_irq(&entity->lock, flag);
+
             return true;
-        case PCI_ENTITY_MSI_SUPPORT_MSIX:
+        }
+        case PCI_ENTITY_MSI_SUPPORT_MSIX: {
+            const int flag = spin_acquire_with_irq(&entity->lock);
+
             mask_msix_vector(entity, vector, mask);
+            spin_release_with_irq(&entity->lock, flag);
+
             return true;
+        }
     }
 #else
     (void)entity;
@@ -318,6 +333,7 @@ __optimize(3) void
 pci_entity_enable_privl(struct pci_entity_info *const entity,
                         const uint16_t privl)
 {
+    const int flag = spin_acquire_with_irq(&entity->lock);
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
@@ -325,10 +341,12 @@ pci_entity_enable_privl(struct pci_entity_info *const entity,
         __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
+    spin_release_with_irq(&entity->lock, flag);
 }
 
 __optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
+    const int flag = spin_acquire_with_irq(&entity->lock);
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
@@ -336,4 +354,77 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
         __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
+    spin_release_with_irq(&entity->lock, flag);
+}
+
+__optimize(3)
+void pci_entity_info_destroy(struct pci_entity_info *const entity) {
+    spinlock_deinit(&entity->lock);
+    spin_acquire_with_irq(&entity->bus->lock);
+
+    list_deinit(&entity->list_in_entities);
+    list_deinit(&entity->list_in_domain);
+
+    spin_acquire_with_irq(&entity->bus->lock);
+
+    struct pci_entity_bar_info *const bar_list = entity->bar_list;
+    const uint8_t bar_count =
+        entity->header_kind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE  ?
+            PCI_BAR_COUNT_FOR_BRIDGE : PCI_BAR_COUNT_FOR_GENERAL;
+
+    for (uint8_t i = 0; i != bar_count; i++) {
+        struct pci_entity_bar_info *const bar = &bar_list[i];
+        if (bar->mmio != NULL) {
+            vunmap_mmio(bar->mmio);
+        }
+    }
+
+    kfree(entity->bar_list);
+    entity->bar_list = NULL;
+
+    switch (entity->msi_support) {
+        case PCI_ENTITY_MSI_SUPPORT_NONE:
+            break;
+        case PCI_ENTITY_MSI_SUPPORT_MSI:
+            entity->msi.supports_64bit = false;
+            entity->msi.supports_masking = false;
+            entity->msi.enabled = false;
+
+            entity->msi_support = PCI_ENTITY_MSI_SUPPORT_NONE;
+            break;
+        case PCI_ENTITY_MSI_SUPPORT_MSIX:
+            entity->msix.table_bar = NULL;
+            entity->msix.table_offset = 0;
+            entity->msix.table_size = 0;
+
+            entity->msi_support = PCI_ENTITY_MSI_SUPPORT_NONE;
+            break;
+    }
+
+    array_destroy(&entity->vendor_cap_list);
+
+    entity->bus = NULL;
+    entity->loc = PCI_LOCATION_NULL();
+
+    entity->id = 0;
+    entity->vendor_id = 0;
+    entity->status = 0;
+    entity->revision_id = 0;
+
+    entity->prog_if = 0;
+    entity->header_kind = 0;
+    entity->subclass = 0;
+    entity->class = 0;
+    entity->subclass = 0;
+
+    entity->interrupt_line = 0;
+    entity->interrupt_pin = 0;
+
+    entity->supports_pcie = false;
+    entity->msix_enabled = false;
+
+    entity->max_bar_count = 0;
+    entity->msi_pcie_offset = 0;
+
+    kfree(entity);
 }

@@ -4,9 +4,10 @@
  */
 
 #pragma once
-#include "lib/adt/bitmap.h"
 
+#include "cpu/spinlock.h"
 #include "cpu/info.h"
+
 #include "sys/isr.h"
 
 #include "bar.h"
@@ -24,7 +25,9 @@ struct pci_entity_info {
     struct list list_in_entities;
     struct list list_in_domain;
 
-    const struct pci_bus *bus;
+    struct spinlock lock;
+
+    struct pci_bus *bus;
     struct pci_location loc;
 
     uint16_t id;
@@ -53,11 +56,13 @@ struct pci_entity_info {
     union {
         struct {
             bool supports_64bit : 1;
-            bool supports_msi_masking : 1;
-            bool msi_enabled : 1;
+            bool supports_masking : 1;
+            bool enabled : 1;
         } msi;
         struct {
-            struct bitmap table;
+            struct pci_entity_bar_info *table_bar;
+
+            uint32_t table_offset;
             uint32_t table_size;
         } msix;
     };
@@ -80,8 +85,8 @@ struct pci_entity_info {
     (device)->class,                                                           \
     (device)->subclass
 
-void pci_entity_enable_msi(struct pci_entity_info *entity);
-void pci_entity_disable_msi(struct pci_entity_info *entity);
+bool pci_entity_enable_msi(struct pci_entity_info *entity);
+bool pci_entity_disable_msi(struct pci_entity_info *entity);
 
 bool
 pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
@@ -109,3 +114,5 @@ enum pci_entity_privilege {
 
 void pci_entity_enable_privl(struct pci_entity_info *entity, uint16_t privl);
 void pci_entity_disable_privls(struct pci_entity_info *entity);
+
+void pci_entity_info_destroy(struct pci_entity_info *entity);

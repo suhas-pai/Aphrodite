@@ -284,12 +284,6 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                 break;
             case PCI_SPEC_CAP_ID_MSI: {
                 kind = "msi";
-            #if defined(__x86_64__)
-                if (!supports_msi) {
-                    break;
-                }
-            #endif /* defined(__x86_64) */
-
                 if (dev->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
                     break;
                 }
@@ -303,25 +297,31 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                     break;
                 }
 
+            #if defined(__x86_64__)
+                if (!supports_msi) {
+                    break;
+                }
+            #endif /* defined(__x86_64) */
+
                 uint16_t msg_control =
                     pci_read_cap_field(struct pci_spec_cap_msi, msg_control);
 
                 dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSI;
                 dev->msi_pcie_offset = cap_offset;
 
-                dev->msi.msi_enabled = false;
+                dev->msi.enabled = false;
                 dev->msi.supports_64bit =
-                    msg_control & __PCI_CAPMSI_CTRL_64BIT_CAPABLE;
-                dev->msi.supports_msi_masking =
-                    msg_control & __PCI_CAPMSI_CTRL_PER_VECTOR_MASK;
+                    msg_control & __PCI_CAP_MSI_CTRL_64BIT_CAPABLE;
+                dev->msi.supports_masking =
+                    msg_control & __PCI_CAP_MSI_CTRL_PER_VECTOR_MASK;
 
-                if (msg_control & __PCI_CAPMSI_CTRL_ENABLE ||
-                    msg_control & __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE)
+                if (msg_control & __PCI_CAP_MSI_CTRL_ENABLE ||
+                    msg_control & __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE)
                 {
                     msg_control =
                         rm_mask(msg_control,
-                                __PCI_CAPMSI_CTRL_ENABLE |
-                                __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE);
+                                __PCI_CAP_MSI_CTRL_ENABLE |
+                                __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE);
 
                     pci_write_from_base(dev,
                                         dev->msi_pcie_offset,
@@ -334,12 +334,6 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
             }
             case PCI_SPEC_CAP_ID_MSI_X: {
                 kind = "msix";
-            #if defined(__x86_64__)
-                if (!supports_msi) {
-                    break;
-                }
-            #endif /* defined(__x86_64) */
-
                 if (dev->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
                     printk(LOGLEVEL_WARN,
                            "\t\tfound multiple msix capabilities. ignoring\n");
@@ -355,40 +349,28 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
                     break;
                 }
 
-                uint16_t msg_control =
-                    pci_read_cap_field(struct pci_spec_cap_msix, msg_control);
-                const uint16_t table_size =
-                    (msg_control & __PCI_CAP_MSIX_CTRL_TABLE_SIZE) + 1;
-
-                const struct bitmap bitmap = bitmap_alloc(table_size);
-                if (bitmap.gbuffer.begin == NULL) {
-                    printk(LOGLEVEL_WARN,
-                           "\t\tfailed to allocate msix table "
-                           "(size: %" PRIu16 " bytes). disabling msix\n",
-                           table_size);
+            #if defined(__x86_64__)
+                if (!supports_msi) {
                     break;
                 }
+            #endif /* defined(__x86_64) */
 
-                if (msg_control & __PCI_CAPMSI_CTRL_ENABLE ||
-                    msg_control & __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE)
-                {
+                uint16_t msg_control =
+                    pci_read_cap_field(struct pci_spec_cap_msix, msg_control);
+
+                if (msg_control & __PCI_CAP_MSIX_CTRL_ENABLE) {
                     msg_control =
-                        rm_mask(msg_control,
-                                __PCI_CAPMSI_CTRL_ENABLE |
-                                __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE);
+                        rm_mask(msg_control, __PCI_CAP_MSIX_CTRL_ENABLE);
 
                     pci_write_from_base(dev,
                                         dev->msi_pcie_offset,
-                                        struct pci_spec_cap_msi,
+                                        struct pci_spec_cap_msix,
                                         msg_control,
                                         msg_control);
                 }
 
                 dev->msi_pcie_offset = cap_offset;
                 dev->msi_support = PCI_ENTITY_MSI_SUPPORT_MSIX;
-
-                dev->msix.table = bitmap;
-                dev->msix.table_size = table_size;
 
                 break;
             }
@@ -471,27 +453,6 @@ static void pci_parse_capabilities(struct pci_entity_info *const dev) {
 #undef pci_read_cap_field
 }
 
-__optimize(3)
-static void free_inside_entity_info(struct pci_entity_info *const entity) {
-    struct pci_entity_bar_info *const bar_list = entity->bar_list;
-    const uint8_t bar_count =
-        entity->header_kind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE  ?
-            PCI_BAR_COUNT_FOR_BRIDGE : PCI_BAR_COUNT_FOR_GENERAL;
-
-    for (uint8_t i = 0; i != bar_count; i++) {
-        struct pci_entity_bar_info *const bar = &bar_list[i];
-        if (bar->mmio != NULL) {
-            vunmap_mmio(bar->mmio);
-        }
-    }
-
-    if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
-        bitmap_destroy(&entity->msix.table);
-    }
-
-    array_destroy(&entity->vendor_cap_list);
-}
-
 __optimize(3) static inline
 const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
     carr_foreach(pci_vendor_info_list, iter) {
@@ -504,62 +465,71 @@ const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
 }
 
 void
-pci_parse_bus(const struct pci_bus *bus,
+pci_parse_bus(struct pci_bus *bus,
               struct pci_location loc,
               uint8_t bus_id);
 
 static void
-parse_function(const struct pci_bus *const bus,
+parse_function(struct pci_bus *const bus,
                const struct pci_location *const loc,
                const uint16_t vendor_id)
 {
-    struct pci_entity_info info = {
-        .bus = bus,
-        .loc = *loc
-    };
+    struct pci_entity_info *const info = kmalloc(sizeof(*info));
+    if (info == NULL) {
+        printk(LOGLEVEL_WARN,
+               "pci: failed to allocate pci-entity-info struct\n");
+
+        return;
+    }
+
+    info->bus = bus;
+    info->loc = *loc;
+    info->lock = SPINLOCK_INIT();
+
+    list_init(&info->list_in_entities);
+    list_init(&info->list_in_domain);
 
     const uint8_t header_kind =
-        pci_read(&info, struct pci_spec_entity_info_base, header_kind);
+        pci_read(info, struct pci_spec_entity_info_base, header_kind);
 
     const uint8_t hdrkind = rm_mask(header_kind, __PCI_ENTITY_HDR_MULTFUNC);
     const uint8_t irq_pin =
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_GENERAL ?
-            pci_read(&info, struct pci_spec_entity_info, interrupt_pin) : 0;
+            pci_read(info, struct pci_spec_entity_info, interrupt_pin) : 0;
 
     const uint8_t irq_line =
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_GENERAL ?
-            pci_read(&info, struct pci_spec_entity_info, interrupt_line) : 0;
+            pci_read(info, struct pci_spec_entity_info, interrupt_line) : 0;
+    info->id = pci_read(info, struct pci_spec_entity_info_base, device_id);
+    info->vendor_id = vendor_id;
+    info->status = pci_read(info, struct pci_spec_entity_info_base, status);
+    info->revision_id =
+        pci_read(info, struct pci_spec_entity_info_base, revision_id);
 
-    info.id = pci_read(&info, struct pci_spec_entity_info_base, device_id);
-    info.vendor_id = vendor_id;
-    info.status = pci_read(&info, struct pci_spec_entity_info_base, status);
-    info.revision_id =
-        pci_read(&info, struct pci_spec_entity_info_base, revision_id);
+    info->prog_if = pci_read(info, struct pci_spec_entity_info_base, prog_if);
+    info->header_kind = hdrkind;
 
-    info.prog_if = pci_read(&info, struct pci_spec_entity_info_base, prog_if);
-    info.header_kind = hdrkind;
-
-    info.class = pci_read(&info, struct pci_spec_entity_info_base, class_code);
-    info.subclass = pci_read(&info, struct pci_spec_entity_info_base, subclass);
-    info.interrupt_pin = irq_pin;
-    info.interrupt_line = irq_line;
-    info.vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
+    info->class = pci_read(info, struct pci_spec_entity_info_base, class_code);
+    info->subclass = pci_read(info, struct pci_spec_entity_info_base, subclass);
+    info->interrupt_pin = irq_pin;
+    info->interrupt_line = irq_line;
+    info->vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
 
     printk(LOGLEVEL_INFO,
            "\tentity: " PCI_ENTITY_INFO_FMT " from %s\n",
-           PCI_ENTITY_INFO_FMT_ARGS(&info),
-           pci_entity_get_vendor_name(&info));
+           PCI_ENTITY_INFO_FMT_ARGS(info),
+           pci_entity_get_vendor_name(info));
 
     const bool class_is_pci_bridge =
-        info.class == PCI_ENTITY_CLASS_BRIDGE_DEVICE &&
-        (info.subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE ||
-         info.subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
+        info->class == PCI_ENTITY_CLASS_BRIDGE_DEVICE &&
+        (info->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE ||
+         info->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
 
     const bool hdrkind_is_pci_bridge =
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE;
 
     if (hdrkind_is_pci_bridge != class_is_pci_bridge) {
-        free_inside_entity_info(&info);
+        pci_entity_info_destroy(info);
         printk(LOGLEVEL_WARN,
                "pci: invalid entity, header-type and class/subclass "
                "mismatch\n");
@@ -573,33 +543,33 @@ parse_function(const struct pci_bus *const bus,
         __PCI_DEVCMDREG_MEMSPACE |
         __PCI_DEVCMDREG_BUS_MASTER;
     const uint16_t old_command =
-        pci_read(&info, struct pci_spec_entity_info_base, command);
+        pci_read(info, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
         rm_mask(old_command, disable_flags) | __PCI_DEVCMDREG_INT_DISABLE;
 
-    pci_write(&info, struct pci_spec_entity_info_base, command, new_command);
+    pci_write(info, struct pci_spec_entity_info_base, command, new_command);
     switch (hdrkind) {
         case PCI_SPEC_ENTITY_HDR_KIND_GENERAL:
-            info.max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
-            info.bar_list =
+            info->max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
+            info->bar_list =
                 kmalloc(sizeof(struct pci_entity_bar_info) *
-                        info.max_bar_count);
+                        info->max_bar_count);
 
-            if (info.bar_list == NULL) {
-                free_inside_entity_info(&info);
+            if (info->bar_list == NULL) {
+                pci_entity_info_destroy(info);
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
 
                 return;
             }
 
-            pci_parse_capabilities(&info);
-            for (uint8_t index = 0; index != info.max_bar_count; index++) {
-                struct pci_entity_bar_info *const bar = &info.bar_list[index];
+            pci_parse_capabilities(info);
+            for (uint8_t index = 0; index != info->max_bar_count; index++) {
+                struct pci_entity_bar_info *const bar = &info->bar_list[index];
                 const uint8_t bar_index = index;
 
                 const enum parse_bar_result result =
-                    pci_parse_bar(&info, &index, /*is_bridge=*/false, bar);
+                    pci_parse_bar(info, &index, /*is_bridge=*/false, bar);
 
                 if (result == E_PARSE_BAR_IGNORE) {
                     printk(LOGLEVEL_INFO,
@@ -635,26 +605,26 @@ parse_function(const struct pci_bus *const bus,
 
             break;
         case PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE:
-            info.max_bar_count = PCI_BAR_COUNT_FOR_BRIDGE;
-            info.bar_list =
+            info->max_bar_count = PCI_BAR_COUNT_FOR_BRIDGE;
+            info->bar_list =
                 kmalloc(sizeof(struct pci_entity_bar_info) *
-                        info.max_bar_count);
+                        info->max_bar_count);
 
-            if (info.bar_list == NULL) {
-                free_inside_entity_info(&info);
+            if (info->bar_list == NULL) {
+                pci_entity_info_destroy(info);
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
 
                 return;
             }
 
-            pci_parse_capabilities(&info);
-            for (uint8_t index = 0; index != info.max_bar_count; index++) {
-                struct pci_entity_bar_info *const bar = &info.bar_list[index];
+            pci_parse_capabilities(info);
+            for (uint8_t index = 0; index != info->max_bar_count; index++) {
+                struct pci_entity_bar_info *const bar = &info->bar_list[index];
 
                 const uint8_t bar_index = index;
                 const enum parse_bar_result result =
-                    pci_parse_bar(&info, &index, /*is_bridge=*/true, bar);
+                    pci_parse_bar(info, &index, /*is_bridge=*/true, bar);
 
                 if (result == E_PARSE_BAR_IGNORE) {
                     printk(LOGLEVEL_INFO,
@@ -668,7 +638,7 @@ parse_function(const struct pci_bus *const bus,
                            "pci: failed to parse bar %" PRIu8 " for "
                            "entity, " PCI_ENTITY_INFO_FMT "\n",
                            index,
-                           PCI_ENTITY_INFO_FMT_ARGS(&info));
+                           PCI_ENTITY_INFO_FMT_ARGS(info));
                     break;
                 }
 
@@ -686,33 +656,77 @@ parse_function(const struct pci_bus *const bus,
             }
 
             const uint8_t secondary_bus_number =
-                pci_read(&info,
+                pci_read(info,
                          struct pci_spec_pci_to_pci_bridge_entity_info,
                          secondary_bus_number);
 
-            pci_parse_bus(bus, info.loc, secondary_bus_number);
+            pci_parse_bus(bus, info->loc, secondary_bus_number);
             break;
         case PCI_SPEC_ENTITY_HDR_KIND_CARDBUS_BRIDGE:
+            pci_entity_info_destroy(info);
             printk(LOGLEVEL_INFO,
                    "pcie: cardbus bridge not supported. ignoring");
-            break;
+
+            return;
     }
 
-    struct pci_entity_info *const info_out = kmalloc(sizeof(*info_out));
-    if (info_out == NULL) {
-        free_inside_entity_info(&info);
-        printk(LOGLEVEL_WARN,
-               "pci: failed to allocate pci-entity-info struct\n");
+    if (info->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
+        const uint32_t table_offset =
+            pci_read_from_base(info,
+                               info->msi_pcie_offset,
+                               struct pci_spec_cap_msix,
+                               table_offset);
 
-        return;
+        const uint8_t bar_index =
+            table_offset & __PCI_BARSPEC_TABLE_OFFSET_BIR;
+
+        if (!index_in_bounds(bar_index, info->max_bar_count)) {
+            pci_entity_info_destroy(info);
+            printk(LOGLEVEL_WARN,
+                    "\t\tinvalid table-bar index %" PRIu32 "\n",
+                    bar_index);
+
+            return;
+        }
+
+        struct pci_entity_bar_info *const bar =
+            &info->bar_list[bar_index];
+
+        if (!bar->is_present) {
+            pci_entity_info_destroy(info);
+            printk(LOGLEVEL_WARN, "pcie: msix table-bar is not present\n");
+
+            return;
+        }
+
+        if (!bar->is_mmio) {
+            pci_entity_info_destroy(info);
+            printk(LOGLEVEL_WARN, "pcie: msix table-bar is not mmio\n");
+
+            return;
+        }
+
+        uint16_t msg_control =
+            pci_read_from_base(info,
+                               info->msi_pcie_offset,
+                               struct pci_spec_cap_msix,
+                               msg_control);
+
+        const uint16_t table_size =
+            (msg_control & __PCI_CAP_MSIX_CTRL_TABLE_SIZE) + 1;
+
+        info->msix.table_bar = bar;
+        info->msix.table_size = table_size;
+        info->msix.table_offset =
+            rm_mask(table_offset, __PCI_BARSPEC_TABLE_OFFSET_BIR);
     }
 
-    *info_out = info;
-    list_add(&g_entity_list, &info_out->list_in_entities);
+    list_add(&g_entity_list, &info->list_in_entities);
+    list_add(&bus->entity_list, &info->list_in_domain);
 }
 
 void
-pci_parse_bus(const struct pci_bus *const bus,
+pci_parse_bus(struct pci_bus *const bus,
               struct pci_location loc,
               const uint8_t bus_id)
 {

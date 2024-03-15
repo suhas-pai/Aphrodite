@@ -317,16 +317,16 @@ struct pci_spec_capability {
 } __packed;
 
 enum pci_spec_cap_msi_control_flags {
-    __PCI_CAPMSI_CTRL_ENABLE = 1 << 0,
-    __PCI_CAPMSI_CTRL_MULTIMSG_CAPABLE = 0b111 << 1,
-    __PCI_CAPMSI_CTRL_MULTIMSG_ENABLE = 0b111 << 4,
+    __PCI_CAP_MSI_CTRL_ENABLE = 1 << 0,
+    __PCI_CAP_MSI_CTRL_MULTIMSG_CAPABLE = 0b111 << 1,
+    __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE = 0b111 << 4,
 
-    __PCI_CAPMSI_CTRL_64BIT_CAPABLE = 1 << 7,
-    __PCI_CAPMSI_CTRL_PER_VECTOR_MASK = 1 << 8
+    __PCI_CAP_MSI_CTRL_64BIT_CAPABLE = 1 << 7,
+    __PCI_CAP_MSI_CTRL_PER_VECTOR_MASK = 1 << 8
 };
 
 enum pci_spec_cap_msix_control_flags {
-    __PCI_CAP_MSIX_CTRL_TABLE_SIZE = mask_for_n_bits(10),
+    __PCI_CAP_MSIX_CTRL_TABLE_SIZE = mask_for_n_bits(11),
     __PCI_CAP_MSIX_CTRL_ENABLE = 1 << 15
 };
 
