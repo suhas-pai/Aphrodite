@@ -128,7 +128,7 @@ void check_bitmap(const uint64_t size) {
                         /*expected_value=*/false,
                         /*invert=*/true);
 
-        if (unset_index != FIND_BIT_INVALID) {
+        if (unset_index != BITMAP_INVALID) {
             assert(bitmap_at(&bitmap, unset_index));
             bitmap_set(&bitmap, unset_index, false);
         }
@@ -165,7 +165,7 @@ void check_bitmap(const uint64_t size) {
                             /*expected_value=*/false,
                             /*invert=*/true);
 
-            assert(actual_unset_index != FIND_BIT_INVALID);
+            assert(actual_unset_index != BITMAP_INVALID);
             const struct range unset_range =
                 RANGE_INIT(unset_index, unset_count);
 
@@ -187,7 +187,7 @@ void check_bitmap(const uint64_t size) {
                                     /*expected_value=*/false,
                                     /*invert=*/true);
 
-            assert(actual_unset_index != FIND_BIT_INVALID);
+            assert(actual_unset_index != BITMAP_INVALID);
             assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
         }
     }
@@ -206,7 +206,7 @@ void check_bitmap(const uint64_t size) {
                                     /*expected_value=*/false,
                                     /*invert=*/true);
 
-            assert(actual_unset_index != FIND_BIT_INVALID);
+            assert(actual_unset_index != BITMAP_INVALID);
             assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
         }
     }

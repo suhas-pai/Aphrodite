@@ -4,13 +4,13 @@
  */
 
 #pragma once
-
-#include "lib/bits.h"
 #include "growable_buffer.h"
 
 struct bitmap {
     struct growable_buffer gbuffer;
 };
+
+#define BITMAP_INVALID UINT64_MAX
 
 #define BITMAP_INIT() ((struct bitmap){ .gbuffer = GBUFFER_INIT() })
 #define BITMAP_PTR(ptr, capacity) \

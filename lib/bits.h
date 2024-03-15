@@ -42,8 +42,6 @@
 #define count_msb_one_bits(number, start_index) \
     count_msb_zero_bits((typeof(number))~number, start_index)
 
-#define FIND_BIT_INVALID UINT64_MAX
-
 uint8_t find_lsb_one_bit(uint64_t number, uint8_t start_index);
 uint8_t find_lsb_zero_bit(uint64_t number, uint8_t start_index);
 

@@ -138,7 +138,7 @@ find_mult_unset(struct bitmap *const bitmap,
     LOOP_OVER_RANGES_FOR_TYPE(uint8_t);
 #undef LOOP_OVER_RANGES_FOR_TYPE
 
-    return FIND_BIT_INVALID;
+    return BITMAP_INVALID;
 }
 
 __optimize(3) static inline uint64_t
@@ -247,7 +247,7 @@ find_mult_set(struct bitmap *const bitmap,
     LOOP_OVER_RANGES_FOR_TYPE(uint8_t);
 #undef LOOP_OVER_RANGES_FOR_TYPE
 
-    return FIND_BIT_INVALID;
+    return BITMAP_INVALID;
 }
 
 __optimize(3) static uint64_t
@@ -287,7 +287,7 @@ find_single_unset(struct bitmap *const bitmap,
     ITERATE_FOR_TYPE(uint8_t);
 #undef ITERATE_FOR_TYPE
 
-    return FIND_BIT_INVALID;
+    return BITMAP_INVALID;
 }
 
 __optimize(3) static uint64_t
@@ -328,7 +328,7 @@ find_single_set(struct bitmap *const bitmap,
     ITERATE_FOR_TYPE(uint8_t);
 #undef ITERATE_FOR_TYPE
 
-    return FIND_BIT_INVALID;
+    return BITMAP_INVALID;
 }
 
 __optimize(3) uint64_t
@@ -471,7 +471,7 @@ find_unset_at_mult(struct bitmap *const bitmap,
     ITERATE_FOR_TYPE(uint8_t);
 
 #undef ITERATE_FOR_TYPE
-    return FIND_BIT_INVALID;
+    return BITMAP_INVALID;
 }
 
 static uint64_t
@@ -590,7 +590,7 @@ find_set_at_mult(struct bitmap *const bitmap,
     ITERATE_FOR_TYPE(uint8_t);
 #undef ITERATE_FOR_TYPE
 
-    return FIND_BIT_INVALID;
+    return BITMAP_INVALID;
 }
 
 __optimize(3) uint32_t
