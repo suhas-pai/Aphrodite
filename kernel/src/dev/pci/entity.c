@@ -3,10 +3,11 @@
  * © suhas pai
  */
 
+#include "lib/adt/bitset.h"
+
 #include "cpu/isr.h"
 #include "dev/printk.h"
 
-#include "lib/util.h"
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
@@ -79,7 +80,8 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                                 entity->msi_pcie_offset,
                                 struct pci_spec_cap_msi,
                                 msg_control,
-                                rm_mask(msg_control, __PCI_CAP_MSI_CTRL_ENABLE));
+                                rm_mask(msg_control,
+                                        __PCI_CAP_MSI_CTRL_ENABLE));
 
             spin_release_with_irq(&entity->lock, flag);
             return true;
@@ -164,22 +166,17 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                         const isr_vector_t vector,
                         const bool masked)
     {
-        /*
-         * The lower 3 bits of the Table Offset is the BIR.
-         *
-         * The BIR (Base Index Register) is the index of the BAR that contains
-         * the MSI-X Table.
-         *
-         * The remaining 29 (32-3) bits of the Table Offset is the offset to the
-         * MSI-X Table in the BAR.
-         */
+        const uint64_t index =
+            bitset_find_unset(entity->msix.bitset,
+                              entity->msix.table_size,
+                              /*invert=*/true);
 
-        if (!index_in_bounds(vector, entity->msix.table_size)) {
+        if (index == BITSET_INVALID) {
             printk(LOGLEVEL_WARN,
-                   "pcie: msix table is too small to bind address %p to "
-                   "vector " ISR_VECTOR_FMT "\n",
-                   (void *)address,
-                   vector);
+                   "pcie: msix table is used up, can't bind "
+                   "vector " ISR_VECTOR_FMT " to address %p\n",
+                   vector,
+                   (void *)address);
             return;
         }
 
@@ -194,12 +191,12 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                        bar->mmio->base + bar->index_in_mmio,
                        entity->msix.table_offset);
 
-        mmio_write(&table[vector].msg_address_lower32, (uint32_t)address);
-        mmio_write(&table[vector].msg_address_upper32,
+        mmio_write(&table[index].msg_address_lower32, (uint32_t)address);
+        mmio_write(&table[index].msg_address_upper32,
                    (uint32_t)(address >> 32));
 
-        mmio_write(&table[vector].data, vector);
-        mmio_write(&table[vector].control, (uint32_t)masked);
+        mmio_write(&table[index].data, vector);
+        mmio_write(&table[index].control, (uint32_t)masked);
     }
 #endif /* defined(ISR_SUPPORTS_MSI) */
 
@@ -393,6 +390,8 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
             entity->msi_support = PCI_ENTITY_MSI_SUPPORT_NONE;
             break;
         case PCI_ENTITY_MSI_SUPPORT_MSIX:
+            kfree(entity->msix.bitset);
+
             entity->msix.table_bar = NULL;
             entity->msix.table_offset = 0;
             entity->msix.table_size = 0;
@@ -408,7 +407,6 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
 
     entity->id = 0;
     entity->vendor_id = 0;
-    entity->status = 0;
     entity->revision_id = 0;
 
     entity->prog_if = 0;

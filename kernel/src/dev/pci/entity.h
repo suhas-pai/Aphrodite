@@ -5,15 +5,14 @@
 
 #pragma once
 
-#include "cpu/spinlock.h"
 #include "cpu/info.h"
-
 #include "sys/isr.h"
 
 #include "bar.h"
 #include "bus.h"
 
 #define PCI_ENTITY_MAX_BAR_COUNT 6
+#define PCI_ENTITY_MAX_MSIX_TABLE_SIZE 2048
 
 enum pci_entity_msi_support {
     PCI_ENTITY_MSI_SUPPORT_NONE,
@@ -61,6 +60,7 @@ struct pci_entity_info {
         } msi;
         struct {
             struct pci_entity_bar_info *table_bar;
+            uint64_t *bitset;
 
             uint32_t table_offset;
             uint32_t table_size;

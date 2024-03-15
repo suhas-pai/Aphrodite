@@ -327,6 +327,7 @@ enum pci_spec_cap_msi_control_flags {
 
 enum pci_spec_cap_msix_control_flags {
     __PCI_CAP_MSIX_CTRL_TABLE_SIZE = mask_for_n_bits(11),
+    __PCI_CAP_MSIX_CTRL_FUNC_MASK = 1 << 14,
     __PCI_CAP_MSIX_CTRL_ENABLE = 1 << 15
 };
 
@@ -366,7 +367,6 @@ enum pci_spec_bar_table_offset_flags {
 struct pci_spec_cap_msix {
     struct pci_spec_capability base;
     uint16_t msg_control;
-    uint32_t msg_address_upper;
     uint32_t table_offset; // Lower 3 Bits are the BIR
 } __packed;
 
