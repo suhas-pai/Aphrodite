@@ -24,6 +24,7 @@ pci_bus_create(struct pci_domain *const domain,
 
     bus->domain = domain;
     bus->resources = ARRAY_INIT(sizeof(struct pci_bus_resource));
+    bus->lock = SPINLOCK_INIT();
 
     bus->bus_id = bus_id;
     bus->segment = segment;

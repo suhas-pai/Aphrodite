@@ -4,13 +4,18 @@
  */
 
 #pragma once
+#include "lib/adt/array.h"
 
+#include "cpu/spinlock.h"
 #include "lib/list.h"
+
 #include "domain.h"
 
 struct pci_bus {
     const struct pci_domain *domain;
+
     struct array resources;
+    struct spinlock lock;
 
     uint32_t bus_id;
     uint32_t segment;
