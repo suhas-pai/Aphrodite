@@ -537,9 +537,9 @@ struct nvme_namespace_identity {
 };
 
 enum nvme_command_opcode {
-    NVME_CMD_OPCODE_FLUSH = 0x00,
-    NVME_CMD_OPCODE_WRITE = 0x01,
-    NVME_CMD_OPCODE_READ = 0x02,
+    NVME_CMD_OPCODE_FLUSH = 0,
+    NVME_CMD_OPCODE_WRITE = 1,
+    NVME_CMD_OPCODE_READ = 2,
 
     NVME_CMD_ADMIN_OPCODE_CREATE_SQ = 1,
     NVME_CMD_ADMIN_OPCODE_DELETE_CQ,
@@ -586,9 +586,46 @@ struct nvme_completion_queue_entry {
     uint16_t status;
 };
 
+enum nvme_command_feature {
+    NVME_CMD_FEATURE_ARBITRATION = 1,
+    NVME_CMD_FEATURE_POWER_MGMT,
+    NVME_CMD_FEATURE_TEMP_THRESHOLD = 4,
+    NVME_CMD_FEATURE_VOLATILE_WRITE_CACHE = 6,
+    NVME_CMD_FEATURE_QUEUE_COUNT,
+    NVME_CMD_FEATURE_INTERRUPT_COALESCING,
+    NVME_CMD_FEATURE_INTERRUPT_VECTOR_COALESCING,
+    NVME_CMD_FEATURE_ASYNC_EVENT_CONFIG = 11,
+    NVME_CMD_FEATURE_ASYNC_POWER_STATE_TRANSITION,
+    NVME_CMD_FEATURE_HOST_MEM_BUF,
+    NVME_CMD_FEATURE_TIMESTAMP,
+    NVME_CMD_FEATURE_KEEP_ALIVE_TIMER,
+    NVME_CMD_FEATURE_HOST_CONTROLLED_THERM_MGMT,
+    NVME_CMD_FEATURE_NON_OPER_POWER_STATE_CONFIG,
+    NVME_CMD_FEATURE_READ_RECOVERY_LVL_CONFIG,
+    NVME_CMD_FEATURE_PREDICTABLE_LATENCY_MODE_CONFIG,
+    NVME_CMD_FEATURE_PREDICTABLE_LATENCY_MODE_WINDOW,
+    NVME_CMD_FEATURE_HOST_BEHAVIOR_SUPPORT = 22,
+    NVME_CMD_FEATURE_SANITIZE_CONFIG,
+    NVME_CMD_FEATURE_ENDURANCE_GROUP_EVENT_CONFIG,
+    NVME_CMD_FEATURE_IO_CMDSET_PROFILE,
+    NVME_CMD_FEATURE_SPINUP_CONTROL,
+    NVME_CMD_FEATURE_ENHANCED_CONTROLLER_METADATA = 75,
+    NVME_CMD_FEATURE_CONTROLLER_METADATA,
+    NVME_CMD_FEATURE_NAMESPACE_METADATA,
+    NVME_CMD_FEATURE_SOFTWARE_PROGRESS_MARKER,
+    NVME_CMD_FEATURE_HOST_IDENTIFIER,
+    NVME_CMD_FEATURE_RESERVATION_NOTIF_MASK,
+    NVME_CMD_FEATURE_RESERVATION_PERSISTENCE,
+    NVME_CMD_FEATURE_NAMESPACE_WRITE_CONFIG,
+};
+
 enum nvme_create_cq_flags {
     __NVME_CREATE_CQ_PHYS_CONTIG = 1 << 0,
     __NVME_CREATE_CQ_IRQS_ENABLED = 1 << 1,
+};
+
+enum nvme_create_sq_flags {
+    __NVME_CREATE_SQ_PHYS_CONTIG = 1 << 0,
 };
 
 struct nvme_command {
@@ -620,7 +657,7 @@ struct nvme_command {
             uint32_t ref;
             uint16_t apptag;
             uint16_t appmask;
-        } __packed rw;
+        } __packed readwrite;
         struct {
             uint8_t opcode;
             uint8_t flags;
@@ -692,42 +729,3 @@ struct nvme_command {
         } abort;
     };
 } __packed;
-
-#define NVME_IDENTIFY_CMD(nsid_, cns_, out) \
-    ((struct nvme_command){ \
-        .identify = { \
-            .opcode = NVME_CMD_ADMIN_OPCODE_IDENTIFY, \
-            .nsid = (nsid_), \
-            .cns = (cns_), \
-            .prp1 = virt_to_phys(out), \
-            .prp2 = 0, \
-        } \
-    })
-
-#define NVME_CREATE_SUBMIT_QUEUE_CMD(queue) \
-    ((struct nvme_command){ \
-        .create_submit_queue = { \
-            .opcode = NVME_CMD_ADMIN_OPCODE_CREATE_SQ, \
-            .cid = 0, \
-            .prp1 = virt_to_phys((queue)->submit_queue_mmio->base), \
-            .sqid = (queue)->id, \
-            .cqid = (queue)->id, \
-            .size = (queue)->entry_count - 1, \
-            .sqflags = __NVME_CREATE_CQ_PHYS_CONTIG, \
-        } \
-    })
-
-#define NVME_CREATE_COMPLETION_QUEUE_CMD(queue, vector) \
-    ((struct nvme_command){ \
-        .create_comp_queue = { \
-            .opcode = NVME_CMD_ADMIN_OPCODE_CREATE_CQ, \
-            .cid = 0, \
-            .prp1 = virt_to_phys((queue)->completion_queue_mmio->base), \
-            .cqid = (queue)->id, \
-            .size = (queue)->entry_count - 1, \
-            .cqflags = \
-                __NVME_CREATE_CQ_PHYS_CONTIG | \
-                __NVME_CREATE_CQ_IRQS_ENABLED, \
-            .irqvec = (vector) \
-        } \
-    })

@@ -20,11 +20,11 @@
 #include "mm/page_alloc.h"
 
 #include "sys/mmio.h"
-#include "device.h"
+
+#include "controller.h"
+#include "namespace.h"
 
 #define NVME_BAR_INDEX 0
-#define NVME_ADMIN_QUEUE_COUNT 32
-#define NVME_IO_QUEUE_COUNT 1024ul
 
 // Recommended values from spec
 #define NVME_SUBMIT_QUEUE_SIZE 6
@@ -75,167 +75,12 @@ bool wait_until_ready(volatile struct nvme_registers *const regs) {
     return false;
 }
 
-__optimize(3) bool
-nvme_identify(struct nvme_controller *const controller,
-              const uint32_t nsid,
-              const enum nvme_identify_cns cns,
-              void *const out)
-{
-    struct nvme_command command = NVME_IDENTIFY_CMD(nsid, cns, out);
-    return nvme_queue_submit_command(&controller->admin_queue, &command);
-}
+__optimize(3)
+void handle_irq(const uint64_t int_no, struct thread_context *const frame) {
+    (void)frame;
 
-static bool
-nvme_add_namespace(struct nvme_controller *const controller,
-                   const uint32_t nsid,
-                   const uint32_t max_queue_count,
-                   const uint32_t max_transfer_shift)
-{
-    struct nvme_namespace *const namespace = kmalloc(sizeof(*namespace));
-    if (namespace == NULL) {
-        printk(LOGLEVEL_WARN,
-               "nvme: failed to allocate namespace-info struct\n");
-        return false;
-    }
-
-    struct page *const page = alloc_page(PAGE_STATE_USED, /*alloc_flags=*/0);
-    if (page == NULL) {
-        printk(LOGLEVEL_WARN,
-               "nvme: failed to alloc page for identify-namespace command\n");
-        return false;
-    }
-
-    struct nvme_namespace_identity *const identity = page_to_virt(page);
-    if (!nvme_identify(controller, nsid, NVME_IDENTIFY_CNS_NAMESPACE, identity))
-    {
-        free_page(page);
-        printk(LOGLEVEL_WARN,
-               "nvme: identify-namespace command failed for nsid %" PRIu32 "\n",
-               nsid);
-
-        return false;
-    }
-
-    const uint32_t formatted_lba = identity->formatted_lba_count & 0xF;
-    const struct nvme_lba lba = identity->lbaf[formatted_lba];
-    const uint32_t lba_size = 1ull << lba.lba_data_size_shift;
-
-    printk(LOGLEVEL_INFO,
-           "nvme: namespace (nsid=%" PRIu32 ") identity\n"
-           "\tsize: %" PRIu64 " blocks\n"
-           "\t\ttotal size: " SIZE_UNIT_FMT "\n"
-           "\tcapacity: %" PRIu64 " blocks\n"
-           "\t\ttotal capacity: " SIZE_UNIT_FMT "\n"
-           "\tutilization: %" PRIu64 " blocks\n"
-           "\t\ttotal utilization: " SIZE_UNIT_FMT "\n"
-           "\tfeatures: 0x%" PRIx8 "\n"
-           "\tformatted lba count: %" PRIu8 "\n",
-           nsid,
-           identity->size,
-           SIZE_UNIT_FMT_ARGS_ABBREV(identity->size * lba_size),
-           identity->capacity,
-           SIZE_UNIT_FMT_ARGS_ABBREV(identity->capacity * lba_size),
-           identity->utilization,
-           SIZE_UNIT_FMT_ARGS_ABBREV(identity->utilization * lba_size),
-           identity->features,
-           identity->formatted_lba_count);
-
-    printk(LOGLEVEL_INFO,
-            "\t\tlba %" PRIu32 ":\n"
-            "\t\t\tmetadata size: " SIZE_UNIT_FMT "\n"
-            "\t\t\tlba data size shift: %" PRIu8 "\n"
-            "\t\t\trelative performance: %" PRIu8 "\n",
-            formatted_lba + 1,
-            SIZE_UNIT_FMT_ARGS_ABBREV(lba.metadata_size),
-            lba.lba_data_size_shift,
-            lba.relative_performance);
-
-    printk(LOGLEVEL_INFO,
-           "\tformatted lba size: %" PRIu8 "\n"
-           "\tmetadata capabilities: 0x%" PRIu8 "\n"
-           "\tdata protection capabilities: 0x%" PRIu8 "\n"
-           "\tdata protection settings: 0x%" PRIu8 "\n"
-           "\tnmic: 0x%" PRIu8 "\n"
-           "\treservation capabilities: 0x%" PRIu8 "\n"
-           "\tformat progress indicator: 0x%" PRIu8 "\n"
-           "\tdealloc lba features: 0x%" PRIu8 "\n"
-           "\tnamespace atomic write unit normal: %" PRIu16 "\n"
-           "\tnamespace atomic write unit power fail: %" PRIu16 "\n"
-           "\tnamespace compare and write unit: %" PRIu16 "\n"
-           "\tnamespace boundary size normal: %" PRIu16 "\n"
-           "\tnamespace boundary size power fail: %" PRIu16 "\n"
-           "\tnamespace optimal i/o boundary: %" PRIu16 "\n"
-           "\tnvm capability lower: 0x%" PRIu64 "\n"
-           "\tnvm capability upper: 0x%" PRIu64 "\n"
-           "\tnvm preferred write granularity: %" PRIu16 "\n"
-           "\tnvm preferred write alignment: %" PRIu16 "\n"
-           "\tnvm preferred dealloc granularity: %" PRIu16 "\n"
-           "\tnvm preferred dealloc alignment: %" PRIu16 "\n"
-           "\tnamespace optimal write size: %" PRIu16 "\n"
-           "\tmax single source range length: %" PRIu16 "\n"
-           "\tmax copy length: %" PRIu32 "\n"
-           "\tmin source range count: %" PRIu8 "\n"
-           "\tattributes: %" PRIu8 "\n"
-           "\tnvm set-id: %" PRIu16 "\n"
-           "\tiee uid: %" PRIu64 "\n",
-           identity->formatted_lba_index,
-           identity->metadata_capabilities,
-           identity->data_protection_capabilities,
-           identity->data_protection_settings,
-           identity->nmic,
-           identity->reservation_capabilities,
-           identity->format_progress_indicator,
-           identity->dealloc_lba_features,
-           identity->namespace_atomic_write_unit_normal,
-           identity->namespace_atomic_write_unit_power_fail,
-           identity->namespace_cmp_and_write_unit,
-           identity->namespace_boundary_size_normal,
-           identity->namespace_boundary_size_power_fail,
-           identity->namespace_optimal_io_boundary,
-           identity->nvm_capability_lower64,
-           identity->nvm_capability_upper64,
-           identity->namespace_pref_write_gran,
-           identity->namespace_pref_write_align,
-           identity->namespace_pref_dealloc_gran,
-           identity->namespace_pref_dealloc_align,
-           identity->namespace_optim_write_size,
-           identity->max_single_source_range_length,
-           identity->max_copy_length,
-           identity->min_source_range_count,
-           identity->attributes,
-           identity->nvm_set_id,
-           identity->iee_uid);
-
-    struct nvme_queue *const queue = &namespace->queue;
-    const uint16_t io_queue_entry_count =
-        min(NVME_IO_QUEUE_COUNT, max_queue_count);
-
-    if (!nvme_queue_create(queue,
-                           controller,
-                           nsid,
-                           io_queue_entry_count,
-                           max_transfer_shift))
-    {
-        return false;
-    }
-
-    struct nvme_command comp_command =
-        NVME_CREATE_COMPLETION_QUEUE_CMD(queue, controller->vector);
-
-    if (!nvme_queue_submit_command(&controller->admin_queue, &comp_command)) {
-        return false;
-    }
-
-    struct nvme_command submit_command = NVME_CREATE_SUBMIT_QUEUE_CMD(queue);
-    if (!nvme_queue_submit_command(&controller->admin_queue, &submit_command)) {
-        return false;
-    }
-
-    namespace->controller = controller;
-    namespace->nsid = nsid;
-
-    free_page(page);
-    return true;
+    printk(LOGLEVEL_INFO, "nvme: got irq\n");
+    isr_eoi(int_no);
 }
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
@@ -327,23 +172,13 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    list_init(&controller->list);
-
-    controller->regs = regs;
-    controller->stride = stride;
-
-    if (!nvme_queue_create(&controller->admin_queue,
-                           controller,
-                           /*id=*/0,
-                           NVME_ADMIN_QUEUE_COUNT,
-                           /*max_transfer_shift=*/0))
-    {
+    if (!nvme_controller_create(controller, regs, stride)) {
         kfree(controller);
 
         pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
 
-        printk(LOGLEVEL_WARN, "nvme: version too old, unsupported\n");
+        printk(LOGLEVEL_WARN, "nvme: failed to allocate queue\n");
         return;
     }
 
@@ -353,7 +188,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     if (!wait_until_stopped(regs)) {
-        kfree(controller);
+        nvme_controller_destroy(controller);
 
         pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
@@ -380,7 +215,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                __NVME_CONFIG_ENABLE);
 
     if (!wait_until_ready(regs)) {
-        nvme_queue_destroy(&controller->admin_queue);
+        nvme_controller_destroy(controller);
         mmio_write(&regs->config, 0);
 
         pci_entity_disable_privls(pci_entity);
@@ -389,24 +224,23 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    controller->vector = isr_alloc_vector(/*for_msi=*/true);
-    if (controller->vector == ISR_INVALID_VECTOR) {
-        kfree(controller);
-
-        pci_entity_disable_privls(pci_entity);
-        pci_unmap_bar(bar);
-
-        printk(LOGLEVEL_WARN, "nvme: failed to allocate queue\n");
-        return;
-    }
-
+    isr_set_vector(controller->vector, handle_irq, &ARCH_ISR_INFO_NONE());
     printk(LOGLEVEL_INFO,
            "nvme: binding vector " ISR_VECTOR_FMT " for msix\n",
            controller->vector);
 
     const int flag = disable_interrupts_if_not();
+    if (!pci_entity_enable_msi(pci_entity)) {
+        nvme_controller_destroy(controller);
+        mmio_write(&regs->config, 0);
 
-    pci_entity_enable_msi(pci_entity);
+        pci_entity_disable_privls(pci_entity);
+        pci_unmap_bar(bar);
+
+        printk(LOGLEVEL_WARN, "nvme: pci-entity is missing msi capability\n");
+        return;
+    }
+
     pci_entity_bind_msi_to_vector(pci_entity,
                                   this_cpu(),
                                   controller->vector,
@@ -417,9 +251,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     struct page *const page = alloc_page(PAGE_STATE_USED, /*flags=*/0);
     if (page == NULL) {
         pci_entity_disable_msi(pci_entity);
-        nvme_queue_destroy(&controller->admin_queue);
+        nvme_controller_destroy(controller);
 
-        kfree(controller);
         mmio_write(&regs->config, 0);
 
         pci_entity_disable_privls(pci_entity);
@@ -429,18 +262,19 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    struct nvme_controller_identity *const identity = page_to_virt(page);
+    const uint64_t phys = page_to_phys(page);
+    struct nvme_controller_identity *const identity = phys_to_virt(phys);
+
     if (!nvme_identify(controller,
                        /*nsid=*/0,
                        NVME_IDENTIFY_CNS_CONTROLLER,
-                       identity))
+                       phys))
     {
         free_page(page);
 
         pci_entity_disable_msi(pci_entity);
-        nvme_queue_destroy(&controller->admin_queue);
+        nvme_controller_destroy(controller);
 
-        kfree(controller);
         mmio_write(&regs->config, 0);
 
         pci_entity_disable_privls(pci_entity);
@@ -480,20 +314,44 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (!nvme_identify(controller,
                        /*nsid=*/0,
                        NVME_IDENTIFY_CNS_ACTIVE_NSID_LIST,
-                       identity))
+                       phys))
     {
         free_page(page);
 
         pci_entity_disable_msi(pci_entity);
-        nvme_queue_destroy(&controller->admin_queue);
+        nvme_controller_destroy(controller);
 
-        kfree(controller);
         mmio_write(&regs->config, 0);
 
         pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
 
-        printk(LOGLEVEL_WARN, "nvme: failed to alloc page for identity cmd\n");
+        printk(LOGLEVEL_WARN, "nvme: failed to identify controller\n");
+        return;
+    }
+
+    nvme_set_number_of_queues(controller, /*queue_count=*/4);
+    struct hashmap hashmap =
+        HASHMAP_INIT(sizeof(struct nvme_namespace *),
+                     /*bucket_count=*/10,
+                     hashmap_no_hash,
+                     NULL);
+
+    struct page *const first_sectors_page =
+        alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
+
+    if (first_sectors_page == NULL) {
+        free_page(page);
+
+        pci_entity_disable_msi(pci_entity);
+        nvme_controller_destroy(controller);
+
+        mmio_write(&regs->config, 0);
+
+        pci_entity_disable_privls(pci_entity);
+        pci_unmap_bar(bar);
+
+        printk(LOGLEVEL_WARN, "nvme: failed to identify controller\n");
         return;
     }
 
@@ -504,30 +362,79 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             continue;
         }
 
-        if (!nvme_add_namespace(controller,
-                                nsid,
-                                max_queue_cmd_count,
-                                max_transfer_shift))
-        {
-            free_page(page);
-
-            pci_entity_disable_msi(pci_entity);
-            nvme_queue_destroy(&controller->admin_queue);
-
-            kfree(controller);
-            mmio_write(&regs->config, 0);
-
-            pci_entity_disable_privls(pci_entity);
-            pci_unmap_bar(bar);
-
-            printk(LOGLEVEL_WARN,
-                   "nvme: failed to alloc page for identity cmd\n");
-            return;
+        struct nvme_namespace *const namespace = kmalloc(sizeof(*namespace));
+        if (namespace == NULL) {
+            continue;
         }
+
+        if (!hashmap_add(&hashmap, hashmap_key_create(nsid), &namespace)) {
+            kfree(namespace);
+            continue;
+        }
+
+        if (!nvme_namespace_create(namespace,
+                                   controller,
+                                   nsid,
+                                   max_queue_cmd_count,
+                                   max_transfer_shift))
+        {
+            hashmap_remove(&hashmap, hashmap_key_create(nsid), /*object=*/NULL);
+            kfree(namespace);
+
+            continue;
+        }
+
+        const uint64_t first_sectors_phys = page_to_phys(first_sectors_page);
+        if (!nvme_namespace_rwlba(namespace,
+                                  RANGE_INIT(0, 1),
+                                  /*write=*/false,
+                                  first_sectors_phys))
+        {
+            hashmap_remove(&hashmap, hashmap_key_create(nsid), /*object=*/NULL);
+            nvme_namespace_destroy(namespace);
+
+            continue;
+        }
+
+        const void *const first_sectors = phys_to_virt(first_sectors_phys);
+        printk(LOGLEVEL_INFO,
+               "nvme: string is: " SV_FMT "\n",
+               SV_FMT_ARGS(sv_create_length(first_sectors + 512, 8)));
+
+        printk(LOGLEVEL_INFO, "nvme: rwlba success\n");
+    }
+
+    free_page(page);
+    free_page(first_sectors_page);
+
+    uint32_t count = 0;
+    hashmap_foreach_node(&hashmap, iter) {
+        struct nvme_namespace **const namespace = (void *)(uint64_t)iter->data;
+        list_add(&controller->namespace_list, &(*namespace)->list);
+
+        count++;
+    }
+
+    hashmap_destroy(&hashmap);
+    if (count == 0) {
+        pci_entity_disable_msi(pci_entity);
+        nvme_controller_destroy(controller);
+
+        mmio_write(&regs->config, 0);
+
+        pci_entity_disable_privls(pci_entity);
+        pci_unmap_bar(bar);
+
+        printk(LOGLEVEL_WARN,
+               "nvme: no namespaces were found. aborting init\n");
+
+        return;
     }
 
     g_controller_count++;
-    printk(LOGLEVEL_INFO, "nvme: finished init\n");
+    printk(LOGLEVEL_INFO,
+           "nvme: finished init, controller has %" PRIu32 " namespace(s)\n",
+           count);
 }
 
 static const struct pci_driver pci_driver = {

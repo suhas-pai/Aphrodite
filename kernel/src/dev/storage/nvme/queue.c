@@ -5,12 +5,12 @@
  */
 
 #include "dev/printk.h"
-
-#include "mm/mmio.h"
 #include "mm/page_alloc.h"
 
+#include "sched/scheduler.h"
 #include "sys/mmio.h"
-#include "device.h"
+
+#include "controller.h"
 
 bool
 nvme_queue_create(struct nvme_queue *const queue,
@@ -28,7 +28,7 @@ nvme_queue_create(struct nvme_queue *const queue,
     }
 
     struct page *const submit_queue_pages =
-        alloc_pages(PAGE_STATE_USED, submit_order, /*alloc_flags=*/0);
+        alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, submit_order);
 
     if (submit_queue_pages == NULL) {
         printk(LOGLEVEL_WARN, "nvme: failed to allocate page for nvme-queue\n");
@@ -44,7 +44,7 @@ nvme_queue_create(struct nvme_queue *const queue,
     }
 
     struct page *const completion_queue_pages =
-        alloc_pages(PAGE_STATE_USED, completion_order, /*alloc_flags=*/0);
+        alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, completion_order);
 
     if (completion_queue_pages == NULL) {
         free_pages(submit_queue_pages, submit_order);
@@ -93,7 +93,6 @@ nvme_queue_create(struct nvme_queue *const queue,
     queue->submit_queue_mmio = submit_queue_mmio;
     queue->completion_queue_mmio = completion_queue_mmio;
 
-    queue->free_slot_event = EVENT_INIT();
     queue->lock = SPINLOCK_INIT();
     queue->id = id;
 
@@ -101,10 +100,13 @@ nvme_queue_create(struct nvme_queue *const queue,
     queue->completion_queue_head = 0;
     queue->submit_queue_tail = 0;
 
-    queue->submit_doorbell =
-        reg_to_ptr(uint32_t, device->regs->doorbell, device->stride * id);
+    queue->doorbells =
+        reg_to_ptr(struct nvme_queue_doorbells,
+                   device->regs->doorbell,
+                   device->stride * id);
 
     queue->entry_count = entry_count;
+    queue->cmd_identifier = 0;
     queue->submit_alloc_order = submit_order;
     queue->completion_alloc_order = completion_order;
     queue->phase = true;
@@ -113,21 +115,75 @@ nvme_queue_create(struct nvme_queue *const queue,
         queue->phys_region_pages_count =
             div_round_up(1ull << max_transfer_shift, PAGE_SIZE);
 
-        printk(LOGLEVEL_INFO,
-               "nvme: page-count: %" PRIu32 "\n",
-               queue->phys_region_pages_count);
+        const uint64_t phys_region_page_list_size =
+            queue->phys_region_pages_count *
+            queue->entry_count *
+            sizeof(uint64_t);
+
+        uint8_t order = 0;
+        while ((PAGE_SIZE << order) < phys_region_page_list_size) {
+            order++;
+        }
+
+        struct page *const page =
+            alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, order);
+
+        if (page == NULL) {
+            vunmap_mmio(submit_queue_mmio);
+
+            free_pages(submit_queue_pages, submit_order);
+            free_pages(completion_queue_pages, completion_order);
+
+            printk(LOGLEVEL_WARN,
+                   "nvme: failed to alloc list of physical region pages\n");
+
+            return false;
+        }
+
+        queue->phys_region_page_list = page_to_virt(page);
+    } else {
+        queue->phys_region_page_list = NULL;
     }
 
     return true;
 }
 
+__optimize(3) uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
+    const int flag = spin_acquire_with_irq(&queue->lock);
+    const uint16_t result = queue->cmd_identifier;
+
+    queue->cmd_identifier++;
+    if (queue->cmd_identifier >= queue->entry_count) {
+        queue->cmd_identifier = 0;
+    }
+
+    spin_release_with_irq(&queue->lock, flag);
+    return result;
+}
+
 __optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
+    if (queue->phys_region_page_list != NULL) {
+        const uint64_t phys_region_page_list_size =
+            queue->phys_region_pages_count *
+            queue->entry_count *
+            sizeof(uint64_t);
+
+        uint8_t order = 0;
+        while ((PAGE_SIZE << order) < phys_region_page_list_size) {
+            order++;
+        }
+
+        free_pages(virt_to_page(queue->phys_region_page_list), order);
+
+        queue->phys_region_page_list = NULL;
+        queue->phys_region_pages_count = 0;
+    }
+
     vunmap_mmio(queue->submit_queue_mmio);
     vunmap_mmio(queue->completion_queue_mmio);
 
     free_pages(queue->submit_queue_pages, queue->submit_alloc_order);
-    free_pages(queue->completion_queue_pages,
-               queue->completion_alloc_order);
+    free_pages(queue->completion_queue_pages, queue->completion_alloc_order);
 
     queue->submit_queue_mmio = NULL;
     queue->completion_queue_mmio = NULL;
@@ -138,7 +194,7 @@ __optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     queue->completion_queue_head = 0;
     queue->submit_queue_tail = 0;
 
-    queue->submit_doorbell = NULL;
+    queue->doorbells = NULL;
 
     queue->entry_count = 0;
     queue->submit_alloc_order = 0;
@@ -147,6 +203,7 @@ __optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     queue->phase = false;
 }
 
+__optimize(3)
 static inline bool await_completion(struct nvme_queue *const queue) {
     volatile struct nvme_completion_queue_entry *const completion_queue =
         queue->completion_queue_mmio->base;
@@ -167,22 +224,16 @@ static inline bool await_completion(struct nvme_queue *const queue) {
             queue->phase = !queue->phase;
         }
 
-        // Signal completion doorbell
-        mmio_write(&queue->submit_doorbell[1], queue->completion_queue_head);
+        mmio_write(&queue->doorbells->complete, queue->completion_queue_head);
         return (status & __NVME_COMPL_QUEUE_ENTRY_STATUS_CODE) == 0;
     } while (true);
 }
 
 bool
 nvme_queue_submit_command(struct nvme_queue *const queue,
-                          struct nvme_command *const command)
+                          const struct nvme_command *const command)
 {
-    command->common.cid = queue->cmd_identifier;
-    if (queue->cmd_identifier != UINT16_MAX) {
-        queue->cmd_identifier++;
-    } else {
-        queue->cmd_identifier = 0;
-    }
+    const int flag = spin_acquire_with_irq(&queue->lock);
 
     const uint8_t tail = queue->submit_queue_tail;
     volatile struct nvme_command *const submit_queue =
@@ -195,6 +246,8 @@ nvme_queue_submit_command(struct nvme_queue *const queue,
         queue->submit_queue_tail = 0;
     }
 
-    mmio_write(queue->submit_doorbell, queue->submit_queue_tail);
+    mmio_write(&queue->doorbells->submit, queue->submit_queue_tail);
+    spin_release_with_irq(&queue->lock, flag);
+
     return await_completion(queue);
 }
