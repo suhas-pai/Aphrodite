@@ -8,6 +8,7 @@
 #include "cpu/spinlock.h"
 #include "mm/mmio.h"
 
+#include "sched/event.h"
 #include "structs.h"
 
 struct nvme_queue_doorbells {
@@ -18,7 +19,9 @@ struct nvme_queue_doorbells {
 struct nvme_controller;
 struct nvme_queue {
     struct nvme_controller *controller;
+
     struct spinlock lock;
+    struct event event;
 
     struct page *submit_queue_pages;
     struct page *completion_queue_pages;

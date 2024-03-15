@@ -4,11 +4,7 @@
  */
 
 #include "dev/pci/structs.h"
-
-#include "asm/irqs.h"
 #include "asm/pause.h"
-
-#include "cpu/isr.h"
 
 #include "dev/driver.h"
 #include "dev/printk.h"
@@ -36,9 +32,6 @@
     ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT | \
      (uint32_t)minor << NVME_VERSION_MINOR_SHIFT | \
      (uint32_t)tertiary)
-
-static struct list g_controller_list = LIST_INIT(g_controller_list);
-static uint32_t g_controller_count = 0;
 
 #define MAX_ATTEMPTS 100
 
@@ -73,14 +66,6 @@ bool wait_until_ready(volatile struct nvme_registers *const regs) {
 
     printk(LOGLEVEL_WARN, "nvme: controller failed to get ready in time\n");
     return false;
-}
-
-__optimize(3)
-void handle_irq(const uint64_t int_no, struct thread_context *const frame) {
-    (void)frame;
-
-    printk(LOGLEVEL_INFO, "nvme: got irq\n");
-    isr_eoi(int_no);
 }
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
@@ -172,7 +157,12 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    if (!nvme_controller_create(controller, regs, stride)) {
+    if (!nvme_controller_create(controller,
+                                pci_entity,
+                                regs,
+                                stride,
+                                /*msix_vector=*/0))
+    {
         kfree(controller);
 
         pci_entity_disable_privls(pci_entity);
@@ -224,29 +214,11 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    isr_set_vector(controller->vector, handle_irq, &ARCH_ISR_INFO_NONE());
     printk(LOGLEVEL_INFO,
-           "nvme: binding vector " ISR_VECTOR_FMT " for msix\n",
-           controller->vector);
-
-    const int flag = disable_interrupts_if_not();
-    if (!pci_entity_enable_msi(pci_entity)) {
-        nvme_controller_destroy(controller);
-        mmio_write(&regs->config, 0);
-
-        pci_entity_disable_privls(pci_entity);
-        pci_unmap_bar(bar);
-
-        printk(LOGLEVEL_WARN, "nvme: pci-entity is missing msi capability\n");
-        return;
-    }
-
-    pci_entity_bind_msi_to_vector(pci_entity,
-                                  this_cpu(),
-                                  controller->vector,
-                                  /*masked=*/false);
-
-    enable_interrupts_if_flag(flag);
+           "nvme: binding vector " ISR_VECTOR_FMT " to msix "
+           "vector %" PRIu16 "\n",
+           controller->isr_vector,
+           controller->msix_vector);
 
     struct page *const page = alloc_page(PAGE_STATE_USED, /*flags=*/0);
     if (page == NULL) {
@@ -331,12 +303,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     nvme_set_number_of_queues(controller, /*queue_count=*/4);
-    struct hashmap hashmap =
-        HASHMAP_INIT(sizeof(struct nvme_namespace *),
-                     /*bucket_count=*/10,
-                     hashmap_no_hash,
-                     NULL);
-
     struct page *const first_sectors_page =
         alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
 
@@ -367,20 +333,13 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             continue;
         }
 
-        if (!hashmap_add(&hashmap, hashmap_key_create(nsid), &namespace)) {
-            kfree(namespace);
-            continue;
-        }
-
         if (!nvme_namespace_create(namespace,
                                    controller,
                                    nsid,
                                    max_queue_cmd_count,
                                    max_transfer_shift))
         {
-            hashmap_remove(&hashmap, hashmap_key_create(nsid), /*object=*/NULL);
             kfree(namespace);
-
             continue;
         }
 
@@ -390,9 +349,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                   /*write=*/false,
                                   first_sectors_phys))
         {
-            hashmap_remove(&hashmap, hashmap_key_create(nsid), /*object=*/NULL);
             nvme_namespace_destroy(namespace);
-
             continue;
         }
 
@@ -404,37 +361,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         printk(LOGLEVEL_INFO, "nvme: rwlba success\n");
     }
 
-    free_page(page);
     free_page(first_sectors_page);
+    free_page(page);
 
-    uint32_t count = 0;
-    hashmap_foreach_node(&hashmap, iter) {
-        struct nvme_namespace **const namespace = (void *)(uint64_t)iter->data;
-        list_add(&controller->namespace_list, &(*namespace)->list);
-
-        count++;
-    }
-
-    hashmap_destroy(&hashmap);
-    if (count == 0) {
-        pci_entity_disable_msi(pci_entity);
-        nvme_controller_destroy(controller);
-
-        mmio_write(&regs->config, 0);
-
-        pci_entity_disable_privls(pci_entity);
-        pci_unmap_bar(bar);
-
-        printk(LOGLEVEL_WARN,
-               "nvme: no namespaces were found. aborting init\n");
-
-        return;
-    }
-
-    g_controller_count++;
-    printk(LOGLEVEL_INFO,
-           "nvme: finished init, controller has %" PRIu32 " namespace(s)\n",
-           count);
+    printk(LOGLEVEL_INFO, "nvme: finished init\n");
 }
 
 static const struct pci_driver pci_driver = {

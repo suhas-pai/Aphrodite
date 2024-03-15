@@ -156,6 +156,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
     namespace->lba_size = lba_size;
     namespace->lba_count = lba_count;
 
+    list_add(&controller->namespace_list, &namespace->list);
     return true;
 }
 

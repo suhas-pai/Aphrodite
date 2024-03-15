@@ -15,20 +15,26 @@
 
 struct nvme_controller {
     struct list list;
+    struct spinlock lock;
+
+    struct pci_entity_info *pci_entity;
     volatile struct nvme_registers *regs;
 
     struct nvme_queue admin_queue;
     struct list namespace_list;
-    struct spinlock lock;
 
     uint8_t stride;
-    isr_vector_t vector;
+
+    uint16_t msix_vector;
+    isr_vector_t isr_vector;
 };
 
 bool
 nvme_controller_create(struct nvme_controller *controller,
+                       struct pci_entity_info *pci_entity,
                        volatile struct nvme_registers *regs,
-                       uint8_t stride);
+                       uint8_t stride,
+                       uint16_t msix_vector);
 
 bool
 nvme_identify(struct nvme_controller *controller,

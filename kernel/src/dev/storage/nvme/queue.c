@@ -6,8 +6,6 @@
 
 #include "dev/printk.h"
 #include "mm/page_alloc.h"
-
-#include "sched/scheduler.h"
 #include "sys/mmio.h"
 
 #include "controller.h"
@@ -94,6 +92,7 @@ nvme_queue_create(struct nvme_queue *const queue,
     queue->completion_queue_mmio = completion_queue_mmio;
 
     queue->lock = SPINLOCK_INIT();
+    queue->event = EVENT_INIT();
     queue->id = id;
 
     queue->submit_queue_head = 0;
@@ -203,32 +202,6 @@ __optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     queue->phase = false;
 }
 
-__optimize(3)
-static inline bool await_completion(struct nvme_queue *const queue) {
-    volatile struct nvme_completion_queue_entry *const completion_queue =
-        queue->completion_queue_mmio->base;
-
-    do {
-        const uint8_t phase = queue->phase;
-        uint8_t head = queue->completion_queue_head;
-
-        const uint32_t status = mmio_read(&completion_queue[head].status);
-        if ((status & __NVME_COMPL_QUEUE_ENTRY_STATUS_PHASE) != phase) {
-            sched_yield();
-            continue;
-        }
-
-        queue->completion_queue_head++;
-        if (queue->completion_queue_head == queue->entry_count) {
-            queue->completion_queue_head = 0;
-            queue->phase = !queue->phase;
-        }
-
-        mmio_write(&queue->doorbells->complete, queue->completion_queue_head);
-        return (status & __NVME_COMPL_QUEUE_ENTRY_STATUS_CODE) == 0;
-    } while (true);
-}
-
 bool
 nvme_queue_submit_command(struct nvme_queue *const queue,
                           const struct nvme_command *const command)
@@ -249,5 +222,11 @@ nvme_queue_submit_command(struct nvme_queue *const queue,
     mmio_write(&queue->doorbells->submit, queue->submit_queue_tail);
     spin_release_with_irq(&queue->lock, flag);
 
-    return await_completion(queue);
+    struct event *const event = &queue->event;
+    events_await(&event,
+                 /*events_count=*/1,
+                 /*block=*/true,
+                 /*drop_after_recv=*/true);
+
+    return true;
 }
