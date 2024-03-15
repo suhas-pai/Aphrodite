@@ -31,9 +31,10 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
 
     const int flag = spin_acquire_with_irq(&g_lock);
-    const uint64_t result = bitset_find_unset(g_bitset, /*invert=*/true);
-    spin_release_with_irq(&g_lock, flag);
+    const uint64_t result =
+        bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
+    spin_release_with_irq(&g_lock, flag);
     if (result == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }

@@ -68,7 +68,9 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
             }
         }
     } else {
-        const uint64_t result = bitset_find_unset(g_bitset, /*invert=*/true);
+        const uint64_t result =
+            bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
+
         if (result != BITSET_INVALID) {
             return result;
         }
