@@ -1017,7 +1017,11 @@ send_ata_command(struct ahci_hba_port *const port,
     struct event *const event = &port->cmdhdr_info_list[slot].event;
 
     mmio_write(&port->spec->command_issue, 1ull << slot);
-    assert(events_await(&event, /*event_count=*/1, /*block=*/true) == 0);
+    assert(
+        events_await(&event,
+                     /*event_count=*/1,
+                     /*block=*/true,
+                     /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
 
@@ -1101,7 +1105,11 @@ send_atapi_command(struct ahci_hba_port *const port,
     struct event *const event = &port->cmdhdr_info_list[slot].event;
 
     mmio_write(&port->spec->command_issue, 1ull << slot);
-    assert(events_await(&event, /*event_count=*/1, /*block=*/true) == 0);
+    assert(
+        events_await(&event,
+                     /*event_count=*/1,
+                     /*block=*/true,
+                     /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
 

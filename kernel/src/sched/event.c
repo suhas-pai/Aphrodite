@@ -68,7 +68,8 @@ remove_thread_from_listeners(struct event *const event,
 int64_t
 events_await(struct event *const *const events,
              const uint32_t events_count,
-             const bool block)
+             const bool block,
+             const bool drop_after_recv)
 {
     int flag = disable_interrupts_if_not();
     lock_events(events, events_count);
@@ -76,7 +77,6 @@ events_await(struct event *const *const events,
     const int64_t index = find_pending(events, events_count);
     if (index != -1) {
         unlock_events(events, events_count);
-        remove_thread_from_listeners(events[index], current_thread());
         enable_interrupts_if_flag(flag);
 
         return index;
@@ -101,6 +101,10 @@ events_await(struct event *const *const events,
 
     const int64_t ret = thread->event_index;
     thread->event_index = -1;
+
+    if (drop_after_recv) {
+        remove_thread_from_listeners(events[ret], current_thread());
+    }
 
     enable_interrupts_if_flag(flag);
     return ret;

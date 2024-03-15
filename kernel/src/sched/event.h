@@ -85,6 +85,7 @@ struct event_listener {
 int64_t
 events_await(struct event *const *events,
              uint32_t events_count,
-             bool block);
+             bool block,
+             bool drop_after_recv);
 
 void event_trigger(struct event *event, bool drop_if_no_listeners);
