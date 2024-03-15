@@ -1,15 +1,11 @@
 /*
- * kernel/src/acpi/init.h
+ * kernel/src/acpi/api.h
  * © suhas pai
  */
 
 #pragma once
+
 #include "lib/adt/array.h"
-
-#if __has_include("acpi/extra_structs.h")
-    #include "acpi/extra_structs.h"
-#endif /* __has_include("acpi/extra_structs.h") */
-
 #include "structs.h"
 
 #if defined(__aarch64__)
