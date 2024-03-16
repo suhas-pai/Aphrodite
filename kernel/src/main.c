@@ -18,10 +18,7 @@
 #include "mm/early.h"
 #include "mm/page_alloc.h"
 
-#if defined(__x86_64__) || defined(__riscv64)
-    #include "sched/scheduler.h"
-#endif /* defined(__x86_64__) */
-
+#include "sched/scheduler.h"
 #include "sys/boot.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
@@ -89,11 +86,9 @@ void _start(void) {
     isr_init();
     enable_interrupts();
 
-#if defined(__x86_64__) || defined(__riscv64)
     sched_init();
-#endif
-
     dev_init();
+
     test_alloc_largepage();
 
     printk(LOGLEVEL_INFO, "kernel: finished initializing\n");

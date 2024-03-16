@@ -204,6 +204,8 @@ bool nvme_controller_destroy(struct nvme_controller *const controller) {
         nvme_namespace_destroy(iter);
     }
 
+    isr_free_vector(controller->isr_vector, /*for_msi=*/true);
+
     list_deinit(&controller->list);
     list_deinit(&controller->namespace_list);
 
