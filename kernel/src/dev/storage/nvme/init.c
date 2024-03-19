@@ -72,6 +72,11 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
+    if (pci_entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
+        printk(LOGLEVEL_WARN, "nvme: pci-entity does not support msi[x]\n");
+        return;
+    }
+
     struct pci_entity_bar_info *const bar =
         &pci_entity->bar_list[NVME_BAR_INDEX];
 
@@ -106,10 +111,11 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
+    // Don't enable interrupts priviledge, as it is separate from MSI[X] which
+    // we'll be using.
     pci_entity_enable_privl(pci_entity,
                             __PCI_ENTITY_PRIVL_BUS_MASTER
-                            | __PCI_ENTITY_PRIVL_MEM_ACCESS
-                            | __PCI_ENTITY_PRIVL_INTERRUPTS);
+                            | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
     volatile struct nvme_registers *const regs =
         (volatile struct nvme_registers *)bar->mmio->base;
