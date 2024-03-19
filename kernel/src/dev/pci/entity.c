@@ -65,8 +65,8 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
-                   "pci: pci_entity_disable_msi() called on entity that doesn't "
-                   "support msi\n");
+                   "pci: pci_entity_disable_msi() called on entity that "
+                   "doesn't support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
             const int flag = spin_acquire_with_irq(&entity->lock);
@@ -228,9 +228,9 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
             const int flag = spin_acquire_with_irq(&entity->lock);
-            const uint64_t msi_address = isr_get_msi_address(cpu, vector);
+            const uint64_t msix_address = isr_get_msix_address(cpu, vector);
 
-            bind_msix_to_vector(entity, msi_address, vector, masked);
+            bind_msix_to_vector(entity, msix_address, vector, masked);
             spin_release_with_irq(&entity->lock, flag);
 
             return true;
@@ -393,6 +393,7 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
             kfree(entity->msix.bitset);
 
             entity->msix.table_bar = NULL;
+            entity->msix.bitset = NULL;
             entity->msix.table_offset = 0;
             entity->msix.table_size = 0;
 
