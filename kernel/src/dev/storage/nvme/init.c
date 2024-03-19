@@ -13,11 +13,9 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
-#include "mm/page_alloc.h"
+#include "mm/phalloc.h"
 
 #include "sys/mmio.h"
-
-#include "controller.h"
 #include "namespace.h"
 
 #define NVME_BAR_INDEX 0
@@ -220,8 +218,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
            controller->isr_vector,
            controller->msix_vector);
 
-    struct page *const page = alloc_page(PAGE_STATE_USED, /*flags=*/0);
-    if (page == NULL) {
+    const uint64_t identity_phys =
+        phalloc(sizeof(struct nvme_controller_identity));
+
+    if (identity_phys == INVALID_PHYS) {
         pci_entity_disable_msi(pci_entity);
         nvme_controller_destroy(controller);
 
@@ -234,15 +234,15 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    const uint64_t phys = page_to_phys(page);
-    struct nvme_controller_identity *const identity = phys_to_virt(phys);
+    struct nvme_controller_identity *const identity =
+        phys_to_virt(identity_phys);
 
     if (!nvme_identify(controller,
                        /*nsid=*/0,
                        NVME_IDENTIFY_CNS_CONTROLLER,
-                       phys))
+                       identity_phys))
     {
-        free_page(page);
+        phalloc_free(identity_phys);
 
         pci_entity_disable_msi(pci_entity);
         nvme_controller_destroy(controller);
@@ -286,9 +286,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (!nvme_identify(controller,
                        /*nsid=*/0,
                        NVME_IDENTIFY_CNS_ACTIVE_NSID_LIST,
-                       phys))
+                       identity_phys))
     {
-        free_page(page);
+        phalloc_free(identity_phys);
 
         pci_entity_disable_msi(pci_entity);
         nvme_controller_destroy(controller);
@@ -303,23 +303,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     nvme_set_number_of_queues(controller, /*queue_count=*/4);
-    struct page *const first_sectors_page =
-        alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
-
-    if (first_sectors_page == NULL) {
-        free_page(page);
-
-        pci_entity_disable_msi(pci_entity);
-        nvme_controller_destroy(controller);
-
-        mmio_write(&regs->config, 0);
-
-        pci_entity_disable_privls(pci_entity);
-        pci_unmap_bar(bar);
-
-        printk(LOGLEVEL_WARN, "nvme: failed to identify controller\n");
-        return;
-    }
 
     const uint32_t *const nsid_list = (const uint32_t *)(uint64_t)identity;
     for (uint32_t i = 0; i != namespace_count; i++) {
@@ -343,27 +326,21 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             continue;
         }
 
-        const uint64_t first_sectors_phys = page_to_phys(first_sectors_page);
-        if (!nvme_namespace_rwlba(namespace,
-                                  RANGE_INIT(0, 1),
-                                  /*write=*/false,
-                                  first_sectors_phys))
+        if (!storage_device_create(&namespace->device,
+                                   namespace->lba_size,
+                                   nvme_read,
+                                   nvme_write))
         {
             nvme_namespace_destroy(namespace);
             continue;
         }
 
-        const void *const first_sectors = phys_to_virt(first_sectors_phys);
         printk(LOGLEVEL_INFO,
-               "nvme: string is: " SV_FMT "\n",
-               SV_FMT_ARGS(sv_create_length(first_sectors + 512, 8)));
-
-        printk(LOGLEVEL_INFO, "nvme: rwlba success\n");
+               "nvme: initialized namespace %" PRIu32 "\n",
+               namespace->nsid);
     }
 
-    free_page(first_sectors_page);
-    free_page(page);
-
+    phalloc_free(identity_phys);
     printk(LOGLEVEL_INFO, "nvme: finished init\n");
 }
 
