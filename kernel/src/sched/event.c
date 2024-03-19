@@ -51,8 +51,6 @@ __optimize(3) static inline void
 remove_thread_from_listeners(struct event *const event,
                              struct thread *const thread)
 {
-    thread->event_index = -1;
-
     const uint32_t item_count = array_item_count(event->listeners);
     for (uint32_t index = 0; index != item_count; index++) {
         const struct event_listener *const listener =
@@ -74,7 +72,7 @@ events_await(struct event *const *const events,
     int flag = disable_interrupts_if_not();
     lock_events(events, events_count);
 
-    const int64_t index = find_pending(events, events_count);
+    int64_t index = find_pending(events, events_count);
     if (index != -1) {
         unlock_events(events, events_count);
         enable_interrupts_if_flag(flag);
@@ -98,16 +96,15 @@ events_await(struct event *const *const events,
     sched_yield();
 
     flag = disable_interrupts_if_not();
+    index = thread->event_index;
 
-    const int64_t ret = thread->event_index;
     thread->event_index = -1;
-
     if (drop_after_recv) {
-        remove_thread_from_listeners(events[ret], current_thread());
+        remove_thread_from_listeners(events[index], current_thread());
     }
 
     enable_interrupts_if_flag(flag);
-    return ret;
+    return index;
 }
 
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
