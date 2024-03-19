@@ -611,8 +611,8 @@ parse_function(struct pci_bus *const bus,
                        bar->is_prefetchable ?
                         "prefetchable" : "not-prefetchable",
                        bar->is_mmio ?
-                        bar->is_64_bit ? "64-bit, " : "32-bit, " :
-                        "",
+                        bar->is_64_bit ? "64-bit, " : "32-bit, "
+                        : "",
                        bar->port_or_phys_range.size);
             }
 
@@ -665,7 +665,8 @@ parse_function(struct pci_bus *const bus,
                        bar->is_prefetchable ?
                         "prefetchable" : "not-prefetchable",
                        bar->is_mmio ?
-                        bar->is_64_bit ? "64-bit, " : "32-bit, " : "",
+                        bar->is_64_bit ? "64-bit, " : "32-bit, "
+                        : "",
                        bar->port_or_phys_range.size);
             }
 
@@ -697,7 +698,7 @@ parse_function(struct pci_bus *const bus,
         if (!index_in_bounds(bar_index, entity->max_bar_count)) {
             pci_entity_info_destroy(entity);
             printk(LOGLEVEL_WARN,
-                    "\t\tinvalid table-bar index %" PRIu32 "\n",
+                    "pcie: invalid msix table-bar index %" PRIu32 "\n",
                     bar_index);
 
             return;
