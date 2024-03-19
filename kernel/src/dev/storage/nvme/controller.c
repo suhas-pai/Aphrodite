@@ -32,7 +32,14 @@ static bool notify_queue_if_done(struct nvme_queue *const queue) {
     }
 
     const uint8_t phase = queue->phase;
-    assert((status & __NVME_COMPL_QUEUE_ENTRY_STATUS_PHASE) == phase);
+    if ((status & __NVME_COMPL_QUEUE_ENTRY_STATUS_PHASE) != phase) {
+        spin_release(&queue->lock);
+        printk(LOGLEVEL_WARN,
+               "nvme: queue with qid %" PRIu8 " has a phase mismatch error\n",
+               queue->id);
+
+        return false;
+    }
 
     queue->completion_queue_head++;
     if (queue->completion_queue_head == queue->entry_count) {
@@ -65,7 +72,7 @@ void handle_irq(const uint64_t int_no, struct thread_context *const frame) {
     if (!found) {
         isr_eoi(int_no);
         printk(LOGLEVEL_WARN,
-               "nvme: got spurious interrupt from vector with no corresponding "
+               "nvme: got spurious interrupt from vector w/o corresponding "
                "controller: %" PRIu64 "\n",
                int_no);
 
@@ -209,6 +216,7 @@ bool nvme_controller_destroy(struct nvme_controller *const controller) {
     list_deinit(&controller->list);
     list_deinit(&controller->namespace_list);
 
+    controller->pci_entity = NULL;
     controller->regs = NULL;
     controller->stride = 0;
     controller->msix_vector = 0;

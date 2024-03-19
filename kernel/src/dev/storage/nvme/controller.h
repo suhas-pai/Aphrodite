@@ -5,10 +5,7 @@
 
 #pragma once
 
-#include "cpu/spinlock.h"
-#include "lib/list.h"
 #include "sys/isr.h"
-
 #include "queue.h"
 
 #define NVME_ADMIN_QUEUE_COUNT 32
@@ -24,8 +21,8 @@ struct nvme_controller {
     struct list namespace_list;
 
     uint8_t stride;
-
     uint16_t msix_vector;
+
     isr_vector_t isr_vector;
 };
 
