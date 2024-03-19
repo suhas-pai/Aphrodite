@@ -45,7 +45,6 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
 __optimize(3)
 void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
     (void)for_msi;
-
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
@@ -101,6 +100,7 @@ void spur_tick(const uint64_t intr_no, struct thread_context *const frame) {
     (void)frame;
 
     this_cpu_mut()->spur_intr_count++;
+    lapic_eoi();
 }
 
 void isr_init() {
