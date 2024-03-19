@@ -8,7 +8,7 @@
 #include "lib/size.h"
 #include "lib/util.h"
 
-#include "mm/page_alloc.h"
+#include "mm/phalloc.h"
 
 #include "command.h"
 #include "namespace.h"
@@ -22,16 +22,21 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
                       const uint16_t max_queue_entry_count,
                       const uint32_t max_transfer_shift)
 {
-    struct page *const page = alloc_page(PAGE_STATE_USED, /*alloc_flags=*/0);
-    if (page == NULL) {
+    const uint64_t identity_phys =
+        phalloc(sizeof(struct nvme_namespace_identity));
+
+    if (identity_phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc page for identify-namespace command\n");
         return false;
     }
 
-    const uint64_t phys = page_to_phys(page);
-    if (!nvme_identify(controller, nsid, NVME_IDENTIFY_CNS_NAMESPACE, phys)) {
-        free_page(page);
+    if (!nvme_identify(controller,
+                       nsid,
+                       NVME_IDENTIFY_CNS_NAMESPACE,
+                       identity_phys))
+    {
+        phalloc_free(identity_phys);
         printk(LOGLEVEL_WARN,
                "nvme: identify-namespace command failed for nsid %" PRIu32 "\n",
                nsid);
@@ -39,7 +44,8 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
         return false;
     }
 
-    struct nvme_namespace_identity *const identity = phys_to_virt(phys);
+    struct nvme_namespace_identity *const identity =
+        phys_to_virt(identity_phys);
 
     const uint32_t formatted_lba = identity->formatted_lba_count & 0xF;
     const struct nvme_lba lba = identity->lbaf[formatted_lba];
@@ -133,7 +139,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
            identity->nvm_set_id,
            identity->iee_uid);
 
-    free_page(page);
+    phalloc_free(identity_phys);
     if (!nvme_queue_create(&namespace->io_queue,
                            controller,
                            /*id=*/nsid,
