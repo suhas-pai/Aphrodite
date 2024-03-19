@@ -93,8 +93,8 @@ else ifeq ($(DRIVE_KIND),nvme)
 DEFAULT_NVME_MAX_QUEUE_COUNT=64
 $(eval $(call DEFAULT_VAR,NVME_MAX_QUEUE_COUNT,$(DEFAULT_NVME_MAX_QUEUE_COUNT)))
 
-	DRIVE_CD_QEMU_ARG=-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,num_queues=$(NVME_MAX_QUEUE_COUNT)
-	DRIVE_HDD_QEMU_ARG=-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,num_queues=$(NVME_MAX_QUEUE_COUNT)
+	DRIVE_CD_QEMU_ARG=-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
+	DRIVE_HDD_QEMU_ARG=-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
 else
 	$(error "Unrecognized value for variable DRIVE_KIND")
 endif
