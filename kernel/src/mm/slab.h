@@ -41,4 +41,6 @@ void slab_free(void *buffer);
 __malloclike __malloc_dealloc(slab_free, 1)
 void *slab_alloc(struct slab_allocator *allocator);
 
+struct page *slab_alloc2(struct slab_allocator *allocator, uint64_t *offset);
+
 uint32_t slab_object_size(void *mem);

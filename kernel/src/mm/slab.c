@@ -56,7 +56,9 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
 
 static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
     struct page *const head =
-        alloc_pages(PAGE_STATE_SLAB_HEAD, __ALLOC_ZERO, alloc->slab_order);
+        alloc_pages(PAGE_STATE_SLAB_HEAD,
+                    __ALLOC_ZERO | alloc->alloc_flags,
+                    alloc->slab_order);
 
     if (__builtin_expect(head == NULL, 0)) {
         return NULL;
@@ -96,11 +98,13 @@ static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
 }
 
 __optimize(3) static inline uint64_t
-get_free_index(struct page *const head,
-               struct slab_allocator *const alloc,
-               struct free_slab_object *const free_object)
+get_free_object_index(struct page *const page,
+                      struct slab_allocator *const alloc)
 {
-    return distance(page_to_virt(head), free_object) / alloc->object_size;
+    const uint64_t byte_index =
+        check_mul_assert(page->slab.head.first_free_index, alloc->object_size);
+
+    return byte_index;
 }
 
 __optimize(3) static inline void *
@@ -159,6 +163,53 @@ void *slab_alloc(struct slab_allocator *const alloc) {
     return result;
 }
 
+struct page *
+slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
+    int flag = 0;
+
+    const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;
+    if (needs_lock) {
+        flag = spin_acquire_with_irq(&alloc->lock);
+    }
+
+    struct page *head = NULL;
+    if (list_empty(&alloc->free_slab_head_list)) {
+        head = alloc_slab_page(alloc);
+        if (head == NULL) {
+            if (needs_lock) {
+                spin_release_with_irq(&alloc->lock, flag);
+            }
+
+            return NULL;
+        }
+    } else {
+        head =
+            list_head(&alloc->free_slab_head_list,
+                      struct page,
+                      slab.head.slab_list);
+    }
+
+    alloc->free_obj_count--;
+    head->slab.head.free_obj_count--;
+
+    if (head->slab.head.free_obj_count == 0) {
+        list_deinit(&head->slab.head.slab_list);
+    }
+
+    *offset = get_free_object_index(head, alloc);
+
+    struct free_slab_object *const result = page_to_virt(head) + *offset;
+    head->slab.head.first_free_index = result ? result->next : UINT32_MAX;
+
+    if (needs_lock) {
+        spin_release_with_irq(&alloc->lock, flag);
+    }
+
+    // Zero-out free-block
+    result->next = 0;
+    return head;
+}
+
 __optimize(3) static inline struct page *slab_head_of(const void *const mem) {
     struct page *const page = virt_to_page(mem);
     const enum page_state state = page_get_state(page);
@@ -168,6 +219,14 @@ __optimize(3) static inline struct page *slab_head_of(const void *const mem) {
     }
 
     return page->slab.tail.head;
+}
+
+__optimize(3) static inline uint64_t
+index_of_free_object(struct page *const head,
+                     struct slab_allocator *const alloc,
+                     struct free_slab_object *const free_object)
+{
+    return distance(page_to_virt(head), free_object) / alloc->object_size;
 }
 
 void slab_free(void *const mem) {
@@ -210,7 +269,8 @@ void slab_free(void *const mem) {
     struct free_slab_object *const free_obj = (struct free_slab_object *)mem;
 
     free_obj->next = head->slab.head.first_free_index;
-    head->slab.head.first_free_index = get_free_index(head, alloc, free_obj);
+    head->slab.head.first_free_index =
+        index_of_free_object(head, alloc, free_obj);
 
     if (needs_lock) {
         spin_release_with_irq(&alloc->lock, flag);
