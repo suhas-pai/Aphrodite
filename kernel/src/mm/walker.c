@@ -661,14 +661,14 @@ ptwalker_virt_get_phys(struct pagemap *const pagemap, const uint64_t virt) {
     return pte_to_phys(pte) + offset;
 }
 
+__optimize(3)
 bool ptwalker_points_to_largepage(const struct pt_walker *const walker) {
     if (walker->level <= 1 || !pte_level_can_have_large(walker->level)) {
         return false;
     }
 
-    const pte_t pte =
-        pte_read(walker->tables[walker->level - 1] +
-                 walker->indices[walker->level - 1]);
+    pte_t *const pte =
+        walker->tables[walker->level - 1] + walker->indices[walker->level - 1];
 
-    return pte_is_large(pte);
+    return pte_is_large(pte_read(pte));
 }
