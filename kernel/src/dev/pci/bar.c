@@ -64,7 +64,6 @@ __optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
     }
 
     if (bar->mmio == NULL) {
-        printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on unmapped bar\n");
         return true;
     }
 
