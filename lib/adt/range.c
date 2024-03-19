@@ -35,6 +35,18 @@ range_multiply(const struct range range,
 }
 
 __optimize(3)
+struct range range_divide(const struct range range, const uint64_t div) {
+    assert(div != 0);
+    return RANGE_INIT(range.front / div, range.size / div);
+}
+
+__optimize(3)
+struct range range_divide_out(const struct range range, const uint64_t div) {
+    assert(div != 0);
+    return RANGE_INIT(range.front / div, div_round_up(range.size, div));
+}
+
+__optimize(3)
 struct range range_from_index(const struct range range, const uint64_t index) {
     assert(range_has_index(range, index));
     return RANGE_INIT(range.front + index, range.size - index);

@@ -32,11 +32,19 @@ struct range {
 #define rangeof_field(type, field) \
     RANGE_INIT(offsetof(type, field), sizeof_field(type, field))
 
+#define range_iterate(range, incr, iter) \
+    for (uint64_t iter = range.front; \
+         (iter - range.front) < range.size; \
+         iter += (incr))
+
 struct range range_create_upto(uint64_t size);
 struct range range_create_end(uint64_t front, uint64_t size);
 
 struct range range_from_index(struct range range, uint64_t index);
 struct range range_from_loc(struct range range, uint64_t loc);
+
+struct range range_divide(struct range range, uint64_t div);
+struct range range_divide_out(struct range range, uint64_t div);
 
 bool
 range_multiply(struct range range, uint64_t mult, struct range *result_out);
