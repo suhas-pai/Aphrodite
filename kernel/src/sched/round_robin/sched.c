@@ -86,7 +86,7 @@ __optimize(3) static struct thread *get_next_thread(struct thread *const prev) {
 
 void sched_next(struct thread_context *const context, const bool from_irq) {
     struct thread *const curr_thread = current_thread();
-    if (curr_thread->preemption_disabled) {
+    if (!preemption_enabled()) {
         if (from_irq) {
             sched_irq_eoi();
         }
@@ -146,9 +146,9 @@ __optimize(3) void sched_yield() {
     disable_interrupts();
     sched_timer_stop();
 
-    struct thread *const curr_thread = current_thread();
+    assert(preemption_enabled());
 
-    assert(!curr_thread->preemption_disabled);
+    struct thread *const curr_thread = current_thread();
     curr_thread->sched_info.awaiting = true;
 
     sched_send_ipi(curr_thread->cpu);

@@ -16,7 +16,7 @@ struct thread {
     struct process *process;
     struct cpu_info *cpu;
 
-    bool preemption_disabled : 1;
+    uint16_t preemption_disabled;
     bool signal_enqueued : 1;
 
     int64_t event_index;
