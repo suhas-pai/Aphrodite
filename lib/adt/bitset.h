@@ -32,6 +32,7 @@
     ({ \
         __auto_type h_var(result) = BITSET_INVALID; \
         __auto_type h_var(count) = bitset_size_for_count(length); \
+        \
         for (uint32_t h_var(index) = 0; \
              h_var(index) != h_var(count); \
              h_var(index)++) \
@@ -58,6 +59,7 @@
             } \
             break; \
         } \
+        \
         h_var(result); \
     })
 
@@ -65,6 +67,7 @@
     ({ \
         __auto_type h_var(result) = BITSET_INVALID; \
         __auto_type h_var(count) = bitset_size_for_count(length); \
+        \
         for (uint32_t h_var(index) = 0; \
              h_var(index) != h_var(count); \
              h_var(index)++) \
@@ -89,5 +92,6 @@
             } \
             break; \
         } \
+        \
         h_var(result); \
     })
