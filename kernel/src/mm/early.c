@@ -14,6 +14,7 @@
 #include "early.h"
 #include "kmalloc.h"
 #include "memmap.h"
+#include "phalloc.h"
 #include "walker.h"
 #include "zone.h"
 
@@ -929,4 +930,5 @@ void mm_post_arch_init() {
            free_page_count);
 
     kmalloc_init();
+    phalloc_init();
 }
