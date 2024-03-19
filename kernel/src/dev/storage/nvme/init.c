@@ -193,9 +193,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                | (NVME_ADMIN_QUEUE_COUNT - 1));
 
     mmio_write(&regs->admin_submit_queue_base_addr,
-               page_to_phys(controller->admin_queue.submit_queue_pages));
+               controller->admin_queue.submit_queue_phys);
     mmio_write(&regs->admin_completion_queue_base_addr,
-               page_to_phys(controller->admin_queue.completion_queue_pages));
+               controller->admin_queue.completion_queue_phys);
 
     mmio_write(&regs->config,
                NVME_SUBMIT_QUEUE_SIZE <<

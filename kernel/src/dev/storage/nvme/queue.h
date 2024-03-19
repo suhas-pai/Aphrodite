@@ -23,8 +23,8 @@ struct nvme_queue {
     struct spinlock lock;
     struct event event;
 
-    struct page *submit_queue_pages;
-    struct page *completion_queue_pages;
+    uint64_t submit_queue_phys;
+    uint64_t completion_queue_phys;
 
     struct mmio_region *submit_queue_mmio;
     struct mmio_region *completion_queue_mmio;
@@ -38,9 +38,6 @@ struct nvme_queue {
 
     uint16_t entry_count;
     uint16_t cmd_identifier;
-
-    uint8_t submit_alloc_order;
-    uint8_t completion_alloc_order;
 
     bool phase : 1;
 

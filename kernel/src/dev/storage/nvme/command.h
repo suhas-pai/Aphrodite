@@ -25,7 +25,7 @@
         .create_submit_queue = { \
             .opcode = NVME_CMD_ADMIN_OPCODE_CREATE_SQ, \
             .cid = nvme_queue_get_cmdid(&(controller)->admin_queue), \
-            .prp1 = page_to_phys((queue)->submit_queue_pages), \
+            .prp1 = (queue)->submit_queue_phys, \
             .sqid = (queue)->id, \
             .cqid = (queue)->id, \
             .size = (queue)->entry_count - 1, \
@@ -38,7 +38,7 @@
         .create_comp_queue = { \
             .opcode = NVME_CMD_ADMIN_OPCODE_CREATE_CQ, \
             .cid = nvme_queue_get_cmdid(&(controller)->admin_queue), \
-            .prp1 = page_to_phys((queue)->completion_queue_pages), \
+            .prp1 = (queue)->completion_queue_phys, \
             .cqid = (queue)->id, \
             .size = (queue)->entry_count - 1, \
             .cqflags = \
