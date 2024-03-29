@@ -7,51 +7,43 @@
 
 __optimize(3) bool
 partition_init(struct partition *const partition,
-                 struct storage_device *const device,
-                 const struct range lba_range)
+               struct storage_device *const device,
+               const struct range range)
 {
     list_init(&partition->list);
 
     partition->device = device;
-    partition->lba_range = lba_range;
+    partition->range = range;
 
     return true;
 }
 
-__optimize(3) bool
+__optimize(3) uint64_t
 partition_read(const struct partition *const partition,
                void *const buf,
                const struct range range)
 {
-    struct storage_device *const device = partition->device;
-    const struct range lba_range = range_divide_out(range, device->lba_size);
-
-    if (!range_has_index_range(partition->lba_range, lba_range)) {
-        return false;
+    if (!range_has_index_range(partition->range, range)) {
+        return 0;
     }
 
-    const struct range full_range =
-        RANGE_INIT(partition->lba_range.front * device->lba_size + range.front,
-                   range.size);
+    struct storage_device *const device = partition->device;
+    const struct range full_range = subrange_to_full(partition->range, range);
 
-    return device->read(device, buf, full_range);
+    return storage_device_read(device, buf, full_range);
 }
 
-__optimize(3) bool
+__optimize(3) uint64_t
 partition_write(const struct partition *const partition,
                 const void *const buf,
                 const struct range range)
 {
-    struct storage_device *const device = partition->device;
-    const struct range lba_range = range_divide_out(range, device->lba_size);
-
-    if (!range_has_index_range(partition->lba_range, lba_range)) {
-        return false;
+    if (!range_has_index_range(partition->range, range)) {
+        return 0;
     }
 
-    const struct range full_range =
-        RANGE_INIT(partition->lba_range.front * device->lba_size + range.front,
-                   range.size);
+    struct storage_device *const device = partition->device;
+    const struct range full_range = subrange_to_full(partition->range, range);
 
-    return device->write(device, buf, full_range);
+    return storage_device_write(device, buf, full_range);
 }

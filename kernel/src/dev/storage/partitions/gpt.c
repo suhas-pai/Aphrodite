@@ -28,6 +28,10 @@ bool verify_gpt_header(const struct gpt_header *const header) {
 }
 
 __optimize(3) bool gpt_entry_mount_ok(const struct gpt_entry *const entry) {
+    if (entry->end < entry->start) {
+        return false;
+    }
+
     if (entry->guid_low64 == 0 && entry->guid_hi64 == 0) {
         return false;
     }

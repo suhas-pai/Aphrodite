@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "lib/macros.h"
 
-#define KMALLOC_MAX 8192
+#define KMALLOC_MAX 12288
 
 void kmalloc_init();
 bool kmalloc_initialized();

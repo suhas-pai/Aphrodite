@@ -100,15 +100,16 @@ events_await(struct event *const *const events,
 
     thread->event_index = -1;
     if (drop_after_recv) {
-        remove_thread_from_listeners(events[index], current_thread());
+        remove_thread_from_listeners(events[index], thread);
     }
 
     enable_interrupts_if_flag(flag);
     return index;
 }
 
+__optimize(3)
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
-    const int flag = spin_acquire_with_irq(&event->lock);
+    const int flag = spin_acquire_irq_save(&event->lock);
     if (!array_empty(event->listeners)) {
         array_foreach(&event->listeners, const struct event_listener, listener)
         {
@@ -121,5 +122,5 @@ void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
         }
     }
 
-    spin_release_with_irq(&event->lock, flag);
+    spin_release_irq_restore(&event->lock, flag);
 }

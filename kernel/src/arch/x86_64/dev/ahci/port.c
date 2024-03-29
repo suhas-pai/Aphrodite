@@ -26,17 +26,17 @@
 #define AHCI_HBA_CMD_TABLE_PAGE_ORDER 1
 
 _Static_assert(
-    ((uint64_t)sizeof(struct ahci_spec_hba_cmd_table) *
+    ((uint64_t)sizeof(struct ahci_spec_hba_cmd_table)
      // Each port (upto 32 exist) has a separate command-table
-     AHCI_HBA_MAX_PORT_COUNT) <= (PAGE_SIZE << AHCI_HBA_CMD_TABLE_PAGE_ORDER),
+     * AHCI_HBA_MAX_PORT_COUNT) <= (PAGE_SIZE << AHCI_HBA_CMD_TABLE_PAGE_ORDER),
     "AHCI_HBA_CMD_TABLE_PAGE_ORDER is too low to fit all "
     "struct ahci_spec_hba_cmd_table entries");
 
 __optimize(3)
 static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
-    const int flag = spin_acquire_with_irq(&port->lock);
+    const int flag = spin_acquire_irq_save(&port->lock);
     if (port->ports_bitset == UINT32_MAX) {
-        spin_release_with_irq(&port->lock, flag);
+        spin_release_irq_restore(&port->lock, flag);
         return UINT8_MAX;
     }
 
@@ -44,12 +44,12 @@ static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
        find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
 
     if (slot > sizeof_bits(uint32_t)) {
-        spin_release_with_irq(&port->lock, flag);
+        spin_release_irq_restore(&port->lock, flag);
         return UINT8_MAX;
     }
 
     port->ports_bitset |= 1ul << slot;
-    spin_release_with_irq(&port->lock, flag);
+    spin_release_irq_restore(&port->lock, flag);
 
     return slot;
 }
@@ -127,8 +127,8 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
 
     bool fis_stopped = false;
     for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status) &
-                __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING) == 0)
+        if ((mmio_read(&spec->cmd_status)
+                & __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING) == 0)
         {
             fis_stopped = true;
             break;
@@ -240,6 +240,11 @@ __optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
 }
 
 __optimize(3) static void print_serr_error(const uint32_t serr) {
+    if (serr == 0) {
+        printk(LOGLEVEL_WARN, "ahci: serr is zero\n");
+        return;
+    }
+
     enum ahci_hba_port_sata_error_flags err_flag =
         __AHCI_HBA_PORT_SATA_ERROR_SERR_DATA_INTEGRITY;
 
@@ -280,6 +285,11 @@ __optimize(3) static void print_serr_error(const uint32_t serr) {
 }
 
 __optimize(3) static void print_serr_diag(const uint32_t serr) {
+    if (serr == 0) {
+        printk(LOGLEVEL_WARN, "ahci: serr-diag is zero\n");
+        return;
+    }
+
     enum ahci_hba_port_sata_diag_flags diag_flag =
         __AHCI_HBA_PORT_SATA_DIAG_PHYRDY_CHANGED;
 
@@ -345,6 +355,36 @@ void enable_port_interrupts(volatile struct ahci_spec_hba_port *const port) {
                | AHCI_HBA_PORT_IE_ERROR_FLAGS);
 }
 
+__optimize(3) static uint32_t
+handle_irq_for_port(struct ahci_hba_port *const port,
+                    uint32_t *const finished_cmdhdrs,
+                    const uint32_t index)
+{
+    volatile struct ahci_spec_hba_port *const spec = port->spec;
+
+    const uint32_t interrupt_status = mmio_read(&spec->interrupt_status);
+    const uint32_t ci = mmio_read(&spec->command_issue);
+
+    // Write to interrupt-status to clear bits.
+    mmio_write(&spec->interrupt_status, interrupt_status);
+    if (interrupt_status & AHCI_HBA_PORT_IS_ERROR_FLAGS) {
+        port->error.serr = mmio_read(&spec->sata_error);
+        port->error.interrupt_status = interrupt_status;
+
+        handle_error(port, interrupt_status);
+        spin_acquire(&port->lock);
+
+        finished_cmdhdrs[index] = port->ports_bitset;
+        spin_release(&port->lock);
+    } else {
+        spin_acquire(&port->lock);
+        finished_cmdhdrs[index] = port->ports_bitset & ~ci;
+        spin_release(&port->lock);
+    }
+
+    return interrupt_status;
+}
+
 __optimize(3) void
 ahci_port_handle_irq(const uint64_t vector,
                      struct thread_context *const context)
@@ -361,47 +401,36 @@ ahci_port_handle_irq(const uint64_t vector,
     struct ahci_hba_device *const hba = ahci_hba_get();
     const uint32_t pending_ports = mmio_read(&hba->regs->interrupt_status);
 
-    if (pending_ports == 0) {
-        printk(LOGLEVEL_INFO, "ahci: got spurious interrupt\n");
-        lapic_eoi();
-
-        return;
-    }
-
     // Write to interrupt-status to clear bits
     mmio_write(&hba->regs->interrupt_status, pending_ports);
-    for_each_lsb_one_bit(pending_ports, /*start_index=*/0, pending_index) {
+    if (pending_ports != 0) {
+        for_each_lsb_one_bit(pending_ports, /*start_index=*/0, pending_index) {
+            for (uint32_t index = 0; index != hba->port_count; index++) {
+                struct ahci_hba_port *const port = &hba->port_list[index];
+                if (port->index != pending_index) {
+                    continue;
+                }
+
+                const uint32_t interrupt_status =
+                    handle_irq_for_port(port, finished_cmdhdrs, port_count);
+
+                ports_with_results[port_count] = port;
+                port_interrupt_status[port_count] = interrupt_status;
+
+                port_count++;
+                break;
+            }
+        }
+    } else {
         for (uint32_t index = 0; index != hba->port_count; index++) {
             struct ahci_hba_port *const port = &hba->port_list[index];
-            if (port->index != pending_index) {
-                continue;
-            }
-
-            volatile struct ahci_spec_hba_port *const spec = port->spec;
-
-            uint32_t ci = mmio_read(&spec->command_issue);
             const uint32_t interrupt_status =
-                mmio_read(&spec->interrupt_status);
-
-            // Write to interrupt-status to clear bits.
-            mmio_write(&spec->interrupt_status, interrupt_status);
-            if (interrupt_status & AHCI_HBA_PORT_IS_ERROR_FLAGS) {
-                port->error.serr = mmio_read(&spec->sata_error);
-                port->error.interrupt_status = interrupt_status;
-
-                handle_error(port, interrupt_status);
-                ci = ~port->ports_bitset;
-            }
-
-            spin_acquire(&port->lock);
-            finished_cmdhdrs[port_count] = port->ports_bitset & ~ci;
-            spin_release(&port->lock);
+                handle_irq_for_port(port, finished_cmdhdrs, port_count);
 
             ports_with_results[port_count] = port;
             port_interrupt_status[port_count] = interrupt_status;
 
             port_count++;
-            break;
         }
     }
 
@@ -527,6 +556,40 @@ static inline bool recognize_port_sig(struct ahci_hba_port *const port) {
     }
 
     verify_not_reached();
+}
+
+__optimize(3) static uint64_t
+ahci_hba_port_read(struct storage_device *const device,
+                   const uint64_t phys,
+                   const struct range lba_range)
+{
+    struct ahci_hba_port *const port =
+        container_of(device, struct ahci_hba_port, device);
+    const struct scsi_request request =
+        SCSI_REQUEST_READ(lba_range.front, lba_range.size);
+
+    if (ahci_hba_port_send_scsi_command(port, request, phys)) {
+        return lba_range.size;
+    }
+
+    return 0;
+}
+
+__optimize(3) static uint64_t
+ahci_hba_port_write(struct storage_device *const device,
+                    const uint64_t phys,
+                    const struct range lba_range)
+{
+    struct ahci_hba_port *const port =
+        container_of(device, struct ahci_hba_port, device);
+    const struct scsi_request request =
+        SCSI_REQUEST_WRITE(lba_range.front, lba_range.size);
+
+    if (ahci_hba_port_send_scsi_command(port, request, phys)) {
+        return lba_range.size;
+    }
+
+    return 0;
 }
 
 __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
@@ -718,10 +781,6 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
            ident->capabilities & __ATA_IDENTITY_CAP_STANDBY_TIMER_SUPPORTED ?
             "yes" : "no");
 
-    printk(LOGLEVEL_INFO,
-           "ahci: port #%" PRIu8 " initialized\n",
-           port->index + 1);
-
     if (port->sig == SATA_SIG_ATAPI) {
         result =
             ahci_hba_port_send_scsi_command(port,
@@ -738,9 +797,7 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
             return false;
         }
 
-        struct atapi_sense_response *const resp =
-            (struct atapi_sense_response *)page_to_virt(resp_page);
-
+        struct atapi_sense_response *const resp = page_to_virt(resp_page);
         if (resp->sense != ATAPI_SENSE_NONE) {
             free_page(resp_page);
             printk(LOGLEVEL_WARN,
@@ -754,7 +811,19 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         }
     }
 
+    printk(LOGLEVEL_INFO,
+           "ahci: port #%" PRIu8 " initialized\n",
+           port->index + 1);
+
     free_page(resp_page);
+    if (!storage_device_init(&port->device,
+                             SECTOR_SIZE,
+                             ahci_hba_port_read,
+                             ahci_hba_port_write))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -975,24 +1044,30 @@ send_ata_command(struct ahci_hba_port *const port,
     }
 
     uint16_t flags = sizeof(struct ahci_spec_fis_reg_h2d) / sizeof(uint32_t);
+    uint8_t feature = 0;
+
     switch (command_kind) {
-        case ATA_CMD_READ_PIO:
-        case ATA_CMD_READ_PIO_EXT:
         case ATA_CMD_READ_DMA:
         case ATA_CMD_READ_DMA_EXT:
+            feature = __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA;
+            [[fallthrough]];
         case ATA_CMD_IDENTIFY_PACKET:
         case ATA_CMD_IDENTIFY:
         case ATA_CMD_CACHE_FLUSH:
         case ATA_CMD_CACHE_FLUSH_EXT:
+        case ATA_CMD_READ_PIO:
+        case ATA_CMD_READ_PIO_EXT:
             flags = rm_mask(flags, AHCI_HBA_PORT_CMDKIND_WRITE);
             break;
         case ATA_CMD_PACKET:
             verify_not_reached();
             break;
-        case ATA_CMD_WRITE_PIO:
-        case ATA_CMD_WRITE_PIO_EXT:
         case ATA_CMD_WRITE_DMA:
         case ATA_CMD_WRITE_DMA_EXT:
+            feature = __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA;
+            [[fallthrough]];
+        case ATA_CMD_WRITE_PIO:
+        case ATA_CMD_WRITE_PIO_EXT:
             flags |= AHCI_HBA_PORT_CMDKIND_WRITE;
             break;
     }
@@ -1000,13 +1075,13 @@ send_ata_command(struct ahci_hba_port *const port,
     volatile struct ahci_spec_port_cmdhdr *const cmd_header =
         &port->headers[slot];
     struct ahci_spec_hba_cmd_table *const cmd_table =
-        (struct ahci_spec_hba_cmd_table *)
-            phys_to_virt(port->cmdtable_phys) + slot;
+        (struct ahci_spec_hba_cmd_table *)phys_to_virt(port->cmdtable_phys)
+        + slot;
 
     setup_prdt_table(cmd_header, cmd_table, phys_addr, sector_count, flags);
     setup_ata_h2d_fis(cmd_table,
                       command_kind,
-                      /*feature=*/0,
+                      feature,
                       sector_offset,
                       sector_count);
 
@@ -1025,9 +1100,9 @@ send_ata_command(struct ahci_hba_port *const port,
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
 
-    const int flag = spin_acquire_with_irq(&port->lock);
+    const int flag = spin_acquire_irq_save(&port->lock);
     port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
-    spin_release_with_irq(&port->lock, flag);
+    spin_release_irq_restore(&port->lock, flag);
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);
@@ -1085,8 +1160,8 @@ send_atapi_command(struct ahci_hba_port *const port,
     volatile struct ahci_spec_port_cmdhdr *const cmd_header =
         &port->headers[slot];
     struct ahci_spec_hba_cmd_table *const cmd_table =
-        (struct ahci_spec_hba_cmd_table *)
-            phys_to_virt(port->cmdtable_phys) + slot;
+        (struct ahci_spec_hba_cmd_table *)phys_to_virt(port->cmdtable_phys)
+        + slot;
 
     setup_prdt_table(cmd_header, cmd_table, phys_addr, sector_count, flags);
     setup_ata_h2d_fis(cmd_table,
@@ -1112,10 +1187,10 @@ send_atapi_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
+    const int flag = spin_acquire_irq_save(&port->lock);
 
-    const int flag = spin_acquire_with_irq(&port->lock);
     port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
-    spin_release_with_irq(&port->lock, flag);
+    spin_release_irq_restore(&port->lock, flag);
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);

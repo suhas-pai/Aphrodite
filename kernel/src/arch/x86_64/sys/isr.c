@@ -30,14 +30,18 @@ static isr_vector_t g_timer_vector = 0;
 __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
 
-    const int flag = spin_acquire_with_irq(&g_lock);
+    const int flag = spin_acquire_irq_save(&g_lock);
     const uint64_t result =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
-    spin_release_with_irq(&g_lock, flag);
+    spin_release_irq_restore(&g_lock, flag);
     if (result == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
+
+    printk(LOGLEVEL_INFO,
+           "isr: allocated vector " ISR_VECTOR_FMT "\n",
+           (isr_vector_t)result);
 
     return (isr_vector_t)result;
 }
@@ -48,12 +52,13 @@ void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
-    const int flag = spin_acquire_with_irq(&g_lock);
+    const int flag = spin_acquire_irq_save(&g_lock);
 
     bitset_unset(g_bitset, vector);
     isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
 
-    spin_release_with_irq(&g_lock, flag);
+    spin_release_irq_restore(&g_lock, flag);
+    printk(LOGLEVEL_INFO, "isr: freed vector " ISR_VECTOR_FMT "\n", vector);
 }
 
 __optimize(3) isr_vector_t isr_get_timer_vector() {
@@ -126,14 +131,10 @@ isr_set_vector(const isr_vector_t vector,
 {
     g_funcs[vector] = handler;
     idt_set_vector(vector, info->ist, IDT_DEFAULT_FLAGS);
-
-    printk(LOGLEVEL_INFO,
-           "isr: registered handler for vector %" PRIu8 "\n",
-           vector);
 }
 
 __optimize(3) void
-isr_assign_irq_to_cpu(struct cpu_info *const cpu,
+isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
                       const uint8_t irq,
                       const isr_vector_t vector,
                       const bool masked)

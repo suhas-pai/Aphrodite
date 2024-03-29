@@ -19,6 +19,7 @@
 #include "mm/page_alloc.h"
 
 #include "sched/scheduler.h"
+#include "sched/sleep.h"
 #include "sys/boot.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
@@ -92,6 +93,8 @@ void _start(void) {
     test_alloc_largepage();
 
     printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
+    sched_sleep(seconds_to_micro(5));
+    printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 #if defined(__x86_64__) || defined(__riscv64)
     sched_dequeue_thread(current_thread());
     sched_yield();

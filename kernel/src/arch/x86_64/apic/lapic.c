@@ -186,8 +186,18 @@ __optimize(3) void lapic_timer_stop() {
                                     /*masked=*/true));
 }
 
-__optimize(3) void
-lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
+__optimize(3) usec_t lapic_timer_remaining() {
+    const bool flag = disable_interrupts_if_not();
+    const uint64_t lapic_timer_freq_in_microseconds =
+        this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
+
+    enable_interrupts_if_flag(flag);
+    return mmio_read(&lapic_regs->timer_initial_count)
+           / lapic_timer_freq_in_microseconds;
+}
+
+__optimize(3)
+void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
     // LAPIC-Timer Frequency is in Hz, which is cycles per second, while we need
     // cycles per microseconds
 

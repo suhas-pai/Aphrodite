@@ -4,7 +4,9 @@
  */
 
 #pragma once
+
 #include "dev/scsi/request.h"
+#include "dev/storage/device.h"
 
 #include "mm/mmio.h"
 #include "sched/event.h"
@@ -29,6 +31,7 @@ struct ahci_hba_port {
     volatile struct ahci_spec_port_cmdhdr *headers;
 
     struct ahci_hba_port_cmdhdr_info *cmdhdr_info_list;
+    struct storage_device device;
 
     struct mmio_region *mmio;
     struct spinlock lock;

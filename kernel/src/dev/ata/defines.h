@@ -62,7 +62,7 @@ enum ata_ident_sata_cap_flags {
     __ATA_IDENTITY_SATA_CAP_SUPPORTS_NCQ = 1 << 8,
 };
 
-struct ata_identify {
+struct ata_identity {
     uint16_t device_type;
     uint16_t cylinder_count;
 

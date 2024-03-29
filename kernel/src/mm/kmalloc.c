@@ -8,7 +8,7 @@
 #include "kmalloc.h"
 #include "slab.h"
 
-static struct slab_allocator kmalloc_slabs[16] = {0};
+static struct slab_allocator kmalloc_slabs[19] = {0};
 static bool kmalloc_is_initialized = false;
 
 __optimize(3) bool kmalloc_initialized() {
@@ -39,6 +39,9 @@ void kmalloc_init() {
     SLAB_ALLOC_INIT(4096, /*alloc_flags=*/0, /*flags=*/0);
     SLAB_ALLOC_INIT(6102, /*alloc_flags=*/0, /*flags=*/0);
     SLAB_ALLOC_INIT(8192, /*alloc_flags=*/0, /*flags=*/0);
+    SLAB_ALLOC_INIT(12288, /*alloc_flags=*/0, /*flags=*/0);
+    SLAB_ALLOC_INIT(16384, /*alloc_flags=*/0, /*flags=*/0);
+    SLAB_ALLOC_INIT(32748, /*alloc_flags=*/0, /*flags=*/0);
 
     kmalloc_is_initialized = true;
 }

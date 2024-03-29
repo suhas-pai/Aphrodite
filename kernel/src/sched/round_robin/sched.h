@@ -16,7 +16,9 @@ struct sched_process_info {
 
 struct sched_thread_info {
     struct list list;
+
     usec_t timeslice : 32;
+    usec_t remaining : 32;
 
     _Atomic bool awaiting;
     _Atomic bool enqueued;

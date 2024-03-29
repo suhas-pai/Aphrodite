@@ -474,9 +474,7 @@ const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
 }
 
 void
-pci_parse_bus(struct pci_bus *bus,
-              struct pci_location loc,
-              uint8_t bus_id);
+pci_parse_bus(struct pci_bus *bus, struct pci_location loc, uint8_t bus_id);
 
 static void
 parse_function(struct pci_bus *const bus,
@@ -515,7 +513,6 @@ parse_function(struct pci_bus *const bus,
     entity->status = pci_read(entity, struct pci_spec_entity_info_base, status);
     entity->revision_id =
         pci_read(entity, struct pci_spec_entity_info_base, revision_id);
-
     entity->prog_if =
         pci_read(entity, struct pci_spec_entity_info_base, prog_if);
 
@@ -555,6 +552,7 @@ parse_function(struct pci_bus *const bus,
         __PCI_DEVCMDREG_IOSPACE
         | __PCI_DEVCMDREG_MEMSPACE
         | __PCI_DEVCMDREG_BUS_MASTER;
+
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
@@ -565,8 +563,8 @@ parse_function(struct pci_bus *const bus,
         case PCI_SPEC_ENTITY_HDR_KIND_GENERAL:
             entity->max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
             entity->bar_list =
-                kmalloc(sizeof(struct pci_entity_bar_info) *
-                        entity->max_bar_count);
+                kmalloc(sizeof(struct pci_entity_bar_info)
+                        * entity->max_bar_count);
 
             if (entity->bar_list == NULL) {
                 pci_entity_info_destroy(entity);
@@ -620,8 +618,8 @@ parse_function(struct pci_bus *const bus,
         case PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE:
             entity->max_bar_count = PCI_BAR_COUNT_FOR_BRIDGE;
             entity->bar_list =
-                kmalloc(sizeof(struct pci_entity_bar_info) *
-                        entity->max_bar_count);
+                kmalloc(sizeof(struct pci_entity_bar_info)
+                        * entity->max_bar_count);
 
             if (entity->bar_list == NULL) {
                 pci_entity_info_destroy(entity);

@@ -49,6 +49,26 @@ static inline void list_add(struct list *const head, struct list *const item) {
     list_add_common(item, head, head->next);
 }
 
+typedef int
+(*list_add_inorder_compare_t)(struct list *const head, struct list *const item);
+
+__optimize(3) static inline void
+list_add_inorder(struct list *const head,
+                 struct list *const item,
+                 const list_add_inorder_compare_t compare)
+{
+    struct list *prev = head;
+    for (struct list *iter = head->next; iter != head; iter = iter->next) {
+        if (compare(iter, item) < 0) {
+            break;
+        }
+
+        prev = iter;
+    }
+
+    list_add(prev, item);
+}
+
 __optimize(3) static inline void
 slist_add(struct slist *const head,
           struct slist *const tail,
@@ -135,12 +155,12 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
     ((type *)((void *)((char *)(list)->prev - offsetof(type, name))))
 
 #define list_foreach(iter, list, name) \
-    for(iter = list_head(list, typeof(*iter), name); &iter->name != (list); \
-        iter = list_next(iter, name))
+    for (iter = list_head(list, typeof(*iter), name); &iter->name != (list); \
+         iter = list_next(iter, name))
 
 #define list_foreach_reverse(iter, list, name) \
-    for(iter = list_tail(list, typeof(*iter), name); &iter->name != (list); \
-        iter = list_prev(iter, name))
+    for (iter = list_tail(list, typeof(*iter), name); &iter->name != (list); \
+         iter = list_prev(iter, name))
 
 #define slist_foreach(iter, list, name) list_foreach(iter, list, name)
 

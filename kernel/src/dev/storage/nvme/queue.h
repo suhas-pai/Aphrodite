@@ -5,10 +5,9 @@
 
 #pragma once
 
-#include "cpu/spinlock.h"
 #include "mm/mmio.h"
-
 #include "sched/event.h"
+
 #include "structs.h"
 
 struct nvme_queue_doorbells {

@@ -12,20 +12,20 @@ struct partition {
     struct storage_device *device;
     struct list list;
 
-    struct range lba_range;
+    struct range range;
 };
 
 bool
 partition_init(struct partition *partition,
-                 struct storage_device *device,
-                 const struct range lba_range);
+               struct storage_device *device,
+               const struct range lba_range);
 
-bool
+uint64_t
 partition_read(const struct partition *partition,
                void *buf,
                struct range range);
 
-bool
+uint64_t
 partition_write(const struct partition *partition,
                 const void *buf,
                 struct range range);

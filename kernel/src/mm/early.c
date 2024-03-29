@@ -249,8 +249,7 @@ __optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
             old_info_count - info->avail_page_count - alloc_amount;
 
         if (new_info_count != 0) {
-            struct freepages_info *const new_info =
-                (struct freepages_info *)phys_to_virt(new_info_phys);
+            struct freepages_info *const new_info = phys_to_virt(new_info_phys);
 
             new_info->avail_page_count = new_info_count;
             new_info->total_page_count = new_info_count;
@@ -419,7 +418,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     bool prev_was_at_end =
         walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
 
-    const struct pt_walker_iterate_options iterate_options = {
+    const struct ptwalker_iterate_options iterate_options = {
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,
 

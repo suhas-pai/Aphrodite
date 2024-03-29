@@ -4,23 +4,20 @@
  */
 
 #pragma once
-#include "dev/storage/device.h"
 
-#include "cache.h"
+#include "dev/storage/device.h"
 #include "controller.h"
 
 struct nvme_namespace {
     struct nvme_controller *controller;
     struct nvme_queue io_queue;
 
+    struct list list;
     struct storage_device device;
 
-    struct list list;
-    struct nvme_cache cache;
-
     uint32_t nsid;
-
     uint32_t lba_size;
+
     uint64_t lba_count;
 };
 
@@ -38,8 +35,3 @@ nvme_namespace_rwlba(struct nvme_namespace *namespace,
                      uint64_t out_phys);
 
 void nvme_namespace_destroy(struct nvme_namespace *namespace);
-
-uint64_t nvme_read(struct storage_device *dev, void *buf, struct range range);
-
-uint64_t
-nvme_write(struct storage_device *dev, const void *buf, struct range range);

@@ -15,6 +15,44 @@
 
 #define NVME_IO_QUEUE_COUNT 1024ul
 
+__optimize(3) static uint64_t
+nvme_read(struct storage_device *const device,
+          const uint64_t phys,
+          const struct range lba_range)
+{
+    struct nvme_namespace *const namespace =
+        container_of(device, struct nvme_namespace, device);
+
+    if (nvme_namespace_rwlba(namespace,
+                             lba_range,
+                             /*write=*/false,
+                             phys))
+    {
+        return lba_range.size;
+    }
+
+    return 0;
+}
+
+__optimize(3) static uint64_t
+nvme_write(struct storage_device *const device,
+           const uint64_t phys,
+           const struct range lba_range)
+{
+    struct nvme_namespace *const namespace =
+        container_of(device, struct nvme_namespace, device);
+
+    if (nvme_namespace_rwlba(namespace,
+                             lba_range,
+                             /*write=*/true,
+                             phys))
+    {
+        return lba_range.size;
+    }
+
+    return 0;
+}
+
 bool
 nvme_namespace_create(struct nvme_namespace *const namespace,
                       struct nvme_controller *const controller,
@@ -156,7 +194,6 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
     }
 
     list_init(&namespace->list);
-    nvme_cache_create(&namespace->cache);
 
     namespace->controller = controller;
     namespace->nsid = nsid;
@@ -164,6 +201,14 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
     namespace->lba_count = lba_count;
 
     list_add(&controller->namespace_list, &namespace->list);
+    if (!storage_device_init(&namespace->device,
+                             namespace->lba_size,
+                             nvme_read,
+                             nvme_write))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -218,159 +263,13 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
     return nvme_queue_submit_command(&namespace->io_queue, &command);
 }
 
-__optimize(3) static inline void *
-get_block_from_cache(struct nvme_namespace *const namespace,
-                     const uint64_t lba)
-{
-    void *block = nvme_cache_find(&namespace->cache, lba);
-    if (block != NULL) {
-        return block;
-    }
-
-    const uint64_t phys = phalloc(namespace->lba_size);
-    if (phys == INVALID_PHYS) {
-        printk(LOGLEVEL_WARN,
-               "nvme: failed to alloc phys-memory while reading\n");
-        return NULL;
-    }
-
-    if (!nvme_namespace_rwlba(namespace,
-                              RANGE_INIT(lba, 1),
-                              /*write=*/false,
-                              phys))
-    {
-        phalloc_free(phys);
-        return NULL;
-    }
-
-    block = phys_to_virt(phys);
-    nvme_cache_push(&namespace->cache, lba, block);
-
-    return block;
-}
-
-uint64_t
-nvme_read(struct storage_device *const device,
-          void *const buf,
-          const struct range range)
-{
-    struct nvme_namespace *const namespace =
-        container_of(device, struct nvme_namespace, device);
-
-    uint64_t lba = range.front / namespace->lba_size;
-    uint64_t lba_offset = range.front % namespace->lba_size;;
-
-    uint64_t copy_size = namespace->lba_size - lba_offset;
-    uint64_t offset = 0;
-
-    if (__builtin_expect(offset < range.size, 1)) {
-        while (true) {
-            void *const block = get_block_from_cache(namespace, lba);
-            if (block == NULL) {
-                return offset;
-            }
-
-            const uint64_t left = range.size - offset;
-            if (left < copy_size) {
-                memcpy(buf + offset, block + lba_offset, left);
-                break;
-            }
-
-            memcpy(buf + offset, block + lba_offset, copy_size);
-
-            offset += copy_size;
-            lba++;
-
-            lba_offset = 0;
-            copy_size = namespace->lba_size;
-        }
-    }
-
-    return range.size;
-}
-
-uint64_t
-nvme_write(struct storage_device *const device,
-           const void *const buf,
-           const struct range range)
-{
-    struct nvme_namespace *const namespace =
-        container_of(device, struct nvme_namespace, device);
-
-    uint64_t lba = range.front / namespace->lba_size;
-    uint64_t lba_offset = range.front % namespace->lba_size;;
-
-    uint64_t copy_size = namespace->lba_size - lba_offset;
-    uint64_t offset = 0;
-
-    const uint64_t phys = phalloc(namespace->lba_size);
-    if (phys == INVALID_PHYS) {
-        return 0;
-    }
-
-    void *const virt = phys_to_virt(phys);
-    if (__builtin_expect(offset < range.size, 1)) {
-        while (true) {
-            const uint64_t left = range.size - offset;
-            bool should_break = left < copy_size;
-
-            if (should_break) {
-                void *const block = get_block_from_cache(namespace, lba);
-                if (block == NULL) {
-                    phalloc_free(phys);
-                    return offset;
-                }
-
-                if (lba_offset != 0) {
-                    memcpy(virt, block, lba_offset);
-                }
-
-                memcpy(virt + lba_offset, buf + offset, left);
-
-                const uint64_t final_part =
-                    namespace->lba_size - (lba_offset + left);
-
-                if (final_part != 0) {
-                    memcpy(virt + lba_offset + left,
-                           block + lba_offset + left,
-                           final_part);
-                }
-            } else {
-                memcpy(virt, buf + offset, copy_size);
-            }
-
-            if (!nvme_namespace_rwlba(namespace,
-                                      RANGE_INIT(lba, 1),
-                                      /*write=*/true,
-                                      phys))
-            {
-                phalloc_free(phys);
-                return offset;
-            }
-
-            if (should_break) {
-                break;
-            }
-
-            offset += copy_size;
-            lba++;
-
-            lba_offset = 0;
-            copy_size = namespace->lba_size;
-        }
-    }
-
-    phalloc_free(phys);
-    return range.size;
-}
-
 void nvme_namespace_destroy(struct nvme_namespace *const namespace) {
-    const int flag = spin_acquire_with_irq(&namespace->controller->lock);
+    const int flag = spin_acquire_irq_save(&namespace->controller->lock);
 
     nvme_queue_destroy(&namespace->io_queue);
     list_deinit(&namespace->list);
 
-    spin_release_with_irq(&namespace->controller->lock, flag);
+    spin_release_irq_restore(&namespace->controller->lock, flag);
 
     namespace->controller = NULL;
     namespace->nsid = 0;

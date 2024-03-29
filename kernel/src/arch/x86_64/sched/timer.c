@@ -18,3 +18,7 @@ __optimize(3) void sched_timer_stop() {
 __optimize(3) void sched_irq_eoi() {
     lapic_eoi();
 }
+
+__optimize(3) usec_t sched_timer_remaining() {
+    return lapic_timer_remaining();
+}

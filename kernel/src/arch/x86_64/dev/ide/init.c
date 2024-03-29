@@ -12,6 +12,7 @@
 #include "lib/size.h"
 #include "lib/util.h"
 
+#include "sched/sleep.h"
 #include "sys/pio.h"
 
 #define PCI_IDE_BAR_INDEX 4
@@ -180,11 +181,11 @@ handle_device(struct ide_device *const device,
 
     // (I) Select Drive:
     ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (drive << 4)); // Select Drive.
-    // sleep(1); // Wait 1ms for drive select to work.
+    sched_sleep(milli_to_micro(1)); // Wait 1ms for drive select to work.
 
     // (II) Send ATA Identify Command:
     ide_write(channel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
-    //sleep(1);
+    sched_sleep(milli_to_micro(1));
 
     // (III) Polling:
     if (ide_read(channel, ATA_REG_STATUS) == 0) {
@@ -218,15 +219,16 @@ handle_device(struct ide_device *const device,
         }
 
         type = IDE_ATAPI;
+
         ide_write(channel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY_PACKET);
-        //sleep(1);
+        sched_sleep(milli_to_micro(1));
     }
 
     // (V) Read Identification Space of the Device:
     ide_read_buffer(channel, ATA_REG_DATA, ide_buf, /*quads=*/128);
 
-    const struct ata_identify *const ide_ident =
-        (const struct ata_identify *)ide_buf;
+    const struct ata_identity *const ide_ident =
+        (const struct ata_identity *)ide_buf;
 
     // (VI) Read Device Parameters:
     device->reserved = 1;
@@ -269,8 +271,8 @@ ide_init(const uint32_t bar0,
     g_channel_list[ATA_SECONDARY].bmide = (bar4 & 0xFFFFFFFC) + 8;
 
     // 2- Disable IRQs:
-    ide_write(ATA_PRIMARY, ATA_REG_CONTROL, 2);
-    ide_write(ATA_SECONDARY, ATA_REG_CONTROL, 2);
+    ide_write(ATA_PRIMARY, ATA_REG_CONTROL, 1 << 1);
+    ide_write(ATA_SECONDARY, ATA_REG_CONTROL, 1 << 1);
 
     // 3- Detect ATA-ATAPI Devices:
     handle_device(&g_devices_list[0], ATA_PRIMARY, ATA_MASTER_DRIVE);
@@ -334,7 +336,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     pci_entity_enable_privl(pci_entity,
                             __PCI_ENTITY_PRIVL_BUS_MASTER |
                             __PCI_ENTITY_PRIVL_PIO_ACCESS);
-
 }
 
 static const struct pci_driver pci_driver = {

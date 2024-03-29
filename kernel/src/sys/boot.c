@@ -10,6 +10,8 @@
 #include "time/kstrftime.h"
 #include "limine.h"
 
+#define MM_MAX_SECTION_COUNT sizeof_bits(uint64_t)
+
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent.
@@ -307,6 +309,8 @@ __optimize(3) void boot_remove_section(struct page_section *const section) {
 
 __optimize(3)
 struct page_section *boot_add_section_at(struct page_section *const section) {
+    assert(mm_page_section_count < MM_MAX_SECTION_COUNT);
+
     const uint64_t length =
         distance(section, &mm_page_section_list[mm_page_section_count]);
 

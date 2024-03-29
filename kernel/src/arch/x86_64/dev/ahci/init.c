@@ -138,14 +138,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     hba->pci_entity = pci_entity;
     hba->regs = regs;
 
-    const uint64_t host_cap = mmio_read(&regs->host_capabilities);
-
-    hba->pci_entity = pci_entity;
-    hba->port_list = kmalloc(sizeof(struct ahci_hba_port) * ports_impled);
-    hba->supports_64bit_dma = host_cap & __AHCI_HBA_HOST_CAP_64BIT_DMA;
-    hba->supports_staggered_spinup =
-        host_cap & __AHCI_HBA_HOST_CAP_SUPPORTS_STAGGERED_SPINUP;
-
+    hba->port_list = kmalloc(sizeof(struct ahci_hba_port) * ports_impled_count);
     if (hba->port_list == NULL) {
         isr_free_vector(g_hba_vector, /*for_msi=*/true);
         pci_entity_toggle_msi_vector_mask(pci_entity,
@@ -160,6 +153,13 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
         return;
     }
+
+    const uint64_t host_cap = mmio_read(&regs->host_capabilities);
+
+    hba->pci_entity = pci_entity;
+    hba->supports_64bit_dma = host_cap & __AHCI_HBA_HOST_CAP_64BIT_DMA;
+    hba->supports_staggered_spinup =
+        host_cap & __AHCI_HBA_HOST_CAP_SUPPORTS_STAGGERED_SPINUP;
 
     if (hba->supports_64bit_dma) {
         printk(LOGLEVEL_INFO, "ahci: hba supports 64-bit dma\n");

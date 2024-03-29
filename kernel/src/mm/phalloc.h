@@ -4,9 +4,7 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
+#include "mm/mm_types.h"
 
 #define PHALLOC_MAX 65536
 

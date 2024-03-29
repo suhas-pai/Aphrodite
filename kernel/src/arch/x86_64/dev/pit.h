@@ -18,9 +18,9 @@ enum pit_timer_channel {
 #define PIT_TIMER_CHANNEL_MASK (PIT_TIMER_CHANNEL_2 | PIT_TIMER_CHANNEL_1)
 
 enum pit_timer_access_byte {
-    PIT_TIMER_ACCESS_MODE_LATCH     = 0,
-    PIT_TIMER_ACCESS_MODE_LO_BYTE   = 1 << 4,
-    PIT_TIMER_ACCESS_MODE_HI_BYTE   = 1 << 5,
+    PIT_TIMER_ACCESS_MODE_LATCH = 0,
+    PIT_TIMER_ACCESS_MODE_LO_BYTE = 1 << 4,
+    PIT_TIMER_ACCESS_MODE_HI_BYTE = 1 << 5,
     PIT_TIMER_ACCESS_MODE_FULL_BYTE =
         PIT_TIMER_ACCESS_MODE_HI_BYTE | PIT_TIMER_ACCESS_MODE_LO_BYTE
 };
@@ -46,7 +46,7 @@ enum pit_timer_op_mode {
 };
 
 enum pit_granularity {
-    PIT_GRANULARITY_1_MS = 1000,
+    PIT_GRANULARITY_1_MS = 10000,
     PIT_GRANULARITY_5_MS = 1000,
     PIT_GRANULARITY_10_MS = 200,
     PIT_GRANULARITY_20_MS = 50,
@@ -56,11 +56,13 @@ enum pit_granularity {
     PIT_GRANULARITY_1000_MS = 1
 };
 
-_Static_assert(
-    (PIT_TIMER_CHANNEL_0
-     | PIT_TIMER_ACCESS_MODE_FULL_BYTE
-     | PIT_TIMER_OP_MODE_SQUARE_WAVE) == 0x36,
-    "");
+#define PIT_DEFAULT_FLAGS \
+    (PIT_TIMER_CHANNEL_0 \
+     | PIT_TIMER_ACCESS_MODE_FULL_BYTE \
+     | PIT_TIMER_OP_MODE_RATE_GENERATOR)
+
+_Static_assert(PIT_DEFAULT_FLAGS == 0x34,
+               "pit: PIT_DEFAULT_FLAGS is incorrect");
 
 void pit_init(uint8_t flags, enum pit_granularity granularity);
 void pit_sleep_for(uint32_t ms);

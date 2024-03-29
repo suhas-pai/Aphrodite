@@ -22,8 +22,8 @@ struct spinlock {
 void spin_acquire(struct spinlock *lock);
 void spin_release(struct spinlock *lock);
 
-int spin_acquire_with_irq(struct spinlock *lock);
-void spin_release_with_irq(struct spinlock *lock, int flag);
+int spin_acquire_irq_save(struct spinlock *lock);
+void spin_release_irq_restore(struct spinlock *lock, int flag);
 
 bool spin_try_acquire(struct spinlock *lock);
 bool spin_try_acquire_with_irq(struct spinlock *lock, int *flag_out);

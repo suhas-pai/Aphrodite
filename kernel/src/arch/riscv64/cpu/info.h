@@ -4,9 +4,10 @@
  */
 
 #pragma once
-
 #include "cpu/cpu_info.h"
+
 #include "lib/list.h"
+#include "lib/time.h"
 
 struct process;
 struct cpu_info {
@@ -21,6 +22,7 @@ struct cpu_info {
     uint16_t cbo_size;
     uint16_t cmo_size;
 
+    usec_t timer_start;
     bool is_active : 1;
 };
 

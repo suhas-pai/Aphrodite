@@ -4,9 +4,9 @@
  */
 
 #pragma once
-#include <stdbool.h>
 
 #include "apic/structs.h"
+#include "lib/time.h"
 #include "sys/isr.h"
 
 enum lapic_version_reg_flags {
@@ -218,3 +218,5 @@ void lapic_send_self_ipi(uint32_t vector);
 
 void lapic_timer_stop();
 void lapic_timer_one_shot(const uint64_t microseconds, isr_vector_t vector);
+
+usec_t lapic_timer_remaining();

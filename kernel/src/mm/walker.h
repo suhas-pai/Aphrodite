@@ -97,7 +97,7 @@ enum pt_walker_result {
 enum pt_walker_result ptwalker_prev(struct pt_walker *walker);
 enum pt_walker_result ptwalker_next(struct pt_walker *walker);
 
-struct pt_walker_iterate_options {
+struct ptwalker_iterate_options {
     void *alloc_pgtable_cb_info;
     void *free_pgtable_cb_info;
 
@@ -109,12 +109,12 @@ struct pt_walker_iterate_options {
 enum pt_walker_result
 ptwalker_prev_with_options(struct pt_walker *walker,
                            pgt_level_t level,
-                           const struct pt_walker_iterate_options *options);
+                           const struct ptwalker_iterate_options *options);
 
 enum pt_walker_result
 ptwalker_next_with_options(struct pt_walker *walker,
                            pgt_level_t level,
-                           const struct pt_walker_iterate_options *options);
+                           const struct ptwalker_iterate_options *options);
 
 void
 ptwalker_deref_from_level(struct pt_walker *walker,

@@ -34,10 +34,10 @@ pci_bus_create(struct pci_domain *const domain,
 }
 
 __optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
-    const int flag = spin_acquire_with_irq(&g_root_bus_list_lock);
+    const int flag = spin_acquire_irq_save(&g_root_bus_list_lock);
     const bool result = array_append(&g_root_bus_list, &bus);
 
-    spin_release_with_irq(&g_root_bus_list_lock, flag);
+    spin_release_irq_restore(&g_root_bus_list_lock, flag);
     return result;
 }
 
@@ -47,12 +47,12 @@ __optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     }
 
     uint32_t index = 0;
-    const int flag = spin_acquire_with_irq(&g_root_bus_list_lock);
+    const int flag = spin_acquire_irq_save(&g_root_bus_list_lock);
 
     array_foreach(&g_root_bus_list, const struct pci_bus *, iter) {
         if (*iter == bus) {
             array_remove_index(&g_root_bus_list, index);
-            spin_release_with_irq(&g_root_bus_list_lock, flag);
+            spin_release_irq_restore(&g_root_bus_list_lock, flag);
 
             return true;
         }
@@ -60,7 +60,7 @@ __optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
         index++;
     }
 
-    spin_release_with_irq(&g_root_bus_list_lock, flag);
+    spin_release_irq_restore(&g_root_bus_list_lock, flag);
     kfree(bus);
 
     return false;
@@ -68,10 +68,10 @@ __optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
 
 __optimize(3)
 const struct array *pci_get_root_bus_list_locked(int *const flag_out) {
-    *flag_out = spin_acquire_with_irq(&g_root_bus_list_lock);
+    *flag_out = spin_acquire_irq_save(&g_root_bus_list_lock);
     return &g_root_bus_list;
 }
 
 __optimize(3) void pci_release_root_bus_list_lock(const int flag) {
-    spin_release_with_irq(&g_root_bus_list_lock, flag);
+    spin_release_irq_restore(&g_root_bus_list_lock, flag);
 }

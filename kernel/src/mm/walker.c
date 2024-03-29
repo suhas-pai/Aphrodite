@@ -4,9 +4,10 @@
  */
 
 #include "cpu/info.h"
-#include "lib/align.h"
 
+#include "lib/align.h"
 #include "lib/util.h"
+
 #include "sched/process.h"
 
 #include "early.h"
@@ -75,14 +76,14 @@ get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
     return root_phys;
 }
 
-void
+__optimize(3) void
 ptwalker_default(struct pt_walker *const walker, const uint64_t virt_addr) {
     return ptwalker_default_for_pagemap(walker,
                                         &this_cpu()->process->pagemap,
                                         virt_addr);
 }
 
-void
+__optimize(3) void
 ptwalker_default_for_pagemap(struct pt_walker *const walker,
                              const struct pagemap *const pagemap,
                              const uint64_t virt_addr)
@@ -94,7 +95,7 @@ ptwalker_default_for_pagemap(struct pt_walker *const walker,
                                        ptwalker_free_pgtable_cb);
 }
 
-void
+__optimize(3) void
 ptwalker_create(struct pt_walker *const walker,
                 const uint64_t virt_addr,
                 const ptwalker_alloc_pgtable_t alloc_pgtable,
@@ -107,7 +108,7 @@ ptwalker_create(struct pt_walker *const walker,
                                        free_pgtable);
 }
 
-void
+__optimize(3) void
 ptwalker_create_for_pagemap(struct pt_walker *const walker,
                             const struct pagemap *const pagemap,
                             const uint64_t virt_addr,
@@ -197,7 +198,7 @@ ptwalker_create_from_toplevel(struct pt_walker *const walker,
     walker->indices[walker->top_level - 1] = root_index;
 }
 
-static const struct pt_walker_iterate_options default_options = {
+static const struct ptwalker_iterate_options default_options = {
     .alloc_pgtable_cb_info = NULL,
     .free_pgtable_cb_info = NULL,
 
@@ -338,10 +339,9 @@ alloc_levels_down_to(struct pt_walker *const walker,
 }
 
 __optimize(3) enum pt_walker_result
-ptwalker_next_with_options(
-    struct pt_walker *const walker,
-    pgt_level_t level,
-    const struct pt_walker_iterate_options *const options)
+ptwalker_next_with_options(struct pt_walker *const walker,
+                           pgt_level_t level,
+                           const struct ptwalker_iterate_options *const options)
 {
     // Bad increment as tables+indices haven't been filled down to the level
     // requested.
@@ -450,10 +450,9 @@ enum pt_walker_result ptwalker_prev(struct pt_walker *const walker) {
 }
 
 enum pt_walker_result
-ptwalker_prev_with_options(
-    struct pt_walker *const walker,
-    pgt_level_t level,
-    const struct pt_walker_iterate_options *const options)
+ptwalker_prev_with_options(struct pt_walker *const walker,
+                           pgt_level_t level,
+                           const struct ptwalker_iterate_options *const options)
 {
     // Bad increment as tables+indices haven't been filled down to the level
     // requested.

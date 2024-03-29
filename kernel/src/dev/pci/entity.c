@@ -22,7 +22,7 @@ __optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
                    "support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
             const uint32_t msg_control =
                 pci_read_from_base(entity,
                                    entity->msi_pcie_offset,
@@ -35,11 +35,11 @@ __optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
                                 msg_control,
                                 msg_control | __PCI_CAP_MSI_CTRL_ENABLE);
 
-            spin_release_with_irq(&entity->lock, flag);
+            spin_release_irq_restore(&entity->lock, flag);
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
             const uint32_t msg_control =
                 pci_read_from_base(entity,
                                    entity->msi_pcie_offset,
@@ -52,7 +52,7 @@ __optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
                                 msg_control,
                                 msg_control | __PCI_CAP_MSIX_CTRL_ENABLE);
 
-            spin_release_with_irq(&entity->lock, flag);
+            spin_release_irq_restore(&entity->lock, flag);
             return true;
         }
     }
@@ -69,7 +69,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                    "doesn't support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
             const uint32_t msg_control =
                 pci_read_from_base(entity,
                                    entity->msi_pcie_offset,
@@ -83,11 +83,11 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                                 rm_mask(msg_control,
                                         __PCI_CAP_MSI_CTRL_ENABLE));
 
-            spin_release_with_irq(&entity->lock, flag);
+            spin_release_irq_restore(&entity->lock, flag);
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
             const uint32_t msg_control =
                 pci_read_from_base(entity,
                                    entity->msi_pcie_offset,
@@ -101,7 +101,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                                 rm_mask(msg_control,
                                         __PCI_CAP_MSIX_CTRL_ENABLE));
 
-            spin_release_with_irq(&entity->lock, flag);
+            spin_release_irq_restore(&entity->lock, flag);
             return true;
         }
     }
@@ -218,20 +218,20 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
 
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
             const uint64_t msi_address = isr_get_msi_address(cpu, vector);
 
             bind_msi_to_vector(entity, msi_address, vector, masked);
-            spin_release_with_irq(&entity->lock, flag);
+            spin_release_irq_restore(&entity->lock, flag);
 
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
             const uint64_t msix_address = isr_get_msix_address(cpu, vector);
 
             bind_msix_to_vector(entity, msix_address, vector, masked);
-            spin_release_with_irq(&entity->lock, flag);
+            spin_release_irq_restore(&entity->lock, flag);
 
             return true;
         }
@@ -248,9 +248,9 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
 
 #if ISR_SUPPORTS_MSI
     __optimize(3) static void
-    mask_msi_vector(const struct pci_entity_info *const entity,
-                    const isr_vector_t vector,
-                    const bool masked)
+    toggle_msi_vector_mask(const struct pci_entity_info *const entity,
+                           const isr_vector_t vector,
+                           const bool masked)
     {
         if (!masked) {
             return;
@@ -272,11 +272,15 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
     }
 
     __optimize(3) static void
-    mask_msix_vector(const struct pci_entity_info *const entity,
-                     const isr_vector_t vector,
-                     const bool masked)
+    toggle_msix_vector_mask(const struct pci_entity_info *const entity,
+                            const isr_vector_t vector,
+                            const bool masked)
     {
         struct pci_entity_bar_info *const bar = entity->msix.table_bar;
+        if (bar->mmio == NULL) {
+            return;
+        }
+
         volatile struct pci_spec_cap_msix_table_entry *const table =
             reg_to_ptr(volatile struct pci_spec_cap_msix_table_entry,
                        bar->mmio->base + bar->index_in_mmio,
@@ -301,18 +305,18 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
 
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
 
-            mask_msi_vector(entity, vector, mask);
-            spin_release_with_irq(&entity->lock, flag);
+            toggle_msi_vector_mask(entity, vector, mask);
+            spin_release_irq_restore(&entity->lock, flag);
 
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            const int flag = spin_acquire_with_irq(&entity->lock);
+            const int flag = spin_acquire_irq_save(&entity->lock);
 
-            mask_msix_vector(entity, vector, mask);
-            spin_release_with_irq(&entity->lock, flag);
+            toggle_msix_vector_mask(entity, vector, mask);
+            spin_release_irq_restore(&entity->lock, flag);
 
             return true;
         }
@@ -330,7 +334,7 @@ __optimize(3) void
 pci_entity_enable_privl(struct pci_entity_info *const entity,
                         const uint16_t privl)
 {
-    const int flag = spin_acquire_with_irq(&entity->lock);
+    const int flag = spin_acquire_irq_save(&entity->lock);
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
@@ -338,12 +342,12 @@ pci_entity_enable_privl(struct pci_entity_info *const entity,
         ^ __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
-    spin_release_with_irq(&entity->lock, flag);
+    spin_release_irq_restore(&entity->lock, flag);
 }
 
 __optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
-    const int flag = spin_acquire_with_irq(&entity->lock);
+    const int flag = spin_acquire_irq_save(&entity->lock);
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
@@ -351,18 +355,18 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
         | __PCI_DEVCMDREG_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
-    spin_release_with_irq(&entity->lock, flag);
+    spin_release_irq_restore(&entity->lock, flag);
 }
 
 __optimize(3)
 void pci_entity_info_destroy(struct pci_entity_info *const entity) {
     spinlock_deinit(&entity->lock);
-    spin_acquire_with_irq(&entity->bus->lock);
+    spin_acquire_irq_save(&entity->bus->lock);
 
     list_deinit(&entity->list_in_entities);
     list_deinit(&entity->list_in_domain);
 
-    spin_acquire_with_irq(&entity->bus->lock);
+    spin_acquire_irq_save(&entity->bus->lock);
 
     struct pci_entity_bar_info *const bar_list = entity->bar_list;
     const uint8_t bar_count =

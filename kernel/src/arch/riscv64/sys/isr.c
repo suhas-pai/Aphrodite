@@ -10,7 +10,6 @@
 #include "asm/csr.h"
 
 #include "cpu/isr.h"
-#include "cpu/spinlock.h"
 #include "cpu/util.h"
 
 #include "dev/printk.h"
@@ -29,11 +28,11 @@ void isr_init() {
 __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
 
-    const int flag = spin_acquire_with_irq(&g_lock);
+    const int flag = spin_acquire_irq_save(&g_lock);
     const uint64_t result =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
-    spin_release_with_irq(&g_lock, flag);
 
+    spin_release_irq_restore(&g_lock, flag);
     if (result == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
@@ -44,12 +43,12 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
 __optimize(3)
 void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
     (void)for_msi;
-    const int flag = spin_acquire_with_irq(&g_lock);
+    const int flag = spin_acquire_irq_save(&g_lock);
 
     bitset_unset(g_bitset, vector);
     isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
 
-    spin_release_with_irq(&g_lock, flag);
+    spin_release_irq_restore(&g_lock, flag);
 }
 
 __optimize(3) void isr_mask_irq(const isr_vector_t irq) {
@@ -122,7 +121,7 @@ isr_set_vector(const isr_vector_t vector,
 }
 
 void
-isr_assign_irq_to_cpu(struct cpu_info *const cpu,
+isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
                       const uint8_t irq,
                       const isr_vector_t vector,
                       const bool masked)

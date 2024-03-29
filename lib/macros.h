@@ -118,6 +118,13 @@
     __a < __b ? __a : __b; \
 })
 
+#define twovar_cmp(a, b) ({ \
+    const __auto_type __a = (a); \
+    const __auto_type __b = (b); \
+    __a < __b ? -1 \
+        : __a > __b ? 1 : 0; \
+})
+
 #define reg_to_ptr(type, base, reg) ((type *)((uint64_t)(base) + (reg)))
 #define field_to_ptr(type, base, field) \
     reg_to_ptr(type, base, offsetof(type, field))

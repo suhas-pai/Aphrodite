@@ -25,7 +25,6 @@
 #define NVME_COMPLETION_QUEUE_SIZE 4
 
 #define NVME_QUEUE_PAGE_ALLOC_ORDER 0
-
 #define NVME_VERSION(major, minor, tertiary) \
     ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT \
      | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
@@ -240,9 +239,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    struct nvme_controller_identity *const identity =
-        phys_to_virt(identity_phys);
-
     if (!nvme_identify(controller,
                        /*nsid=*/0,
                        NVME_IDENTIFY_CNS_CONTROLLER,
@@ -262,8 +258,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
+    struct nvme_controller_identity *const ident = phys_to_virt(identity_phys);
+
     uint32_t max_transfer_shift = 0;
-    const uint32_t max_data_transfer_shift = identity->max_data_transfer_shift;
+    const uint32_t max_data_transfer_shift = ident->max_data_transfer_shift;
 
     if (max_data_transfer_shift != 0) {
         max_transfer_shift =
@@ -273,7 +271,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         max_transfer_shift = 20;
     }
 
-    const uint32_t namespace_count = identity->namespace_count;
+    const uint32_t namespace_count = ident->namespace_count;
     printk(LOGLEVEL_INFO,
            "nvme identity:\n"
            "\tvendor-id: 0x%" PRIx16 "\n"
@@ -282,11 +280,11 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
            "\tmodel number: " SV_FMT "\n"
            "\tfirmare revision: " SV_FMT "\n"
            "\tnamespace count: %" PRIu32 "\n",
-           identity->vendor_id,
-           identity->subsystem_vendor_id,
-           SV_FMT_ARGS(sv_of_carr(identity->serial_number)),
-           SV_FMT_ARGS(sv_of_carr(identity->model_number)),
-           SV_FMT_ARGS(sv_of_carr(identity->firmware_revision)),
+           ident->vendor_id,
+           ident->subsystem_vendor_id,
+           SV_FMT_ARGS(sv_of_carr(ident->serial_number)),
+           SV_FMT_ARGS(sv_of_carr(ident->model_number)),
+           SV_FMT_ARGS(sv_of_carr(ident->firmware_revision)),
            namespace_count);
 
     if (!nvme_identify(controller,
@@ -310,7 +308,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     nvme_set_number_of_queues(controller, /*queue_count=*/4);
 
-    const uint32_t *const nsid_list = (const uint32_t *)(uint64_t)identity;
+    const uint32_t *const nsid_list = (const uint32_t *)(uint64_t)ident;
     for (uint32_t i = 0; i != namespace_count; i++) {
         const uint32_t nsid = nsid_list[i];
         if (!ordinal_in_bounds(nsid, namespace_count)) {
@@ -329,15 +327,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                    max_transfer_shift))
         {
             kfree(namespace);
-            continue;
-        }
-
-        if (!storage_device_create(&namespace->device,
-                                   namespace->lba_size,
-                                   nvme_read,
-                                   nvme_write))
-        {
-            nvme_namespace_destroy(namespace);
             continue;
         }
 

@@ -4,16 +4,15 @@
  */
 
 #include "dev/printk.h"
-#include "lib/adt/hashmap.h"
 #include "sched/thread.h"
 
 #include "cache.h"
 
 #define NVME_CACHE_HASHMAP_BUCKET_COUNT 15
 
-void nvme_cache_create(struct nvme_cache *const cache) {
+void storage_cache_create(struct storage_cache *const cache) {
     cache->items =
-        HASHMAP_INIT(sizeof(struct nvme_cache_item),
+        HASHMAP_INIT(sizeof(struct storage_cache_item),
                      NVME_CACHE_HASHMAP_BUCKET_COUNT,
                      hashmap_no_hash,
                      /*hash_cb_info=*/NULL);
@@ -23,9 +22,9 @@ void nvme_cache_create(struct nvme_cache *const cache) {
 }
 
 void
-nvme_cache_push(struct nvme_cache *const cache,
-                const uint64_t lba,
-                void *const block)
+storage_cache_push(struct storage_cache *const cache,
+                   const uint64_t lba,
+                   void *const block)
 {
     preempt_disable();
     spin_acquire(&cache->lock);
@@ -44,11 +43,12 @@ nvme_cache_push(struct nvme_cache *const cache,
     }
 }
 
-void *nvme_cache_find(struct nvme_cache *const cache, const uint64_t lba) {
+void *
+storage_cache_find(struct storage_cache *const cache, const uint64_t lba) {
     preempt_disable();
     spin_acquire(&cache->lock);
 
-    struct nvme_cache_item *const most_recent = cache->most_recent;
+    struct storage_cache_item *const most_recent = cache->most_recent;
     if (most_recent != NULL) {
         if (most_recent->lba == lba) {
             spin_release(&cache->lock);
@@ -59,7 +59,7 @@ void *nvme_cache_find(struct nvme_cache *const cache, const uint64_t lba) {
     }
 
     void *result = NULL;
-    struct nvme_cache_item *const item =
+    struct storage_cache_item *const item =
         hashmap_get(&cache->items, hashmap_key_create(lba));
 
     if (item != NULL) {
@@ -73,7 +73,7 @@ void *nvme_cache_find(struct nvme_cache *const cache, const uint64_t lba) {
     return result;
 }
 
-void nvme_cache_destroy(struct nvme_cache *const cache) {
+void storage_cache_destroy(struct storage_cache *const cache) {
     spinlock_deinit(&cache->lock);
     hashmap_destroy(&cache->items);
 

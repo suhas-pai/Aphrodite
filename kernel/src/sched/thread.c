@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "asm/irqs.h"
+#include <stdatomic.h>
 #include "thread.h"
 
 __hidden struct thread kernel_main_thread = {
@@ -38,25 +38,18 @@ __optimize(3) bool preemption_enabled() {
 }
 
 __optimize(3) void preempt_disable() {
-    const bool flag = disable_interrupts_if_not();
-
     struct thread *const thread = current_thread();
-    assert(thread != thread->cpu->idle_thread);
-
-    thread->preemption_disabled =
-        check_add_assert(thread->preemption_disabled, 1);
-
-    enable_interrupts_if_flag(flag);
+    atomic_fetch_add_explicit(&thread->preemption_disabled,
+                              1,
+                              memory_order_relaxed);
 }
 
 __optimize(3) void preempt_enable() {
-    const bool flag = disable_interrupts_if_not();
-
     struct thread *const thread = current_thread();
-    assert(thread != thread->cpu->idle_thread);
+    const uint16_t old =
+        atomic_fetch_sub_explicit(&thread->preemption_disabled,
+                                  1,
+                                  memory_order_relaxed);
 
-    thread->preemption_disabled =
-        check_sub_assert(thread->preemption_disabled, 1);
-
-    enable_interrupts_if_flag(flag);
+    assert(old != 0);
 }

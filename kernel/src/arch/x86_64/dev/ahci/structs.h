@@ -430,7 +430,8 @@ enum ahci_fis_reg_h2d_flags {
 };
 
 enum ahci_fis_reg_h2d_features {
-    __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA = 1 << 0
+    __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA = 1 << 0,
+    __AHCI_FIS_REG_H2D_FEAT_OVERLAPPING_CMDS = 1 << 1
 };
 
 struct ahci_spec_fis_reg_h2d {

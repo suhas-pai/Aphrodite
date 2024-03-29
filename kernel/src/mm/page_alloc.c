@@ -31,8 +31,8 @@ add_to_freelist_order(struct page_section *const section,
 
     if (freelist_order != 0) {
         struct page *const back = page + (1ull << freelist_order) - 1;
-        page_set_state(back, PAGE_STATE_FREE_LIST_TAIL);
 
+        page_set_state(back, PAGE_STATE_FREE_LIST_TAIL);
         back->freelist_tail.head = page;
     }
 
@@ -272,7 +272,7 @@ place_head_range_of_free_pages_lower(struct page *page,
     uint64_t avail = amount;
 
     for (uint8_t order_i = 0; order_i <= orig_order; order_i++) {
-        if (avail < (1ull << order_i)) {
+        if (avail < 1ull << order_i) {
             order = order_i - 1;
             break;
         }
@@ -418,7 +418,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
             }
         }
 
-        spin_release_with_irq(&iter->lock, flag);
+        spin_release_irq_restore(&iter->lock, flag);
 
         iter = list_next(iter, zone_list);
         if (&iter->zone_list == &zone->section_list) {
@@ -450,7 +450,7 @@ done:
         }
     }
 
-    spin_release_with_irq(&iter->lock, flag);
+    spin_release_irq_restore(&iter->lock, flag);
     setup_pages_off_freelist(page, order, state);
 
     return page;
@@ -625,12 +625,12 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
                                               /*largepage_order=*/order);
 
             if (page != NULL) {
-                spin_release_with_irq(&iter->lock, flag);
+                spin_release_irq_restore(&iter->lock, flag);
                 return page;
             }
         }
 
-        spin_release_with_irq(&iter->lock, flag);
+        spin_release_irq_restore(&iter->lock, flag);
     }
 
     return NULL;
@@ -846,7 +846,7 @@ void free_large_page(struct page *head) {
     assert(page_get_state(head) == PAGE_STATE_LARGE_HEAD);
 
     struct page_section *const section = page_to_section(head);
-    const int flag = spin_acquire_with_irq(&section->lock);
+    const int flag = spin_acquire_irq_save(&section->lock);
 
     const pgt_level_t level = head->largehead.level;
     struct largepage_level_info *const level_info =
@@ -872,7 +872,7 @@ void free_large_page(struct page *head) {
         page = iter + 1;
     }
 
-    spin_release_with_irq(&section->lock, flag);
+    spin_release_irq_restore(&section->lock, flag);
 }
 
 void free_pages(struct page *page, const uint8_t order) {

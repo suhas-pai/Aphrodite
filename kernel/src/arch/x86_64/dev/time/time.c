@@ -4,6 +4,8 @@
  */
 
 #include "dev/time/hpet.h"
+
+#include "dev/pit.h"
 #include "lib/time.h"
 
 #include "sys/boot.h"
@@ -13,4 +15,6 @@ __optimize(3) nsec_t nsec_since_boot() {
             femto_to_nano(hpet_get_femto());
 }
 
-void arch_init_time() {}
+void arch_init_time() {
+    pit_init(PIT_DEFAULT_FLAGS, PIT_GRANULARITY_5_MS);
+}

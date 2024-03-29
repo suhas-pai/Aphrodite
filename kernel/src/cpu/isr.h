@@ -11,10 +11,9 @@
 
 // Returns -1 on alloc failure
 void isr_init();
-
 isr_vector_t isr_alloc_vector(bool for_msi);
-void isr_free_vector(isr_vector_t vector, bool for_msi);
 
+void isr_free_vector(isr_vector_t vector, bool for_msi);
 void isr_eoi(uint64_t intr_no);
 
 void
@@ -23,7 +22,7 @@ isr_set_vector(isr_vector_t vector,
                struct arch_isr_info *info);
 
 void
-isr_assign_irq_to_cpu(struct cpu_info *cpu,
+isr_assign_irq_to_cpu(const struct cpu_info *cpu,
                       uint8_t irq,
                       isr_vector_t vector,
                       bool masked);

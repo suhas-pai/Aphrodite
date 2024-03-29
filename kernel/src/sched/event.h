@@ -4,7 +4,6 @@
  */
 
 #pragma once
-#include "lib/adt/array.h"
 
 #include "cpu/spinlock.h"
 #include "sched/scheduler.h"

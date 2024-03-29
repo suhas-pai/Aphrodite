@@ -17,3 +17,7 @@ void sched_timer_stop() {
 void sched_irq_eoi() {
     verify_not_reached();
 }
+
+usec_t sched_timer_remaining() {
+    verify_not_reached();
+}

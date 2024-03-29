@@ -455,10 +455,12 @@ void gicd_add_msi(const uint64_t phys_base_address, const bool init_later) {
 void gicd_init_all_msi() {
     struct gic_v2_msi_info *iter = NULL;
     list_foreach(iter, &g_msi_info_list, list) {
-        if (!iter->initialized) {
-            isr_reserve_msi_irqs(iter->spi_base, iter->spi_count);
-            iter->initialized = true;
+        if (iter->initialized) {
+            continue;
         }
+
+        isr_reserve_msi_irqs(iter->spi_base, iter->spi_count);
+        iter->initialized = true;
     }
 }
 

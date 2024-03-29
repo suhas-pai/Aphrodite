@@ -55,13 +55,13 @@ pci_add_ecam_domain(const struct range bus_range,
     ecam_domain->bus_range = bus_range;
     ecam_domain->domain.segment = segment;
 
-    const int flag = spin_acquire_with_irq(&g_ecam_domain_lock);
+    const int flag = spin_acquire_irq_save(&g_ecam_domain_lock);
 
     list_add(&g_ecam_entity_list, &ecam_domain->list);
     g_ecam_entity_count++;
 
     if (!pci_add_domain(&ecam_domain->domain)) {
-        spin_release_with_irq(&g_ecam_domain_lock, flag);
+        spin_release_irq_restore(&g_ecam_domain_lock, flag);
 
         vunmap_mmio(ecam_domain->mmio);
         kfree(ecam_domain);
@@ -69,13 +69,13 @@ pci_add_ecam_domain(const struct range bus_range,
         return NULL;
     }
 
-    spin_release_with_irq(&g_ecam_domain_lock, flag);
+    spin_release_irq_restore(&g_ecam_domain_lock, flag);
     return ecam_domain;
 }
 
 __optimize(3)
 bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
-    const int flag = spin_acquire_with_irq(&g_ecam_domain_lock);
+    const int flag = spin_acquire_irq_save(&g_ecam_domain_lock);
     pci_remove_domain(&ecam_domain->domain);
 
     vunmap_mmio(ecam_domain->mmio);
@@ -83,7 +83,7 @@ bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
 
     g_ecam_entity_count--;
 
-    spin_release_with_irq(&g_ecam_domain_lock, flag);
+    spin_release_irq_restore(&g_ecam_domain_lock, flag);
     kfree(ecam_domain);
 
     return true;
