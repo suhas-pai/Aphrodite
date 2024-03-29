@@ -71,11 +71,11 @@ __optimize(3) pgt_level_t pgt_get_top_level() {
 }
 
 __optimize(3) bool pte_is_present(const pte_t pte) {
-    return (pte & __PTE_VALID) != 0;
+    return pte & __PTE_VALID;
 }
 
 __optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
-    return (level == 2 || level == 3 || level == 4);
+    return level == 2 || level == 3 || level == 4;
 }
 
 __optimize(3) bool pte_is_large(const pte_t pte) {
@@ -83,7 +83,7 @@ __optimize(3) bool pte_is_large(const pte_t pte) {
 }
 
 __optimize(3) bool pte_is_dirty(const pte_t pte) {
-    return (pte & __PTE_DIRTY) != 0;
+    return pte & __PTE_DIRTY;
 }
 
 __optimize(3) pte_t pte_read(const pte_t *const pte) {
