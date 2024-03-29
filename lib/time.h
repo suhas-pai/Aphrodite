@@ -209,6 +209,8 @@ typedef sec_t timestamp_t;
 #define TIMESTAMP_FMT "%" PRIu64
 #define TIMESTAMP_FMT_ARGS(num) (num)
 
+#define UNIX_EPOCH_YEAR 1970
+
 struct tm tm_from_stamp(const timestamp_t timestamp);
 
 // Stop colliding with Apple's time.h
@@ -233,6 +235,8 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
 #endif /* _TIME_H_ */
 
 #define TIMESPEC_NULL() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
+#define TIMESPEC_INIT(sec, nsec) \
+    ((struct timespec{ .tv_sec = (sec), .tv_nsec = (nsec)}))
 
 __optimize(3) static inline bool
 timespec_add(const struct timespec left,
