@@ -46,22 +46,14 @@ struct range range_from_loc(struct range range, uint64_t loc);
 struct range range_divide(struct range range, uint64_t div);
 struct range range_divide_out(struct range range, uint64_t div);
 
-bool
-range_multiply(struct range range, uint64_t mult, struct range *result_out);
+bool range_multiply(struct range range, uint64_t mult, struct range *out);
+bool range_round_up(struct range range, uint64_t mult, struct range *out);
 
 bool
-range_round_up(struct range range, uint64_t mult, struct range *result_out);
+range_round_up_subrange(struct range range, uint64_t mult, struct range *out);
 
-bool
-range_round_up_subrange(struct range range,
-                        uint64_t mult,
-                        struct range *result_out);
-
-bool
-range_align_in(struct range range, uint64_t boundary, struct range *range_out);
-
-bool
-range_align_out(struct range range, uint64_t boundary, struct range *range_out);
+bool range_align_in(struct range range, uint64_t boundary, struct range *out);
+bool range_align_out(struct range range, uint64_t boundary, struct range *out);
 
 bool range_has_index(struct range range, uint64_t index);
 bool range_has_loc(struct range range, uint64_t loc);
