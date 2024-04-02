@@ -667,7 +667,7 @@ bool ptwalker_points_to_largepage(const struct pt_walker *const walker) {
     }
 
     pte_t *const pte =
-        walker->tables[walker->level - 1] + walker->indices[walker->level - 1];
+        &walker->tables[walker->level - 1][walker->indices[walker->level - 1]];
 
     return pte_is_large(pte_read(pte));
 }

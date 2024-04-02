@@ -66,17 +66,25 @@ static inline bool rtc_is_date_in_binary_format(const uint8_t reg_status_b) {
     return reg_status_b & __CMOS_RTC_REGSTATUS_B_DATE_BINFMT;
 }
 
-__optimize(3) void rtc_init() {
+__optimize(3) bool rtc_init() {
     uint8_t reg_b = 0;
+    if (get_acpi_info()->fadt == NULL) {
+        printk(LOGLEVEL_WARN,
+               "rtc: acpi tables missing cruicial 'fadt' entry\n");
+        return false;
+    }
+
     if (!read_reg_status_b(&reg_b)) {
         printk(LOGLEVEL_WARN, "rtc: failed to read reg-status b\n");
-        return;
+        return false;
     }
 
     reg_b |= __CMOS_RTC_REGSTATUS_B_DATE_BINFMT;
 
     cmos_write(CMOS_REGISTER_RTC_STATUS_B, reg_b);
-    printk(LOGLEVEL_INFO, "rtc: init complete\n");
+    printk(LOGLEVEL_INFO, "rtc: succesfully initialized\n");
+
+    return true;
 }
 
 __optimize(3) static inline uint8_t convert_bcd_to_binary(const uint8_t bcd) {

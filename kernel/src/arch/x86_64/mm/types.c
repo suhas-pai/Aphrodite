@@ -51,7 +51,7 @@ __optimize(3) bool pte_is_large(const pte_t pte) {
 }
 
 __optimize(3) bool pte_is_dirty(const pte_t pte) {
-    return (pte & __PTE_DIRTY) != 0;
+    return pte & __PTE_DIRTY;
 }
 
 __optimize(3) pte_t pte_read(const pte_t *const pte) {

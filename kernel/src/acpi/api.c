@@ -50,6 +50,10 @@ static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
             sizeof(uint64_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
+            if (data[i] == 0) {
+                continue;
+            }
+
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
             callback(sdt);
         }
@@ -60,6 +64,10 @@ static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
             sizeof(uint32_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
+            if (data[i] == 0) {
+                continue;
+            }
+
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
             callback(sdt);
         }
@@ -195,6 +203,10 @@ const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
             sizeof(uint64_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
+            if (data[i] == 0) {
+                continue;
+            }
+
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
             if (memcmp(sdt->signature,
                        signature,
@@ -210,6 +222,10 @@ const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
             sizeof(uint32_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
+            if (data[i] == 0) {
+                continue;
+            }
+
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
             if (memcmp(sdt->signature,
                        signature,

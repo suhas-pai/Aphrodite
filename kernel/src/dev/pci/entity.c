@@ -187,13 +187,10 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
         }
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
-            reg_to_ptr(volatile struct pci_spec_cap_msix_table_entry,
-                       bar->mmio->base + bar->index_in_mmio,
-                       entity->msix.table_offset);
+            bar->mmio->base + bar->index_in_mmio + entity->msix.table_offset;
 
         mmio_write(&table[index].msg_address_lower32, (uint32_t)address);
-        mmio_write(&table[index].msg_address_upper32,
-                   (uint32_t)(address >> 32));
+        mmio_write(&table[index].msg_address_upper32, address >> 32);
 
         mmio_write(&table[index].data, vector);
         mmio_write(&table[index].control, (uint32_t)masked);
@@ -211,7 +208,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
                    "pcie: entity " PCI_ENTITY_INFO_FMT " does not support msi "
-                   "or msix. failing to bind msi(x) to "
+                   "or msix. failing to bind msi[x] to "
                    "vector " ISR_VECTOR_FMT "\n",
                    PCI_ENTITY_INFO_FMT_ARGS(entity),
                    vector);
@@ -282,9 +279,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         }
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
-            reg_to_ptr(volatile struct pci_spec_cap_msix_table_entry,
-                       bar->mmio->base + bar->index_in_mmio,
-                       entity->msix.table_offset);
+            bar->mmio->base + bar->index_in_mmio + entity->msix.table_offset;
 
         mmio_write(&table[vector].control, masked);
     }
@@ -331,15 +326,15 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
 }
 
 __optimize(3) void
-pci_entity_enable_privl(struct pci_entity_info *const entity,
-                        const uint16_t privl)
+pci_entity_enable_privls(struct pci_entity_info *const entity,
+                         const uint16_t privl)
 {
     const int flag = spin_acquire_irq_save(&entity->lock);
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
         (old_command | (privl & __PCI_ENTITY_PRIVL_MASK))
-        ^ __PCI_DEVCMDREG_INT_DISABLE;
+        ^ __PCI_DEVCMDREG_PIN_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     spin_release_irq_restore(&entity->lock, flag);
@@ -352,7 +347,7 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
         rm_mask(old_command, __PCI_ENTITY_PRIVL_MASK)
-        | __PCI_DEVCMDREG_INT_DISABLE;
+        | __PCI_DEVCMDREG_PIN_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     spin_release_irq_restore(&entity->lock, flag);

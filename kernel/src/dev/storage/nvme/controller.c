@@ -3,16 +3,31 @@
  * © suhas pai
  */
 
-#include "dev/pci/entity.h"
+#include "asm/pause.h"
 
-#include "asm/irqs.h"
 #include "cpu/isr.h"
 #include "dev/printk.h"
+
+#include "lib/util.h"
+#include "lib/size.h"
+
 #include "mm/kmalloc.h"
+#include "mm/phalloc.h"
+
 #include "sys/mmio.h"
 
 #include "command.h"
 #include "namespace.h"
+
+// Recommended values from spec
+#define NVME_SUBMIT_QUEUE_SIZE 6
+#define NVME_COMPLETION_QUEUE_SIZE 4
+
+#define NVME_QUEUE_PAGE_ALLOC_ORDER 0
+#define NVME_VERSION(major, minor, tertiary) \
+    ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT \
+     | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
+     | (uint32_t)tertiary)
 
 static struct list g_controller_list = LIST_INIT(g_controller_list);
 static uint32_t g_controller_count = 0;
@@ -101,106 +116,246 @@ void handle_irq(const uint64_t int_no, struct thread_context *const frame) {
     return;
 }
 
+#define MAX_ATTEMPTS 100
+
+__optimize(3) static inline
+bool wait_until_stopped(volatile struct nvme_registers *const regs) {
+    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+        if ((mmio_read(&regs->status) & __NVME_CNTLR_STATUS_READY) == 0) {
+            return true;
+        }
+
+        cpu_pause();
+    }
+
+    return false;
+}
+
+__optimize(3) static inline
+bool wait_until_ready(volatile struct nvme_registers *const regs) {
+    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+        const uint8_t status = mmio_read(&regs->status);
+        if (status & __NVME_CNTLR_STATUS_READY) {
+            return true;
+        }
+
+        if (status & __NVME_CNTLR_STATUS_FATAL) {
+            printk(LOGLEVEL_WARN, "nvme: fatal status in controller\n");
+            return false;
+        }
+
+        cpu_pause();
+    }
+
+    printk(LOGLEVEL_WARN, "nvme: controller failed to get ready in time\n");
+    return false;
+}
+
+static bool
+identify_namespaces(struct nvme_controller *const controller,
+                    const uint16_t max_queue_cmd_count)
+{
+    volatile struct nvme_registers *const regs = controller->regs;
+    const uint64_t identity_phys = phalloc(sizeof(struct nvme_identity));
+
+    if (identity_phys == INVALID_PHYS) {
+        printk(LOGLEVEL_WARN, "nvme: failed to alloc page for identity cmd\n");
+        return false;
+    }
+
+    if (!nvme_identify(controller,
+                       /*nsid=*/0,
+                       NVME_IDENTIFY_CNS_CONTROLLER,
+                       identity_phys))
+    {
+        phalloc_free(identity_phys);
+        printk(LOGLEVEL_WARN, "nvme: failed to alloc page for identity cmd\n");
+
+        return false;
+    }
+
+    struct nvme_identity *const ident = phys_to_virt(identity_phys);
+
+    uint32_t max_transfer_shift = 0;
+    const uint32_t max_data_transfer_shift = ident->max_data_transfer_shift;
+
+    if (max_data_transfer_shift != 0) {
+        max_transfer_shift =
+            ((regs->capabilities & __NVME_CAP_MEM_PAGE_SIZE_MIN_4KiB) >>
+                NVME_CAP_MEM_PAGE_SIZE_MIN_SHIFT) + 12;
+    } else {
+        max_transfer_shift = 20;
+    }
+
+    const uint32_t namespace_count = ident->namespace_count;
+    printk(LOGLEVEL_INFO,
+           "nvme identity:\n"
+           "\tvendor-id: 0x%" PRIx16 "\n"
+           "\tsubsystem vendor-id: 0x%" PRIx16 "\n"
+           "\tserial number: " SV_FMT "\n"
+           "\tmodel number: " SV_FMT "\n"
+           "\tfirmare revision: " SV_FMT "\n"
+           "\tnamespace count: %" PRIu32 "\n",
+           ident->vendor_id,
+           ident->subsystem_vendor_id,
+           SV_FMT_ARGS(sv_of_carr(ident->serial_number)),
+           SV_FMT_ARGS(sv_of_carr(ident->model_number)),
+           SV_FMT_ARGS(sv_of_carr(ident->firmware_revision)),
+           namespace_count);
+
+    if (!nvme_identify(controller,
+                       /*nsid=*/0,
+                       NVME_IDENTIFY_CNS_ACTIVE_NSID_LIST,
+                       identity_phys))
+    {
+        phalloc_free(identity_phys);
+        printk(LOGLEVEL_WARN, "nvme: failed to identify controller\n");
+
+        return false;
+    }
+
+    if (!nvme_set_number_of_queues(controller, /*queue_count=*/4)) {
+        phalloc_free(identity_phys);
+        printk(LOGLEVEL_WARN, "nvme: failed to set number of queues\n");
+
+        return false;
+    }
+
+    const uint32_t *const nsid_list = (const uint32_t *)(uint64_t)ident;
+    for (uint32_t i = 0; i != namespace_count; i++) {
+        const uint32_t nsid = nsid_list[i];
+        if (!ordinal_in_bounds(nsid, namespace_count)) {
+            continue;
+        }
+
+        struct nvme_namespace *const namespace = kmalloc(sizeof(*namespace));
+        if (namespace == NULL) {
+            continue;
+        }
+
+        if (!nvme_namespace_create(namespace,
+                                   controller,
+                                   nsid,
+                                   max_queue_cmd_count,
+                                   max_transfer_shift))
+        {
+            kfree(namespace);
+            continue;
+        }
+
+        printk(LOGLEVEL_INFO,
+               "nvme: initialized namespace %" PRIu32 "\n",
+               namespace->nsid);
+    }
+
+    phalloc_free(identity_phys);
+    return true;
+}
+
 bool
 nvme_controller_create(struct nvme_controller *const controller,
-                       struct pci_entity_info *pci_entity,
                        volatile struct nvme_registers *const regs,
-                       const uint8_t stride,
+                       const isr_vector_t isr_vector,
                        const uint16_t msix_vector)
 {
     list_init(&controller->list);
     list_init(&controller->namespace_list);
 
-    controller->pci_entity = pci_entity;
     controller->regs = regs;
-    controller->stride = stride;
     controller->lock = SPINLOCK_INIT();
     controller->msix_vector = msix_vector;
-    controller->isr_vector = isr_alloc_vector(/*for_msi=*/true);
-
-    if (controller->isr_vector == ISR_INVALID_VECTOR) {
-        return false;
-    }
+    controller->isr_vector = isr_vector;
 
     isr_set_vector(controller->isr_vector, handle_irq, &ARCH_ISR_INFO_NONE());
-
-    const int flag = disable_interrupts_if_not();
-    if (!pci_entity_enable_msi(pci_entity)) {
-        isr_free_vector(controller->isr_vector, /*for_msi=*/true);
-        printk(LOGLEVEL_WARN, "nvme: pci-entity is missing msi capability\n");
-
-        return false;
-    }
-
-    pci_entity_bind_msi_to_vector(pci_entity,
-                                  this_cpu(),
-                                  controller->isr_vector,
-                                  /*masked=*/false);
-
-    enable_interrupts_if_flag(flag);
     if (!nvme_queue_create(&controller->admin_queue,
                            controller,
                            /*id=*/0,
                            NVME_ADMIN_QUEUE_COUNT,
                            /*max_transfer_shift=*/0))
     {
-        pci_entity_disable_msi(pci_entity);
-        isr_free_vector(controller->isr_vector, /*for_msi=*/true);
-
         return false;
     }
+
+    const uint32_t capabilities = mmio_read(&regs->capabilities);
+    const uint16_t max_queue_cmd_count =
+        (capabilities & __NVME_CAP_MAX_QUEUE_ENTRIES) + 1;
+
+    printk(LOGLEVEL_INFO,
+           "nvme: supports upto %" PRIu16 " queues\n",
+           max_queue_cmd_count);
+
+    const uint8_t stride_offset =
+        (capabilities & __NVME_CAP_DOORBELL_STRIDE) >>
+            NVME_CAP_DOORBELL_STRIDE_SHIFT;
+
+    printk(LOGLEVEL_INFO,
+           "nvme: stride is " SIZE_UNIT_FMT "\n",
+           SIZE_UNIT_FMT_ARGS_ABBREV(controller->stride));
+
+    controller->stride = 2ull << (2 + stride_offset);
+    const uint32_t version = mmio_read(&regs->version);
+
+    printk(LOGLEVEL_WARN,
+           "nvme: version is " NVME_VERSION_FMT "\n",
+           NVME_VERSION_FMT_ARGS(version));
+
+    if (version < NVME_VERSION(1, 4, 0)) {
+        printk(LOGLEVEL_WARN, "nvme: version too old, unsupported\n");
+        return false;
+    }
+
+    const uint32_t config = mmio_read(&regs->config);
+    if (config & __NVME_CONFIG_ENABLE) {
+        mmio_write(&regs->config, rm_mask(config, __NVME_CONFIG_ENABLE));
+    }
+
+    if (!wait_until_stopped(regs)) {
+        printk(LOGLEVEL_WARN, "nvme: controller failed to stop in time\n");
+        return false;
+    }
+
+    mmio_write(&regs->admin_queue_attributes,
+               (NVME_ADMIN_QUEUE_COUNT - 1) <<
+                NVME_ADMIN_QUEUE_ATTR_SUBMIT_QUEUE_SIZE_SHIFT
+               | (NVME_ADMIN_QUEUE_COUNT - 1));
+
+    mmio_write(&regs->admin_submit_queue_base_addr,
+               controller->admin_queue.submit_queue_phys);
+    mmio_write(&regs->admin_completion_queue_base_addr,
+               controller->admin_queue.completion_queue_phys);
+
+    mmio_write(&regs->config,
+               NVME_SUBMIT_QUEUE_SIZE <<
+                NVME_CONFIG_IO_SUBMIT_QUEUE_ENTRY_SIZE_SHIFT
+               | NVME_COMPLETION_QUEUE_SIZE <<
+                NVME_CONFIG_IO_COMPL_QUEUE_ENTRY_SIZE_SHIFT
+               | __NVME_CONFIG_ENABLE);
+
+    if (!wait_until_ready(regs)) {
+        printk(LOGLEVEL_WARN, "nvme: controller failed to restart in time\n");
+        return false;
+    }
+
+    printk(LOGLEVEL_INFO,
+           "nvme: binding vector " ISR_VECTOR_FMT " to msix "
+           "vector %" PRIu16 "\n",
+           controller->isr_vector,
+           controller->msix_vector);
 
     list_add(&g_controller_list, &controller->list);
     g_controller_count++;
 
+    if (!identify_namespaces(controller, max_queue_cmd_count)) {
+        mmio_write(&regs->config, 0);
+
+        list_remove(&controller->list);
+        g_controller_count--;
+
+        return false;
+    }
+
+    printk(LOGLEVEL_INFO, "nvme: finished init\n");
     return true;
-}
-
-bool
-nvme_identify(struct nvme_controller *const controller,
-              const uint32_t nsid,
-              const enum nvme_identify_cns cns,
-              const uint64_t out)
-{
-    const struct nvme_command command =
-        NVME_IDENTIFY_CMD(&controller->admin_queue, nsid, cns, out);
-
-    return nvme_queue_submit_command(&controller->admin_queue, &command);
-}
-
-bool
-nvme_create_submit_queue(struct nvme_controller *const controller,
-                         const struct nvme_namespace *const namespace)
-{
-    const struct nvme_command submit_command =
-        NVME_CREATE_SUBMIT_QUEUE_CMD(controller, &namespace->io_queue);
-
-    return nvme_queue_submit_command(&controller->admin_queue, &submit_command);
-}
-
-bool
-nvme_create_completion_queue(struct nvme_controller *const controller,
-                             const struct nvme_namespace *const namespace)
-{
-    const struct nvme_command comp_command =
-        NVME_CREATE_COMPLETION_QUEUE_CMD(controller,
-                                         &namespace->io_queue,
-                                         controller->msix_vector);
-
-    return nvme_queue_submit_command(&controller->admin_queue, &comp_command);
-}
-
-bool
-nvme_set_number_of_queues(struct nvme_controller *const controller,
-                          const uint16_t queue_count)
-{
-    const struct nvme_command setft_command =
-        NVME_SET_FEATURES_CMD(NVME_CMD_FEATURE_QUEUE_COUNT,
-                              (uint32_t)queue_count << 16 | queue_count,
-                              /*prp1=*/0,
-                              /*prp2=*/0);
-
-    return nvme_queue_submit_command(&controller->admin_queue, &setft_command);
 }
 
 bool nvme_controller_destroy(struct nvme_controller *const controller) {
@@ -216,7 +371,6 @@ bool nvme_controller_destroy(struct nvme_controller *const controller) {
     list_deinit(&controller->list);
     list_deinit(&controller->namespace_list);
 
-    controller->pci_entity = NULL;
     controller->regs = NULL;
     controller->stride = 0;
     controller->msix_vector = 0;

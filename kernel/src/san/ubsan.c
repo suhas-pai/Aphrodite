@@ -24,7 +24,7 @@ static const char *const type_check_kind_list[] = {
     "dynamic operation on"
 };
 
-void
+__optimize(3) void
 __ubsan_handle_type_mismatch_v1(struct type_mismatch_info_v1 *const info,
                                 const uint64_t pointer)
 {
@@ -50,7 +50,7 @@ __ubsan_handle_type_mismatch_v1(struct type_mismatch_info_v1 *const info,
     }
 }
 
-void
+__optimize(3) void
 __ubsan_handle_type_mismatch_v1_abort(struct type_mismatch_info_v1 *const info,
                                       const uint64_t pointer)
 {
@@ -58,7 +58,7 @@ __ubsan_handle_type_mismatch_v1_abort(struct type_mismatch_info_v1 *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_pointer_overflow(struct pointer_overflow_info *const info,
                                 const uint64_t base,
                                 const uint64_t offset)
@@ -163,7 +163,7 @@ __ubsan_handle_pointer_overflow(struct pointer_overflow_info *const info,
     }
 }
 
-void
+__optimize(3) void
 __ubsan_handle_pointer_overflow_abort(struct pointer_overflow_info *const info,
                                       const uint64_t base,
                                       const uint64_t offset)
@@ -172,7 +172,7 @@ __ubsan_handle_pointer_overflow_abort(struct pointer_overflow_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_shift_out_of_bounds(struct shift_out_of_bounds_info *const info,
                                    const uint64_t lhs_value,
                                    const uint64_t rhs_value)
@@ -207,7 +207,7 @@ __ubsan_handle_shift_out_of_bounds(struct shift_out_of_bounds_info *const info,
     }
 }
 
-void
+__optimize(3) void
 __ubsan_handle_shift_out_of_bounds_abort(
     struct shift_out_of_bounds_info *const info,
     const uint64_t lhs_value,
@@ -217,6 +217,7 @@ __ubsan_handle_shift_out_of_bounds_abort(
     cpu_idle();
 }
 
+__optimize(3)
 void __ubsan_handle_nonnull_arg(struct nonnull_arg_info *const info) {
     printk(LOGLEVEL_ERROR,
            "ubsan: [" SOURCE_LOCATION_FMT "] null pointer passed to argument "
@@ -225,12 +226,13 @@ void __ubsan_handle_nonnull_arg(struct nonnull_arg_info *const info) {
            (int32_t)info->arg_index);
 }
 
+__optimize(3)
 void __ubsan_handle_nonnull_arg_abort(struct nonnull_arg_info *const info) {
     __ubsan_handle_nonnull_arg(info);
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_sub_overflow(struct overflow_info *const info,
                             const uint64_t lhs,
                             const uint64_t rhs)
@@ -245,7 +247,7 @@ __ubsan_handle_sub_overflow(struct overflow_info *const info,
            info->type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_add_overflow(struct overflow_info *const info,
                             const uint64_t lhs,
                             const uint64_t rhs)
@@ -260,7 +262,7 @@ __ubsan_handle_add_overflow(struct overflow_info *const info,
            info->type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_mul_overflow(struct overflow_info *const info,
                             const uint64_t lhs,
                             const uint64_t rhs)
@@ -275,7 +277,7 @@ __ubsan_handle_mul_overflow(struct overflow_info *const info,
            info->type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_add_overflow_abort(struct overflow_info *const info,
                                   const uint64_t lhs,
                                   const uint64_t rhs)
@@ -284,7 +286,7 @@ __ubsan_handle_add_overflow_abort(struct overflow_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_sub_overflow_abort(struct overflow_info *const info,
                                   const uint64_t lhs,
                                   const uint64_t rhs)
@@ -293,7 +295,7 @@ __ubsan_handle_sub_overflow_abort(struct overflow_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_mul_overflow_abort(struct overflow_info *const info,
                                   const uint64_t lhs,
                                   const uint64_t rhs)
@@ -302,7 +304,7 @@ __ubsan_handle_mul_overflow_abort(struct overflow_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_negate_overflow(struct overflow_info *const info,
                                const uint64_t value)
 {
@@ -322,7 +324,7 @@ __ubsan_handle_negate_overflow(struct overflow_info *const info,
     }
 }
 
-void
+__optimize(3) void
 __ubsan_handle_negate_overflow_abort(struct overflow_info *const info,
                                      const uint64_t value)
 {
@@ -330,7 +332,7 @@ __ubsan_handle_negate_overflow_abort(struct overflow_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_divrem_overflow(struct overflow_info *const info,
                                const uint64_t lhs,
                                const uint64_t rhs)
@@ -353,7 +355,7 @@ __ubsan_handle_divrem_overflow(struct overflow_info *const info,
     }
 }
 
-void
+__optimize(3) void
 __ubsan_handle_divrem_overflow_abort(struct overflow_info *const info,
                                      const uint64_t lhs,
                                      const uint64_t rhs)
@@ -362,7 +364,7 @@ __ubsan_handle_divrem_overflow_abort(struct overflow_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_out_of_bounds(struct out_of_bounds_info *const info,
                              const uint64_t index)
 {
@@ -374,7 +376,7 @@ __ubsan_handle_out_of_bounds(struct out_of_bounds_info *const info,
            info->array_type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_out_of_bounds_abort(struct out_of_bounds_info *const info,
                                    const uint64_t index)
 {
@@ -382,20 +384,21 @@ __ubsan_handle_out_of_bounds_abort(struct out_of_bounds_info *const info,
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_builtin_unreachable(struct unreachable_info *const info) {
     printk(LOGLEVEL_ERROR,
            "ubsan: [" SOURCE_LOCATION_FMT "] Reached the unreachable\n",
            SOURCE_LOCATION_FMT_ARGS(&info->location));
 }
 
+__optimize(3)
 void __ubsan_handle_missing_return(struct unreachable_info *const info) {
     printk(LOGLEVEL_ERROR,
            "ubsan: [" SOURCE_LOCATION_FMT "] function doesn't return a value\n",
            SOURCE_LOCATION_FMT_ARGS(&info->location));
 }
 
-void
+__optimize(3) void
 __ubsan_handle_vla_bound_not_positive(struct vla_bound_info *const info,
                                       const uint64_t bound)
 {
@@ -406,7 +409,7 @@ __ubsan_handle_vla_bound_not_positive(struct vla_bound_info *const info,
            bound);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_float_cast_overflow(struct float_cast_overflow_info *const info,
                                    const uint64_t value)
 {
@@ -418,7 +421,7 @@ __ubsan_handle_float_cast_overflow(struct float_cast_overflow_info *const info,
            info->type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_load_invalid_value(struct invalid_value_info *const info,
                                   const uint64_t value)
 {
@@ -430,7 +433,7 @@ __ubsan_handle_load_invalid_value(struct invalid_value_info *const info,
            info->type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_type_mismatch(struct type_mismatch_info *const info,
                              const uint64_t value)
 {
@@ -442,7 +445,7 @@ __ubsan_handle_type_mismatch(struct type_mismatch_info *const info,
            info->type->name);
 }
 
-void
+__optimize(3) void
 __ubsan_handle_implicit_conversion(struct implicit_conversion_info *const info,
                                    const uint64_t value)
 {
@@ -477,7 +480,7 @@ __ubsan_handle_implicit_conversion(struct implicit_conversion_info *const info,
     }
 }
 
-void
+__optimize(3) void
 __ubsan_handle_implicit_conversion_abort(
     struct implicit_conversion_info *const info,
     const uint64_t value)
@@ -486,6 +489,7 @@ __ubsan_handle_implicit_conversion_abort(
     cpu_idle();
 }
 
+__optimize(3)
 void __ubsan_handle_nonnull_return_v1(struct nonnull_return_info *const info) {
     printk(LOGLEVEL_ERROR,
            "ubsan: [" SOURCE_LOCATION_FMT "] null pointer returned from "
@@ -493,13 +497,13 @@ void __ubsan_handle_nonnull_return_v1(struct nonnull_return_info *const info) {
            SOURCE_LOCATION_FMT_ARGS(&info->location));
 }
 
-void
+__optimize(3) void
 __ubsan_handle_nonnull_return_v1_abort(struct nonnull_return_info *const info) {
     __ubsan_handle_nonnull_return_v1(info);
     cpu_idle();
 }
 
-void
+__optimize(3) void
 __ubsan_handle_invalid_builtin(struct invalid_builtin_info *const info,
                                const enum builtin_check_kind kind)
 {
@@ -511,7 +515,7 @@ __ubsan_handle_invalid_builtin(struct invalid_builtin_info *const info,
             "__builtin_ctz" : "__builtin_clz");
 }
 
-void
+__optimize(3) void
 __ubsan_handle_function_type_mismatch(
     struct function_type_mismatch_info *const info,
     const uint64_t value)

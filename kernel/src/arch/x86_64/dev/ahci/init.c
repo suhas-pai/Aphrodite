@@ -77,15 +77,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    printk(LOGLEVEL_INFO,
-           "ahci: interrupt info: pin %" PRIu8 ", line: %" PRIu8 "\n",
-           pci_entity->interrupt_pin,
-           pci_entity->interrupt_line);
-
-    pci_entity_enable_privl(pci_entity,
-                            __PCI_ENTITY_PRIVL_BUS_MASTER
-                            | __PCI_ENTITY_PRIVL_MEM_ACCESS
-                            | __PCI_ENTITY_PRIVL_INTERRUPTS);
+    pci_entity_enable_privls(pci_entity,
+                             __PCI_ENTITY_PRIVL_BUS_MASTER
+                             | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
     g_hba_vector = isr_alloc_vector(/*for_msi=*/true);
     assert(g_hba_vector != ISR_INVALID_VECTOR);
@@ -101,8 +95,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     enable_interrupts_if_flag(flag);
     volatile struct ahci_spec_hba_registers *const regs =
-        (volatile struct ahci_spec_hba_registers *)
-            (bar->mmio->base + bar->index_in_mmio);
+        bar->mmio->base + bar->index_in_mmio;
 
     const uint32_t version = mmio_read(&regs->version);
     printk(LOGLEVEL_INFO,
@@ -182,8 +175,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
         bool handoff_successful = false;
         for (uint32_t i = 0; i != MAX_ATTEMPTS; i++) {
-            if ((mmio_read(&regs->bios_os_handoff_ctrl_status) &
-                    __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_BUSY) == 0)
+            if ((mmio_read(&regs->bios_os_handoff_ctrl_status)
+                    & __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_BUSY) == 0)
             {
                 handoff_successful = true;
                 break;
@@ -207,8 +200,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     mmio_write(&regs->global_host_control,
-               __AHCI_HBA_GLOBAL_HOST_CTRL_AHCI_ENABLE |
-               __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE);
+               __AHCI_HBA_GLOBAL_HOST_CTRL_AHCI_ENABLE
+               | __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE);
 
     uint8_t usable_port_count = 0;
     for (uint8_t index = 0; index != AHCI_HBA_MAX_PORT_COUNT; index++) {
@@ -216,9 +209,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             continue;
         }
 
-        volatile struct ahci_spec_hba_port *const spec =
-            (volatile struct ahci_spec_hba_port *)&regs->ports[index];
-
+        volatile struct ahci_spec_hba_port *const spec = &regs->ports[index];
         if (!ahci_hba_probe_port(spec)) {
             printk(LOGLEVEL_WARN,
                    "ahci: implemented port #%" PRIu8 " is either not present "

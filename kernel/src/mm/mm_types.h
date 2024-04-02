@@ -27,23 +27,41 @@ uint64_t pfn_to_phys_manual(uint64_t pfn);
 struct page;
 
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))
-#define pfn_to_page(pfn) \
-    ((struct page *)(PAGE_OFFSET + (SIZEOF_STRUCTPAGE * (pfn))))
+#define pfn_to_page(pfn) ({ \
+    __auto_type h_var(page) = PAGE_OFFSET + (SIZEOF_STRUCTPAGE * (pfn)); \
+    assert((uint64_t)h_var(page) >= PAGE_OFFSET && \
+           (uint64_t)h_var(page) < PAGE_END); \
+    (struct page *)h_var(page); \
+})
 
 #define page_to_pfn(p) \
     _Generic((p), \
-        const struct page *: \
-            (check_sub_assert((uint64_t)(p), PAGE_OFFSET) / SIZEOF_STRUCTPAGE),\
-        struct page *: \
-            (check_sub_assert((uint64_t)(p), PAGE_OFFSET) / SIZEOF_STRUCTPAGE))
+        const struct page *: ({ \
+            const uint64_t h_var(page) = (uint64_t)(p); \
+            assert(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END); \
+            check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
+        }), \
+        struct page *: ({ \
+            const uint64_t h_var(page) = (uint64_t)(p); \
+            assert(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END); \
+            check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
+        }))
 
 #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
 #define virt_to_page(virt) pfn_to_page(virt_to_pfn(virt))
 #define virt_to_pfn(virt) phys_to_pfn(virt_to_phys(virt))
 #define page_to_virt(p) \
     _Generic((p), \
-        const struct page *: phys_to_virt(page_to_phys(p)), \
-        struct page *: phys_to_virt(page_to_phys(p)))
+        const struct page *: ({ \
+            __auto_type __p = (p); \
+            assert((uint64_t)__p >= PAGE_OFFSET && (uint64_t)__p < PAGE_END); \
+            phys_to_virt(page_to_phys(__p)); \
+        }), \
+        struct page *: ({ \
+            __auto_type __p = (p); \
+            assert((uint64_t)__p >= PAGE_OFFSET && (uint64_t)__p < PAGE_END); \
+            phys_to_virt(page_to_phys(__p)); \
+        }))
 
 typedef uint8_t pgt_level_t;
 typedef uint16_t pgt_index_t;

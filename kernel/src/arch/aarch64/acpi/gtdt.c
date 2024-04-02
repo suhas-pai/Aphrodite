@@ -3,9 +3,10 @@
  * © suhas pai
  */
 
+#include "sys/gic/v2.h"
+
 #include "dev/printk.h"
 #include "lib/util.h"
-#include "sys/gic.h"
 
 #include "gtdt.h"
 

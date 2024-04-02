@@ -56,12 +56,12 @@ struct type_descriptor {
     char name[];
 };
 
-static inline
+__optimize(3) static inline
 bool typedesc_is_signed_int(const struct type_descriptor *const desc) {
     return (desc->info & 1);
 }
 
-static inline
+__optimize(3) static inline
 uint8_t typedesc_get_int_bit_width(const struct type_descriptor *const desc) {
     return 1 << (desc->info >> 1);
 }

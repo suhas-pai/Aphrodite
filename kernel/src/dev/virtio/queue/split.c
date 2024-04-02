@@ -51,8 +51,8 @@ virtio_split_queue_init(struct virtio_device *const device,
     }
 
     void *const page_ptr = page_to_virt(page);
-    struct virtq_desc *const desc_table = page_ptr;
 
+    struct virtq_desc *const desc_table = page_ptr;
     struct virtq_avail *const avail_ring =
         (struct virtq_avail *)(desc_table + desc_count);
 

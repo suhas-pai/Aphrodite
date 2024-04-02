@@ -4,9 +4,8 @@
  */
 
 #include "dev/printk.h"
-#include "dev/storage/cache.h"
-
 #include "lib/util.h"
+
 #include "mm/kmalloc.h"
 #include "mm/phalloc.h"
 
@@ -29,7 +28,6 @@ parse_gpt_entries(struct storage_device *const device,
     if (entry_list == NULL) {
         return false;
     }
-
 
     uint32_t entry_list_start = header->partition_sector * SECTOR_SIZE;
     const uint32_t entry_list_end = entry_list_start + total_size;
@@ -88,11 +86,7 @@ parse_gpt_entries(struct storage_device *const device,
     } while (index_in_bounds(entry_list_start, entry_list_end));
 
     kfree(entry_list);
-    if (!found_atleast_one) {
-        return false;
-    }
-
-    return true;
+    return found_atleast_one;
 }
 
 static bool
@@ -129,11 +123,7 @@ parse_mbr_entries(struct storage_device *const device,
         found_atleast_one = true;
     }
 
-    if (!found_atleast_one) {
-        return false;
-    }
-
-    return true;
+    return found_atleast_one;
 }
 
 static bool identify_partitions(struct storage_device *const device) {
@@ -233,7 +223,7 @@ find_in_cache_or_read_block(struct storage_device *const device,
         return NULL;
     }
 
-    if (device->read(device, phys, RANGE_INIT(lba, 1))) {
+    if (device->read(device, phys, RANGE_INIT(lba, 1)) != 1) {
         phalloc_free(phys);
         return NULL;
     }
@@ -325,7 +315,7 @@ storage_device_write(struct storage_device *const device,
                 memcpy(virt + lba_offset, buf + offset, copy_size);
             }
 
-            if (!device->write(device, phys, RANGE_INIT(lba, 1))) {
+            if (device->write(device, phys, RANGE_INIT(lba, 1)) != 1) {
                 phalloc_free(phys);
                 return offset;
             }

@@ -70,7 +70,7 @@
             .prp1 = (buf_phys), \
             .prp2 = 0, \
             .slba = (lba_range).front, \
-            .len = (lba_range).size, \
+            .len = ((lba_range).size - 1), \
             .control = 0, \
             .dsmgmt = 0, \
             .ref = 0, \
@@ -79,3 +79,22 @@
         } \
     })
 
+bool
+nvme_identify(struct nvme_controller *controller,
+              uint32_t nsid,
+              enum nvme_identify_cns cns,
+              uint64_t out);
+
+struct nvme_namespace;
+
+bool
+nvme_create_submit_queue(struct nvme_controller *controller,
+                         const struct nvme_namespace *namespace);
+
+bool
+nvme_create_completion_queue(struct nvme_controller *controller,
+                             const struct nvme_namespace *namespace);
+
+bool
+nvme_set_number_of_queues(struct nvme_controller *controller,
+                          uint16_t queue_count);

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/sys/gic.c
+ * kernel/src/arch/aarch64/sys/gic/v2.c
  * © suhas pai
  */
 
@@ -16,7 +16,7 @@
 #include "mm/mmio.h"
 
 #include "sys/mmio.h"
-#include "gic.h"
+#include "v2.h"
 
 #define GIC_DIST_IMPLEMENTER_ID_RESET 0x0001043B
 
@@ -70,6 +70,7 @@ struct gicd_v2_registers {
 
     // Read-only on SGIs
     volatile _Atomic uint32_t interrupt_config[64];
+
     volatile uint32_t interrupt_group_modifiers[64];
     volatile uint32_t non_secure_access_control[64];
 

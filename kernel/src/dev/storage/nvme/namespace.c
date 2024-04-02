@@ -60,9 +60,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
                       const uint16_t max_queue_entry_count,
                       const uint32_t max_transfer_shift)
 {
-    const uint64_t identity_phys =
-        phalloc(sizeof(struct nvme_namespace_identity));
-
+    const uint64_t identity_phys = phalloc(sizeof(struct nvme_nsidentity));
     if (identity_phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc page for identify-namespace command\n");
@@ -82,10 +80,9 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
         return false;
     }
 
-    struct nvme_namespace_identity *const identity =
-        phys_to_virt(identity_phys);
+    struct nvme_nsidentity *const identity = phys_to_virt(identity_phys);
 
-    const uint32_t formatted_lba = identity->formatted_lba_count & 0xF;
+    const uint32_t formatted_lba = identity->formatted_lba_index & 0xF;
     const struct nvme_lba lba = identity->lbaf[formatted_lba];
 
     const uint32_t lba_size = 1ull << lba.lba_data_size_shift;
@@ -122,7 +119,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
            lba.relative_performance);
 
     printk(LOGLEVEL_INFO,
-           "\tformatted lba size: %" PRIu8 "\n"
+           "\tformatted lba index: %" PRIu8 "\n"
            "\tmetadata capabilities: 0x%" PRIu8 "\n"
            "\tdata protection capabilities: 0x%" PRIu8 "\n"
            "\tdata protection settings: 0x%" PRIu8 "\n"
@@ -193,16 +190,15 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
         return false;
     }
 
-    list_init(&namespace->list);
-
     namespace->controller = controller;
     namespace->nsid = nsid;
-    namespace->lba_size = lba_size;
     namespace->lba_count = lba_count;
 
+    list_init(&namespace->list);
     list_add(&controller->namespace_list, &namespace->list);
+
     if (!storage_device_init(&namespace->device,
-                             namespace->lba_size,
+                             lba_size,
                              nvme_read,
                              nvme_write))
     {
@@ -234,7 +230,7 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
     }
 
     uint64_t total_size = 0;
-    if (!check_mul(namespace->lba_size, lba_range.size, &total_size)) {
+    if (!check_mul(namespace->device.lba_size, lba_range.size, &total_size)) {
         printk(LOGLEVEL_WARN,
                "nvme: namespace got request to %s lba-range past end of 64-bit "
                "range of namespace\n",
@@ -273,7 +269,5 @@ void nvme_namespace_destroy(struct nvme_namespace *const namespace) {
 
     namespace->controller = NULL;
     namespace->nsid = 0;
-
-    namespace->lba_size = 0;
     namespace->lba_count = 0;
 }

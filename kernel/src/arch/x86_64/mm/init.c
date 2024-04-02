@@ -109,11 +109,9 @@ map_into_kernel_pagemap(const struct range phys_range,
         .is_overwrite = false
     };
 
-    assert_msg(pgmap_at(&kernel_process.pagemap,
-                        phys_range,
-                        virt_addr,
-                        &options),
-               "mm: failed to setup kernel-pagemap");
+    assert_msg(
+        pgmap_at(&kernel_process.pagemap, phys_range, virt_addr, &options),
+        "mm: failed to setup kernel-pagemap");
 
     printk(LOGLEVEL_INFO,
            "mm: mapped " RANGE_FMT " to " RANGE_FMT "\n",
@@ -234,9 +232,9 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 void mm_arch_init() {
     const uint64_t pat_msr_orig = msr_read(IA32_MSR_PAT);
     const uint64_t pat_msr =
-        pat_msr_orig
-        | (~((MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2)
-        |    (MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT3)));
+        rm_mask(pat_msr_orig,
+                (MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2)
+                | (MSR_PAT_ENTRY_MASK) << MSR_PAT_INDEX_PAT3);
 
     printk(LOGLEVEL_INFO,
            "mm: pat msr original value is 0x%" PRIx64 "\n",

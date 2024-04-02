@@ -78,7 +78,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg_info *const reg =
-        (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
+        array_front(reg_prop->list);
 
     if (!has_align(reg->address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,

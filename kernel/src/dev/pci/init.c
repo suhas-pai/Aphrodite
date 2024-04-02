@@ -556,7 +556,7 @@ parse_function(struct pci_bus *const bus,
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
-        rm_mask(old_command, disable_flags) | __PCI_DEVCMDREG_INT_DISABLE;
+        rm_mask(old_command, disable_flags) | __PCI_DEVCMDREG_PIN_INT_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     switch (hdrkind) {

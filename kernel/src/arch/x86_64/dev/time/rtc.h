@@ -43,7 +43,7 @@ struct rtc_cmos_info {
         .reg_status_b = 0 \
     })
 
-void rtc_init();
-bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out);
+bool rtc_init();
+bool rtc_read_cmos_info(struct rtc_cmos_info *info_out);
 
-struct tm tm_from_rtc_cmos_info(struct rtc_cmos_info *const info);
+struct tm tm_from_rtc_cmos_info(struct rtc_cmos_info *info);

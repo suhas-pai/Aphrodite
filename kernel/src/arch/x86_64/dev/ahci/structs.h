@@ -217,7 +217,7 @@ struct ahci_spec_hba_port {
 enum ahci_hba_interface_speed_support {
     AHCI_HBA_INTERFACE_SPEED_GEN1 = 1, // 1.5 gbps
     AHCI_HBA_INTERFACE_SPEED_GEN2, // 3 gbps
-    AHCI_HBA_INTERFACE_SPEED_GEN3,// 6 gbps
+    AHCI_HBA_INTERFACE_SPEED_GEN3, // 6 gbps
 };
 
 enum ahci_hba_host_capability_shifts {

@@ -16,8 +16,6 @@ struct nvme_namespace {
     struct storage_device device;
 
     uint32_t nsid;
-    uint32_t lba_size;
-
     uint64_t lba_count;
 };
 

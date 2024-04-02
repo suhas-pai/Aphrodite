@@ -12,8 +12,7 @@
 
 __optimize(3) static bool try_init(struct partition *const partition) {
     struct ext2fs_superblock superblock;
-    const struct range range =
-        RANGE_INIT(partition->device->lba_size * 2, sizeof(superblock));
+    const struct range range = RANGE_INIT(0, sizeof(superblock));
 
     if (partition_read(partition, &superblock, range) != range.size) {
         printk(LOGLEVEL_WARN, "ext2fs: failed to read superblock\n");

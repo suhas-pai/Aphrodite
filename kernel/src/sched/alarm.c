@@ -54,6 +54,8 @@ __optimize(3) void alarm_clear(struct alarm *const alarm) {
     const int flag = spin_acquire_irq_save(&g_lock);
 
     list_remove(&alarm->list);
+    atomic_store_explicit(&alarm->active, false, memory_order_relaxed);
+
     spin_release_irq_restore(&g_lock, flag);
 }
 

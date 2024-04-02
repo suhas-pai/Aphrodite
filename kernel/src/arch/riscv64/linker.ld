@@ -40,6 +40,12 @@ SECTIONS
         drivers_end = .;
     } :rodata
 
+    .fs_drivers : {
+        fs_drivers_start = .;
+        KEEP(*(.fs_drivers*))
+        fs_drivers_end = .;
+    } :rodata
+
     /* Move to the next memory page for .data */
     . += CONSTANT(MAXPAGESIZE);
 

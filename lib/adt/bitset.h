@@ -1,5 +1,6 @@
 /*
  * lib/adt/bitset.h
+ * © suhas pai
  */
 
 #pragma once
@@ -30,15 +31,20 @@
 
 #define bitset_find_set(bitset, length, invert) \
     ({ \
+        __auto_type h_var(bit_set) = (bitset); \
+        __auto_type h_var(len) = (uint64_t)(length); \
+        __auto_type h_var(should_invert) = (invert); \
+        \
         __auto_type h_var(result) = BITSET_INVALID; \
-        __auto_type h_var(count) = bitset_size_for_count(length); \
+        __auto_type h_var(count) = bitset_size_for_count(h_var(len)); \
         \
         for (uint32_t h_var(index) = 0; \
              h_var(index) != h_var(count); \
              h_var(index)++) \
         { \
             const uint8_t h_var(bit_index) = \
-                find_lsb_zero_bit((bitset)[h_var(index)], /*start_index=*/0); \
+                find_lsb_zero_bit(h_var(bit_set)[h_var(index)], \
+                                  /*start_index=*/0); \
             if (h_var(bit_index) == sizeof_bits(uint64_t)) { \
                 continue; \
             } \
@@ -48,9 +54,9 @@
                 break; \
             } \
             \
-            if (index_in_bounds(h_var(result), length)) {\
-                if (invert) { \
-                    (bitset)[h_var(index)] = \
+            if (index_in_bounds(h_var(result), h_var(len))) { \
+                if (h_var(should_invert)) { \
+                    h_var(bit_set)[h_var(index)] = \
                         rm_mask((bitset)[h_var(index)], \
                                 1ull << h_var(bit_index)); \
                 } \
@@ -65,15 +71,20 @@
 
 #define bitset_find_unset(bitset, length, invert) \
     ({ \
+        __auto_type h_var(bit_set) = (bitset); \
+        __auto_type h_var(len) = (uint64_t)(length); \
+        __auto_type h_var(should_invert) = (invert); \
+        \
         __auto_type h_var(result) = BITSET_INVALID; \
-        __auto_type h_var(count) = bitset_size_for_count(length); \
+        __auto_type h_var(count) = bitset_size_for_count(h_var(len)); \
         \
         for (uint32_t h_var(index) = 0; \
              h_var(index) != h_var(count); \
              h_var(index)++) \
         { \
             const uint8_t h_var(bit_index) = \
-                find_lsb_zero_bit((bitset)[h_var(index)], /*start_index=*/0); \
+                find_lsb_zero_bit(h_var(bit_set)[h_var(index)], \
+                                  /*start_index=*/0); \
             if (h_var(bit_index) == sizeof_bits(uint64_t)) { \
                 continue; \
             } \
@@ -83,9 +94,9 @@
                 break; \
             } \
             \
-            if (index_in_bounds(h_var(result), length)) {\
-                if (invert) { \
-                    (bitset)[h_var(index)] |= 1ull << h_var(bit_index); \
+            if (index_in_bounds(h_var(result), h_var(len))) {\
+                if (h_var(should_invert)) { \
+                    h_var(bit_set)[h_var(index)] |= 1ull << h_var(bit_index); \
                 } \
             } else { \
                 h_var(result) = BITSET_INVALID; \

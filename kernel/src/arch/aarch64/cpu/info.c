@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "sys/gic/v2.h"
+
 #include "asm/id_regs.h"
 #include "asm/tcr.h"
 
@@ -11,7 +13,6 @@
 
 #include "mm/kmalloc.h"
 #include "sched/thread.h"
-#include "sys/gic.h"
 
 #include "info.h"
 #include "features.h"

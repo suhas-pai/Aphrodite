@@ -26,8 +26,7 @@ struct virtio_device *virtio_mmio_init(struct virtio_device *const device) {
 
     const uint32_t version = mmio_read(&device_hdr->version);
     if (version != 1 && version != 2) {
-        printk(LOGLEVEL_WARN,
-               "virtio-mmio: device's header has the wrong version\n");
+        printk(LOGLEVEL_WARN, "virtio-mmio: device has the wrong version\n");
         return NULL;
     }
 

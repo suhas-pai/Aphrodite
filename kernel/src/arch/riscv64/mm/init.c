@@ -111,11 +111,9 @@ map_into_kernel_pagemap(const struct range phys_range,
         .is_overwrite = false,
     };
 
-    assert_msg(pgmap_at(&kernel_process.pagemap,
-                        phys_range,
-                        virt_addr,
-                        &options),
-               "mm: failed to setup kernel-pagemap");
+    assert_msg(
+        pgmap_at(&kernel_process.pagemap, phys_range, virt_addr, &options),
+        "mm: failed to setup kernel-pagemap");
 
     printk(LOGLEVEL_INFO,
            "mm: mapped " RANGE_FMT " to " RANGE_FMT "\n",

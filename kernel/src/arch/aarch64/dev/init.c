@@ -6,10 +6,10 @@
 #include "dev/dtb/gic_compat.h"
 #include "dev/dtb/init.h"
 
-#include "dev/psci.h"
+#include "sys/gic/v2.h"
 
+#include "dev/psci.h"
 #include "sys/boot.h"
-#include "sys/gic.h"
 
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();

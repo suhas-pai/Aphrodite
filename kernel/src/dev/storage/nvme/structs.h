@@ -342,7 +342,7 @@ enum nvme_cmdsupport_flags {
     __NVME_CMD_SUPPORTS_COPY = 1 << 8,
 };
 
-struct nvme_controller_identity {
+struct nvme_identity {
     uint16_t vendor_id;
     uint16_t subsystem_vendor_id;
 
@@ -364,7 +364,7 @@ struct nvme_controller_identity {
     uint32_t cntlr_attr;
 
     uint16_t read_recovery_levels_supported;
-    const uint64_t reserved;
+    const uint8_t reserved[9];
 
     uint8_t controller_kind;
     char fru_guid[16];
@@ -373,7 +373,7 @@ struct nvme_controller_identity {
     uint16_t cmd_retry_delay_time2;
     uint16_t cmd_retry_delay_time3;
 
-    const uint8_t reserved_2[120];
+    const uint8_t reserved_2[119];
 
     uint8_t nvme_subsystem_report;
     uint8_t vpd_write_cycle_info;
@@ -436,7 +436,6 @@ struct nvme_controller_identity {
 
     uint32_t ana_group_id_max;
     uint32_t ana_group_id_count;
-
     uint32_t persistent_event_log_size;
 
     uint16_t domain_id;
@@ -486,7 +485,7 @@ struct nvme_lba {
 
 #define NVME_MAX_LBA_COUNT 64
 
-struct nvme_namespace_identity {
+struct nvme_nsidentity {
     uint64_t size;
     uint64_t capacity;
     uint64_t utilization;
@@ -559,19 +558,19 @@ enum nvme_completion_queue_entry_status_status_code_type {
 };
 
 enum nvme_completion_queue_entry_status_shifts {
-    NVME_COMPL_QUEUE_ENTRY_STATUS_SHIFT_STATUS_CODE_SHIFT = 17,
-    NVME_COMPL_QUEUE_ENTRY_STATUS_SHIFT_STATUS_CODE_TYPE_SHIFT = 25,
-    NVME_COMPL_QUEUE_ENTRY_STATUS_SHIFT_RETRY_DELAY_SHIFT = 28
+    NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_SHIFT = 17,
+    NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_SHIFT = 25,
+    NVME_COMPL_QUEUE_ENTRY_STATUS_RETRY_DELAY_SHIFT = 28
 };
 
 enum nvme_completion_queue_entry_status {
     __NVME_COMPL_QUEUE_ENTRY_STATUS_PHASE = 1 << 0,
     __NVME_COMPL_QUEUE_ENTRY_STATUS_CODE =
-        0b11ull << NVME_COMPL_QUEUE_ENTRY_STATUS_SHIFT_STATUS_CODE_SHIFT,
+        0b11ull << NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_SHIFT,
     __NVME_COMPL_QUEUE_ENTRY_STATUS_CODE_TYPE =
-        0xFFull << NVME_COMPL_QUEUE_ENTRY_STATUS_SHIFT_STATUS_CODE_TYPE_SHIFT,
+        0xFFull << NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_SHIFT,
     __NVME_COMPL_QUEUE_ENTRY_RETRY_DELAY =
-        0b11ull << NVME_COMPL_QUEUE_ENTRY_STATUS_SHIFT_RETRY_DELAY_SHIFT,
+        0b11ull << NVME_COMPL_QUEUE_ENTRY_STATUS_RETRY_DELAY_SHIFT,
     __NVME_COMPL_QUEUE_ENTRY_STATUS_MORE_INFO = 1ull << 30,
     __NVME_COMPL_QUEUE_ENTRY_STATUS_DONT_RETRY = 1ull << 31,
 };

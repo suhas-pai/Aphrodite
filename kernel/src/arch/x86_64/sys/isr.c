@@ -31,19 +31,18 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     (void)for_msi;
 
     const int flag = spin_acquire_irq_save(&g_lock);
-    const uint64_t result =
+    const uint64_t bit_index =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
     spin_release_irq_restore(&g_lock, flag);
-    if (result == BITSET_INVALID) {
+    if (bit_index == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
 
-    printk(LOGLEVEL_INFO,
-           "isr: allocated vector " ISR_VECTOR_FMT "\n",
-           (isr_vector_t)result);
+    const isr_vector_t vector = (isr_vector_t)bit_index;
+    printk(LOGLEVEL_INFO, "isr: allocated vector " ISR_VECTOR_FMT "\n", vector);
 
-    return (isr_vector_t)result;
+    return vector;
 }
 
 __optimize(3)

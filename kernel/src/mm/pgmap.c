@@ -935,7 +935,7 @@ map_large_at_level_overwrite(struct pt_walker *const walker,
 }
 
 __optimize(3) enum alloc_and_map_result
-alloc_and_map_large_at_level_overwrite(
+alloc_and_map_large_overwrite(
     struct pt_walker *const walker,
     struct current_split_info *const curr_split,
     struct pageop *const pageop,
@@ -1149,7 +1149,7 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
 }
 
 __optimize(3) enum alloc_and_map_result
-alloc_and_map_large_at_level_no_overwrite(
+alloc_and_map_large_no_overwrite(
     struct pt_walker *const walker,
     uint64_t *const offset_in,
     const uint64_t size,
@@ -1491,8 +1491,8 @@ pgmap_at(struct pagemap *const pagemap,
         if (walker_virt_addr < virt_addr) {
             uint64_t offset = virt_addr - walker_virt_addr;
             pte_t *const pte =
-                walker.tables[walker.level - 1] +
-                walker.indices[walker.level - 1];
+                walker.tables[walker.level - 1]
+                + walker.indices[walker.level - 1];
 
             const pte_t entry = pte_read(pte);
             if (phys_range.front >= offset
@@ -1500,9 +1500,8 @@ pgmap_at(struct pagemap *const pagemap,
                 && pte_flags_equal(entry, walker.level, options->pte_flags))
             {
                 offset =
-                    walker_virt_addr +
-                    PAGE_SIZE_AT_LEVEL(walker.level) -
-                    virt_addr;
+                    walker_virt_addr + PAGE_SIZE_AT_LEVEL(walker.level)
+                    - virt_addr;
 
                 if (!range_has_index(phys_range, offset)) {
                     enable_interrupts_if_flag(flag);
@@ -1610,24 +1609,23 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                 enum alloc_and_map_result result = ALLOC_AND_MAP_CONTINUE;
                 if (options->is_overwrite) {
                     result =
-                        alloc_and_map_large_at_level_overwrite(walker,
-                                                               curr_split,
-                                                               pageop,
-                                                               virt_range.front,
-                                                               &offset,
-                                                               virt_range.size,
-                                                               level,
-                                                               options,
-                                                               alloc_options);
+                        alloc_and_map_large_overwrite(walker,
+                                                      curr_split,
+                                                      pageop,
+                                                      virt_range.front,
+                                                      &offset,
+                                                      virt_range.size,
+                                                      level,
+                                                      options,
+                                                      alloc_options);
                 } else {
                     result =
-                        alloc_and_map_large_at_level_no_overwrite(
-                            walker,
-                            &offset,
-                            virt_range.size,
-                            level,
-                            options,
-                            alloc_options);
+                        alloc_and_map_large_no_overwrite(walker,
+                                                         &offset,
+                                                         virt_range.size,
+                                                         level,
+                                                         options,
+                                                         alloc_options);
                 }
 
                 switch (result) {
@@ -1766,7 +1764,8 @@ pgmap_alloc_at(struct pagemap *const pagemap,
             }
 
             curr_split.virt_addr = virt_range.front;
-            curr_split.phys_range = range_create_upto(virt_range.size);
+            curr_split.phys_range =
+                range_from_index(curr_split.phys_range, offset);
         }
     }
 
@@ -1818,7 +1817,7 @@ pgunmap_at(struct pagemap *const pagemap,
         }
     }
 
-    uint64_t offset = 0;
+    uint64_t remaining = virt_range.size;
     do {
         // Sanity check for the rare case where we have a bug in pgmap; a table
         // doesn't have a pte at the appropriate index, which we're supposed to
@@ -1869,13 +1868,14 @@ pgunmap_at(struct pagemap *const pagemap,
 
             ptwalker_deref_from_level(&walker, walker.level, &pageop);
 
-            const uint64_t map_size = virt_range.size - offset;
+            const uint64_t map_size = remaining;
             const bool map_result =
                 pgmap_with_ptwalker(&walker,
                                     /*curr_split=*/NULL,
                                     &pageop,
                                     RANGE_INIT(pte_phys, map_size),
-                                    virt_range.front + offset,
+                                    virt_range.front
+                                        + (virt_range.size - remaining),
                                     map_options);
 
             if (!map_result) {
@@ -1904,9 +1904,9 @@ pgunmap_at(struct pagemap *const pagemap,
         }
 
         ptwalker_deref_from_level(&walker, walker.level, &pageop);
-        offset += PAGE_SIZE_AT_LEVEL(level);
+        remaining -= PAGE_SIZE_AT_LEVEL(level);
 
-        if (offset == virt_range.size) {
+        if (remaining == 0) {
             break;
         }
 
@@ -1920,7 +1920,7 @@ pgunmap_at(struct pagemap *const pagemap,
             return false;
         }
 
-        while (virt_range.size - offset < PAGE_SIZE_AT_LEVEL(level)) {
+        while (remaining < PAGE_SIZE_AT_LEVEL(level)) {
             level--;
         }
     } while (true);

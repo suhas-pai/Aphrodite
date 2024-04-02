@@ -22,8 +22,8 @@ struct vm_area {
 
 #define vma_of(obj) container_of((obj), struct vm_area, node.avlnode)
 
-struct vm_area *vma_prev(struct vm_area *const vma);
-struct vm_area *vma_next(struct vm_area *const vma);
+struct vm_area *vma_prev(struct vm_area *vma);
+struct vm_area *vma_next(struct vm_area *vma);
 
 struct vm_area *
 vma_alloc(struct pagemap *pagemap,
@@ -50,4 +50,4 @@ vma_create_at(struct pagemap *pagemap,
               prot_t prot,
               enum vma_cachekind cachekind);
 
-struct pagemap *vma_pagemap(struct vm_area *const vma);
+struct pagemap *vma_pagemap(struct vm_area *vma);

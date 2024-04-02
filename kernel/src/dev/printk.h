@@ -4,7 +4,6 @@
  */
 
 #pragma once
-
 #include <stdarg.h>
 
 #include "lib/adt/string_view.h"

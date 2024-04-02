@@ -70,7 +70,9 @@ void ide_write(const uint8_t channel, const uint8_t reg, const uint8_t data) {
 uint8_t ide_read(const uint8_t channel, const uint8_t reg) {
     uint8_t result = 0;
     if (reg > 0x07 && reg < 0x0C) {
-        ide_write(channel, ATA_REG_CONTROL, 0x80 | g_channel_list[channel].nIEN);
+        ide_write(channel,
+                  ATA_REG_CONTROL,
+                  1 << 7 | g_channel_list[channel].nIEN);
     }
 
     if (reg < 0x08) {
@@ -129,11 +131,14 @@ ide_read_buffer(const uint8_t channel,
 
 enum ide_polling_result {
     IDE_POLLING_OK,
+    IDE_POLLING_BUSY,
     IDE_POLLING_DEVICE_FAULT,
     IDE_POLLING_ATA_ERROR,
     IDE_POLLING_NOTHING_READ,
     IDE_POLLING_WRITE_PROTECTED
 };
+
+#define MAX_ATTEMPTS 100
 
 enum ide_polling_result
 ide_polling(const uint8_t channel, const uint32_t advanced_check) {
@@ -144,12 +149,22 @@ ide_polling(const uint8_t channel, const uint32_t advanced_check) {
     }
 
     // (II) Wait for BSY to be cleared:
-    while (ide_read(channel, ATA_REG_STATUS) & __ATA_STATUS_REG_BSY) {}
+    bool bsy_cleared = false;
+    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+        if ((ide_read(channel, ATA_REG_STATUS) & __ATA_STATUS_REG_BSY) == 0) {
+            bsy_cleared = true;
+            break;
+        }
+    }
+
+    if (!bsy_cleared) {
+        return IDE_POLLING_BUSY;
+    }
+
     if (!advanced_check) {
         return IDE_POLLING_OK;
     }
 
-    // Read Status Register.
     const uint8_t state = ide_read(channel, ATA_REG_STATUS);
 
     // (III) Check For Errors:
@@ -167,7 +182,7 @@ ide_polling(const uint8_t channel, const uint32_t advanced_check) {
         return IDE_POLLING_NOTHING_READ;
     }
 
-    return IDE_POLLING_OK; // No Error.
+    return IDE_POLLING_OK;
 }
 
 static char ide_buf[2048] = {0};
@@ -189,7 +204,8 @@ handle_device(struct ide_device *const device,
 
     // (III) Polling:
     if (ide_read(channel, ATA_REG_STATUS) == 0) {
-        return; // If Status = 0, No Device.
+        // If Status = 0, No Device.
+        return;
     }
 
     uint8_t error = 0;
@@ -333,9 +349,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    pci_entity_enable_privl(pci_entity,
-                            __PCI_ENTITY_PRIVL_BUS_MASTER |
-                            __PCI_ENTITY_PRIVL_PIO_ACCESS);
+    pci_entity_enable_privls(pci_entity,
+                             __PCI_ENTITY_PRIVL_BUS_MASTER
+                             | __PCI_ENTITY_PRIVL_PIO_ACCESS);
 }
 
 static const struct pci_driver pci_driver = {

@@ -394,7 +394,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
         list_head(&zone->section_list, typeof(*iter), zone_list);
 
     do {
-        if (!spin_try_acquire_with_irq(&iter->lock, &flag)) {
+        if (!spin_try_acquire_irq_save(&iter->lock, &flag)) {
             iter = list_next(iter, zone_list);
             if (&iter->zone_list == &zone->section_list) {
                 if (locked_section_mask == mm_get_full_section_mask()) {
@@ -611,7 +611,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
     struct page_section *iter = NULL;
     list_foreach(iter, &zone->section_list, zone_list) {
         int flag = 0;
-        if (!spin_try_acquire_with_irq(&iter->lock, &flag)) {
+        if (!spin_try_acquire_irq_save(&iter->lock, &flag)) {
             continue;
         }
 
@@ -791,12 +791,12 @@ find_nearby_free_pages(struct page *const page,
             }
         } else if (prev_state == PAGE_STATE_FREE_LIST_HEAD) {
             struct page *const free_head = free_page - 1;
-            const uint8_t order = 0;
+            const uint8_t order = free_head->freelist_head.order;
 
-            // Only take off freelist if we can add the combined range to a
-            // higher order.
+            // We can only take off freelist when we can add the combined range
+            // to a higher order if the order is zero.
 
-            if ((1ull << order) + 1 >= (1ull << (order + 1))) {
+            if (order == 0) {
                 take_off_freelist_to_add_later(section, order, free_head);
 
                 free_page = free_head;

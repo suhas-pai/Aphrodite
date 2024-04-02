@@ -25,7 +25,7 @@ struct virtio_block_config {
     le32_t block_size;
     struct virtio_block_topology {
         // NUmber of logical blocks per physical block (log2)
-        uint8_t physical_block_exp;
+        uint8_t physical_block_log2;
         // Offset of first aligned logical block
         uint8_t alignment_offset;
         // Suggested minimum I/O size in blocks
@@ -86,7 +86,7 @@ virtio_block_driver_init(struct virtio_device *const device,
            virtio_block_read_config_field(device, geometry.heads),
            virtio_block_read_config_field(device, geometry.sectors),
            virtio_block_read_config_field(device, block_size),
-           virtio_block_read_config_field(device, topology.physical_block_exp),
+           virtio_block_read_config_field(device, topology.physical_block_log2),
            virtio_block_read_config_field(device, topology.alignment_offset),
            virtio_block_read_config_field(device, topology.min_io_size),
            virtio_block_read_config_field(device, topology.opt_io_size),

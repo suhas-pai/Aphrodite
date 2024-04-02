@@ -11,7 +11,6 @@
 #include "sched/alarm.h"
 #include "sched/irq.h"
 #include "sched/scheduler.h"
-#include "sched/thread.h"
 #include "sched/timer.h"
 
 static struct list g_run_queue = LIST_INIT(g_run_queue);

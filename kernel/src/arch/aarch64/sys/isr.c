@@ -4,6 +4,7 @@
  */
 
 #include "lib/adt/bitset.h"
+#include "sys/gic/v2.h"
 
 #include "asm/esr.h"
 #include "asm/irqs.h"
@@ -12,7 +13,6 @@
 #include "cpu/util.h"
 
 #include "dev/printk.h"
-#include "sys/gic.h"
 
 #define ISR_IRQ_COUNT 1020
 
@@ -118,7 +118,7 @@ isr_set_vector(const isr_vector_t vector,
 }
 
 void
-isr_assign_irq_to_cpu(struct cpu_info *const cpu,
+isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
                       const uint8_t irq,
                       const isr_vector_t vector,
                       const bool masked)

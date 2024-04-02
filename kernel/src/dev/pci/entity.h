@@ -103,16 +103,16 @@ enum pci_entity_privilege {
     __PCI_ENTITY_PRIVL_PIO_ACCESS = 1ull << 0,
     __PCI_ENTITY_PRIVL_MEM_ACCESS = 1ull << 1,
     __PCI_ENTITY_PRIVL_BUS_MASTER = 1ull << 2,
-    __PCI_ENTITY_PRIVL_INTERRUPTS = 1ull << 10,
+    __PCI_ENTITY_PRIVL_PIN_INTERRUPTS = 1ull << 10,
 
     __PCI_ENTITY_PRIVL_MASK =
         __PCI_ENTITY_PRIVL_PIO_ACCESS
         | __PCI_ENTITY_PRIVL_MEM_ACCESS
         | __PCI_ENTITY_PRIVL_BUS_MASTER
-        | __PCI_ENTITY_PRIVL_INTERRUPTS
+        | __PCI_ENTITY_PRIVL_PIN_INTERRUPTS
 };
 
-void pci_entity_enable_privl(struct pci_entity_info *entity, uint16_t privl);
+void pci_entity_enable_privls(struct pci_entity_info *entity, uint16_t privl);
 void pci_entity_disable_privls(struct pci_entity_info *entity);
 
 void pci_entity_info_destroy(struct pci_entity_info *entity);

@@ -139,7 +139,7 @@ enum pci_spec_entity_cmdreg_flags {
 
     // If set to 1 the assertion of the devices INTx# signal is disabled;
     // otherwise, assertion of the signal is enabled.
-    __PCI_DEVCMDREG_INT_DISABLE = 1ull << 10,
+    __PCI_DEVCMDREG_PIN_INT_DISABLE = 1ull << 10,
 };
 
 enum pci_spec_device_status_flags {

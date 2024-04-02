@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "sys/gic/v2.h"
+
 #include "acpi/api.h"
 #include "cpu/isr.h"
 #include "dev/printk.h"
@@ -10,7 +12,6 @@
 #include "lib/freq.h"
 
 #include "sys/boot.h"
-#include "sys/gic.h"
 
 static uint64_t g_frequency = 0;
 

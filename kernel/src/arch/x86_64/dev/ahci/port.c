@@ -475,8 +475,8 @@ __optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
     }
 
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status) &
-                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
+        if ((mmio_read(&spec->cmd_status)
+                & __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
             return true;
         }
@@ -664,8 +664,8 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
            (void *)phys_range.front);
 
     struct ahci_hba_port_cmdhdr_info *const cmdhdr_info_list =
-        kmalloc(sizeof(struct ahci_hba_port_cmdhdr_info) *
-                AHCI_HBA_CMD_HDR_COUNT);
+        kmalloc(sizeof(struct ahci_hba_port_cmdhdr_info)
+                * AHCI_HBA_CMD_HDR_COUNT);
 
     if (cmdhdr_info_list == NULL) {
         free_page(cmd_list_page);
@@ -938,7 +938,7 @@ static inline uint8_t prepare_port(struct ahci_hba_port *const port) {
 __optimize(3) static void
 setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
                   const uint8_t command,
-                  const uint8_t feature,
+                  const uint16_t feature,
                   const uint64_t sector_offset,
                   const uint8_t sector_count)
 {
@@ -961,7 +961,7 @@ setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
     h2d_fis->lba4 = (uint8_t)(sector_offset >> 32);
     h2d_fis->lba5 = (uint8_t)(sector_offset >> 40);
 
-    h2d_fis->feature_high8 = 0;
+    h2d_fis->feature_high8 = feature >> 8;
     h2d_fis->count_low = sector_count;
     h2d_fis->count_high = sector_count >> 8;
     h2d_fis->icc = 0;
@@ -976,7 +976,6 @@ setup_prdt_table(volatile struct ahci_spec_port_cmdhdr *const cmd_header,
                  const uint32_t flags)
 {
     mmio_write(&cmd_header->flags, flags);
-
     volatile struct ahci_spec_hba_prdt_entry *const entries =
         cmd_table->prdt_entries;
 
@@ -1044,20 +1043,19 @@ send_ata_command(struct ahci_hba_port *const port,
     }
 
     uint16_t flags = sizeof(struct ahci_spec_fis_reg_h2d) / sizeof(uint32_t);
-    uint8_t feature = 0;
+    uint16_t feature = 0;
 
     switch (command_kind) {
         case ATA_CMD_READ_DMA:
         case ATA_CMD_READ_DMA_EXT:
             feature = __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA;
-            [[fallthrough]];
+            break;
         case ATA_CMD_IDENTIFY_PACKET:
         case ATA_CMD_IDENTIFY:
         case ATA_CMD_CACHE_FLUSH:
         case ATA_CMD_CACHE_FLUSH_EXT:
         case ATA_CMD_READ_PIO:
         case ATA_CMD_READ_PIO_EXT:
-            flags = rm_mask(flags, AHCI_HBA_PORT_CMDKIND_WRITE);
             break;
         case ATA_CMD_PACKET:
             verify_not_reached();

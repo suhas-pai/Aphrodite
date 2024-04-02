@@ -5,7 +5,6 @@
 
 #include "lib/alloc.h"
 #include "lib/list.h"
-#include "lib/string.h"
 
 #include "hashmap.h"
 
@@ -112,7 +111,7 @@ hashmap_add(struct hashmap *const hashmap,
 
     node->key = key;
 
-    memcpy(node->data, object, hashmap->object_size);
+    __builtin_memcpy(node->data, object, hashmap->object_size);
     list_add(&bucket->node_list, &node->list);
 
     return true;
@@ -153,7 +152,7 @@ hashmap_update(struct hashmap *const hashmap,
     } else {
         hashmap_bucket_foreach_node(bucket, iter) {
             if (iter->key == key) {
-                memcpy(iter->data, object, hashmap->object_size);
+                __builtin_memcpy(iter->data, object, hashmap->object_size);
                 return true;
             }
         }
@@ -177,7 +176,7 @@ hashmap_update(struct hashmap *const hashmap,
 
     node->key = key;
 
-    memcpy(node->data, object, hashmap->object_size);
+    __builtin_memcpy(node->data, object, hashmap->object_size);
     list_add(&bucket->node_list, &node->list);
 
     return true;
@@ -242,7 +241,7 @@ hashmap_remove(struct hashmap *const hashmap,
         }
 
         if (object_ptr != NULL) {
-            memcpy(object_ptr, iter->data, hashmap->object_size);
+            __builtin_memcpy(object_ptr, iter->data, hashmap->object_size);
         }
 
         free(iter);

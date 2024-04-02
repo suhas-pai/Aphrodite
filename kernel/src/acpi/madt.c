@@ -19,8 +19,8 @@
 #include "dev/printk.h"
 
 #if defined(__aarch64__)
+    #include "sys/gic/v2.h"
     #include "mm/mm_types.h"
-    #include "sys/gic.h"
 #endif /* defined(__aarch64__) */
 
 void madt_init(const struct acpi_madt *const madt) {
@@ -149,7 +149,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INT_SRC: {
-                if (iter->length == sizeof(struct acpi_madt_entry_nmi_src)) {
+                if (iter->length != sizeof(struct acpi_madt_entry_nmi_src)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid nmi source entry at "
                            "index: %" PRIu32 "\n",
@@ -215,8 +215,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_LOCAL_APIC_ADDR_OVERRIDE: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_entry_lapic_addr_override))
+                if (iter->length
+                        != sizeof(struct acpi_madt_entry_lapic_addr_override))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid lapic addr override entry at "
@@ -244,8 +244,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_entry_cpu_local_x2apic))
+                if (iter->length
+                        != sizeof(struct acpi_madt_entry_cpu_local_x2apic))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid local x2apic entry at "
@@ -273,8 +273,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC_NMI: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_entry_cpu_local_x2apic_nmi))
+                if (iter->length
+                        != sizeof(struct acpi_madt_entry_cpu_local_x2apic_nmi))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid local x2apic nmi entry at "
@@ -303,8 +303,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_GIC_CPU_INTERFACE: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_entry_gic_cpu_interface))
+                if (iter->length
+                        != sizeof(struct acpi_madt_entry_gic_cpu_interface))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic cpu-interface entry at "
@@ -385,8 +385,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_GIC_DISTRIBUTOR: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_entry_gic_distributor))
+                if (iter->length
+                        != sizeof(struct acpi_madt_entry_gic_distributor))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic distributor entry at "
@@ -418,8 +418,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 break;
             }
             case ACPI_MADT_ENTRY_KIND_GIC_MSI_FRAME: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_entry_gic_msi_frame))
+                if (iter->length
+                        != sizeof(struct acpi_madt_entry_gic_msi_frame))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic msi-frame entry at "
@@ -458,8 +458,8 @@ void madt_init(const struct acpi_madt *const madt) {
             }
         #if defined(__riscv64)
             case ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CNTRLR: {
-                if (iter->length !=
-                        sizeof(struct acpi_madt_riscv_hart_irq_controller))
+                if (iter->length
+                        != sizeof(struct acpi_madt_riscv_hart_irq_controller))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid riscv-hart irq-controllers at "
