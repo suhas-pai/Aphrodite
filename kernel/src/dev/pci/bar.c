@@ -88,8 +88,8 @@ __optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
                 RANGE_INIT(res->child_base, res->size);
 
             if (range_has_loc(child_range, offset)) {
-                return res->mmio->base +
-                       range_index_for_loc(child_range, offset);
+                return res->mmio->base
+                        + range_index_for_loc(child_range, offset);
             }
         }
 

@@ -14,8 +14,6 @@ void sched_process_arch_info_init(struct process *process);
 
 struct thread_arch_info {
     struct page *kernel_stack;
-    struct irq_register_context *context;
-
     void *avx_state;
 };
 

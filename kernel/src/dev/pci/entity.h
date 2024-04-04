@@ -51,21 +51,21 @@ struct pci_entity_info {
     uint8_t msi_pcie_offset;
 
     enum pci_entity_msi_support msi_support : 2;
+    enum pci_entity_msi_support msi_support_enabled : 2;
 
-    union {
-        struct {
-            bool supports_64bit : 1;
-            bool supports_masking : 1;
-            bool enabled : 1;
-        } msi;
-        struct {
-            struct pci_entity_bar_info *table_bar;
-            uint64_t *bitset;
+    struct {
+        bool supports_64bit : 1;
+        bool supports_masking : 1;
+        bool enabled : 1;
+    } msi;
 
-            uint32_t table_offset;
-            uint32_t table_size;
-        } msix;
-    };
+    struct {
+        struct pci_entity_bar_info *table_bar;
+        uint64_t *bitset;
+
+        uint32_t table_offset;
+        uint32_t table_size;
+    } msix;
 
     // Array of uint8_t
     struct array vendor_cap_list;

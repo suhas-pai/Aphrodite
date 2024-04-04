@@ -10,7 +10,7 @@
 #include "dev/printk.h"
 
 #include "lib/freq.h"
-
+#include "sched/scheduler.h"
 #include "sys/boot.h"
 
 static uint64_t g_frequency = 0;
@@ -19,6 +19,10 @@ enum cntp_ctl {
     __CNTP_CTL_ENABLE = 1 << 0,
     __CNTP_CTL_INT_MASK = 1 << 1,
     __CNTP_CTL_COND_MET = 1 << 2,
+};
+
+enum cntv_ctl {
+    __CNTV_CTL_ENABLE = 1 << 0,
 };
 
 __optimize(3) static inline sec_t read_syscount() {
@@ -55,12 +59,44 @@ __optimize(3) nsec_t nsec_since_boot() {
                            (sec_t)boot_get_time());
 }
 
-__optimize(3) void oneshot_alarm(const nsec_t nano) {
-    sec_t timestamp = 0;
+__optimize(3) uint64_t system_timer_get_frequency_ns() {
+    return g_frequency;
+}
+
+__optimize(3) nsec_t system_timer_get_count_ns() {
+    nsec_t timestamp = 0;
     asm volatile ("mrs %0, cntpct_el0" : "=r"(timestamp));
 
-    const uint64_t compare = timestamp + nano_to_seconds(g_frequency * nano);
+    return timestamp;
+}
+
+__optimize(3) nsec_t system_timer_get_compare_ns() {
+    nsec_t compare = 0;
+    asm volatile ("mrs %0, cntp_cval_el0" : "=r"(compare));
+
+    return compare;
+}
+
+__optimize(3) nsec_t system_timer_get_remaining_ns() {
+    const nsec_t count = system_timer_get_count_ns();
+    const nsec_t compare = system_timer_get_compare_ns();
+
+    if (count > compare || count == UINT64_MAX) {
+        return 0;
+    }
+
+    return (compare - count) / g_frequency;
+}
+
+__optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
+    const nsec_t timestamp = system_timer_get_count_ns();
+    const nsec_t compare = timestamp + nano_to_seconds(g_frequency * nano);
+
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(compare));
+}
+
+__optimize(3) void system_timer_stop_alarm() {
+    asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
 }
 
 __optimize(3) static void
@@ -68,7 +104,7 @@ interrupt_handler(const uint64_t intr_no, struct thread_context *const frame) {
     (void)intr_no;
     (void)frame;
 
-    printk(LOGLEVEL_INFO, "time: got interrupt\n");
+    sched_next(frame, /*from_irq=*/true);
 }
 
 static void enable_dtb_timer_irqs() {
@@ -103,7 +139,7 @@ static void enable_dtb_timer_irqs() {
 
         if (!range_has_loc(GIC_PPI_IRQ_RANGE, iter->num)) {
             printk(LOGLEVEL_WARN,
-                   "time: irq %" PRIu8 " isn't a ppi interrupt\n",
+                   "time: irq %" PRIu8 " is not a ppi interrupt\n",
                    index);
             continue;
         }
@@ -126,10 +162,9 @@ void arch_init_time() {
     // Enable and unmask generic timers
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
     asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)__CNTP_CTL_ENABLE));
-    asm volatile ("msr cntp_tval_el0, %0" :: "r"((uint64_t)0));
 
     asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
-    asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)1));
+    asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)__CNTV_CTL_ENABLE));
 
     if (boot_get_dtb() != NULL) {
         enable_dtb_timer_irqs();
@@ -139,5 +174,4 @@ void arch_init_time() {
     }
 
     printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
-    oneshot_alarm(seconds_to_nano(2));
 }

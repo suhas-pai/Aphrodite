@@ -221,7 +221,7 @@ enum ahci_hba_interface_speed_support {
 };
 
 enum ahci_hba_host_capability_shifts {
-    AHCI_HBA_HOST_CAP_SHIFT_CMD_SLOT_COUNT_SHIFT = 8,
+    AHCI_HBA_HOST_CAP_CMD_SLOT_COUNT_SHIFT = 8,
     AHCI_HBA_HOST_CAP_INTERFACE_SPEED_SUPPORT_SHIFT = 20
 };
 
@@ -231,7 +231,7 @@ enum ahci_hba_host_capability_flags {
     __AHCI_HBA_HOST_CAP_SUPPORTS_EMS = 1ull << 6,
     __AHCI_HBA_HOST_CAP_SUPPORTS_CCCS = 1ull << 7,
     __AHCI_HBA_HOST_CAP_CMD_SLOTS_COUNT =
-        0b11111ull << AHCI_HBA_HOST_CAP_SHIFT_CMD_SLOT_COUNT_SHIFT,
+        0b11111ull << AHCI_HBA_HOST_CAP_CMD_SLOT_COUNT_SHIFT,
 
     __AHCI_HBA_HOST_CAP_PARTIAL_STATE_CAPABLE = 1ull << 13,
     __AHCI_HBA_HOST_CAP_SLUMBER_STATE_CAPABLE = 1ull << 14,

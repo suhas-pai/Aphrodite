@@ -1829,6 +1829,10 @@ pgunmap_at(struct pagemap *const pagemap,
             pageop_finish(&pageop);
             enable_interrupts_if_flag(flag);
 
+            printk(LOGLEVEL_WARN,
+                   "mm: pgunmap_at() encountered a table with missing "
+                   "entry\n");
+
             return false;
         }
 
@@ -1847,14 +1851,15 @@ pgunmap_at(struct pagemap *const pagemap,
                 &walker.tables[level - 1][walker.indices[level - 1]];
 
             // Sanity check for the rare case where we're not actually dealing
-            // with a large page (instead, a bug in pgmap because we have a
-            // table with a missing pte).
+            // with a large page.
 
             const pte_t entry = pte_read(pte);
             if (__builtin_expect(!pte_is_large(entry), 0)) {
                 pageop_finish(&pageop);
                 enable_interrupts_if_flag(flag);
 
+                printk(LOGLEVEL_WARN,
+                       "mm: pgunmap_at() encountered a pte that isn't large\n");
                 return false;
             }
 

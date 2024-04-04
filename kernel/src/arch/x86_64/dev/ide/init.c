@@ -196,11 +196,11 @@ handle_device(struct ide_device *const device,
 
     // (I) Select Drive:
     ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (drive << 4)); // Select Drive.
-    sched_sleep(milli_to_micro(1)); // Wait 1ms for drive select to work.
+    sched_sleep_us(milli_to_micro(1)); // Wait 1ms for drive select to work.
 
     // (II) Send ATA Identify Command:
     ide_write(channel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
-    sched_sleep(milli_to_micro(1));
+    sched_sleep_us(milli_to_micro(1));
 
     // (III) Polling:
     if (ide_read(channel, ATA_REG_STATUS) == 0) {
@@ -237,7 +237,7 @@ handle_device(struct ide_device *const device,
         type = IDE_ATAPI;
 
         ide_write(channel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY_PACKET);
-        sched_sleep(milli_to_micro(1));
+        sched_sleep_us(milli_to_micro(1));
     }
 
     // (V) Read Identification Space of the Device:

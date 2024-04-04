@@ -4,6 +4,7 @@
  */
 
 #include "lib/adt/bitset.h"
+#include "acpi/api.h"
 
 #include "apic/ioapic.h"
 #include "apic/lapic.h"
@@ -163,4 +164,17 @@ isr_get_msix_address(const struct cpu_info *const cpu,
     return
         align_down(msr_read(IA32_MSR_APIC_BASE), PAGE_SIZE)
         | cpu->lapic_id << 12;
+}
+
+__optimize(3) enum isr_msi_support isr_get_msi_support() {
+    const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
+    if (fadt != NULL) {
+        if (fadt->iapc_boot_arch_flags &
+                __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
+        {
+            return ISR_MSI_SUPPORT_NONE;
+        }
+    }
+
+    return ISR_MSI_SUPPORT_MSIX;
 }

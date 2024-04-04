@@ -152,3 +152,7 @@ isr_get_msix_address(const struct cpu_info *const cpu,
 
     verify_not_reached();
 }
+
+__optimize(3) enum isr_msi_support isr_get_msi_support() {
+    return ISR_MSI_SUPPORT_NONE;
+}

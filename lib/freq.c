@@ -22,9 +22,9 @@ struct string_view freq_units_to_sv(const enum freq_unit_kind kind) {
         UNIT_KIND_CASE(EHZ);
 
     #undef UNIT_KIND_CASE
-        default:
-            verify_not_reached();
     }
+
+    verify_not_reached();
 }
 
 __optimize(3)
@@ -43,9 +43,9 @@ struct string_view freq_units_to_sv_abbrev(const enum freq_unit_kind kind) {
         UNIT_KIND_CASE(EHZ);
 
     #undef UNIT_KIND_CASE
-        default:
-            verify_not_reached();
     }
+
+    verify_not_reached();
 }
 
 __optimize(3) enum freq_unit_kind freq_to_units(uint64_t size) {

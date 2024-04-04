@@ -19,6 +19,13 @@ struct array {
     type *const h_var(end) = (type *)(uint64_t)array_end(*(array));            \
     for (type *item = h_var(begin); item != h_var(end); item++)
 
+#define array_foreach_from_index(array, type, item, index) \
+    assert(sizeof(type) == (array)->object_size);                              \
+    type *const h_var(begin) = (type *)array_begin(*(array));                  \
+    type *const h_var(end) = (type *)(uint64_t)array_end(*(array));            \
+    assert(h_var(begin) + index <= h_var(end));                                \
+    for (type *item = h_var(begin) + index; item != h_var(end); item++)
+
 #define ARRAY_INIT(size) \
     ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size) })
 

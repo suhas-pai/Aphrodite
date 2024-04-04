@@ -5,10 +5,10 @@
 
 #include "apic/lapic.h"
 #include "lib/time.h"
-#include "sched/sched.h"
+#include "sched/irq.h"
 
 __optimize(3) void sched_timer_oneshot(const usec_t usec) {
-    lapic_timer_one_shot(usec, g_sched_vector);
+    lapic_timer_one_shot(usec, sched_get_isr_vector());
 }
 
 __optimize(3) void sched_timer_stop() {

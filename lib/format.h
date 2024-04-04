@@ -6,8 +6,7 @@
 #pragma once
 #include "adt/string.h"
 
-__printf_format(3, 4)
-uint32_t
+__printf_format(3, 4) uint32_t
 format_to_buffer(char *buffer_in, uint32_t buffer_len, const char *format, ...);
 
 uint32_t

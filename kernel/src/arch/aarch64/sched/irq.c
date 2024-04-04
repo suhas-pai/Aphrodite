@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "sys/gic/v2.h"
+
 #include "cpu/isr.h"
 #include "sched/scheduler.h"
 
@@ -25,10 +27,10 @@ __optimize(3) void sched_self_ipi() {
 
 }
 
-__optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
-    (void)cpu;
-}
-
 __optimize(3) isr_vector_t sched_get_isr_vector() {
     return g_sched_vector;
+}
+
+__optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
+    gicd_send_ipi(cpu->interface_number, sched_get_isr_vector());
 }

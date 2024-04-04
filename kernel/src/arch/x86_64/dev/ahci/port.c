@@ -107,8 +107,8 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
 
     bool cmdlist_stopped = false;
     for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status) &
-                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
+        if ((mmio_read(&spec->cmd_status)
+                & __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
             cmdlist_stopped = true;
             break;

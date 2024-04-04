@@ -20,12 +20,13 @@
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (!index_in_bounds(NVME_BAR_INDEX, pci_entity->max_bar_count)) {
-        printk(LOGLEVEL_WARN, "nvme: pci-entity has no bars\n");
+        printk(LOGLEVEL_WARN, "nvme: pci-entity has no bars. aborting init\n");
         return;
     }
 
     if (pci_entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
-        printk(LOGLEVEL_WARN, "nvme: pci-entity does not support msi[x]\n");
+        printk(LOGLEVEL_WARN,
+               "nvme: pci-entity does not support msi[x]. aborting init\n");
         return;
     }
 

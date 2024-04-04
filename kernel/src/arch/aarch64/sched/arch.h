@@ -10,7 +10,7 @@ struct process_arch_info {
 };
 
 struct thread_arch_info {
-
+    struct page *kernel_stack;
 };
 
 struct process;

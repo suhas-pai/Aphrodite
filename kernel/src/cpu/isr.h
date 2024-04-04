@@ -32,3 +32,11 @@ void isr_unmask_irq(isr_vector_t irq);
 
 uint64_t isr_get_msi_address(const struct cpu_info *cpu, isr_vector_t vector);
 uint64_t isr_get_msix_address(const struct cpu_info *cpu, isr_vector_t vector);
+
+enum isr_msi_support {
+    ISR_MSI_SUPPORT_NONE,
+    ISR_MSI_SUPPORT_MSI,
+    ISR_MSI_SUPPORT_MSIX,
+};
+
+enum isr_msi_support isr_get_msi_support();

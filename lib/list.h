@@ -6,7 +6,7 @@
 #pragma once
 #include <stdbool.h>
 
-#include "lib/assert.h"
+#include "assert.h"
 #include "macros.h"
 
 // list is a circular doubly-linked list
@@ -49,8 +49,7 @@ static inline void list_add(struct list *const head, struct list *const item) {
     list_add_common(item, head, head->next);
 }
 
-typedef int
-(*list_add_inorder_compare_t)(struct list *const head, struct list *const item);
+typedef int (*list_add_inorder_compare_t)(struct list *head, struct list *item);
 
 __optimize(3) static inline void
 list_add_inorder(struct list *const head,

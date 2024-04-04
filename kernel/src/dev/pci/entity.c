@@ -166,6 +166,12 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                         const isr_vector_t vector,
                         const bool masked)
     {
+        struct pci_entity_bar_info *const bar = entity->msix.table_bar;
+        if (!pci_map_bar(bar)) {
+            printk(LOGLEVEL_WARN, "pcie: failed to map msix table bar\n");
+            return;
+        }
+
         const uint64_t index =
             bitset_find_unset(entity->msix.bitset,
                               entity->msix.table_size,
@@ -177,12 +183,6 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                    "vector " ISR_VECTOR_FMT " to address %p\n",
                    vector,
                    (void *)address);
-            return;
-        }
-
-        struct pci_entity_bar_info *const bar = entity->msix.table_bar;
-        if (!pci_map_bar(bar)) {
-            printk(LOGLEVEL_WARN, "pcie: failed to map msix table bar\n");
             return;
         }
 

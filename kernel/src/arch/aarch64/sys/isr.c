@@ -25,12 +25,11 @@ struct irq_info {
 
 extern void *const ivt_el1;
 
-static
-bitset_decl(g_bitset, distance_incl(GIC_SPI_INTERRUPT_START, ISR_IRQ_COUNT));
-
+static bitset_decl(g_bitset, ISR_IRQ_COUNT - GIC_SPI_INTERRUPT_START);
 static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 
 __optimize(3) void isr_init() {
+
 }
 
 __optimize(3)
@@ -156,6 +155,10 @@ isr_get_msix_address(const struct cpu_info *const cpu,
 {
     (void)cpu;
     return (uint64_t)gicd_get_msi_address(vector);
+}
+
+__optimize(3) enum isr_msi_support isr_get_msi_support() {
+    return gicd_get_msi_support();
 }
 
 __optimize(3) void handle_interrupt(struct thread_context *const context) {

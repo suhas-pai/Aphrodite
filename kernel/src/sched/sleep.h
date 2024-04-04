@@ -7,4 +7,4 @@
 #pragma once
 #include "lib/time.h"
 
-void sched_sleep(usec_t usecs);
+void sched_sleep_us(usec_t usecs);

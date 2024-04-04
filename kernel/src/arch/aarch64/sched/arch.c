@@ -3,7 +3,12 @@
  * © suhas pai
  */
 
-#include "sched/process.h"
+#include "asm/context.h"
+#include "mm/page_alloc.h"
+#include "sched/thread.h"
+
+#define KERNEL_STACK_SIZE_ORDER 2
+#define USER_STACK_SIZE_ORDER 2
 
 void sched_process_arch_info_init(struct process *const process) {
     (void)process;
@@ -15,4 +20,12 @@ sched_thread_arch_info_init(struct thread *const thread,
 {
     (void)thread;
     (void)entry;
+
+    thread->arch_info.kernel_stack =
+        alloc_pages(PAGE_STATE_KERNEL_STACK,
+                    __ALLOC_ZERO,
+                    KERNEL_STACK_SIZE_ORDER);
+
+    void *const stack = page_to_virt(thread->arch_info.kernel_stack);
+    thread->context = THREAD_CONTEXT_INIT(stack, entry, /*arg=*/NULL);
 }

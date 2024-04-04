@@ -8,6 +8,7 @@
 #include "dev/dtb/node.h"
 #include "dev/dtb/tree.h"
 
+#include "cpu/isr.h"
 #include "sys/isr.h"
 
 #define GIC_SGI_INTERRUPT_START 0
@@ -34,7 +35,6 @@ enum gic_version {
 };
 
 struct gic_msi_frame {
-    struct mmio_region *mmio;
     uint32_t id;
 };
 
@@ -59,9 +59,7 @@ struct gicd_v2m_msi_frame_registers {
 
 struct gic_v2_msi_info {
     struct list list;
-
-    struct mmio_region *mmio;
-    volatile struct gicd_v2m_msi_frame_registers *regs;
+    uint64_t phys_addr;
 
     uint16_t spi_base;
     uint16_t spi_count;
@@ -94,7 +92,11 @@ void gicd_set_irq_affinity(irq_number_t irq, uint8_t iface);
 void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
 void gicd_set_irq_priority(irq_number_t irq, uint8_t priority);
 
+void gicd_send_ipi(uint8_t interface_number, uint8_t int_no);
+void gicd_send_sipi(uint8_t int_no);
+
 volatile uint64_t *gicd_get_msi_address(isr_vector_t vector);
+enum isr_msi_support gicd_get_msi_support();
 
 irq_number_t gic_cpu_get_irq_number(uint8_t *cpu_id_out);
 uint32_t gic_cpu_get_irq_priority();

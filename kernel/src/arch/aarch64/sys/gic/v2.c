@@ -74,7 +74,7 @@ struct gicd_v2_registers {
     volatile uint32_t interrupt_group_modifiers[64];
     volatile uint32_t non_secure_access_control[64];
 
-    volatile uint32_t software_generated_interrupts[32]; // Write-only
+    volatile _Atomic uint32_t software_generated_interrupts[32]; // Write-only
     volatile uint32_t sgi_clear_pending[32];
     volatile uint32_t sgi_set_pending[32];
 
@@ -103,6 +103,16 @@ struct gicd_v2_registers {
     volatile uint32_t component_id_1;
     volatile uint32_t component_id_2;
     volatile uint32_t component_id_3;
+};
+
+enum gicd_v2_sgi_shifts {
+    GICD_V2_SGI_CPU_TARGET_MASK_SHIFT = 16
+};
+
+enum gicd_v2_sgi_target_list_filter {
+    GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD,
+    GICD_V2_SGI_TARGET_LIST_FILTER_ALL_OTHER_CPUS,
+    GICD_V2_SGI_TARGET_LIST_FILTER_ONLY_SELF_IPI,
 };
 
 enum gicd_v2m_msi_frame_setspi_ns_shifts {
@@ -362,15 +372,25 @@ volatile uint64_t *gicd_get_msi_address(const isr_vector_t vector) {
             RANGE_INIT(iter->spi_base, iter->spi_count);
 
         if (range_has_loc(spi_range, vector)) {
-            return &iter->regs->setspi_ns;
+            struct gicd_v2m_msi_frame_registers *const regs =
+                (struct gicd_v2m_msi_frame_registers *)iter->phys_addr;
+
+            return &regs->setspi_ns;
         }
     }
 
     return NULL;
 }
 
-static
-bool init_msi_frame(struct mmio_region *const mmio, const bool init_later) {
+__optimize(3) enum isr_msi_support gicd_get_msi_support() {
+    return !list_empty(&g_msi_info_list) ? ISR_MSI_SUPPORT_MSI : ISR_MSI_SUPPORT_NONE;
+}
+
+static bool
+init_msi_frame(const uint64_t phys_addr,
+               struct mmio_region *const mmio,
+               const bool init_later)
+{
     volatile struct gicd_v2m_msi_frame_registers *const regs = mmio->base;
 
     const uint32_t typer = mmio_read(&regs->typer);
@@ -408,8 +428,7 @@ bool init_msi_frame(struct mmio_region *const mmio, const bool init_later) {
         return false;
     }
 
-    info->mmio = mmio;
-    info->regs = regs;
+    info->phys_addr = phys_addr;
     info->spi_base = spi_base;
     info->spi_count = spi_count;
     info->initialized = !init_later;
@@ -439,13 +458,13 @@ void gicd_add_msi(const uint64_t phys_base_address, const bool init_later) {
         return;
     }
 
-    if (!init_msi_frame(mmio, init_later)) {
+    if (!init_msi_frame(phys_base_address, mmio, init_later)) {
         vunmap_mmio(mmio);
         return;
     }
 
+    vunmap_mmio(mmio);
     const struct gic_msi_frame msi_frame = {
-        .mmio = mmio,
         .id = array_item_count(g_dist.msi_frame_list),
     };
 
@@ -565,6 +584,24 @@ void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
 
     atomic_store_explicit(&g_regs->interrupt_priority[index],
                           new_priority,
+                          memory_order_relaxed);
+}
+
+__optimize(3)
+void gicd_send_ipi(const uint8_t interface_number, const uint8_t int_no) {
+    const uint32_t info =
+        GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD
+        | (1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + interface_number))
+        | int_no;
+
+    atomic_store_explicit(&g_regs->software_generated_interrupts[0],
+                          info,
+                          memory_order_relaxed);
+}
+
+__optimize(3) void gicd_send_sipi(const uint8_t int_no) {
+    atomic_store_explicit(&g_regs->software_generated_interrupts[0],
+                          GICD_V2_SGI_TARGET_LIST_FILTER_ONLY_SELF_IPI | int_no,
                           memory_order_relaxed);
 }
 

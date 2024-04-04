@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/irq.c
+ * kernel/src/arch/x86_64/sched/irq.c
  * © suhas pai
  */
 

@@ -187,11 +187,11 @@ __optimize(3) void lapic_timer_stop() {
 }
 
 __optimize(3) usec_t lapic_timer_remaining() {
-    const bool flag = disable_interrupts_if_not();
+    preempt_disable();
     const uint64_t lapic_timer_freq_in_microseconds =
         this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
 
-    enable_interrupts_if_flag(flag);
+    preempt_enable();
     return mmio_read(&lapic_regs->timer_initial_count)
            / lapic_timer_freq_in_microseconds;
 }

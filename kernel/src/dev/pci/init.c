@@ -9,6 +9,7 @@
 #endif /* defined(__x86_64__) */
 
 #include "lib/adt/bitset.h"
+#include "cpu/isr.h"
 
 #include "dev/driver.h"
 #include "dev/printk.h"
@@ -237,20 +238,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
         return;
     }
 
-    // On x86_64, the fadt may provide a flag indicating that the MSI feature is
-    // disabled.
-#if defined(__x86_64__)
-    bool supports_msi = true;
-    const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
-
-    if (fadt != NULL) {
-        if (fadt->iapc_boot_arch_flags &
-                __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
-        {
-            supports_msi = false;
-        }
-    }
-#endif
+    const enum isr_msi_support msi_support = isr_get_msi_support();
 
 #define pci_read_cap_field(type, field) \
     pci_read_from_base(entity, cap_offset, type, field)
@@ -296,11 +284,9 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                     break;
                 }
 
-            #if defined(__x86_64__)
-                if (!supports_msi) {
+                if (msi_support == ISR_MSI_SUPPORT_NONE) {
                     break;
                 }
-            #endif /* defined(__x86_64) */
 
                 uint16_t msg_control =
                     pci_read_cap_field(struct pci_spec_cap_msi, msg_control);
@@ -352,11 +338,9 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                     break;
                 }
 
-            #if defined(__x86_64__)
-                if (!supports_msi) {
+                if (msi_support != ISR_MSI_SUPPORT_MSIX) {
                     break;
                 }
-            #endif /* defined(__x86_64) */
 
                 uint16_t msg_control =
                     pci_read_cap_field(struct pci_spec_cap_msix, msg_control);

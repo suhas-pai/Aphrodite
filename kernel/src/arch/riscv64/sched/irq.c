@@ -4,7 +4,6 @@
  */
 
 #include "cpu/info.h"
-#include "lib/macros.h"
 #include "sys/isr.h"
 
 __hidden isr_vector_t g_sched_vector = 0;
