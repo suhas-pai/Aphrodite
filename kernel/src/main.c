@@ -94,7 +94,7 @@ void _start(void) {
     test_alloc_largepage();
 
     printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
-#if defined(__x86_64__) || defined(__riscv64)
+#if defined(__x86_64__) || defined(__aarch64__)
     sched_sleep_us(seconds_to_micro(5));
     printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 

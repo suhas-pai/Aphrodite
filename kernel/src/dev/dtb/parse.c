@@ -1526,7 +1526,13 @@ parse_node_children(const void *const dtb,
 
 __optimize(3)
 static inline bool node_has_gic_compat(struct devicetree_node *const node) {
-    carr_foreach(gic_compat_sv_list, iter) {
+    carr_foreach(gicv2_compat_sv_list, iter) {
+        if (devicetree_node_has_compat_sv(node, *iter)) {
+            return true;
+        }
+    }
+
+    carr_foreach(gicv3_compat_sv_list, iter) {
         if (devicetree_node_has_compat_sv(node, *iter)) {
             return true;
         }

@@ -100,6 +100,10 @@
     const typeof(&(arr)[0]) h_var(end) = ((arr) + countof(arr)); \
     for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
 
+#define carr_foreach_mut(arr, name) \
+    typeof(&(arr)[0]) h_var(end) = ((arr) + countof(arr)); \
+    for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
+
 #define swap(a, b) ({ \
     const __auto_type __tmp = b; \
     b = a; \

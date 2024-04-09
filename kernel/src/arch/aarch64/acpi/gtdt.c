@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "sys/gic/v2.h"
+#include "sys/gic/api.h"
 
 #include "dev/printk.h"
 #include "lib/util.h"

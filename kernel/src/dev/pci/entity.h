@@ -6,6 +6,7 @@
 #pragma once
 
 #include "cpu/info.h"
+#include "dev/device.h"
 #include "sys/isr.h"
 
 #include "bar.h"
@@ -21,6 +22,8 @@ enum pci_entity_msi_support {
 };
 
 struct pci_entity_info {
+    struct device device;
+
     struct list list_in_entities;
     struct list list_in_domain;
 
@@ -85,10 +88,12 @@ struct pci_entity_info {
     (device)->class,                                                           \
     (device)->subclass
 
+uint16_t pci_entity_get_requester_id(const struct pci_entity_info *entity);
+
 bool pci_entity_enable_msi(struct pci_entity_info *entity);
 bool pci_entity_disable_msi(struct pci_entity_info *entity);
 
-bool
+int32_t
 pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
                               const struct cpu_info *cpu,
                               isr_vector_t vector,

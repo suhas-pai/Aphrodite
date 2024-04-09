@@ -21,13 +21,19 @@ struct cpu_info {
     uint64_t spur_intr_count;
 
     uint32_t interface_number;
-    uint32_t acpi_processor_id;
+    uint32_t processor_number;
 
-    uint64_t mpidr;
+    uint64_t affinity;
     struct thread *idle_thread;
 
     uint16_t spe_overflow_interrupt;
+    uint16_t icid;
+
+    void *gicv3_pend_page;
+    void *gicv3_prop_page;
+
     bool is_active : 1;
+    bool in_lpi : 1;
 
     struct sched_percpu_info info;
 };

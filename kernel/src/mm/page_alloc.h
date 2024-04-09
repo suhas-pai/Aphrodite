@@ -32,6 +32,12 @@ deref_large_page(struct page *page, struct pageop *pageop, pgt_level_t level);
 struct page *
 alloc_pages(enum page_state state, uint64_t alloc_flags, uint8_t order);
 
+struct page *
+alloc_pages_at_align(enum page_state state,
+                     uint64_t alloc_flags,
+                     uint8_t align,
+                     uint8_t order);
+
 struct page_zone;
 
 struct page *
@@ -40,6 +46,14 @@ alloc_pages_from_zone(struct page_zone *zone,
                       uint64_t alloc_flags,
                       uint8_t order,
                       bool fallback);
+
+struct page *
+alloc_pages_from_zone_at_align(struct page_zone *zone,
+                               enum page_state state,
+                               uint64_t alloc_flags,
+                               uint8_t order,
+                               uint8_t align,
+                               bool fallback);
 
 struct page *alloc_large_page(pgt_level_t level, uint64_t flags);
 struct page *

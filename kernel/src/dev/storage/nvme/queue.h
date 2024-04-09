@@ -40,6 +40,9 @@ struct nvme_queue {
 
     bool phase : 1;
 
+    uint8_t submit_alloc_order;
+    uint8_t completion_alloc_order;
+
     uint32_t phys_region_pages_count;
     uint64_t *phys_region_page_list;
 };

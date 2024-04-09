@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/adt/string_view.h"
 
-static const struct string_view gic_compat_sv_list[] = {
+static const struct string_view gicv2_compat_sv_list[] = {
     SV_STATIC("arm,cortex-a15-gic"),
     SV_STATIC("arm,arm11mp-gic"),
     SV_STATIC("arm,cortex-a7-gic"),
@@ -19,4 +19,8 @@ static const struct string_view gic_compat_sv_list[] = {
     SV_STATIC("nvidia,tegra210-agic"),
     SV_STATIC("qcom,msm-8660-qgic"),
     SV_STATIC("qcom,msm-qgic2")
+};
+
+static const struct string_view gicv3_compat_sv_list[] = {
+    SV_STATIC("arm,gic-v3"),
 };

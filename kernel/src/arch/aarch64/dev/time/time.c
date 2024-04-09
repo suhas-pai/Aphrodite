@@ -3,7 +3,8 @@
  * © suhas pai
  */
 
-#include "sys/gic/v2.h"
+#include "dev/dtb/tree.h"
+#include "sys/gic/api.h"
 
 #include "acpi/api.h"
 #include "cpu/isr.h"
@@ -25,26 +26,11 @@ enum cntv_ctl {
     __CNTV_CTL_ENABLE = 1 << 0,
 };
 
-__optimize(3) static inline sec_t read_syscount() {
-    uint64_t value = 0;
-    asm volatile ("isb\n"
-                  "mrs %0, cntpct_el0\n"
-                  "isb"
-                  : "=r"(value)
-                  :: "memory");
+__optimize(3) nsec_t system_timer_get_count_ns() {
+    nsec_t timestamp = 0;
+    asm volatile ("mrs %0, cntpct_el0" : "=r"(timestamp));
 
-    return value;
-}
-
-__unused __optimize(3) static inline sec_t read_virtcount() {
-    uint64_t value = 0;
-    asm volatile ("isb\n"
-                  "mrs %0, cntvct_el0\n"
-                  "isb"
-                  : "=r"(value)
-                  :: "memory");
-
-    return value;
+    return timestamp;
 }
 
 __optimize(3) nsec_t nsec_since_boot() {
@@ -55,19 +41,12 @@ __optimize(3) nsec_t nsec_since_boot() {
                   : "=r"(cntvct)
                   :: "memory");
 
-    return seconds_to_nano(read_syscount() / g_frequency -
+    return seconds_to_nano(system_timer_get_count_ns() / g_frequency -
                            (sec_t)boot_get_time());
 }
 
 __optimize(3) uint64_t system_timer_get_frequency_ns() {
     return g_frequency;
-}
-
-__optimize(3) nsec_t system_timer_get_count_ns() {
-    nsec_t timestamp = 0;
-    asm volatile ("mrs %0, cntpct_el0" : "=r"(timestamp));
-
-    return timestamp;
 }
 
 __optimize(3) nsec_t system_timer_get_compare_ns() {
@@ -89,22 +68,17 @@ __optimize(3) nsec_t system_timer_get_remaining_ns() {
 }
 
 __optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
-    const nsec_t timestamp = system_timer_get_count_ns();
-    const nsec_t compare = timestamp + nano_to_seconds(g_frequency * nano);
-
-    asm volatile ("msr cntp_cval_el0, %0" :: "r"(compare));
+    const usec_t tval = nano_to_seconds(g_frequency * nano);
+    asm volatile ("msr cntp_tval_el0, %0" :: "r"(tval));
 }
 
 __optimize(3) void system_timer_stop_alarm() {
-    asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
+    asm volatile ("msr cntp_tval_el0, %0" :: "r"(UINT64_MAX));
 }
 
 __optimize(3) static void
 interrupt_handler(const uint64_t intr_no, struct thread_context *const frame) {
-    (void)intr_no;
-    (void)frame;
-
-    sched_next(frame, /*from_irq=*/true);
+    sched_next(frame, intr_no);
 }
 
 static void enable_dtb_timer_irqs() {
@@ -173,5 +147,7 @@ void arch_init_time() {
                    "time: dtb is missing and acpi is missing 'gtdt' table");
     }
 
-    printk(LOGLEVEL_INFO, "time: syscount is %" PRIu64 "\n", read_syscount());
+    printk(LOGLEVEL_INFO,
+           "time: syscount is %" PRIu64 "\n",
+           system_timer_get_count_ns());
 }

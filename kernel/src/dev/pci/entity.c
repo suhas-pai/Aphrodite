@@ -14,6 +14,13 @@
 #include "entity.h"
 #include "structs.h"
 
+__optimize(3) uint16_t
+pci_entity_get_requester_id(const struct pci_entity_info *const entity) {
+    return (uint16_t)entity->loc.bus << 8
+           | (uint16_t)entity->loc.slot << 3
+           | entity->loc.function;
+}
+
 __optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
@@ -160,7 +167,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
         }
     }
 
-    static void
+    static int32_t
     bind_msix_to_vector(struct pci_entity_info *const entity,
                         const uint64_t address,
                         const isr_vector_t vector,
@@ -169,7 +176,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
         struct pci_entity_bar_info *const bar = entity->msix.table_bar;
         if (!pci_map_bar(bar)) {
             printk(LOGLEVEL_WARN, "pcie: failed to map msix table bar\n");
-            return;
+            return -1;
         }
 
         const uint64_t index =
@@ -183,7 +190,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                    "vector " ISR_VECTOR_FMT " to address %p\n",
                    vector,
                    (void *)address);
-            return;
+            return -1;
         }
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
@@ -194,10 +201,12 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
 
         mmio_write(&table[index].data, vector);
         mmio_write(&table[index].control, (uint32_t)masked);
+
+        return index;
     }
 #endif /* defined(ISR_SUPPORTS_MSI) */
 
-bool
+int32_t
 pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                               const struct cpu_info *const cpu,
                               const isr_vector_t vector,
@@ -213,7 +222,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                    PCI_ENTITY_INFO_FMT_ARGS(entity),
                    vector);
 
-            return false;
+            return -1;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
             const int flag = spin_acquire_irq_save(&entity->lock);
             const uint64_t msi_address = isr_get_msi_address(cpu, vector);
@@ -221,16 +230,17 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
             bind_msi_to_vector(entity, msi_address, vector, masked);
             spin_release_irq_restore(&entity->lock, flag);
 
-            return true;
+            return 0;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
             const int flag = spin_acquire_irq_save(&entity->lock);
+
             const uint64_t msix_address = isr_get_msix_address(cpu, vector);
+            const uint16_t result =
+                bind_msix_to_vector(entity, msix_address, vector, masked);
 
-            bind_msix_to_vector(entity, msix_address, vector, masked);
             spin_release_irq_restore(&entity->lock, flag);
-
-            return true;
+            return result;
         }
     }
 #else

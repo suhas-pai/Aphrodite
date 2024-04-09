@@ -25,10 +25,10 @@ __hidden struct cpu_info g_base_cpu_info = {
     .spur_intr_count = 0,
 
     .interface_number = 0,
-    .acpi_processor_id = 0,
+    .processor_number = 0,
 
     .spe_overflow_interrupt = 0,
-    .mpidr = 0,
+    .affinity = 0,
 };
 
 static struct cpu_features g_cpu_features = {0};
@@ -1400,6 +1400,8 @@ void print_cpu_features() {
            g_cpu_features.mixed_endian_support ? "yes" : "no",
            g_cpu_features.granule_16k_supported ? "yes" : "no",
            g_cpu_features.granule_64k_supported ? "yes" : "no");
+
+    assert_msg(g_cpu_features.mops, "cpu: missing FEAT_MOPS");
 }
 
 void cpu_init() {
@@ -1411,10 +1413,13 @@ void cpu_init() {
                "cpu: machine doesn't support 16kib pages");
 #endif /* defined(AARCH64_USE_16K_PAGES) */
 
-    g_base_cpu_info.mpidr = read_mpidr_el1();
-    g_base_cpu_info.mpidr = rm_mask(g_base_cpu_info.mpidr, 1ull << 31);
+    const uint64_t mpidr = read_mpidr_el1();
+    g_base_cpu_info.affinity =
+        ((mpidr >> 32) & 0xFF) << 24 | (mpidr & 0xFFFFFF);
 
     asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
+
+    list_add(&g_cpu_list, &g_base_cpu_info.cpu_list);
     g_base_cpu_init = true;
 }
 
@@ -1435,7 +1440,7 @@ cpu_add_gic_interface(
     const struct acpi_madt_entry_gic_cpu_interface *const intr)
 {
     struct cpu_info *cpu = &g_base_cpu_info;
-    if (intr->mpidr != g_base_cpu_info.mpidr) {
+    if (intr->mpidr != g_base_cpu_info.affinity) {
         cpu = kmalloc(sizeof(struct cpu_info));
         if (cpu == NULL) {
             printk(LOGLEVEL_WARN,
@@ -1449,10 +1454,10 @@ cpu_add_gic_interface(
     }
 
     cpu->spur_intr_count = 0;
-    cpu->acpi_processor_id = intr->acpi_processor_id;
+    cpu->processor_number = intr->acpi_processor_id;
     cpu->interface_number = intr->cpu_interface_number;
     cpu->spe_overflow_interrupt = intr->spe_overflow_interrupt;
-    cpu->mpidr = intr->mpidr;
+    cpu->affinity = intr->mpidr;
 
-    gic_init_on_this_cpu(intr->phys_base_address, PAGE_SIZE);
+    gicv2_init_on_this_cpu(intr->phys_base_address, PAGE_SIZE);
 }

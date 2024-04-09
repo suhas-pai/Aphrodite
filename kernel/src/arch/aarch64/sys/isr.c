@@ -4,7 +4,12 @@
  */
 
 #include "lib/adt/bitset.h"
-#include "sys/gic/v2.h"
+
+#include "sys/gic/api.h"
+#include "sys/gic/its.h"
+
+#include "cpu/spinlock.h"
+#include "lib/util.h"
 
 #include "asm/esr.h"
 #include "asm/irqs.h"
@@ -26,10 +31,26 @@ struct irq_info {
 extern void *const ivt_el1;
 
 static bitset_decl(g_bitset, ISR_IRQ_COUNT - GIC_SPI_INTERRUPT_START);
+
 static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
+static struct irq_info g_lpi_irq_info_list[GIC_ITS_MAX_LPIS_SUPPORTED] = {0};
+
+static struct spinlock g_sgi_lock = SPINLOCK_INIT();
+static uint16_t g_sgi_interrupt = 0;
 
 __optimize(3) void isr_init() {
 
+}
+
+__optimize(3) isr_vector_t isr_alloc_sgi_vector() {
+    const int flag = spin_acquire_irq_save(&g_sgi_lock);
+    const uint16_t result = g_sgi_interrupt;
+
+    spin_release_irq_restore(&g_sgi_lock, flag);
+    assert(index_in_bounds(result, GIC_SGI_INTERRUPT_LAST));
+
+    g_sgi_interrupt++;
+    return result;
 }
 
 __optimize(3)
@@ -49,58 +70,34 @@ void isr_install_vbar() {
     printk(LOGLEVEL_INFO, "isr: installed vbar_el1\n");
 }
 
-__optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
-    if (for_msi) {
-        struct gic_v2_msi_info *iter = NULL;
-        struct list *const list = gicd_get_msi_info_list();
+__optimize(3) isr_vector_t isr_alloc_vector() {
+    const uint64_t result =
+        bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
-        list_foreach(iter, list, list) {
-            assert(iter->initialized);
-
-            const uint16_t end = iter->spi_base + iter->spi_count;
-            for (uint16_t irq = iter->spi_base; irq != end; irq++) {
-                assert(g_irq_info_list[irq].for_msi);
-                if (!g_irq_info_list[irq].alloced_in_msi) {
-                    g_irq_info_list[irq].alloced_in_msi = true;
-                    return irq;
-                }
-            }
-        }
-    } else {
-        const uint64_t result =
-            bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
-
-        if (result != BITSET_INVALID) {
-            return result;
-        }
+    if (result != BITSET_INVALID) {
+        return GIC_SPI_INTERRUPT_START + result;
     }
 
     return ISR_INVALID_VECTOR;
 }
 
-__optimize(3)
-void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
-    if (for_msi) {
-        struct gic_v2_msi_info *iter = NULL;
-        struct list *const list = gicd_get_msi_info_list();
+__optimize(3) isr_vector_t
+isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
+    return gicd_alloc_msi_vector(device, msi_index);
+}
 
-        list_foreach(iter, list, list) {
-            assert(iter->initialized);
+__optimize(3) void isr_free_vector(const isr_vector_t vector) {
+    assert_no_msg(bitset_has(g_bitset, vector));
+    bitset_unset(g_bitset, /*invert=*/true);
+}
 
-            const struct range spi_range =
-                RANGE_INIT(iter->spi_base, iter->spi_count);
-
-            if (!range_has_loc(spi_range, vector)) {
-                continue;
-            }
-
-            assert(g_irq_info_list[vector].for_msi);
-            g_irq_info_list[vector].alloced_in_msi = false;
-        }
-    } else {
-        assert_no_msg(bitset_has(g_bitset, vector));
-        bitset_unset(g_bitset, /*invert=*/true);
-    }
+__optimize(3) void
+isr_free_msi_vector(struct device *const device,
+                    const isr_vector_t vector,
+                    const uint16_t msi_index)
+{
+    (void)device;
+    gicd_free_msi_vector(vector, msi_index);
 }
 
 __optimize(3) void
@@ -110,7 +107,37 @@ isr_set_vector(const isr_vector_t vector,
 {
     (void)info;
 
-    g_irq_info_list[vector].handler = handler;
+    if (vector >= GIC_ITS_LPI_INTERRUPT_START) {
+        const uint16_t index = vector - GIC_ITS_LPI_INTERRUPT_START;
+        if (!index_in_bounds(index, GIC_ITS_MAX_LPIS_SUPPORTED)) {
+            printk(LOGLEVEL_WARN,
+                   "isr: isr_set_vector() called on invalid lpi\n");
+            return;
+        }
+
+        g_lpi_irq_info_list[index].handler = handler;
+    } else {
+        g_irq_info_list[vector].handler = handler;
+    }
+
+    printk(LOGLEVEL_INFO,
+           "isr: registered handler for vector %" PRIu8 "\n",
+           vector);
+}
+
+__optimize(3) void
+isr_set_msi_vector(const isr_vector_t vector,
+                   const isr_func_t handler,
+                   struct arch_isr_info *const info)
+{
+    (void)info;
+    if (!index_in_bounds(vector, GIC_ITS_MAX_LPIS_SUPPORTED)) {
+        printk(LOGLEVEL_WARN,
+                "isr: isr_set_vector() called on invalid lpi\n");
+        return;
+    }
+
+    g_lpi_irq_info_list[vector].handler = handler;
     printk(LOGLEVEL_INFO,
            "isr: registered handler for vector %" PRIu8 "\n",
            vector);
@@ -164,6 +191,32 @@ __optimize(3) enum isr_msi_support isr_get_msi_support() {
 __optimize(3) void handle_interrupt(struct thread_context *const context) {
     uint8_t cpu_id = 0;
     const irq_number_t irq = gic_cpu_get_irq_number(&cpu_id);
+
+    if (irq >= GIC_ITS_LPI_INTERRUPT_START) {
+        const uint16_t index = irq - GIC_ITS_LPI_INTERRUPT_START;
+        this_cpu_mut()->in_lpi = true;
+
+        if (!index_in_bounds(index, GIC_ITS_MAX_LPIS_SUPPORTED)) {
+            printk(LOGLEVEL_WARN,
+                   "isr: got lpi beyond end of supported lpis\n");
+
+            gic_cpu_eoi(cpu_id, irq);
+            return;
+        }
+
+        const isr_func_t handler = g_lpi_irq_info_list[index].handler;
+        if (handler != NULL) {
+            handler((uint64_t)cpu_id << 16 | index, context);
+        } else {
+            printk(LOGLEVEL_WARN,
+                   "isr: got unhandled lpi interrupt " ISR_VECTOR_FMT " on "
+                   "cpu %" PRIu8 "\n",
+                   irq,
+                   cpu_id);
+        }
+
+        return;
+    }
 
     if (__builtin_expect(irq >= ISR_IRQ_COUNT, 0)) {
         printk(LOGLEVEL_WARN,

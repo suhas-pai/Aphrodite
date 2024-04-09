@@ -254,6 +254,7 @@ identify_namespaces(struct nvme_controller *const controller,
 
 bool
 nvme_controller_create(struct nvme_controller *const controller,
+                       struct device *const device,
                        volatile struct nvme_registers *const regs,
                        const isr_vector_t isr_vector,
                        const uint16_t msix_vector)
@@ -261,12 +262,16 @@ nvme_controller_create(struct nvme_controller *const controller,
     list_init(&controller->list);
     list_init(&controller->namespace_list);
 
+    controller->device = device;
     controller->regs = regs;
     controller->lock = SPINLOCK_INIT();
     controller->msix_vector = msix_vector;
     controller->isr_vector = isr_vector;
 
-    isr_set_vector(controller->isr_vector, handle_irq, &ARCH_ISR_INFO_NONE());
+    isr_set_msi_vector(controller->isr_vector,
+                       handle_irq,
+                       &ARCH_ISR_INFO_NONE());
+
     if (!nvme_queue_create(&controller->admin_queue,
                            controller,
                            /*id=*/0,
@@ -337,8 +342,8 @@ nvme_controller_create(struct nvme_controller *const controller,
     }
 
     printk(LOGLEVEL_INFO,
-           "nvme: binding vector " ISR_VECTOR_FMT " to msix "
-           "vector %" PRIu16 "\n",
+           "nvme: binding isr msix vector " ISR_VECTOR_FMT " to msix "
+           "table index %" PRIu16 "\n",
            controller->isr_vector,
            controller->msix_vector);
 
@@ -366,7 +371,9 @@ bool nvme_controller_destroy(struct nvme_controller *const controller) {
         nvme_namespace_destroy(iter);
     }
 
-    isr_free_vector(controller->isr_vector, /*for_msi=*/true);
+    isr_free_msi_vector(controller->device,
+                        controller->isr_vector,
+                        /*msi_index=*/0);
 
     list_deinit(&controller->list);
     list_deinit(&controller->namespace_list);

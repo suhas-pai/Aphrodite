@@ -81,7 +81,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                              __PCI_ENTITY_PRIVL_BUS_MASTER
                              | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
-    g_hba_vector = isr_alloc_vector(/*for_msi=*/true);
+    g_hba_vector = isr_alloc_msi_vector(&pci_entity->device, /*msi_index=*/0);
     assert(g_hba_vector != ISR_INVALID_VECTOR);
 
     isr_set_vector(g_hba_vector, ahci_port_handle_irq, &ARCH_ISR_INFO_NONE());
@@ -110,7 +110,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                            /*end_index=*/sizeof_bits(ports_impled));
 
     if (__builtin_expect(ports_impled_count == 0, 0)) {
-        isr_free_vector(g_hba_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, g_hba_vector, /*msi_index=*/0);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -133,7 +133,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     hba->port_list = kmalloc(sizeof(struct ahci_hba_port) * ports_impled_count);
     if (hba->port_list == NULL) {
-        isr_free_vector(g_hba_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, g_hba_vector, /*msi_index=*/0);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -186,7 +186,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         }
 
         if (!handoff_successful) {
-            isr_free_vector(g_hba_vector, /*for_msi=*/true);
+            isr_free_msi_vector(&pci_entity->device,
+                                g_hba_vector,
+                                /*msi_index=*/0);
+
             pci_entity_toggle_msi_vector_mask(pci_entity,
                                               g_hba_vector,
                                               /*mask=*/true);
@@ -227,7 +230,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     if (usable_port_count == 0) {
-        isr_free_vector(g_hba_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, g_hba_vector, /*msi_index=*/0);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);
@@ -252,7 +255,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
     if (!init_one_port) {
-        isr_free_vector(g_hba_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, g_hba_vector, /*msi_index=*/0);
         pci_entity_toggle_msi_vector_mask(pci_entity,
                                           g_hba_vector,
                                           /*mask=*/true);

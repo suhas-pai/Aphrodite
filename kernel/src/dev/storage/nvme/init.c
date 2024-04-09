@@ -30,6 +30,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
+    printk(LOGLEVEL_INFO,
+           "nvme: requester-id: 0x%" PRIx16 "\n",
+           pci_entity_get_requester_id(pci_entity));
+
     struct pci_entity_bar_info *const bar =
         &pci_entity->bar_list[NVME_BAR_INDEX];
 
@@ -64,7 +68,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    const isr_vector_t isr_vector = isr_alloc_vector(/*for_msi=*/true);
+    const isr_vector_t isr_vector =
+        isr_alloc_msi_vector(&pci_entity->device, /*msi_index=*/0);
+
     if (isr_vector == ISR_INVALID_VECTOR) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc isr vector for msix capability\n");
@@ -77,7 +83,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     const int flag = disable_interrupts_if_not();
     if (!pci_entity_enable_msi(pci_entity)) {
-        isr_free_vector(isr_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
         printk(LOGLEVEL_WARN, "nvme: pci-entity is missing msi capability\n");
 
         return;
@@ -97,7 +103,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
         pci_unmap_bar(bar);
 
-        isr_free_vector(isr_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
         printk(LOGLEVEL_WARN, "nvme: failed to alloc memory\n");
 
         return;
@@ -107,6 +113,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         bar->mmio->base + bar->index_in_mmio;
 
     if (!nvme_controller_create(controller,
+                                &pci_entity->device,
                                 regs,
                                 isr_vector,
                                 /*msix_vector=*/0))
@@ -117,7 +124,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         pci_entity_disable_privls(pci_entity);
 
         pci_unmap_bar(bar);
-        isr_free_vector(isr_vector, /*for_msi=*/true);
+        isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
 
         printk(LOGLEVEL_WARN, "nvme: failed to allocate queue\n");
         return;

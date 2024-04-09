@@ -4,7 +4,7 @@
  */
 
 #include "dev/time/time.h"
-#include "sys/gic/v2.h"
+#include "sys/gic/api.h"
 
 #include "cpu/info.h"
 #include "sched/irq.h"
@@ -17,8 +17,8 @@ void sched_timer_stop() {
     system_timer_stop_alarm();
 }
 
-void sched_irq_eoi() {
-    gic_cpu_eoi(this_cpu()->interface_number, sched_get_isr_vector());
+void sched_irq_eoi(const irq_number_t irq) {
+    gic_cpu_eoi(this_cpu()->interface_number, irq);
 }
 
 __optimize(3) usec_t sched_timer_remaining() {

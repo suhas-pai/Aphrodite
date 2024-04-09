@@ -18,5 +18,8 @@ typedef uint16_t isr_vector_t;
 typedef void (*isr_func_t)(uint64_t intr_info, struct thread_context *frame);
 void isr_reserve_msi_irqs(uint16_t base, uint16_t count);
 
+isr_vector_t isr_alloc_sgi_vector();
+uint8_t isr_get_sgi_alloced_count();
+
 void isr_install_vbar();
 void isr_eoi(uint64_t intr_info);

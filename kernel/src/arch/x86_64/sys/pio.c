@@ -32,13 +32,13 @@ __optimize(3) uint32_t pio_read32(const port_t port) {
 }
 
 __optimize(3) void pio_write8(const port_t port, const uint8_t value) {
-    asm volatile ("out %1, %0" : : "Nd" (port), "a" (value));
+    asm volatile ("out %1, %0" :: "Nd" (port), "a" (value));
 }
 
 __optimize(3) void pio_write16(const port_t port, const uint16_t value) {
-    asm volatile ("out %1, %0" : : "Nd" (port), "a" (value));
+    asm volatile ("out %1, %0" :: "Nd" (port), "a" (value));
 }
 
 __optimize(3) void pio_write32(const port_t port, const uint32_t value) {
-    asm volatile ("out %1, %0" : : "Nd" (port), "a" (value));
+    asm volatile ("out %1, %0" :: "Nd" (port), "a" (value));
 }

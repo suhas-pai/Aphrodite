@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "asm/irqs.h"
 #if __has_include("asm/stack_trace.h")
     #include "asm/stack_trace.h"
 #endif /* __has_include("asm/stack_trace.h") */
@@ -11,6 +12,7 @@
 #include "dev/printk.h"
 
 __optimize(3) void panic(const char *const fmt, ...) {
+    disable_interrupts();
     va_list list;
     va_start(list, fmt);
 

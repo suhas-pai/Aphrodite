@@ -7,10 +7,10 @@
 #include <stdint.h>
 
 struct pci_location {
-    uint32_t segment;
-    uint32_t bus;
-    uint32_t slot;
-    uint32_t function;
+    uint8_t segment;
+    uint8_t bus;
+    uint8_t slot;
+    uint8_t function;
 };
 
 #define PCI_LOCATION_NULL() \

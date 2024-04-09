@@ -223,6 +223,23 @@ struct acpi_madt_entry_gic_msi_frame {
     uint16_t spi_base;
 } __packed;
 
+struct acpi_madt_entry_gicv3_redistributor {
+    struct acpi_madt_entry_header header;
+    uint16_t reserved;
+
+    uint64_t discovery_range_base_address;
+    uint32_t dicovery_range_length;
+} __packed;
+
+struct acpi_madt_entry_gic_its {
+    struct acpi_madt_entry_header header;
+    uint16_t reserved;
+
+    uint32_t id;
+    uint64_t phys_base_address;
+    uint32_t reserved_2;
+} __packed;
+
 enum acpi_gas_addrspace_kind {
     ACPI_GAS_ADDRSPACE_KIND_SYSMEM,
     ACPI_GAS_ADDRSPACE_KIND_SYS_IO,

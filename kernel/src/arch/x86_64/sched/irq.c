@@ -11,10 +11,8 @@ __hidden isr_vector_t g_sched_vector = 0;
 
 __optimize(3) static void
 sched_handle_irq(const uint64_t intr_no, struct thread_context *const frame) {
-    (void)intr_no;
-
     lapic_timer_stop();
-    sched_next(frame, /*from_irq=*/true);
+    sched_next(frame, intr_no);
 }
 
 __optimize(3) void sched_init_irq() {

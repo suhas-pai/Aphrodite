@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include "sys/irqdef.h"
 
 enum irq_polarity {
     IRQ_POLARITY_LOW,

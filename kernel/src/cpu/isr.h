@@ -7,19 +7,33 @@
 #include <stdbool.h>
 
 #include "cpu/info.h"
+#include "dev/device.h"
 #include "sys/isr.h"
 
 // Returns -1 on alloc failure
 void isr_init();
-isr_vector_t isr_alloc_vector(bool for_msi);
 
-void isr_free_vector(isr_vector_t vector, bool for_msi);
+isr_vector_t isr_alloc_vector();
+isr_vector_t isr_alloc_msi_vector(struct device *device, uint16_t msi_index);
+
+void isr_free_vector(isr_vector_t vector);
+
+void
+isr_free_msi_vector(struct device *device,
+                    isr_vector_t vector,
+                    uint16_t msi_index);
+
 void isr_eoi(uint64_t intr_no);
 
 void
 isr_set_vector(isr_vector_t vector,
                isr_func_t handler,
                struct arch_isr_info *info);
+
+void
+isr_set_msi_vector(isr_vector_t vector,
+                   isr_func_t handler,
+                   struct arch_isr_info *info);
 
 void
 isr_assign_irq_to_cpu(const struct cpu_info *cpu,

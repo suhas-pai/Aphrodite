@@ -7,9 +7,10 @@
 #include "dev/printk.h"
 #include "lib/align.h"
 
+#include "mm/page_alloc.h"
 #include "mm/phalloc.h"
-#include "sys/mmio.h"
 
+#include "sys/mmio.h"
 #include "controller.h"
 
 bool
@@ -22,23 +23,41 @@ nvme_queue_create(struct nvme_queue *const queue,
     const uint32_t submit_alloc_size =
         sizeof(struct nvme_command) * entry_count;
 
-    const uint64_t submit_queue_phys = phalloc(submit_alloc_size);
-    if (submit_queue_phys == INVALID_PHYS) {
-        printk(LOGLEVEL_WARN, "nvme: failed to allocate page for nvme-queue\n");
+    uint8_t submit_order = 0;
+    while ((PAGE_SIZE << submit_order) < submit_alloc_size) {
+        submit_order++;
+    }
+
+    struct page *const submit_queue_page =
+        alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, submit_order);
+
+    if (submit_queue_page == NULL) {
+        printk(LOGLEVEL_WARN,
+               "nvme: failed to allocate page for nvme submit-queue\n");
         return false;
     }
 
+    const uint64_t submit_queue_phys = page_to_phys(submit_queue_page);
     const uint32_t completion_alloc_size =
         sizeof(struct nvme_completion_queue_entry) * entry_count;
 
-    const uint64_t completion_queue_phys = phalloc(completion_alloc_size);
-    if (completion_queue_phys == INVALID_PHYS) {
-        phalloc_free(submit_queue_phys);
-        printk(LOGLEVEL_WARN, "nvme: failed to allocate page for nvme-queue\n");
+    uint8_t completion_order = 0;
+    while ((PAGE_SIZE << completion_order) < completion_alloc_size) {
+        completion_order++;
+    }
+
+    struct page *const completion_queue_page =
+        alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, completion_order);
+
+    if (completion_queue_page == NULL) {
+        free_pages(submit_queue_page, submit_order);
+        printk(LOGLEVEL_WARN,
+               "nvme: failed to allocate page for nvme completion-queue\n");
 
         return false;
     }
 
+    const uint64_t completion_queue_phys = page_to_phys(completion_queue_page);
     struct mmio_region *const submit_queue_mmio =
         vmap_mmio(RANGE_INIT(submit_queue_phys,
                              align_up_assert(submit_alloc_size, PAGE_SIZE)),
@@ -46,8 +65,8 @@ nvme_queue_create(struct nvme_queue *const queue,
                   /*flags=*/0);
 
     if (submit_queue_mmio == NULL) {
-        phalloc_free(submit_queue_phys);
-        phalloc_free(completion_queue_phys);
+        free_pages(submit_queue_page, submit_order);
+        free_pages(completion_queue_page, completion_order);
 
         printk(LOGLEVEL_WARN,
                "nvme: failed to vmap submit-queue page for nvme-queue\n");
@@ -63,8 +82,8 @@ nvme_queue_create(struct nvme_queue *const queue,
     if (completion_queue_mmio == NULL) {
         vunmap_mmio(submit_queue_mmio);
 
-        phalloc_free(submit_queue_phys);
-        phalloc_free(completion_queue_phys);
+        free_pages(submit_queue_page, submit_order);
+        free_pages(completion_queue_page, completion_order);
 
         printk(LOGLEVEL_WARN,
                "nvme: failed to vmap submit-queue page for nvme-queue\n");
@@ -95,6 +114,9 @@ nvme_queue_create(struct nvme_queue *const queue,
     queue->entry_count = entry_count;
     queue->cmd_identifier = 0;
     queue->phase = true;
+
+    queue->submit_alloc_order = submit_order;
+    queue->completion_alloc_order = completion_order;
 
     if (max_transfer_shift != 0) {
         queue->phys_region_pages_count =
@@ -150,8 +172,10 @@ __optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     vunmap_mmio(queue->submit_queue_mmio);
     vunmap_mmio(queue->completion_queue_mmio);
 
-    phalloc_free(queue->submit_queue_phys);
-    phalloc_free(queue->completion_queue_phys);
+    free_pages(phys_to_page(queue->submit_queue_phys),
+               queue->submit_alloc_order);
+    free_pages(phys_to_page(queue->completion_queue_phys),
+               queue->completion_alloc_order);
 
     queue->submit_queue_mmio = NULL;
     queue->completion_queue_mmio = NULL;

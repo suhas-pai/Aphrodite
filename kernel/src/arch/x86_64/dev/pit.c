@@ -35,7 +35,7 @@ void irq$pit(const uint64_t intr_no, struct thread_context *const regs) {
 void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     g_gran = granularity;
 
-    const isr_vector_t vector = isr_alloc_vector(/*for_msi=*/false);
+    const isr_vector_t vector = isr_alloc_vector();
     assert(vector != ISR_INVALID_VECTOR);
 
     const int flag = disable_interrupts_if_not();

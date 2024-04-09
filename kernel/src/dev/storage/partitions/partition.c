@@ -7,12 +7,14 @@
 
 __optimize(3) bool
 partition_init(struct partition *const partition,
+               const struct string name,
                struct storage_device *const device,
                const struct range range)
 {
     list_init(&partition->list);
 
     partition->device = device;
+    partition->name = name;
     partition->range = range;
 
     return true;

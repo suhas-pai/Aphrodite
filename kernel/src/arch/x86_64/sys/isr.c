@@ -28,9 +28,7 @@ static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
 static isr_vector_t g_spur_vector = 0;
 static isr_vector_t g_timer_vector = 0;
 
-__optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
-    (void)for_msi;
-
+__optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_irq_save(&g_lock);
     const uint64_t bit_index =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
@@ -46,9 +44,15 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     return vector;
 }
 
-__optimize(3)
-void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
-    (void)for_msi;
+__optimize(3) isr_vector_t
+isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
+    (void)device;
+    (void)msi_index;
+
+    return isr_alloc_vector();
+}
+
+__optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
@@ -59,6 +63,17 @@ void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
 
     spin_release_irq_restore(&g_lock, flag);
     printk(LOGLEVEL_INFO, "isr: freed vector " ISR_VECTOR_FMT "\n", vector);
+}
+
+__optimize(3) void
+isr_free_msi_vector(struct device *const device,
+                    const isr_vector_t vector,
+                    const uint16_t msi_index)
+{
+    (void)device;
+    (void)msi_index;
+
+    return isr_free_vector(vector);
 }
 
 __optimize(3) isr_vector_t isr_get_timer_vector() {
@@ -113,11 +128,11 @@ void isr_init() {
     g_bitset[0] = mask_for_n_bits(ISR_EXCEPTION_COUNT);
 
     // Setup Timer
-    g_timer_vector = isr_alloc_vector(/*for_msi=*/false);
+    g_timer_vector = isr_alloc_vector();
     assert(g_timer_vector != ISR_INVALID_VECTOR);
 
     // Setup Spurious Interrupt
-    g_spur_vector = isr_alloc_vector(/*for_msi=*/false);
+    g_spur_vector = isr_alloc_vector();
     assert(g_spur_vector != ISR_INVALID_VECTOR);
 
     isr_set_vector(g_spur_vector, spur_tick, &ARCH_ISR_INFO_NONE());
@@ -131,6 +146,14 @@ isr_set_vector(const isr_vector_t vector,
 {
     g_funcs[vector] = handler;
     idt_set_vector(vector, info->ist, IDT_DEFAULT_FLAGS);
+}
+
+__optimize(3) void
+isr_set_msi_vector(const isr_vector_t vector,
+                   const isr_func_t handler,
+                   struct arch_isr_info *const info)
+{
+    isr_set_vector(vector, handler, info);
 }
 
 __optimize(3) void

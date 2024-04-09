@@ -6,6 +6,7 @@
 #include "dev/time/stime.h"
 #include "lib/time.h"
 #include "sched/thread.h"
+#include "sys/irq.h"
 
 __optimize(3) void sched_timer_oneshot(const usec_t usec) {
     stimer_oneshot(usec);
@@ -23,6 +24,6 @@ usec_t sched_timer_remaining() {
     return remaining;
 }
 
-void sched_irq_eoi() {
-
+void sched_irq_eoi(const irq_number_t irq) {
+    (void)irq;
 }

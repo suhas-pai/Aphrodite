@@ -23,6 +23,7 @@ void sched_process_algo_info_init(struct process *const process) {
 void sched_thread_algo_info_init(struct thread *const thread) {
     thread->sched_info.timeslice = SCHED_ROUND_ROBIN_DEF_TIMESLICE_US;
     thread->sched_info.awaiting = false;
+    thread->sched_info.enqueued = true;
 
     list_init(&thread->sched_info.list);
 }
@@ -48,6 +49,8 @@ __optimize(3) void sched_enqueue_thread(struct thread *const thread) {
 
 __optimize(3) void sched_dequeue_thread(struct thread *const thread) {
     const int flag = spin_acquire_irq_save(&g_run_queue_lock);
+
+    assert(thread != thread->cpu->idle_thread);
     atomic_store_explicit(&thread->sched_info.enqueued,
                           false,
                           memory_order_relaxed);
@@ -113,14 +116,12 @@ static void update_alarm_list(struct thread *const current_thread) {
     alarm_list_unlock(flag);
 }
 
-void sched_next(struct thread_context *const context, const bool from_irq) {
+void sched_next(struct thread_context *const context, const irq_number_t irq) {
     struct thread *const curr_thread = current_thread();
     if (!preemption_enabled()) {
-        if (from_irq) {
-            sched_irq_eoi();
-        }
-
+        sched_irq_eoi(irq);
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
+
         return;
     }
 
@@ -135,23 +136,19 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
     // thread is still runnable and no other thread is.
 
     if (curr_thread == next_thread) {
-        if (from_irq) {
-            sched_irq_eoi();
-        }
-
+        sched_irq_eoi(irq);
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
+
         return;
     }
 
     const struct thread *const idle_thread = this_cpu()->idle_thread;
     if (next_thread == idle_thread) {
         sched_set_current_thread(next_thread);
-        if (from_irq) {
-            sched_irq_eoi();
-        }
+        sched_irq_eoi(irq);
 
         sched_timer_oneshot(next_thread->sched_info.timeslice);
-        sched_switch_to(/*prev=*/curr_thread, next_thread, context, from_irq);
+        sched_switch_to(/*prev=*/curr_thread, next_thread, context);
 
         verify_not_reached();
     }
@@ -164,12 +161,10 @@ void sched_next(struct thread_context *const context, const bool from_irq) {
     sched_prepare_thread(next_thread);
     sched_set_current_thread(next_thread);
 
-    if (from_irq) {
-        sched_irq_eoi();
-    }
+    sched_irq_eoi(irq);
 
     sched_timer_oneshot(next_thread->sched_info.timeslice);
-    sched_switch_to(/*prev=*/curr_thread, next_thread, context, from_irq);
+    sched_switch_to(/*prev=*/curr_thread, next_thread, context);
 }
 
 __optimize(3) void sched_yield() {

@@ -25,9 +25,7 @@ void isr_init() {
 
 }
 
-__optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
-    (void)for_msi;
-
+__optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_irq_save(&g_lock);
     const uint64_t result =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
@@ -40,15 +38,32 @@ __optimize(3) isr_vector_t isr_alloc_vector(const bool for_msi) {
     return (isr_vector_t)result;
 }
 
-__optimize(3)
-void isr_free_vector(const isr_vector_t vector, const bool for_msi) {
-    (void)for_msi;
+__optimize(3) isr_vector_t
+isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
+    (void)device;
+    (void)msi_index;
+
+    return isr_alloc_vector();
+}
+
+__optimize(3) void isr_free_vector(const isr_vector_t vector) {
     const int flag = spin_acquire_irq_save(&g_lock);
 
     bitset_unset(g_bitset, vector);
     isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
 
     spin_release_irq_restore(&g_lock, flag);
+}
+
+__optimize(3) void
+isr_free_msi_vector(struct device *const device,
+                    const isr_vector_t vector,
+                    const uint16_t msi_index)
+{
+    (void)device;
+    (void)msi_index;
+
+    return isr_free_vector(vector);
 }
 
 __optimize(3) void isr_mask_irq(const isr_vector_t irq) {
@@ -78,7 +93,7 @@ isr_handle_interrupt(const uint64_t cause,
                 return;
             case CAUSE_INTERRUPT_SUPERVISOR_TIMER:
                 stimer_stop();
-                sched_next(frame, /*from_irq=*/true);
+                sched_next(frame, code);
 
                 return;
             case CAUSE_INTERRUPT_MACHINE_IPI:
@@ -117,7 +132,19 @@ isr_set_vector(const isr_vector_t vector,
     (void)handler;
     (void)info;
 
-    panic("isr: isr_set_vector() but not implemented");
+    panic("isr: isr_set_vector() not implemented");
+}
+
+void
+isr_set_msi_vector(const isr_vector_t vector,
+                   const isr_func_t handler,
+                   struct arch_isr_info *const info)
+{
+    (void)vector;
+    (void)handler;
+    (void)info;
+
+    panic("isr: isr_set_msi_vector() not implemented");
 }
 
 void
@@ -131,7 +158,7 @@ isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
     (void)vector;
     (void)masked;
 
-    panic("isr: isr_assign_irq_to_cpu() but not implemented");
+    panic("isr: isr_assign_irq_to_cpu() not implemented");
 }
 
 __optimize(3) uint64_t

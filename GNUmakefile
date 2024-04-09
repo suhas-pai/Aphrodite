@@ -36,7 +36,7 @@ $(eval $(call DEFAULT_VAR,MEM,$(DEFAULT_MEM)))
 override DEFAULT_SMP := 4
 $(eval $(call DEFAULT_VAR,SMP,$(DEFAULT_SMP)))
 
-EXTRA_QEMU_ARGS=-d guest_errors -d unimp -d int -D ./log.txt -rtc base=localtime
+EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime
 ifeq ($(DEBUG), 1)
 	EXTRA_QEMU_ARGS += -s -S -serial stdio
 else ifeq ($(CONSOLE), 1)
@@ -124,12 +124,12 @@ run-hdd-x86_64: ovmf $(IMAGE_NAME).hdd
 .PHONY: run-aarch64
 run-aarch64: QEMU_RUN = 1
 run-aarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-aarch64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-$(ARCH)/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-aarch64 -M $(MACHINE),gic-version=max -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-$(ARCH)/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-aarch64
 run-hdd-aarch64: QEMU_RUN = 1
 run-hdd-aarch64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-aarch64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-aarch64 -M $(MACHINE),gic-version=max -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-riscv64
 run-riscv64: QEMU_RUN = 1

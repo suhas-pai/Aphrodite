@@ -24,25 +24,10 @@ __optimize(3) void zero_page(void *page) {
                   : "a"(0)
                   : "memory");
 #elif defined(__aarch64__)
-    const uint64_t *const end = page + PAGE_SIZE;
-    for (uint64_t *iter = page; iter != end; iter += 32) {
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 0));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 2));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 4));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 6));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 8));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 10));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 12));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 14));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 16));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 18));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 20));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 22));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 24));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 26));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 28));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 30));
-    }
+    asm volatile ("setp [%0]!, %1!, %2;"
+                  "setm [%0]!, %1!, %2;"
+                  "sete [%0]!, %1!, %2;"
+                  :: "r"(page), "r"(PAGE_SIZE), "r"(0ull));
 #elif defined(__riscv64)
     const void *const end = page + PAGE_SIZE;
     for (void *iter = page; iter != end; iter += CBO_SIZE) {
@@ -66,26 +51,11 @@ __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
                   : "a"(0)
                   : "memory");
 #elif defined(__aarch64__)
-    const uint64_t *const end = page + full_size;
-    for (uint64_t *iter = page; iter != end; iter += 32) {
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 0));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 2));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 4));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 6));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 8));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 10));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 12));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 14));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 16));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 18));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 20));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 22));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 24));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 26));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 28));
-        asm volatile ("stp xzr, xzr, [%0]" :: "r"(iter + 30));
-    }
-#elif defined(__riscv64)
+    asm volatile ("setp [%0]!, %1!, %2;"
+                  "setm [%0]!, %1!, %2;"
+                  "sete [%0]!, %1!, %2;"
+                  :: "r"(page), "r"(full_size), "r"(0ull));
+#elif defined(__riscv64full_size)
     const void *const end = page + full_size;
     for (void *iter = page; iter != end; iter += CBO_SIZE) {
         asm volatile ("cbo.zero (%0)" :: "r"(iter));

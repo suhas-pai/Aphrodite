@@ -168,7 +168,7 @@ else ifeq ($(ARCH),aarch64)
             -mno-outline-atomics
     endif
     override CFLAGS += \
-        -march=armv9-a \
+        -march=armv9.3-a \
         -mgeneral-regs-only
     override LDFLAGS += \
         -m aarch64elf

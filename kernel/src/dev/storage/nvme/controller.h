@@ -14,6 +14,7 @@ struct nvme_controller {
     struct list list;
     struct spinlock lock;
 
+    struct device *device;
     volatile struct nvme_registers *regs;
 
     struct nvme_queue admin_queue;
@@ -27,6 +28,7 @@ struct nvme_controller {
 
 bool
 nvme_controller_create(struct nvme_controller *controller,
+                       struct device *device,
                        volatile struct nvme_registers *regs,
                        isr_vector_t isr_vector,
                        uint16_t msix_vector);

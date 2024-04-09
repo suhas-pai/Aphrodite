@@ -61,14 +61,14 @@ idt_func_%1:
 %assign i i+1
 %endrep
 
+section .data
+
 %macro idt_func_ref 1
     dq idt_func_%1
 %endmacro
 
-section .data
 global idt_thunks
 idt_thunks:
-
 %assign i 0
 %rep 256
     idt_func_ref i

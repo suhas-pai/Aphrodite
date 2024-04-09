@@ -73,7 +73,11 @@ parse_gpt_entries(struct storage_device *const device,
                 return false;
             }
 
-            if (!partition_init(partition, device, full_range)) {
+            const struct string_view name_sv =
+                sv_create_length((const char *)entry->name, sizeof(entry->name));
+
+            struct string name = string_alloc(name_sv);
+            if (!partition_init(partition, name, device, full_range)) {
                 kfree(partition);
                 continue;
             }
@@ -114,7 +118,7 @@ parse_mbr_entries(struct storage_device *const device,
             return false;
         }
 
-        if (!partition_init(partition, device, full_range)) {
+        if (!partition_init(partition, STRING_NULL(), device, full_range)) {
             kfree(partition);
             continue;
         }

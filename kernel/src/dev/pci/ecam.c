@@ -76,11 +76,11 @@ pci_add_ecam_domain(const struct range bus_range,
 __optimize(3)
 bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
     const int flag = spin_acquire_irq_save(&g_ecam_domain_lock);
+
     pci_remove_domain(&ecam_domain->domain);
-
     vunmap_mmio(ecam_domain->mmio);
-    list_deinit(&ecam_domain->list);
 
+    list_deinit(&ecam_domain->list);
     g_ecam_entity_count--;
 
     spin_release_irq_restore(&g_ecam_domain_lock, flag);
@@ -95,8 +95,8 @@ pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
 {
     return
         range_index_for_loc(domain->bus_range, loc->bus) << 20
-        | loc->slot << 15
-        | loc->function << 12;
+        | (uint64_t)loc->slot << 15
+        | (uint64_t)loc->function << 12;
 }
 
 __optimize(3) uint8_t

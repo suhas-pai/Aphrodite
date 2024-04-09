@@ -1,44 +1,32 @@
 #define context_size 288
-#define sp_index (31 * 8)
-#define elr_index (32 * 8)
-#define spsr_index (33 * 8)
-#define esr_index (34 * 8)
-#define far_index (35 * 8)
+#define sp_index -(5 * 8)
+#define elr_index -(4 * 8)
+#define spsr_index -(3 * 8)
+#define esr_index -(2 * 8)
+#define far_index -(1 * 8)
 
 .cfi_sections .eh_frame, .debug_frame
 
 .macro save_context
+    stp x0, x1, [sp, #-(18 * 16)]
+    stp x2, x3, [sp, #-(17 * 16)]
+    stp x4, x5, [sp, #-(16 * 16)]
+    stp x6, x7, [sp, #-(15 * 16)]
+    stp x8, x9, [sp, #-(14 * 16)]
+    stp x10, x11, [sp, #-(13 * 16)]
+    stp x12, x13, [sp, #-(12 * 16)]
+    stp x14, x15, [sp, #-(11 * 16)]
+    stp x16, x17, [sp, #-(10 * 16)]
+    stp x18, x19, [sp, #-(9 * 16)]
+    stp x20, x21, [sp, #-(8 * 16)]
+    stp x22, x23, [sp, #-(7 * 16)]
+    stp x24, x25, [sp, #-(6 * 16)]
+    stp x26, x27, [sp, #-(5 * 16)]
+    stp x28, x29, [sp, #-(4 * 16)]
+    str x30, [sp, #-(6 * 8)]
+
     mov x0, sp
-    sub x0, x0, context_size
-
-    str x1, [x0, #8]
-    stp x2, x3, [x0, #(1 * 16)]
-    stp x4, x5, [x0, #(2 * 16)]
-    stp x6, x7, [x0, #(3 * 16)]
-    stp x8, x9, [x0, #(4 * 16)]
-    stp x10, x11, [x0, #(5 * 16)]
-    stp x12, x13, [x0, #(6 * 16)]
-    stp x14, x15, [x0, #(7 * 16)]
-    stp x16, x17, [x0, #(8 * 16)]
-    stp x18, x19, [x0, #(9 * 16)]
-    stp x20, x21, [x0, #(10 * 16)]
-    stp x22, x23, [x0, #(11 * 16)]
-    stp x24, x25, [x0, #(12 * 16)]
-    stp x26, x27, [x0, #(13 * 16)]
-    stp x28, x29, [x0, #(14 * 16)]
-    str x30, [x0, #(15 * 16)]
-
-    mov x1, sp
-    str x1, [x0, #sp_index]
-
-    mov sp, x0
-    mov x0, xzr
-
-    mrs x0, tpidrro_el0
-    str x0, [sp, #0]
-
-    mov x0, xzr
-    msr tpidrro_el0, x0
+    str x0, [sp, #sp_index]
 
     mrs x0, elr_el1
     str x0, [sp, #elr_index]
@@ -52,45 +40,42 @@
     mrs x0, far_el1
     str x0, [sp, #far_index]
 
-    mov x29, xzr
+    sub sp, sp, context_size
     mov x0, sp
 .endm
 
 .macro restore_context
+    ldr x0, [sp, #248]
+    mov sp, x0
+
     ldr x0, [sp, #elr_index]
     msr elr_el1, x0
     ldr x0, [sp, #spsr_index]
     msr spsr_el1, x0
 
-    ldp x2, x3, [sp, #(1 * 16)]
-    ldp x4, x5, [sp, #(2 * 16)]
-    ldp x6, x7, [sp, #(3 * 16)]
-    ldp x8, x9, [sp, #(4 * 16)]
-    ldp x10, x11, [sp, #(5 * 16)]
-    ldp x12, x13, [sp, #(6 * 16)]
-    ldp x14, x15, [sp, #(7 * 16)]
-    ldp x16, x17, [sp, #(8 * 16)]
-    ldp x18, x19, [sp, #(9 * 16)]
-    ldp x20, x21, [sp, #(10 * 16)]
-    ldp x22, x23, [sp, #(11 * 16)]
-    ldp x24, x25, [sp, #(12 * 16)]
-    ldp x26, x27, [sp, #(13 * 16)]
-    ldp x28, x29, [sp, #(14 * 16)]
-    ldr x30, [sp, #(15 * 16)]
-
-    mov x0, sp
-
-    ldr x1, [x0, #sp_index]
-    mov sp, x1
-
-    ldp x0, x1, [x0, #0]
+    ldp x0, x1, [sp, #-(18 * 16)]
+    ldp x2, x3, [sp, #-(17 * 16)]
+    ldp x4, x5, [sp, #-(16 * 16)]
+    ldp x6, x7, [sp, #-(15 * 16)]
+    ldp x8, x9, [sp, #-(14 * 16)]
+    ldp x10, x11, [sp, #-(13 * 16)]
+    ldp x12, x13, [sp, #-(12 * 16)]
+    ldp x14, x15, [sp, #-(11 * 16)]
+    ldp x16, x17, [sp, #-(10 * 16)]
+    ldp x18, x19, [sp, #-(9 * 16)]
+    ldp x20, x21, [sp, #-(8 * 16)]
+    ldp x22, x23, [sp, #-(7 * 16)]
+    ldp x24, x25, [sp, #-(6 * 16)]
+    ldp x26, x27, [sp, #-(5 * 16)]
+    ldp x28, x29, [sp, #-(4 * 16)]
+    ldr x30, [sp, #-(6 * 8)]
 .endm
 
 .global thread_spinup
 thread_spinup:
-    ldr x9, [x0, #elr_index]
+    ldr x9, [x0, #(context_size + elr_index)]
     msr elr_el1, x9
-    ldr x9, [x0, #spsr_index]
+    ldr x9, [x0, #(context_size + spsr_index)]
     msr spsr_el1, x9
 
     ldp x2, x3, [x0, #(1 * 16)]
@@ -109,7 +94,7 @@ thread_spinup:
     ldp x28, x29, [x0, #(14 * 16)]
     ldr x30, [x0, #(15 * 16)]
 
-    ldr x1, [x0, #sp_index]
+    ldr x1, [x0, #(context_size + sp_index)]
     mov sp, x1
 
     ldp x0, x1, [x0, #0]
@@ -127,52 +112,7 @@ thread_spinup:
 
 .extern handle_interrupt
 ivt_interrupt_func:
-    mov x0, sp
-    sub x0, x0, context_size
-
-    str x1, [x0, #8]
-    stp x2, x3, [x0, #(1 * 16)]
-    stp x4, x5, [x0, #(2 * 16)]
-    stp x6, x7, [x0, #(3 * 16)]
-    stp x8, x9, [x0, #(4 * 16)]
-    stp x10, x11, [x0, #(5 * 16)]
-    stp x12, x13, [x0, #(6 * 16)]
-    stp x14, x15, [x0, #(7 * 16)]
-    stp x16, x17, [x0, #(8 * 16)]
-    stp x18, x19, [x0, #(9 * 16)]
-    stp x20, x21, [x0, #(10 * 16)]
-    stp x22, x23, [x0, #(11 * 16)]
-    stp x24, x25, [x0, #(12 * 16)]
-    stp x26, x27, [x0, #(13 * 16)]
-    stp x28, x29, [x0, #(14 * 16)]
-    str x30, [x0, #(15 * 16)]
-
-    mov x1, sp
-    str x1, [x0, #sp_index]
-
-    mov sp, x0
-    mov x0, xzr
-
-    mrs x0, tpidrro_el0
-    str x0, [sp, #0]
-
-    mov x0, xzr
-    msr tpidrro_el0, x0
-
-    mrs x0, elr_el1
-    str x0, [sp, #elr_index]
-
-    mrs x0, spsr_el1
-    str x0, [sp, #spsr_index]
-
-    mrs x0, esr_el1
-    str x0, [sp, #esr_index]
-
-    mrs x0, far_el1
-    str x0, [sp, #far_index]
-
-    mov x29, xzr
-    mov x0, sp
+    save_context
     bl handle_interrupt
     restore_context
 

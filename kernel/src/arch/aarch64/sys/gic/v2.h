@@ -11,94 +11,36 @@
 #include "cpu/isr.h"
 #include "sys/isr.h"
 
-#define GIC_SGI_INTERRUPT_START 0
-#define GIC_SGI_INTERRUPT_LAST 15
-
-#define GIC_SGI_IRQ_RANGE \
-    RANGE_INIT(GIC_SGI_INTERRUPT_START, GIC_SGI_INTERRUPT_LAST)
-
-#define GIC_PPI_INTERRUPT_START 16
-#define GIC_PPI_INTERRUPT_LAST 31
-
-#define GIC_PPI_IRQ_RANGE \
-    RANGE_INIT(GIC_PPI_INTERRUPT_START, GIC_PPI_INTERRUPT_LAST)
-
-#define GIC_SPI_INTERRUPT_START 32
-#define GIC_SPI_INTERRUPT_LAST 1020
-
-enum gic_version {
-    GICv1 = 1,
-    GICv2,
-    GICv3,
-    GICv4,
-    GIC_VERSION_BACK = GICv4
-};
-
-struct gic_msi_frame {
-    uint32_t id;
-};
-
-struct gic_distributor {
-    struct array msi_frame_list;
-    enum gic_version version;
-
-    uint8_t impl_cpu_count;
-    uint8_t max_impl_lockable_spis;
-
-    uint16_t interrupt_lines_count;
-    bool supports_security_extensions : 1;
-};
-
-struct gicd_v2m_msi_frame_registers {
-    volatile const uint64_t reserved;
-    volatile uint32_t typer;
-
-    volatile const char reserved_2[52];
-    volatile uint64_t setspi_ns;
-};
-
-struct gic_v2_msi_info {
-    struct list list;
-    uint64_t phys_addr;
-
-    uint16_t spi_base;
-    uint16_t spi_count;
-
-    bool initialized : 1;
-};
-
-struct gic_cpu_interface;
 struct cpu_info;
 
 bool
-gic_init_from_dtb(const struct devicetree *tree,
-                  const struct devicetree_node *node);
+gicv2_init_from_dtb(const struct devicetree *tree,
+                    const struct devicetree_node *node);
 
-void gic_init_on_this_cpu(uint64_t phys_address, uint64_t size);
-void gicd_init(uint64_t phys_base_address, uint8_t gic_version);
+void gicv2_init_on_this_cpu(uint64_t phys_address, uint64_t size);
+bool gicv2_init_from_acpi(uint64_t phys_base_address);
 
-const struct gic_distributor *gic_get_dist();
-struct list *gicd_get_msi_info_list();
+isr_vector_t gicdv2_alloc_msi_vector();
+void gicdv2_free_msi_vector(isr_vector_t vector);
 
-void gicd_add_msi(uint64_t phys_base_address, bool init_later);
-void gicd_init_all_msi();
+void gicv2_add_msi_frame(uint64_t phys_base_address);
 
-typedef uint16_t irq_number_t;
+#define IRQ_NUMBER_FMT "%" PRIu32
 
-void gicd_mask_irq(irq_number_t irq);
-void gicd_unmask_irq(irq_number_t irq);
+void gicdv2_mask_irq(irq_number_t irq);
+void gicdv2_unmask_irq(irq_number_t irq);
 
-void gicd_set_irq_affinity(irq_number_t irq, uint8_t iface);
-void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
-void gicd_set_irq_priority(irq_number_t irq, uint8_t priority);
+void gicdv2_set_irq_affinity(irq_number_t irq, uint8_t iface);
+void gicdv2_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
+void gicdv2_set_irq_priority(irq_number_t irq, uint8_t priority);
 
-void gicd_send_ipi(uint8_t interface_number, uint8_t int_no);
-void gicd_send_sipi(uint8_t int_no);
+void gicdv2_send_ipi(const struct cpu_info *cpu, uint8_t int_no);
+void gicdv2_send_sipi(uint8_t int_no);
 
-volatile uint64_t *gicd_get_msi_address(isr_vector_t vector);
-enum isr_msi_support gicd_get_msi_support();
+volatile uint64_t *gicdv2_get_msi_address(isr_vector_t vector);
+enum isr_msi_support gicdv2_get_msi_support();
 
-irq_number_t gic_cpu_get_irq_number(uint8_t *cpu_id_out);
-uint32_t gic_cpu_get_irq_priority();
+irq_number_t gicv2_cpu_get_irq_number(uint8_t *cpu_id_out);
+uint32_t gicv2_cpu_get_irq_priority();
 
-void gic_cpu_eoi(uint8_t cpu_id, irq_number_t irq_number);
+void gicv2_cpu_eoi(uint8_t cpu_id, irq_number_t irq_number);

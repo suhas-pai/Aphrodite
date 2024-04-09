@@ -14,8 +14,8 @@ struct spinlock g_root_bus_list_lock = SPINLOCK_INIT();
 
 struct pci_bus *
 pci_bus_create(struct pci_domain *const domain,
-               const uint32_t bus_id,
-               const uint32_t segment)
+               const uint8_t bus_id,
+               const uint8_t segment)
 {
     struct pci_bus *const bus = kmalloc(sizeof(*bus));
     if (bus == NULL) {

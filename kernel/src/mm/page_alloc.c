@@ -4,9 +4,11 @@
  */
 
 #include <stdatomic.h>
-
 #include "dev/printk.h"
+
 #include "lib/align.h"
+#include "lib/util.h"
+
 #include "sys/boot.h"
 #include "sched/process.h"
 
@@ -200,6 +202,80 @@ free_range_of_pages(struct page *page,
     } while (true);
 }
 
+static void
+free_extra_pages_if_from_higher_order(struct page *const page,
+                                        struct page_section *const section,
+                                        uint8_t higher_order,
+                                        const uint8_t order)
+{
+    if (higher_order <= order) {
+        return;
+    }
+
+    const uint8_t highest_freed_order = higher_order - 1;
+    if (section->max_order <= highest_freed_order) {
+        section->max_order = highest_freed_order + 1;
+    }
+
+    while (higher_order > order) {
+        higher_order--;
+
+        struct page *const buddy_page = page + (1ull << higher_order);
+        add_to_freelist_order_from_higher(section, higher_order, buddy_page);
+    }
+
+    if (section->min_order > higher_order) {
+        section->min_order = higher_order;
+    }
+}
+
+__optimize(3) static struct page *
+get_from_freelist_order_at_align(struct page_section *const section,
+                                 const uint8_t order,
+                                 const uint8_t orig_order,
+                                 const uint8_t align)
+{
+    struct page_freelist *const freelist = &section->freelist_list[order];
+    if (freelist->count == 0) {
+        return NULL;
+    }
+
+    struct page *page =
+        list_head(&freelist->page_list, struct page, freelist_head.freelist);
+
+    const uint64_t phys = page_to_phys(page);
+    const uint64_t size = 1ull << order;
+
+    if (has_align(phys, 1ull << align)) {
+        free_extra_pages_if_from_higher_order(page, section, order, orig_order);
+        return take_off_freelist_order(section, order, page, orig_order);
+    }
+
+    const uint64_t index =
+        (align_up_assert(phys, 1ull << align) - phys) >> PAGE_SHIFT;
+
+    if (!index_in_bounds(index, size)) {
+        return NULL;
+    }
+
+    const uint64_t remaining = size - index;
+    if (remaining < (1ull << orig_order)) {
+        return NULL;
+    }
+
+    free_range_of_pages(page, section, /*amount=*/index, /*max_order=*/order);
+    page = page + index;
+
+    if (index + size != 1ull << order) {
+        free_range_of_pages(page + size,
+                            section,
+                            /*amount=*/remaining - size,
+                            /*max_order=*/order);
+    }
+
+    return take_off_freelist_order(section, order, page, orig_order);
+}
+
 // Setup pages that just came off the freelist. This setup needs to be as quick
 // as possible because this is done under the section's lock.
 
@@ -312,7 +388,7 @@ get_large_from_freelist_order(struct page_section *const section,
 
     const uint64_t align = PAGE_SIZE << largepage_order;
     if (largepage_order != freelist_order) {
-        take_off_freelist_order(section, freelist_order, head, freelist_order);
+        take_off_freelist_order(section, freelist_order, head, largepage_order);
         if (!has_align(page_phys, align)) {
             uint64_t new_phys = 0;
             if (!align_up(page_phys, PAGE_SIZE << largepage_order, &new_phys)) {
@@ -326,22 +402,35 @@ get_large_from_freelist_order(struct page_section *const section,
             page += PAGE_COUNT(new_phys - page_phys);
             page_phys = new_phys;
 
+            setup_pages_off_freelist(page,
+                                     largepage_order,
+                                     PAGE_STATE_LARGE_HEAD);
+
             const uint64_t free_amount = (uint64_t)(page - head);
             place_head_range_of_free_pages_lower(head,
                                                  section,
                                                  free_amount,
                                                  freelist_order);
+
+            struct page *const begin = page + (1ull << largepage_order);
+
+            const struct page *const end = head + (1ull << freelist_order);
+            const uint64_t count = (uint64_t)(end - begin);
+
+            if (count != 0) {
+                free_range_of_pages(begin, section, count, freelist_order);
+            }
+        } else {
+            free_extra_pages_if_from_higher_order(page,
+                                                  section,
+                                                  freelist_order,
+                                                  largepage_order);
+
+            setup_pages_off_freelist(page,
+                                     largepage_order,
+                                     PAGE_STATE_LARGE_HEAD);
         }
 
-        setup_pages_off_freelist(page, largepage_order, PAGE_STATE_LARGE_HEAD);
-        struct page *const begin = page + (1ull << largepage_order);
-
-        const struct page *const end = head + (1ull << freelist_order);
-        const uint64_t count = (uint64_t)(end - begin);
-
-        if (count != 0) {
-            free_range_of_pages(begin, section, count, freelist_order);
-        }
     } else {
         do {
             if (has_align(page_phys, align)) {
@@ -432,24 +521,81 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
     return NULL;
 
 done:
-    if (alloced_order > order) {
-        const uint8_t highest_freed_order = alloced_order - 1;
-        if (iter->max_order <= highest_freed_order) {
-            iter->max_order = highest_freed_order + 1;
-        }
+    free_extra_pages_if_from_higher_order(page, iter, alloced_order, order);
 
-        do {
-            alloced_order--;
+    spin_release_irq_restore(&iter->lock, flag);
+    setup_pages_off_freelist(page, order, state);
 
-            struct page *const buddy_page = page + (1ull << alloced_order);
-            add_to_freelist_order_from_higher(iter, alloced_order, buddy_page);
-        } while (alloced_order > order);
+    return page;
+}
 
-        if (iter->min_order > order) {
-            iter->min_order = order;
-        }
+__optimize(3) static struct page *
+try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
+                                   const uint8_t order,
+                                   const uint8_t align,
+                                   const enum page_state state)
+{
+    struct page *page = NULL;
+    if (__builtin_expect(atomic_load(&zone->total_free) < (1ull << order), 0)) {
+        return NULL;
     }
 
+    // Iterate over each section and try to acquire the section's lock.
+    // Immediately continue if someone is currently holding the lock.
+
+    int flag = 0;
+
+    uint8_t section_index = 0;
+    uint8_t alloced_order = 0;
+
+    uint64_t locked_section_mask = 0;
+    struct page_section *iter =
+        list_head(&zone->section_list, typeof(*iter), zone_list);
+
+    do {
+        if (!spin_try_acquire_irq_save(&iter->lock, &flag)) {
+            iter = list_next(iter, zone_list);
+            if (&iter->zone_list == &zone->section_list) {
+                if (locked_section_mask == mm_get_full_section_mask()) {
+                    return NULL;
+                }
+
+                iter = list_head(&zone->section_list, typeof(*iter), zone_list);
+                section_index = 0;
+            }
+
+            continue;
+        }
+
+        alloced_order = max(order, iter->min_order);
+        const uint8_t max_order = iter->max_order;
+
+        for (; alloced_order < max_order; alloced_order++) {
+            page =
+                get_from_freelist_order_at_align(iter,
+                                                 /*order=*/alloced_order,
+                                                 /*orig_order=*/order,
+                                                 align);
+
+            if (page != NULL) {
+                goto done;
+            }
+        }
+
+        spin_release_irq_restore(&iter->lock, flag);
+
+        iter = list_next(iter, zone_list);
+        if (&iter->zone_list == &zone->section_list) {
+            break;
+        }
+
+        locked_section_mask |= 1ull << section_index;
+        section_index++;
+    } while (true);
+
+    return NULL;
+
+done:
     spin_release_irq_restore(&iter->lock, flag);
     setup_pages_off_freelist(page, order, state);
 
@@ -594,6 +740,80 @@ alloc_pages_from_zone(struct page_zone *zone,
             goto setup;
         }
 
+    } while (true);
+
+    return NULL;
+}
+
+struct page *
+alloc_pages_at_align(const enum page_state state,
+                     const uint64_t alloc_flags,
+                     const uint8_t align,
+                     const uint8_t order)
+{
+    if (__builtin_expect(order >= MAX_ORDER, 0)) {
+        printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
+        return NULL;
+    }
+
+    struct page_zone *zone = page_zone_default();
+    struct page *page = NULL;
+
+    while (zone != NULL) {
+        page = try_alloc_pages_from_zone_at_align(zone, order, align, state);
+        if (page != NULL) {
+            return setup_alloced_page(page,
+                                      state,
+                                      alloc_flags,
+                                      order,
+                                      /*largeinfo=*/NULL);
+        }
+
+        zone = zone->fallback_zone;
+    }
+
+    return NULL;
+}
+
+struct page *
+alloc_pages_from_zone_at_align(struct page_zone *zone,
+                               const enum page_state state,
+                               const uint64_t alloc_flags,
+                               const uint8_t order,
+                               const uint8_t align,
+                               const bool allow_fallback)
+{
+    if (__builtin_expect(order >= MAX_ORDER, 0)) {
+        printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
+        return NULL;
+    }
+
+    struct page *page =
+        try_alloc_pages_from_zone_at_align(zone, order, align, state);
+
+    if (page != NULL) {
+    setup:
+        return setup_alloced_page(page,
+                                  state,
+                                  alloc_flags,
+                                  order,
+                                  /*largeinfo=*/NULL);
+    }
+
+    if (!allow_fallback) {
+        return NULL;
+    }
+
+    do {
+        zone = zone->fallback_zone;
+        if (zone == NULL) {
+            break;
+        }
+
+        page = try_alloc_pages_from_zone_at_align(zone, order, align, state);
+        if (page != NULL) {
+            goto setup;
+        }
     } while (true);
 
     return NULL;
