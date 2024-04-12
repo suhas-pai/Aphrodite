@@ -6,14 +6,13 @@
 #include <stdatomic.h>
 #include "lib/overflow.h"
 
+#if defined(__riscv64)
+    #include "cpu/info.h"
+    #include "sched/thread.h"
+#endif /* defined(__riscv64) */
+
 #include "page.h"
 #include "section.h"
-
-#if defined(__riscv)
-    // FIXME: 64 is the cache-block size in qemu. This should instead be read
-    // from the dtb
-    #define CBO_SIZE 64
-#endif /* defined(__riscv) */
 
 __optimize(3) void zero_page(void *page) {
 #if defined(__x86_64__)
@@ -23,22 +22,34 @@ __optimize(3) void zero_page(void *page) {
                   : "+D"(page), "+c"(count)
                   : "a"(0)
                   : "memory");
+
+    return;
 #elif defined(__aarch64__)
     asm volatile ("setp [%0]!, %1!, %2;"
                   "setm [%0]!, %1!, %2;"
                   "sete [%0]!, %1!, %2;"
                   :: "r"(page), "r"(PAGE_SIZE), "r"(0ull));
+
+    return;
 #elif defined(__riscv64)
-    const void *const end = page + PAGE_SIZE;
-    for (void *iter = page; iter != end; iter += CBO_SIZE) {
-        asm volatile ("cbo.zero (%0)" :: "r"(iter));
+    preempt_disable();
+    const uint16_t cbo_size = this_cpu()->cbo_size;
+    preempt_enable();
+
+    if (__builtin_expect(cbo_size != 0, 1)) {
+        const void *const end = page + PAGE_SIZE;
+        for (void *iter = page; iter != end; iter += cbo_size) {
+            asm volatile ("cbo.zero (%0)" :: "r"(iter));
+        }
+
+        return;
     }
-#else
+#endif /* defined(__x86_64__) */
+
     const uint64_t *const end = page + PAGE_SIZE;
     for (uint64_t *iter = page; iter != end; iter++) {
         *iter = 0;
     }
-#endif /* defined(__x86_64__) */
 }
 
 __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
@@ -50,22 +61,34 @@ __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
                   : "+D"(page), "+c"(qword_count)
                   : "a"(0)
                   : "memory");
+
+    return;
 #elif defined(__aarch64__)
     asm volatile ("setp [%0]!, %1!, %2;"
                   "setm [%0]!, %1!, %2;"
                   "sete [%0]!, %1!, %2;"
                   :: "r"(page), "r"(full_size), "r"(0ull));
-#elif defined(__riscv64full_size)
-    const void *const end = page + full_size;
-    for (void *iter = page; iter != end; iter += CBO_SIZE) {
-        asm volatile ("cbo.zero (%0)" :: "r"(iter));
+
+    return;
+#elif defined(__riscv64)
+    preempt_disable();
+    const uint16_t cbo_size = this_cpu()->cbo_size;
+    preempt_enable();
+
+    if (__builtin_expect(cbo_size != 0, 1)) {
+        const void *const end = page + full_size;
+        for (void *iter = page; iter != end; iter += cbo_size) {
+            asm volatile ("cbo.zero (%0)" :: "r"(iter));
+        }
+
+        return;
     }
-#else
+#endif /* defined(__x86_64__) */
+
     const uint64_t *const end = page + full_size;
     for (uint64_t *iter = page; iter != end; iter++) {
         *iter = 0;
     }
-#endif /* defined(__x86_64__) */
 }
 
 __optimize(3) uint32_t page_get_flags(const struct page *const page) {

@@ -39,7 +39,6 @@ struct cpu_info {
 };
 
 extern struct list g_cpu_list;
-void cpu_init();
 
 struct cpu_info *cpu_mut_for_intr_number(uint32_t intr_number);
 

@@ -1404,23 +1404,26 @@ void print_cpu_features() {
     assert_msg(g_cpu_features.mops, "cpu: missing FEAT_MOPS");
 }
 
-void cpu_init() {
-    collect_cpu_features();
-    print_cpu_features();
-
-#if defined(AARCH64_USE_16K_PAGES)
-    assert_msg(g_cpu_features.granule_16k_supported,
-               "cpu: machine doesn't support 16kib pages");
-#endif /* defined(AARCH64_USE_16K_PAGES) */
-
+__optimize(3) void cpu_early_init() {
     const uint64_t mpidr = read_mpidr_el1();
     g_base_cpu_info.affinity =
         ((mpidr >> 32) & 0xFF) << 24 | (mpidr & 0xFFFFFF);
 
     asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
 
+    collect_cpu_features();
     list_add(&g_cpu_list, &g_base_cpu_info.cpu_list);
+
+#if defined(AARCH64_USE_16K_PAGES)
+    assert_msg(g_cpu_features.granule_16k_supported,
+               "cpu: machine doesn't support 16kib pages");
+#endif /* defined(AARCH64_USE_16K_PAGES) */
+
     g_base_cpu_init = true;
+}
+
+void cpu_init() {
+    print_cpu_features();
 }
 
 __optimize(3)

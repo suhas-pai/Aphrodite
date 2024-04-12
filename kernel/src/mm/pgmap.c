@@ -1595,7 +1595,7 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                     continue;
                 }
 
-                if ((supports_largepage_at_level_mask & (1ull << level)) == 0) {
+                if ((supports_largepage_at_level_mask & 1ull << level) == 0) {
                     continue;
                 }
 

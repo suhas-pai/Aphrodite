@@ -9,7 +9,6 @@
 #include "asm/irqs.h"
 #include "dev/psci.h"
 
-#include "sched/irq.h"
 #include "sys/boot.h"
 
 void arch_init_dev() {
@@ -20,7 +19,6 @@ void arch_init_dev() {
 
     disable_interrupts();
     gic_init_from_dtb();
-    sched_send_ipi(this_cpu());
     enable_interrupts();
 
     static const struct string_view compat_list[] = {

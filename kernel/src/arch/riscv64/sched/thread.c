@@ -22,8 +22,12 @@ void sched_prepare_thread(struct thread *const thread) {
 
 extern void context_switch(struct stack_frame *prev, struct stack_frame *next);
 
-__optimize(3)
-void sched_switch_to(struct thread *const prev, struct thread *const next) {
+__optimize(3) void
+sched_switch_to(struct thread *const prev,
+                struct thread *const next,
+                struct thread_context *const prev_context)
+{
+    (void)prev_context;
     if (prev->process != next->process) {
         switch_to_pagemap(&next->process->pagemap);
     }

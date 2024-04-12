@@ -163,7 +163,7 @@ free_range_of_pages(struct page *page,
     uint64_t avail = amount;
 
     for (uint8_t order_i = 0; order_i <= max_order; order_i++) {
-        if (avail < (1ull << order_i)) {
+        if (avail < 1ull << order_i) {
             order = order_i - 1;
             break;
         }
@@ -193,7 +193,7 @@ free_range_of_pages(struct page *page,
 
         page += page_count;
         do {
-            if (avail >= (1ull << order)) {
+            if (avail >= 1ull << order) {
                 break;
             }
 
@@ -202,11 +202,11 @@ free_range_of_pages(struct page *page,
     } while (true);
 }
 
-static void
+__optimize(3) static void
 free_extra_pages_if_from_higher_order(struct page *const page,
-                                        struct page_section *const section,
-                                        uint8_t higher_order,
-                                        const uint8_t order)
+                                      struct page_section *const section,
+                                      uint8_t higher_order,
+                                      const uint8_t order)
 {
     if (higher_order <= order) {
         return;
@@ -259,7 +259,7 @@ get_from_freelist_order_at_align(struct page_section *const section,
     }
 
     const uint64_t remaining = size - index;
-    if (remaining < (1ull << orig_order)) {
+    if (remaining < 1ull << orig_order) {
         return NULL;
     }
 
@@ -430,7 +430,6 @@ get_large_from_freelist_order(struct page_section *const section,
                                      largepage_order,
                                      PAGE_STATE_LARGE_HEAD);
         }
-
     } else {
         do {
             if (has_align(page_phys, align)) {
@@ -466,7 +465,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
                           const enum page_state state)
 {
     struct page *page = NULL;
-    if (__builtin_expect(atomic_load(&zone->total_free) < (1ull << order), 0)) {
+    if (__builtin_expect(atomic_load(&zone->total_free) < 1ull << order, 0)) {
         return NULL;
     }
 
@@ -536,7 +535,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
                                    const enum page_state state)
 {
     struct page *page = NULL;
-    if (__builtin_expect(atomic_load(&zone->total_free) < (1ull << order), 0)) {
+    if (__builtin_expect(atomic_load(&zone->total_free) < 1ull << order, 0)) {
         return NULL;
     }
 
@@ -824,7 +823,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
                                const struct largepage_level_info *const info)
 {
     const uint8_t order = info->order;
-    if (__builtin_expect(atomic_load(&zone->total_free) < (1ull << order), 0)) {
+    if (__builtin_expect(atomic_load(&zone->total_free) < 1ull << order, 0)) {
         return NULL;
     }
 

@@ -73,7 +73,7 @@ __optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
 }
 
 __optimize(3) void system_timer_stop_alarm() {
-    asm volatile ("msr cntp_tval_el0, %0" :: "r"(UINT64_MAX));
+    asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
 }
 
 __optimize(3) static void

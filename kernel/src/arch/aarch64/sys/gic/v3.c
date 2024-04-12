@@ -4,7 +4,6 @@
  */
 
 #include <stdatomic.h>
-#include "dev/dtb/gic_compat.h"
 
 #include "asm/irqs.h"
 #include "asm/pause.h"
@@ -484,8 +483,8 @@ void gicv3_init_on_this_cpu() {
 
     asm volatile("mrs %0, icc_sre_el1" : "=r"(icc_sre));
     asm volatile("msr icc_sre_el1, %0" :: "r"(icc_sre | __ICC_SRE_ENABLE));
-    isb();
 
+    isb();
     uint64_t icc_ctlr = 0;
 
     asm volatile("mrs %0, icc_ctlr_el1" : "=r"(icc_ctlr));
@@ -600,6 +599,8 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
         return false;
     }
 
+    gic_set_version(3);
+
     gic_initialized = true;
     printk(LOGLEVEL_WARN, "gicv3: fully initialized\n");
 
@@ -674,8 +675,8 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
+    const struct string_view compat_sv = SV_STATIC("arm,gic-v3-its");
     devicetree_node_foreach_child(node, child_node) {
-        const struct string_view compat_sv = SV_STATIC("arm,gic-v3-its");
         if (!devicetree_node_has_compat_sv(child_node, compat_sv)) {
             continue;
         }

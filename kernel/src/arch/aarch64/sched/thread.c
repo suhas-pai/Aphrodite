@@ -28,12 +28,9 @@ sched_switch_to(struct thread *const prev,
                 struct thread *const next,
                 struct thread_context *const prev_context)
 {
-    (void)prev;
-    (void)next;
-
     prev->context = *prev_context;
-    thread_spinup(&next->context);
 
+    thread_spinup(&next->context);
     verify_not_reached();
 }
 

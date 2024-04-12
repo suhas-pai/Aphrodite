@@ -216,7 +216,7 @@ void madt_init(const struct acpi_madt *const madt) {
                                hdr->lint);
                     }
 
-                    break;
+                    continue;
                 }
 
                 get_acpi_info_mut()->nmi_lint = hdr->lint;
@@ -591,7 +591,7 @@ void madt_init(const struct acpi_madt *const madt) {
 
     switch (gic_dist->gic_version) {
         case 2:
-            gicv2_init_from_acpi(gic_dist->phys_base_address);
+            gicv2_init_from_info(gic_dist->phys_base_address);
             gicv2_init_on_this_cpu(gicv3_cpu_intr_phys_addr, PAGE_SIZE);
 
             array_foreach(&its_list,
@@ -622,6 +622,7 @@ void madt_init(const struct acpi_madt *const madt) {
             return;
     }
 
-    verify_not_reached();
+    panic("GIC with unsupported version %" PRIu8 " found",
+          gic_dist->gic_version);
 #endif /* defined(__x86_64__) */
 }

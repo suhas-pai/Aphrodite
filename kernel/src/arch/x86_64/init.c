@@ -3,7 +3,8 @@
  * © suhas pai
  */
 
-#include "cpu/info.h"
+#include "cpu/init.h"
+#include "lib/macros.h"
 #include "mm/init.h"
 
 #include "sys/gdt.h"

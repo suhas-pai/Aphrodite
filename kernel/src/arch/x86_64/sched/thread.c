@@ -28,8 +28,7 @@ extern __noreturn void thread_spinup(const struct thread_context *context);
 void
 sched_switch_to(struct thread *const prev,
                 struct thread *const next,
-                struct thread_context *const prev_context,
-                const bool from_irq)
+                struct thread_context *const prev_context)
 {
     if (prev->process == &kernel_process) {
         //xsave_supervisor_into(&prev->arch_info.avx_state);
@@ -44,9 +43,7 @@ sched_switch_to(struct thread *const prev,
     }
 
     prev->context = *prev_context;
-    if (from_irq) {
-        thread_spinup(&next->context);
-    }
 
+    thread_spinup(&next->context);
     verify_not_reached();
 }

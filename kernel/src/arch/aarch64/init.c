@@ -6,7 +6,7 @@
 #include "acpi/api.h"
 
 #include "asm/ttbr.h"
-#include "cpu/info.h"
+#include "cpu/init.h"
 
 #include "mm/early.h"
 #include "mm/init.h"

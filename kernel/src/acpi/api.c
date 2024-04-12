@@ -191,7 +191,7 @@ void acpi_init(void) {
 }
 
 __optimize(3)
-const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
+const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     if (get_acpi_info()->rsdp == NULL) {
         return NULL;
     }
@@ -208,10 +208,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
             }
 
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
-            if (memcmp(sdt->signature,
-                       signature,
-                       sizeof(sdt->signature)) == 0)
-            {
+            if (memcmp(sdt->signature, sig, sizeof(sdt->signature)) == 0) {
                 return sdt;
             }
         }
@@ -227,10 +224,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
             }
 
             struct acpi_sdt *const sdt = phys_to_virt(data[i]);
-            if (memcmp(sdt->signature,
-                       signature,
-                       sizeof(sdt->signature)) == 0)
-            {
+            if (memcmp(sdt->signature, sig, sizeof(sdt->signature)) == 0) {
                 return sdt;
             }
         }
@@ -238,7 +232,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char signature[static const 4]) {
 
     printk(LOGLEVEL_WARN,
            "acpi: failed to find entry with signature \"" SV_FMT "\"\n",
-           SV_FMT_ARGS(sv_create_nocheck(signature, 4)));
+           SV_FMT_ARGS(sv_create_nocheck(sig, 4)));
 
     return NULL;
 }

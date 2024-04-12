@@ -419,7 +419,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
             GIC_ITS_TYPER_COLLECTION_ID_BITS_MINUS_ONE_SHIFT) + 1,
            typer & __GIC_ITS_TYPER_SUPPORTS_COLLECTION_ID_LIMIT ? "yes" : "no");
 
-    printk(LOGLEVEL_INFO, "gic/its: baser\n");
+    printk(LOGLEVEL_INFO, "baser\n");
     carr_foreach_mut(regs->table_address, baser_iter) {
         uint64_t baser = *baser_iter;
 
@@ -556,18 +556,18 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
         return NULL;
     }
 
-    const struct devicetree_prop_reg *const msi_reg_prop =
+    const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (msi_reg_prop == NULL) {
+    if (reg_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "gic/ts: dtb node is missing a 'reg' property\n");
+               "gic/its: dtb node is missing a 'reg' property\n");
 
         return NULL;
     }
 
-    if (array_item_count(msi_reg_prop->list) != 1) {
+    if (array_item_count(reg_prop->list) != 1) {
         printk(LOGLEVEL_WARN,
                "gic/its: reg prop of dtb node is of the incorrect length\n");
 
@@ -575,12 +575,23 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
     }
 
     struct devicetree_prop_reg_info *const msi_reg_info =
-        array_front(msi_reg_prop->list);
+        array_front(reg_prop->list);
 
     if (msi_reg_info->size < sizeof(struct gic_its_registers)) {
         printk(LOGLEVEL_INFO, "gic/its: reg's range is too small\n");
         return NULL;
     }
 
-    return gic_its_init_from_info(g_count, msi_reg_info->address);
+    const struct devicetree_prop_phandle *const phandle_prop =
+        (const struct devicetree_prop_phandle *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
+
+    if (phandle_prop == NULL) {
+        printk(LOGLEVEL_WARN,
+               "gic/its: dtb node is missing a 'phandle' property\n");
+
+        return NULL;
+    }
+
+    return gic_its_init_from_info(phandle_prop->phandle, msi_reg_info->address);
 }

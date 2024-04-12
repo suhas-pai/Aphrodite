@@ -4,6 +4,8 @@
  */
 
 #pragma once
+
+#include "asm/msr.h"
 #include "lib/macros.h"
 
 __optimize(3) static inline uint64_t read_fsbase() {
@@ -26,4 +28,8 @@ __optimize(3) static inline void write_fsbase(const uint64_t fs_base) {
 
 __optimize(3) static inline void write_gsbase(const uint64_t gs_base) {
     asm volatile ("wrgsbase %0" :: "r"(gs_base) : "memory");
+}
+
+__optimize(3) static inline void write_gsbase_early(const uint64_t gs_base) {
+    msr_write(IA32_MSR_GS_BASE, gs_base);
 }

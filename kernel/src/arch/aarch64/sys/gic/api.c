@@ -227,7 +227,6 @@ void gic_init_from_dtb() {
     };
 
     if (dtb_init_nodes_for_driver(&gicv3_driver, tree, tree->root)) {
-        g_version = 3;
         return;
     }
 
@@ -241,6 +240,4 @@ void gic_init_from_dtb() {
 
     assert_msg(dtb_init_nodes_for_driver(&gic_driver, tree, tree->root),
                "dtb: gicv2/gicv3 not found or was malformed");
-
-    g_version = 2;
 }

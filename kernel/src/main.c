@@ -8,6 +8,7 @@
 #include "asm/irqs.h"
 #include "acpi/api.h"
 
+#include "cpu/init.h"
 #include "cpu/isr.h"
 #include "cpu/util.h"
 
@@ -65,6 +66,8 @@ void _start(void) {
     if (LIMINE_BASE_REVISION_SUPPORTED == false) {
         cpu_idle();
     }
+
+    cpu_early_init();
 
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
     boot_init();

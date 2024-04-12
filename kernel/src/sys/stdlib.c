@@ -7,7 +7,9 @@
 #include <stdint.h>
 
 #if defined(__riscv64)
+    #include "cpu/info.h"
     #include "lib/align.h"
+    #include "sched/thread.h"
 #endif /* defined(__riscv64) */
 
 #include "lib/macros.h"
@@ -481,9 +483,6 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
 
 #if defined(__x86_64__)
     #define REP_MIN 48
-#elif defined(__riscv64)
-    // FIXME: 64 is the cbo size in QEMU, read value for dtb instead.
-    #define CBO_SIZE 64
 #endif /* defined(__x86_64__) */
 
 __optimize(3) void *memset(void *dst, const int val, unsigned long n) {
@@ -592,12 +591,18 @@ __optimize(3) void bzero(void *dst, unsigned long n) {
         }
     }
 #elif defined(__riscv64)
-    if (has_align((uint64_t)dst, CBO_SIZE)) {
-        while (n >= CBO_SIZE) {
-            asm volatile ("cbo.zero (%0)" :: "r"(dst));
+    preempt_disable();
+    const uint16_t cbo_size = this_cpu()->cbo_size;
+    preempt_enable();
 
-            dst += CBO_SIZE;
-            n -= CBO_SIZE;
+    if (__builtin_expect(cbo_size != 0, 1)) {
+        if (has_align((uint64_t)dst, cbo_size)) {
+            while (n >= cbo_size) {
+                asm volatile ("cbo.zero (%0)" :: "r"(dst));
+
+                dst += cbo_size;
+                n -= cbo_size;
+            }
         }
     }
 #endif

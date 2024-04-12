@@ -77,10 +77,12 @@ static void setup_from_dtb(const uint32_t hartid) {
 
 extern void isr_interrupt_entry();
 
-__optimize(3) void cpu_init() {
+__optimize(3) void cpu_early_init() {
     csr_write(sscratch, (uint64_t)&kernel_main_thread);
     csr_write(stvec, (uint64_t)&isr_interrupt_entry);
+}
 
+__optimize(3) void cpu_init() {
     this_cpu_mut()->hart_id = boot_get_smp()->bsp_hartid;
 }
 

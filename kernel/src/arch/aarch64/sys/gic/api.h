@@ -6,8 +6,8 @@
 #pragma once
 
 #include "cpu/info.h"
-
 #include "dev/device.h"
+
 #include "sys/irq.h"
 #include "sys/isr.h"
 

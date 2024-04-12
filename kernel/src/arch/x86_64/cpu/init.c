@@ -435,12 +435,16 @@ __optimize(3) const struct cpu_capabilities *get_cpu_capabilities() {
     return &g_cpu_capabilities;
 }
 
-void cpu_init() {
-    init_cpuid_features();
-
-    write_gsbase((uint64_t)&kernel_main_thread);
+__optimize(3) void cpu_early_init() {
+    write_gsbase_early((uint64_t)&kernel_main_thread);
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)&kernel_main_thread);
 
-    list_add(&kernel_process.pagemap.cpu_list, &this_cpu_mut()->pagemap_node);
+    list_add(&kernel_process.pagemap.cpu_list, &g_base_cpu_info.pagemap_node);
+    init_cpuid_features();
+
     g_base_cpu_init = true;
+}
+
+void cpu_init() {
+
 }

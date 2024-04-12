@@ -739,7 +739,7 @@ __optimize(3) static uint64_t free_all_pages() {
 
         do {
             for (; iorder >= 0; iorder--) {
-                if (avail >= (1ull << iorder)) {
+                if (avail >= 1ull << iorder) {
                     break;
                 }
             }
@@ -751,7 +751,7 @@ __optimize(3) static uint64_t free_all_pages() {
             int8_t jorder = iorder;
             for (; jorder >= 0; jorder--) {
                 const struct page *const back_page =
-                    page + ((1ull << jorder) - 1);
+                    page + (1ull << jorder) - 1;
 
                 if (section == page_to_section(back_page)) {
                     break;

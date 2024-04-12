@@ -52,22 +52,22 @@ struct gic_v2_msi_info {
 
 struct gic_cpu_interface;
 
-enum gicd_type_shifts {
-    GICD_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT = 5,
-    GICD_MAX_IMPLD_LOCKABLE_SPIS_SHIFT = 11
+enum gicdv2_type_shifts {
+    GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT = 5,
+    GICDV2_MAX_IMPLD_LOCKABLE_SPIS_SHIFT = 11
 };
 
-enum gicd_type_flags {
-    __GICD_TYPE_INT_LINES = 0b11111ull,
-    __GICD_CPU_IMPLD_COUNT_MINUS_ONE =
-        0b111ull << GICD_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT,
+enum gicdv2_type_flags {
+    __GICDV2_TYPE_INT_LINES = 0b11111ull,
+    __GICDV2_CPU_IMPLD_COUNT_MINUS_ONE =
+        0b111ull << GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT,
 
-    __GICD_IMPLS_SECURITY_EXTENSIONS = 1ull << 10,
-    __GICD_MAX_IMPLD_LOCKABLE_SPIS =
-        0b11111ull << GICD_MAX_IMPLD_LOCKABLE_SPIS_SHIFT
+    __GICDV2_IMPLS_SECURITY_EXTENSIONS = 1ull << 10,
+    __GICDV2_MAX_IMPLD_LOCKABLE_SPIS =
+        0b11111ull << GICDV2_MAX_IMPLD_LOCKABLE_SPIS_SHIFT
 };
 
-struct gicd_v2_registers {
+struct gicdv2_registers {
     volatile uint32_t control;
 
     volatile const uint32_t interrupt_controller_type;
@@ -137,11 +137,11 @@ struct gicd_v2_registers {
     volatile uint32_t component_id_3;
 };
 
-enum gicd_v2_sgi_shifts {
+enum gicdv2_sgi_shifts {
     GICD_V2_SGI_CPU_TARGET_MASK_SHIFT = 16
 };
 
-enum gicd_v2_sgi_target_list_filter {
+enum gicdv2_sgi_target_list_filter {
     GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD,
     GICD_V2_SGI_TARGET_LIST_FILTER_ALL_OTHER_CPUS,
     GICD_V2_SGI_TARGET_LIST_FILTER_ONLY_SELF_IPI,
@@ -204,8 +204,8 @@ struct gic_cpu_interface {
     volatile uint32_t deactivation;
 };
 
-_Static_assert(sizeof(struct gicd_v2_registers) == 0x10000,
-               "struct gicd_registers has an incorrect size");
+_Static_assert(sizeof(struct gicdv2_registers) == 0x10000,
+               "struct gicdv2_registers has an incorrect size");
 
 #define GICD_CPU_COUNT 8
 #define GICD_BITS_PER_IFACE 8
@@ -229,7 +229,7 @@ struct irq_info {
 static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 
 static struct mmio_region *g_dist_mmio = NULL;
-static volatile struct gicd_v2_registers *g_regs = NULL;
+static volatile struct gicdv2_registers *g_regs = NULL;
 
 static struct mmio_region *g_cpu_mmio = NULL;
 static volatile struct gic_cpu_interface *g_cpu = NULL;
@@ -348,7 +348,7 @@ void gicv2_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
     printk(LOGLEVEL_INFO, "gicv2: initialized cpu interface\n");
 }
 
-bool gicv2_init_from_acpi(const uint64_t phys_base_address) {
+bool gicv2_init_from_info(const uint64_t phys_base_address) {
     if (g_dist_initialized) {
         printk(LOGLEVEL_WARN,
                "gicv2: attempting to initialize multiple gic distributions\n");
@@ -356,7 +356,7 @@ bool gicv2_init_from_acpi(const uint64_t phys_base_address) {
     }
 
     struct range mmio_range =
-        RANGE_INIT(phys_base_address, sizeof(struct gicd_v2_registers));
+        RANGE_INIT(phys_base_address, sizeof(struct gicdv2_registers));
 
     if (!range_align_out(mmio_range, PAGE_SIZE, &mmio_range)) {
         printk(LOGLEVEL_WARN,
@@ -374,15 +374,15 @@ bool gicv2_init_from_acpi(const uint64_t phys_base_address) {
     const uint8_t type = mmio_read(&g_regs->interrupt_controller_type);
 
     g_dist.interrupt_lines_count =
-        min(((type & __GICD_TYPE_INT_LINES) + 1) * 32, 1020);
+        min(((type & __GICDV2_TYPE_INT_LINES) + 1) * 32, 1020);
     g_dist.impl_cpu_count =
-        ((type & __GICD_CPU_IMPLD_COUNT_MINUS_ONE) >>
-            GICD_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT) + 1;
+        ((type & __GICDV2_CPU_IMPLD_COUNT_MINUS_ONE) >>
+            GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT) + 1;
     g_dist.max_impl_lockable_spis =
-        (type & __GICD_MAX_IMPLD_LOCKABLE_SPIS) >>
-            GICD_MAX_IMPLD_LOCKABLE_SPIS_SHIFT;
+        (type & __GICDV2_MAX_IMPLD_LOCKABLE_SPIS) >>
+            GICDV2_MAX_IMPLD_LOCKABLE_SPIS_SHIFT;
     g_dist.supports_security_extensions =
-        type & __GICD_IMPLS_SECURITY_EXTENSIONS;
+        type & __GICDV2_IMPLS_SECURITY_EXTENSIONS;
 
     printk(LOGLEVEL_INFO,
            "gic initialized\n"
@@ -396,8 +396,9 @@ bool gicv2_init_from_acpi(const uint64_t phys_base_address) {
            g_dist.supports_security_extensions ? "yes" : "no");
 
     init_with_regs();
-    g_dist_initialized = true;
+    gic_set_version(2);
 
+    g_dist_initialized = true;
     return true;
 }
 
@@ -504,19 +505,6 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
                "gicd: failed to append msi-frame to list");
 }
 
-void gicv2_init_all_msi() {
-    struct gic_v2_msi_info *iter = NULL;
-    list_foreach(iter, &g_msi_info_list, list) {
-        isr_reserve_msi_irqs(iter->spi_base, iter->spi_count);
-    }
-}
-
-__optimize(3) const struct gic_distributor *gicv2_get_dist() {
-    assert_msg(g_dist_initialized,
-               "gicv2: gic_get_dist() called before gicd_init()");
-    return &g_dist;
-}
-
 __optimize(3) isr_vector_t gicdv2_alloc_msi_vector() {
     struct gic_v2_msi_info *iter = NULL;
     list_foreach(iter, &g_msi_info_list, list) {
@@ -542,7 +530,7 @@ void gicdv2_free_msi_vector(const isr_vector_t vector) {
 
 __optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
-               "gicd_mask_irq() called on invalid interrupt");
+               "gicdv2_mask_irq() called on invalid interrupt");
 
     const uint8_t index = irq / sizeof_bits(uint32_t);
     const uint8_t bit_index = irq % sizeof_bits(uint32_t);
@@ -552,7 +540,7 @@ __optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
 
 __optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
-               "gicd_unmask_irq() called on invalid interrupt");
+               "gicdv2_unmask_irq() called on invalid interrupt");
 
     const uint8_t index = irq / sizeof_bits(uint32_t);
     const uint8_t bit_index = irq % sizeof_bits(uint32_t);
@@ -563,7 +551,7 @@ __optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
 __optimize(3)
 void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
-               "gicd_set_irq_affinity() called on invalid interrupt");
+               "gicdv2_set_irq_affinity() called on invalid interrupt");
 
     const uint8_t index = irq / sizeof(uint32_t);
     const uint32_t target =
@@ -585,9 +573,9 @@ gicdv2_set_irq_trigger_mode(const irq_number_t irq,
                             const enum irq_trigger_mpde mode)
 {
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
-               "gicd_set_irq_trigger_mode() called on sgi interrupt");
+               "gicdv2_set_irq_trigger_mode() called on sgi interrupt");
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
-               "gicd_set_irq_trigger_mode() called on invalid interrupt");
+               "gicdv2_set_irq_trigger_mode() called on invalid interrupt");
 
     const uint8_t config_index = irq / 16;
     const uint32_t target =
@@ -616,7 +604,7 @@ gicdv2_set_irq_trigger_mode(const irq_number_t irq,
 __optimize(3)
 void gicdv2_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
-               "gicd_set_irq_priority() called on invalid interrupt");
+               "gicdv2_set_irq_priority() called on invalid interrupt");
 
     const uint16_t index = irq / sizeof(uint32_t);
     const uint32_t irq_priority =
@@ -637,7 +625,7 @@ __optimize(3)
 void gicdv2_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint32_t info =
         GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD
-        | (1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->interface_number))
+        | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->interface_number)
         | int_no;
 
     atomic_store_explicit(&g_regs->software_generated_interrupts[0],
@@ -708,7 +696,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
     struct devicetree_prop_reg_info *const dist_reg_info =
         array_front(reg_prop->list);
 
-    gicv2_init_from_acpi(dist_reg_info->address);
+    gicv2_init_from_info(dist_reg_info->address);
     devicetree_node_foreach_child(node, child_node) {
         const struct string_view msi_sv = SV_STATIC("arm,gic-v2m-frame");
         if (!devicetree_node_has_compat_sv(child_node, msi_sv)) {

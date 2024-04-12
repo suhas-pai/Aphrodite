@@ -84,11 +84,7 @@ __ubsan_handle_pointer_overflow(struct pointer_overflow_info *const info,
                    SOURCE_LOCATION_FMT_ARGS(&info->location));
             break;
         case ERROR_KIND_NullptrWithNonZeroOffset:
-            printk(LOGLEVEL_ERROR,
-                   "ubsan: [" SOURCE_LOCATION_FMT "] applying non-zero offset "
-                   "of %" PRIu64 " to null pointer\n",
-                   SOURCE_LOCATION_FMT_ARGS(&info->location),
-                   offset);
+            // Ignore for now
             break;
         case ERROR_KIND_NullptrAfterNonZeroOffset:
             printk(LOGLEVEL_ERROR,

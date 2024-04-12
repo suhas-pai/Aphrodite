@@ -8,9 +8,6 @@
 #include "sys/gic/api.h"
 #include "sys/gic/its.h"
 
-#include "cpu/spinlock.h"
-#include "lib/util.h"
-
 #include "asm/esr.h"
 #include "asm/irqs.h"
 
@@ -87,7 +84,9 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __optimize(3) void isr_free_vector(const isr_vector_t vector) {
-    assert_no_msg(bitset_has(g_bitset, vector));
+    assert_msg(bitset_has(g_bitset, vector),
+               "isr: isr_free_vector() called on unallocated vector");
+
     bitset_unset(g_bitset, /*invert=*/true);
 }
 
@@ -261,7 +260,7 @@ __optimize(3) void handle_sync_exception(struct thread_context *const context) {
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MCR_OR_MRC_EC0:
             printk(LOGLEVEL_WARN,
-                   "isr: received a trapped mcrr/mrrc with ec 0 instruction "
+                   "isr: received a trapped mcrr/mrrc with ec0 instruction "
                    "exception\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MCRR_OR_MRRC:
@@ -424,13 +423,13 @@ void handle_async_exception(struct thread_context *const context) {
     if (error_code != ESR_ERROR_CODE_SERROR_INTERRUPT) {
         printk(LOGLEVEL_WARN,
                "isr: received async exception w/o a serror error-code\n");
-        return;
+        cpu_idle();
     }
 
     if (esr & __ESR_SERROR_IDS) {
         printk(LOGLEVEL_INFO,
                "isr: received async exception with impl-defined info\n");
-        return;
+        cpu_idle();
     }
 
     const bool iesb = (esr & __ESR_SERROR_IESB) >> ESR_SERROR_IESB_SHIFT;
@@ -451,6 +450,8 @@ void handle_async_exception(struct thread_context *const context) {
            ext_abort ? "yes" : "no",
            iesb ? "yes" : "no",
            dfsc);
+
+    cpu_idle();
 }
 
 void handle_invalid_exception(struct thread_context *const context) {

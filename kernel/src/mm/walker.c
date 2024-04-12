@@ -63,7 +63,7 @@ static inline uint64_t
 get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
 #if defined(__aarch64__)
     uint64_t root_phys = 0;
-    if (virt_addr & (1ull << 63)) {
+    if (virt_addr & 1ull << 63) {
         root_phys = virt_to_phys(pagemap->higher_root);
     } else {
         root_phys = virt_to_phys(pagemap->lower_root);

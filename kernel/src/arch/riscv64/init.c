@@ -14,6 +14,7 @@
 #define QEMU_SERIAL_PHYS 0x10000000
 
 __optimize(3) void arch_early_init() {
+    cpu_init();
     disable_interrupts();
 
     const uint64_t pte_flags = PTE_LEAF_FLAGS | __PTE_READ | __PTE_WRITE;
@@ -28,6 +29,5 @@ __optimize(3) void arch_post_mm_init() {
 }
 
 __optimize(3) void arch_init() {
-    cpu_init();
     mm_arch_init();
 }

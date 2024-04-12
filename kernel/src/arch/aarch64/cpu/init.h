@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/cpu/init.h
+ * kernel/src/arch/aarch64/cpu/init.h
  * © suhas pai
  */
 
@@ -7,4 +7,3 @@
 
 void cpu_init();
 void cpu_early_init();
-void cpu_init_from_dtb();

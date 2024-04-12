@@ -41,5 +41,4 @@ struct cpu_info {
     struct sched_percpu_info sched_info;
 };
 
-void cpu_init();
 const struct cpu_capabilities *get_cpu_capabilities();
