@@ -28,6 +28,7 @@ enum parse_bar_result {
     E_PARSE_BAR_UNKNOWN_MEM_KIND,
     E_PARSE_BAR_NO_REG_FOR_UPPER32,
 
+    E_PARSE_BAR_RANGE_OVERFLOW,
     E_PARSE_BAR_MMIO_MAP_FAIL
 };
 
@@ -95,9 +96,11 @@ pci_bar_parse_size(struct pci_entity_info *const dev,
         return E_PARSE_BAR_IGNORE;
     }
 
-    info->port_or_phys_range = RANGE_INIT(base_addr, size);
-    info->is_present = true;
+    if (!range_create_and_verify(base_addr, size, &info->port_or_phys_range)) {
+        return E_PARSE_BAR_RANGE_OVERFLOW;
+    }
 
+    info->is_present = true;
     return E_PARSE_BAR_OK;
 }
 

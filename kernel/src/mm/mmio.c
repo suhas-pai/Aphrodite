@@ -113,7 +113,19 @@ map_mmio_region(const struct range phys_range,
         return NULL;
     }
 
-    const struct range virt_range = RANGE_INIT(virt_addr, phys_range.size);
+    struct range virt_range = RANGE_EMPTY();
+    if (!range_create_and_verify(virt_addr, phys_range.size, &virt_range)) {
+        spin_release_restore_irq(&mmio_space_lock, flag);
+        kfree(mmio);
+
+        printk(LOGLEVEL_WARN,
+               "vmap_mmio(): virtual-address range to map "
+               "phys-range " RANGE_FMT " overflows\n",
+               RANGE_FMT_ARGS(phys_range));
+
+        return NULL;
+    }
+
     const bool map_success =
         arch_make_mapping(&kernel_process.pagemap,
                           phys_range,

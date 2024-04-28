@@ -36,11 +36,20 @@ pci_add_ecam_domain(const struct range bus_range,
         return NULL;
     }
 
+    struct range range = RANGE_EMPTY();
+    if (!range_create_and_verify(base_addr,
+                                 map_size_for_bus_range(bus_range),
+                                 &range))
+    {
+        printk(LOGLEVEL_WARN,
+               "pci: ecam domain at base %p, segment %" PRIu16 " overflows\n",
+               (void *)base_addr,
+               segment);
+        return NULL;
+    }
+
     ecam_domain->domain = PCI_DOMAIN_INIT(PCI_DOMAIN_ECAM, segment);
-    ecam_domain->mmio =
-        vmap_mmio(RANGE_INIT(base_addr, map_size_for_bus_range(bus_range)),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
+    ecam_domain->mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
     if (ecam_domain->mmio == NULL) {
         kfree(ecam_domain);
@@ -275,8 +284,17 @@ parse_dtb_resources(const struct devicetree_node *const node,
             continue;
         }
 
-        const struct range res_range =
-            RANGE_INIT(iter->parent_bus_address, iter->size);
+        struct range res_range = RANGE_EMPTY();
+        if (!range_create_and_verify(iter->parent_bus_address,
+                                     iter->size,
+                                     &res_range))
+        {
+            printk(LOGLEVEL_WARN,
+                   "pci/ecam: range #%" PRIu32 " in 'ranges' dtb-node prop "
+                   "overflows\n",
+                   index + 1);
+            continue;
+        }
 
         struct range res_mmio_range = RANGE_EMPTY();
         if (!range_align_out(res_range, PAGE_SIZE, &res_mmio_range)) {
@@ -373,8 +391,15 @@ init_from_dtb(const struct devicetree *const tree,
 
     const struct devicetree_prop_reg_info *const mmio_reg =
         array_front(reg_prop->list);
-    const struct range mmio_range =
-        RANGE_INIT(mmio_reg->address, mmio_reg->size);
+
+    struct range mmio_range = RANGE_EMPTY();
+    if (!range_create_and_verify(mmio_reg->address,
+                                 mmio_reg->size,
+                                 &mmio_range))
+    {
+        printk(LOGLEVEL_WARN, "pci/ecam: mmio range overflows\n");
+        return false;
+    }
 
     if (!range_has_index_range(mmio_range,
                                RANGE_INIT(bus_range.front,

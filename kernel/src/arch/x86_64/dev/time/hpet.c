@@ -82,11 +82,16 @@ void hpet_init(const struct acpi_hpet *const hpet) {
         return;
     }
 
-    hpet_mmio =
-        vmap_mmio(RANGE_INIT(hpet->base_address.address, PAGE_SIZE),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
+    struct range range = RANGE_EMPTY();
+    if (!range_create_and_verify(hpet->base_address.address,
+                                 PAGE_SIZE,
+                                 &range))
+    {
+        printk(LOGLEVEL_WARN, "hpet: address-space's range oveflows\n");
+        return;
+    }
 
+    hpet_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
     if (hpet_mmio == NULL) {
         printk(LOGLEVEL_WARN, "hpet: failed to mmio-map address-space\n");
         return;

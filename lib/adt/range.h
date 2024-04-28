@@ -37,6 +37,8 @@ struct range {
          (iter - range.front) < range.size; \
          iter += (incr))
 
+bool range_create_and_verify(uint64_t base, uint64_t size, struct range *out);
+
 struct range range_create_upto(uint64_t size);
 struct range range_create_end(uint64_t front, uint64_t size);
 

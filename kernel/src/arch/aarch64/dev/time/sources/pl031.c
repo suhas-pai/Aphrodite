@@ -55,7 +55,15 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     struct devicetree_prop_reg_info *const reg_info = array_front(reg_list);
-    struct range reg_range = RANGE_INIT(reg_info->address, reg_info->size);
+    struct range reg_range = RANGE_EMPTY();
+
+    if (!range_create_and_verify(reg_info->address,
+                                 reg_info->size,
+                                 &reg_range))
+    {
+        printk(LOGLEVEL_INFO, "pl031: dtb-node's 'reg' prop range overflows\n");
+        return false;
+    }
 
     if (!range_align_out(reg_range, PAGE_SIZE, &reg_range)) {
         printk(LOGLEVEL_INFO,

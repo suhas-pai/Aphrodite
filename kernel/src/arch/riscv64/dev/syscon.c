@@ -82,27 +82,45 @@ bool
 syscon_init_from_dtb(const struct devicetree *const tree,
                      const struct devicetree_node *const node)
 {
+    (void)tree;
     if (g_mmio != NULL) {
         printk(LOGLEVEL_WARN,
                "syscon: multiple syscons found, ignoring one found in dtb\n");
         return true;
     }
 
-    (void)tree;
-    const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+    struct range reg_range = RANGE_EMPTY();
+    {
+        const struct devicetree_prop_reg *const reg_prop =
+            (const struct devicetree_prop_reg *)(uint64_t)
+                devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop != NULL) {
-        printk(LOGLEVEL_WARN, "syscon: dtb-node is missing a 'reg' property\n");
-        return false;
-    }
+        if (reg_prop != NULL) {
+            printk(LOGLEVEL_WARN,
+                   "syscon: dtb-node is missing a 'reg' property\n");
+            return false;
+        }
 
-    if (array_item_count(reg_prop->list) != 1) {
-        printk(LOGLEVEL_WARN,
-               "syscon: dtb-node's 'reg' property is of the incorrect "
-               "length\n");
-        return false;
+        if (array_item_count(reg_prop->list) != 1) {
+            printk(LOGLEVEL_WARN,
+                   "syscon: dtb-node's 'reg' property is of the incorrect "
+                   "length\n");
+            return false;
+        }
+
+        struct devicetree_prop_reg_info *const reg= array_front(reg_prop->list);
+        if (reg->size != SYSCON_MMIO_SIZE) {
+            printk(LOGLEVEL_WARN,
+                   "syscon: dtb-node's 'reg' property is of the incorrect "
+                   "length\n");
+            return false;
+        }
+
+        if (!range_create_and_verify(reg->address, reg->size, &reg_range)) {
+            printk(LOGLEVEL_WARN,
+                   "syscon: dtb-node's 'reg' property overflows\n");
+            return false;
+        }
     }
 
     const struct devicetree_prop_phandle *const phandle_prop =
@@ -115,21 +133,7 @@ syscon_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    struct devicetree_prop_reg_info *const reg_info =
-        array_front(reg_prop->list);
-
-    if (reg_info->size != SYSCON_MMIO_SIZE) {
-        printk(LOGLEVEL_WARN,
-               "syscon: dtb-node's 'reg' property is of the incorrect "
-               "length\n");
-        return false;
-    }
-
-    g_mmio =
-        vmap_mmio(RANGE_INIT(reg_info->address, reg_info->size),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
-
+    g_mmio = vmap_mmio(reg_range, PROT_READ | PROT_WRITE, /*flags=*/0);
     if (g_mmio == NULL) {
         printk(LOGLEVEL_WARN, "syscon: failed to mmio-map reg range\n");
         return false;

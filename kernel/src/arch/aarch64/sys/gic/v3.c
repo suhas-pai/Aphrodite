@@ -635,10 +635,17 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
+    struct range redist_range = RANGE_EMPTY();
     struct devicetree_prop_reg_info *const redist_reg_info =
         array_at(reg_prop->list, /*index=*/1);
-    const struct range redist_range =
-        RANGE_INIT(redist_reg_info->address, redist_reg_info->size);
+
+    if (!range_create_and_verify(redist_reg_info->address,
+                                 redist_reg_info->size,
+                                 &redist_range))
+    {
+        printk(LOGLEVEL_WARN, "gicv3: 'reg' property's range overflows\n");
+        return false;
+    }
 
     const struct devicetree_prop_other *const redist_count_prop =
         devicetree_node_get_other_prop(node,

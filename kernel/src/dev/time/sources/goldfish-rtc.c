@@ -95,7 +95,13 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const struct range phys_range = RANGE_INIT(reg->address, size);
+    struct range phys_range = RANGE_EMPTY();
+    if (!range_create_and_verify(reg->address, size, &phys_range)) {
+        printk(LOGLEVEL_WARN,
+               "goldfish-rtc: dtb-node's 'reg' property's range overflows\n");
+        return false;
+    }
+
     struct mmio_region *const mmio =
         vmap_mmio(phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 

@@ -180,10 +180,11 @@ void boot_init() {
         const struct limine_memmap_entry *const memmap = *memmap_iter;
         struct range range = RANGE_EMPTY();
 
-        if (!range_align_out(RANGE_INIT(memmap->base, memmap->length),
-                             /*boundary=*/PAGE_SIZE,
-                             &range))
-        {
+        if (!range_create_and_verify(memmap->base, memmap->length, &range)) {
+            panic("boot: memmap overflows");
+        }
+
+        if (!range_align_out(range, /*boundary=*/PAGE_SIZE, &range)) {
             panic("boot: failed to align memmap");
         }
 

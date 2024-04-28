@@ -72,7 +72,16 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    struct range mmio_range = RANGE_INIT(reg_info->address, reg_info->size);
+    struct range mmio_range = RANGE_EMPTY();
+    if (!range_create_and_verify(reg_info->address,
+                                 reg_info->size,
+                                 &mmio_range))
+    {
+        printk(LOGLEVEL_WARN,
+               "virtio-mmio: dtb-node's 'reg' property's range overflows\n");
+        return false;
+    }
+
     if (!range_align_out(mmio_range, PAGE_SIZE, &mmio_range)) {
         printk(LOGLEVEL_WARN,
                "virtio-mmio: range in dtb-node's 'reg' property is too "

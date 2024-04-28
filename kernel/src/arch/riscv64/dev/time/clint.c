@@ -31,15 +31,9 @@ __optimize(3) struct clock *system_clock_get() {
     return &g_clint_mtime->clock;
 }
 
-void
-clint_init(volatile uint64_t *const base,
-           const uint64_t size,
-           const uint64_t freq)
-{
+void clint_init(const struct range range, const uint64_t freq) {
     struct mmio_region *const mmio =
-        vmap_mmio(RANGE_INIT((uint64_t)base, size),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
+        vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
     if (mmio == NULL) {
         printk(LOGLEVEL_WARN, "clint: failed to mmio-map registers\n");
@@ -80,62 +74,73 @@ init_from_dtb(const struct devicetree *const tree,
         return true;
     }
 
-    const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
-
-    if (reg_prop == NULL) {
-        printk(LOGLEVEL_WARN,
-               "clint: 'reg' property in dtb node is missing\n");
-        return false;
-    }
-
-    if (array_empty(reg_prop->list)) {
-        printk(LOGLEVEL_WARN,
-               "clint: dtb node's 'reg' property is empty\n");
-        return false;
-    }
-
-    const struct devicetree_prop_reg_info *const reg =
-        (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
-
-    if (reg->size < sizeof(struct clint_regs)) {
-        printk(LOGLEVEL_WARN,
-               "clint: base-addr reg of 'reg' property of dtb node is too "
-               "small\n");
-        return false;
-    }
-
-    struct devicetree_node *const cpus_node =
-        devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
-
-    if (cpus_node == NULL) {
-        printk(LOGLEVEL_WARN,
-               "clint: failed to init because node at path /cpus is missing\n");
-        return false;
-    }
-
-    const struct devicetree_prop_other *const timebase_freq_prop =
-        devicetree_node_get_other_prop(cpus_node,
-                                       SV_STATIC("timebase-frequency"));
-
-    if (timebase_freq_prop == NULL) {
-        printk(LOGLEVEL_WARN,
-               "clint: node at path \"/cpus\" is missing the "
-               "timebase-frequency prop\n");
-        return false;
-    }
-
+    struct range reg_range = RANGE_EMPTY();
     uint32_t freq = 0;
-    if (!devicetree_prop_other_get_u32(timebase_freq_prop, &freq)) {
-        printk(LOGLEVEL_WARN,
-               "clint: node at path \"/cpus\" timebase-frequency prop is of "
-               "the wrong length %" PRIu32 "\n",
-               timebase_freq_prop->data_length);
-        return false;
+
+    {
+        const struct devicetree_prop_reg *const reg_prop =
+            (const struct devicetree_prop_reg *)(uint64_t)
+                devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+
+        if (reg_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "clint: 'reg' property in dtb node is missing\n");
+            return false;
+        }
+
+        if (array_empty(reg_prop->list)) {
+            printk(LOGLEVEL_WARN,
+                   "clint: dtb node's 'reg' property is empty\n");
+            return false;
+        }
+
+        const struct devicetree_prop_reg_info *const reg =
+            (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
+
+        if (reg->size < sizeof(struct clint_regs)) {
+            printk(LOGLEVEL_WARN,
+                   "clint: base-addr reg of 'reg' property of dtb node is too "
+                   "small\n");
+            return false;
+        }
+
+        if (!range_create_and_verify(reg->address, reg->size, &reg_range)) {
+            printk(LOGLEVEL_WARN, "clint: 'reg' property's range overflows\n");
+            return false;
+        }
+    }
+    {
+        struct devicetree_node *const cpus_node =
+            devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
+
+        if (cpus_node == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "clint: failed to init because node at path \"/cpus\" is "
+                   "missing\n");
+            return false;
+        }
+
+        const struct devicetree_prop_other *const timebase_freq_prop =
+            devicetree_node_get_other_prop(cpus_node,
+                                           SV_STATIC("timebase-frequency"));
+
+        if (timebase_freq_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "clint: node at path \"/cpus\" is missing the "
+                   "timebase-frequency prop\n");
+            return false;
+        }
+
+        if (!devicetree_prop_other_get_u32(timebase_freq_prop, &freq)) {
+            printk(LOGLEVEL_WARN,
+                   "clint: node at path \"/cpus\" timebase-frequency prop is "
+                   "of the wrong length %" PRIu32 "\n",
+                   timebase_freq_prop->data_length);
+            return false;
+        }
     }
 
-    clint_init((volatile uint64_t *)reg->address, reg->size, freq);
+    clint_init(reg_range, freq);
     return true;
 }
 

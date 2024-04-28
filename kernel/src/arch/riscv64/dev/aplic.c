@@ -80,7 +80,14 @@ init_from_dtb(const struct devicetree *const tree,
             return false;
         }
 
-        reg_range = RANGE_INIT(reg_info->address, reg_info->size);
+        if (!range_create_and_verify(reg_info->address,
+                                     reg_info->size,
+                                     &reg_range))
+        {
+            printk(LOGLEVEL_WARN,
+                   "aplic: dtb-node's 'reg' property's range overflows\n");
+            return false;
+        }
     }
     {
         const struct devicetree_prop_other *const source_prop =

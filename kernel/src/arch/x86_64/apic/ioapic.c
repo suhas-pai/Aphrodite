@@ -91,13 +91,21 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
         return;
     }
 
+    struct range range = RANGE_EMPTY();
+    if (!range_create_and_verify(base, PAGE_SIZE, &range)) {
+        printk(LOGLEVEL_WARN,
+               "ioapic: io-apic with apic-id %" PRIu8 ", gsib %" PRIu32 ", "
+               "base %p overflows. ignoring\n",
+               apic_id,
+               gsib,
+               (void *)(uint64_t)base);
+        return;
+    }
+
     struct ioapic_info info = {
         .arbid = apic_id,
         .gsi_base = gsib,
-        .regs_mmio =
-            vmap_mmio(RANGE_INIT(base, PAGE_SIZE),
-                      PROT_READ | PROT_WRITE,
-                      /*flags=*/0)
+        .regs_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0)
     };
 
     assert_msg(info.regs_mmio != NULL, "ioapic: failed to map ioapic regs");

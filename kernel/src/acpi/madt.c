@@ -483,9 +483,17 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_entry_gicv3_redistributor *const redist =
                     (const struct acpi_madt_entry_gicv3_redistributor *)iter;
 
-                gicv3_redist_discovery_range =
-                    RANGE_INIT(redist->discovery_range_base_address,
-                               redist->dicovery_range_length);
+                if (!range_create_and_verify(
+                        redist->discovery_range_base_address,
+                        redist->dicovery_range_length,
+                        &gicv3_redist_discovery_range))
+                {
+                    printk(LOGLEVEL_INFO,
+                           "madt: found gicv3 redistributor with overflowing "
+                           "range:\n"
+                           "\tdiscovery range: " RANGE_FMT "\n",
+                           RANGE_FMT_ARGS(gicv3_redist_discovery_range));
+                }
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gicv3 redistributor:\n"
@@ -599,10 +607,23 @@ void madt_init(const struct acpi_madt *const madt) {
     gic_set_version(gic_dist->gic_version);
 
     switch (gic_dist->gic_version) {
-        case 2:
+        case 2: {
+            struct range gicv2_cpu_intr_range = RANGE_EMPTY();
+            if (!range_create_and_verify(gicv2_cpu_intr_phys_addr,
+                                         PAGE_SIZE,
+                                         &gicv2_cpu_intr_range))
+            {
+                printk(LOGLEVEL_WARN,
+                       "madt: specified gicv2 cpu-interface range overflows\n");
+
+                array_destroy(&its_list);
+                array_destroy(&msi_frame_list);
+
+                return;
+            }
+
             gicv2_init_from_info(gic_dist->phys_base_address);
-            gicv2_init_on_this_cpu(
-                RANGE_INIT(gicv2_cpu_intr_phys_addr, PAGE_SIZE));
+            gicv2_init_on_this_cpu(gicv2_cpu_intr_range);
 
             array_foreach(&its_list,
                           struct acpi_madt_entry_gic_msi_frame *,
@@ -615,6 +636,7 @@ void madt_init(const struct acpi_madt *const madt) {
             array_destroy(&msi_frame_list);
 
             return;
+        }
         case 3:
             assert_msg(!range_empty(gicv3_redist_discovery_range),
                        "madt; couldn't find gicv3 redistributor memory region");

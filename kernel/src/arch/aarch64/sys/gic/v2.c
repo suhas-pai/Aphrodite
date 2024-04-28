@@ -745,10 +745,17 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
         gicv2_add_msi_frame(msi_reg_info->address);
     }
 
+    struct range cpu_reg_range = RANGE_EMPTY();
     struct devicetree_prop_reg_info *const cpu_reg_info =
         array_at(reg_prop->list, /*index=*/1);
-    const struct range cpu_reg_range =
-        RANGE_INIT(cpu_reg_info->address, cpu_reg_info->size);
+
+    if (!range_create_and_verify(cpu_reg_info->address,
+                                 cpu_reg_info->size,
+                                 &cpu_reg_range))
+    {
+        printk(LOGLEVEL_INFO, "gicv2: dtb node's 'reg' prop range overflows\n");
+        return false;
+    }
 
     gicv2_init_on_this_cpu(cpu_reg_range);
     return true;

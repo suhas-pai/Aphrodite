@@ -8,6 +8,20 @@
 #include "lib/overflow.h"
 #include "lib/util.h"
 
+__optimize(3) bool
+range_create_and_verify(const uint64_t base,
+                        const uint64_t size,
+                        struct range *const out)
+{
+    uint64_t end = 0;
+    if (!check_add(base, size, &end)) {
+        return false;
+    }
+
+    *out = RANGE_INIT(base, size);
+    return true;
+}
+
 __optimize(3) struct range range_create_upto(const uint64_t size) {
     return RANGE_INIT(0, size);
 }
