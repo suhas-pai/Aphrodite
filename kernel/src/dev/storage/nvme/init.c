@@ -81,7 +81,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                              __PCI_ENTITY_PRIVL_BUS_MASTER
                              | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     if (!pci_entity_enable_msi(pci_entity)) {
         isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
         printk(LOGLEVEL_WARN, "nvme: pci-entity is missing msi capability\n");
@@ -94,7 +94,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                                   isr_vector,
                                   /*masked=*/false);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 
     struct nvme_controller *const controller = kmalloc(sizeof(*controller));
     if (controller == NULL) {
@@ -109,9 +109,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    volatile struct nvme_registers *const regs =
-        bar->mmio->base + bar->index_in_mmio;
-
+    volatile struct nvme_registers *const regs = pci_entity_bar_get_base(bar);
     if (!nvme_controller_create(controller,
                                 &pci_entity->device,
                                 regs,

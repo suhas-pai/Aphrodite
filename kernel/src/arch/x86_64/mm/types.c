@@ -33,9 +33,20 @@ struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
     }
 };
 
+__optimize(3) static inline bool uses_5_level_paging() {
+    return PAGING_MODE == LIMINE_PAGING_MODE_X86_64_5LVL;
+}
+
 __optimize(3) pgt_level_t pgt_get_top_level() {
-    const bool has_5lvl_paging = PAGING_MODE == LIMINE_PAGING_MODE_X86_64_5LVL;
-    return has_5lvl_paging ? 5 : 4;
+    return uses_5_level_paging() ? 5 : 4;
+}
+
+__optimize(3) uint64_t sign_extend_virt_addr(const uint64_t virt) {
+    if (uses_5_level_paging()) {
+        return sign_extend_from_index(virt, PML5_SHIFT + 8);
+    }
+
+    return sign_extend_from_index(virt, PML4_SHIFT + 8);
 }
 
 __optimize(3) bool pte_is_present(const pte_t pte) {

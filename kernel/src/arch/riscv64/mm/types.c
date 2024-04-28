@@ -53,6 +53,19 @@ __optimize(3) pgt_level_t pgt_get_top_level() {
     verify_not_reached();
 }
 
+__optimize(3) uint64_t sign_extend_virt_addr(const uint64_t virt) {
+    switch (PAGING_MODE) {
+        case LIMINE_PAGING_MODE_RISCV_SV39:
+            return sign_extend_from_index(virt, PML3_SHIFT + 8);
+        case LIMINE_PAGING_MODE_RISCV_SV48:
+            return sign_extend_from_index(virt, PML4_SHIFT + 8);
+        case LIMINE_PAGING_MODE_RISCV_SV57:
+            return sign_extend_from_index(virt, PML5_SHIFT + 8);
+    }
+
+    verify_not_reached();
+}
+
 __optimize(3) bool pte_is_present(const pte_t pte) {
     return (pte & __PTE_VALID) != 0;
 }

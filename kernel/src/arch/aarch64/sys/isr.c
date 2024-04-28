@@ -36,14 +36,14 @@ static struct spinlock g_sgi_lock = SPINLOCK_INIT();
 static uint16_t g_sgi_interrupt = 0;
 
 __optimize(3) void isr_init() {
-
+    assert(g_lpi_irq_info_list != NULL);
 }
 
 __optimize(3) isr_vector_t isr_alloc_sgi_vector() {
-    const int flag = spin_acquire_irq_save(&g_sgi_lock);
+    const int flag = spin_acquire_save_irq(&g_sgi_lock);
     const uint16_t result = g_sgi_interrupt;
 
-    spin_release_irq_restore(&g_sgi_lock, flag);
+    spin_release_restore_irq(&g_sgi_lock, flag);
     assert(index_in_bounds(result, GIC_SGI_INTERRUPT_LAST));
 
     g_sgi_interrupt++;
@@ -95,8 +95,7 @@ isr_free_msi_vector(struct device *const device,
                     const isr_vector_t vector,
                     const uint16_t msi_index)
 {
-    (void)device;
-    gicd_free_msi_vector(vector, msi_index);
+    gicd_free_msi_vector(device, vector, msi_index);
 }
 
 __optimize(3) void

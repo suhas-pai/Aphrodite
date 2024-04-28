@@ -245,7 +245,7 @@ static bool g_use_split_eoi = false;
 static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
 
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
     const uint8_t intr_number = this_cpu()->interface_number;
 
     for (uint16_t irq = GIC_SPI_INTERRUPT_START;
@@ -259,12 +259,12 @@ static void init_with_regs() {
     }
 
     mmio_write(&g_regs->control, /*value=*/1);
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 
     printk(LOGLEVEL_INFO, "gicv2: finished initializing gicd\n");
 }
 
-static uint8_t get_cpu_iface_no() {
+static uint8_t get_cpu_iface_number() {
     for (uint8_t i = 0; i != 8; i++) {
         const uint32_t target =
             atomic_load_explicit(&g_regs->interrupt_targets[i],
@@ -286,7 +286,7 @@ static uint8_t get_cpu_iface_no() {
     verify_not_reached();
 }
 
-void gicv2_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
+void gicv2_init_on_this_cpu(const struct range range) {
     for (uint8_t irq = GIC_SGI_INTERRUPT_START;
          irq <= GIC_PPI_INTERRUPT_LAST;
          irq++)
@@ -296,25 +296,23 @@ void gicv2_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
     }
 
     if (g_cpu_mmio != NULL) {
-        assert(phys_addr == g_cpu_phys_addr && size == g_cpu_size);
+        assert(range.front == g_cpu_phys_addr && range.size == g_cpu_size);
     } else {
-        assert_msg(has_align(size, PAGE_SIZE),
+        assert_msg(range_has_align(range, PAGE_SIZE),
                    "gicv2: cpu interface mmio-region isn't aligned to "
                    "page-size\n");
 
         g_cpu_mmio =
-            vmap_mmio(RANGE_INIT(phys_addr, size),
-                      PROT_READ | PROT_WRITE | PROT_DEVICE,
-                      /*flags=*/0);
+            vmap_mmio(range, PROT_READ | PROT_WRITE | PROT_DEVICE, /*flags=*/0);
 
         assert_msg(g_cpu_mmio != NULL,
                    "gicv2: failed to allocate mmio-region for cpu-interface");
 
-        g_cpu_phys_addr = phys_addr;
-        g_cpu_size = size;
+        g_cpu_phys_addr = range.front;
+        g_cpu_size = range.size;
 
         g_cpu = g_cpu_mmio->base;
-        g_use_split_eoi = size > PAGE_SIZE;
+        g_use_split_eoi = range.size > PAGE_SIZE;
 
         if (g_use_split_eoi) {
             printk(LOGLEVEL_INFO, "gicv2: using split-eoi for cpu-interface\n");
@@ -323,7 +321,7 @@ void gicv2_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
         printk(LOGLEVEL_INFO,
                "gicv2: cpu interface at %p, size: 0x%" PRIx64 "\n",
                g_cpu,
-               size);
+               range.size);
     }
 
     mmio_write(&g_cpu->priority_mask, 0xF0);
@@ -343,7 +341,7 @@ void gicv2_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
 
     printk(LOGLEVEL_INFO,
            "gicv2: cpu iface no is %" PRIu8 "\n",
-           get_cpu_iface_no());
+           get_cpu_iface_number());
 
     printk(LOGLEVEL_INFO, "gicv2: initialized cpu interface\n");
 }
@@ -670,7 +668,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
 {
     (void)tree;
     const struct devicetree_prop *const intr_controller_node =
-        devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPT_CONTROLLER);
+        devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
     if (intr_controller_node == NULL) {
         printk(LOGLEVEL_WARN,
@@ -749,7 +747,9 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
 
     struct devicetree_prop_reg_info *const cpu_reg_info =
         array_at(reg_prop->list, /*index=*/1);
+    const struct range cpu_reg_range =
+        RANGE_INIT(cpu_reg_info->address, cpu_reg_info->size);
 
-    gicv2_init_on_this_cpu(cpu_reg_info->address, cpu_reg_info->size);
+    gicv2_init_on_this_cpu(cpu_reg_range);
     return true;
 }

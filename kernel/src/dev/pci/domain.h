@@ -22,10 +22,10 @@ struct pci_domain {
     uint64_t padding;
 };
 
-#define PCI_DOMAIN_INIT(kind_) \
+#define PCI_DOMAIN_INIT(kind_, segment_) \
     ((struct pci_domain){ \
         .kind = (kind_), \
-        .segment = 0, \
+        .segment = (segment_), \
         .padding = 0, \
     })
 

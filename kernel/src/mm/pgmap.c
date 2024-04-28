@@ -753,8 +753,8 @@ map_large_at_top_level_overwrite(struct pt_walker *const walker,
         .should_ref = !options->is_in_early,
     };
 
-    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
     const uint64_t pte_flags = options->pte_flags;
+    const pgt_level_t top_level = pgt_get_top_level();
 
     uint64_t offset = *offset_in;
     do {
@@ -771,7 +771,7 @@ map_large_at_top_level_overwrite(struct pt_walker *const walker,
                          virt_begin,
                          offset_in,
                          size,
-                         level,
+                         walker->level,
                          new_pte_value,
                          options,
                          /*is_alloc_mapping=*/false);
@@ -783,19 +783,20 @@ map_large_at_top_level_overwrite(struct pt_walker *const walker,
                 return MAP_DONE;
         }
 
+        const uint64_t page_size = PAGE_SIZE_AT_LEVEL(walker->level);
         const enum pt_walker_result ptwalker_result =
-            ptwalker_next_with_options(walker, level, &iterate_options);
+            ptwalker_next_with_options(walker, walker->level, &iterate_options);
 
         if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
             panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
         }
 
-        offset += largepage_size;
+        offset += page_size;
         if (offset == size) {
             *offset_in = offset;
             return MAP_DONE;
         }
-    } while (offset + largepage_size <= size);
+    } while (walker->level == top_level);
 
     *offset_in = offset;
     return MAP_CONTINUE;
@@ -1459,7 +1460,7 @@ pgmap_at(struct pagemap *const pagemap,
         return false;
     }
 
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
     struct pt_walker walker;
 
     if (options->is_in_early) {
@@ -1504,7 +1505,7 @@ pgmap_at(struct pagemap *const pagemap,
                     - virt_addr;
 
                 if (!range_has_index(phys_range, offset)) {
-                    enable_interrupts_if_flag(flag);
+                    enable_irqs_if_flag(flag);
                     return OVERRIDE_DONE;
                 }
 
@@ -1529,7 +1530,7 @@ pgmap_at(struct pagemap *const pagemap,
 
                 if (!result) {
                     pageop_finish(&pageop);
-                    enable_interrupts_if_flag(flag);
+                    enable_irqs_if_flag(flag);
 
                     return result;
                 }
@@ -1553,7 +1554,7 @@ pgmap_at(struct pagemap *const pagemap,
         pageop_finish(&pageop);
     }
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return result;
 }
 
@@ -1685,6 +1686,55 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
     return E_PGMAP_ALLOC_OK;
 }
 
+static inline bool
+split_initial_large_page_if_necessary(
+    struct pt_walker *const walker,
+    struct pageop *const pageop,
+    struct current_split_info *const curr_split,
+    struct range *const virt_range_in,
+    const struct pgmap_options *const options,
+    const bool calculate_phys)
+{
+    const uint64_t walker_virt_addr = ptwalker_get_virt_addr(walker);
+    const struct range virt_range = *virt_range_in;
+
+    if (walker_virt_addr >= virt_range.front) {
+        return true;
+    }
+
+    const uint64_t offset = virt_range.front - walker_virt_addr;
+    split_large_page(walker,
+                     pageop,
+                     curr_split,
+                     walker->level,
+                     options);
+
+    uint64_t phys_front = curr_split->phys_range.front;
+    if (calculate_phys) {
+        phys_front = ptwalker_virt_get_phys(walker, walker_virt_addr);
+        assert(phys_front != INVALID_PHYS);
+    }
+
+    const struct range largepage_phys_range = RANGE_INIT(phys_front, offset);
+    const bool result =
+        pgmap_with_ptwalker(walker,
+                            /*curr_split=*/NULL,
+                            pageop,
+                            largepage_phys_range,
+                            walker_virt_addr,
+                            options);
+
+    if (!result) {
+        return result;
+    }
+
+    curr_split->virt_addr = virt_range.front;
+    curr_split->phys_range = range_from_index(curr_split->phys_range, offset);
+
+    *virt_range_in = range_from_index(virt_range, offset);
+    return true;
+}
+
 enum pgmap_alloc_result
 pgmap_alloc_at(struct pagemap *const pagemap,
                struct range virt_range,
@@ -1709,7 +1759,7 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         return false;
     }
 
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
     struct pt_walker walker;
 
     if (options->is_in_early) {
@@ -1737,35 +1787,17 @@ pgmap_alloc_at(struct pagemap *const pagemap,
     }
 
     if (options->is_overwrite && ptwalker_points_to_largepage(&walker)) {
-        const uint64_t walker_virt_addr = ptwalker_get_virt_addr(&walker);
-        if (walker_virt_addr < virt_range.front) {
-            const uint64_t offset = virt_range.front - walker_virt_addr;
-            split_large_page(&walker,
-                             &pageop,
-                             &curr_split,
-                             walker.level,
-                             options);
+        if (!split_initial_large_page_if_necessary(&walker,
+                                                   &pageop,
+                                                   &curr_split,
+                                                   &virt_range,
+                                                   options,
+                                                   /*calculate_phys=*/false))
+        {
+            pageop_finish(&pageop);
+            enable_irqs_if_flag(flag);
 
-            const struct range largepage_phys_range =
-                RANGE_INIT(curr_split.phys_range.front, offset);
-            const bool result =
-                pgmap_with_ptwalker(&walker,
-                                    /*curr_split=*/NULL,
-                                    &pageop,
-                                    largepage_phys_range,
-                                    walker_virt_addr,
-                                    options);
-
-            if (!result) {
-                pageop_finish(&pageop);
-                enable_interrupts_if_flag(flag);
-
-                return result;
-            }
-
-            curr_split.virt_addr = virt_range.front;
-            curr_split.phys_range =
-                range_from_index(curr_split.phys_range, offset);
+            return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
         }
     }
 
@@ -1781,13 +1813,13 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         pageop_finish(&pageop);
     }
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return result;
 }
 
 bool
 pgunmap_at(struct pagemap *const pagemap,
-           const struct range virt_range,
+           struct range virt_range,
            const struct pgmap_options *const map_options,
            const struct pgunmap_options *const unmap_options)
 {
@@ -1800,7 +1832,7 @@ pgunmap_at(struct pagemap *const pagemap,
     struct pt_walker walker;
     struct pageop pageop;
 
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     ptwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
     pageop_init(&pageop, pagemap, virt_range);
@@ -1817,6 +1849,22 @@ pgunmap_at(struct pagemap *const pagemap,
         }
     }
 
+    // We're pointing inside a large page
+    struct current_split_info curr_split;
+    if (!split_initial_large_page_if_necessary(&walker,
+                                               &pageop,
+                                               &curr_split,
+                                               &virt_range,
+                                               map_options,
+                                               /*calculate_phys=*/true))
+    {
+        pageop_finish(&pageop);
+        enable_irqs_if_flag(flag);
+
+        printk(LOGLEVEL_WARN, "mm: pgunmap_at() failed to split large page\n");
+        return false;
+    }
+
     uint64_t remaining = virt_range.size;
     do {
         // Sanity check for the rare case where we have a bug in pgmap; a table
@@ -1827,10 +1875,10 @@ pgunmap_at(struct pagemap *const pagemap,
                 walker.level > 1 && !pte_level_can_have_large(walker.level), 0))
         {
             pageop_finish(&pageop);
-            enable_interrupts_if_flag(flag);
+            enable_irqs_if_flag(flag);
 
             printk(LOGLEVEL_WARN,
-                   "mm: pgunmap_at() encountered a table with missing "
+                   "mm: pgunmap_at() encountered a table with a missing "
                    "entry\n");
 
             return false;
@@ -1842,7 +1890,7 @@ pgunmap_at(struct pagemap *const pagemap,
 
             if (dont_split_large_pages) {
                 pageop_finish(&pageop);
-                enable_interrupts_if_flag(flag);
+                enable_irqs_if_flag(flag);
 
                 return false;
             }
@@ -1856,10 +1904,13 @@ pgunmap_at(struct pagemap *const pagemap,
             const pte_t entry = pte_read(pte);
             if (__builtin_expect(!pte_is_large(entry), 0)) {
                 pageop_finish(&pageop);
-                enable_interrupts_if_flag(flag);
+                enable_irqs_if_flag(flag);
 
                 printk(LOGLEVEL_WARN,
-                       "mm: pgunmap_at() encountered a pte that isn't large\n");
+                       "mm: pgunmap_at() encountered a pte that isn't large "
+                       "when it should be, at level %" PRIu8 "\n",
+                       level);
+
                 return false;
             }
 
@@ -1885,7 +1936,7 @@ pgunmap_at(struct pagemap *const pagemap,
 
             if (!map_result) {
                 pageop_finish(&pageop);
-                enable_interrupts_if_flag(flag);
+                enable_irqs_if_flag(flag);
 
                 return false;
             }
@@ -1920,7 +1971,7 @@ pgunmap_at(struct pagemap *const pagemap,
 
         if (__builtin_expect(walker_result != E_PT_WALKER_OK, 0)) {
             pageop_finish(&pageop);
-            enable_interrupts_if_flag(flag);
+            enable_irqs_if_flag(flag);
 
             return false;
         }
@@ -1931,7 +1982,7 @@ pgunmap_at(struct pagemap *const pagemap,
     } while (true);
 
     pageop_finish(&pageop);
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 
     return true;
 }

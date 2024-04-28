@@ -443,6 +443,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
             // incremented to a new table, possibly at a different level.
 
             page = virt_to_page(walker.tables[walker.level - 1]);
+            init_table_page(page);
 
             // From our current level, and to some higher level, we have tables
             // whose pages have yet to be initialized. The highest level where
@@ -467,8 +468,6 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
 
                 init_table_page(table_page);
             }
-
-            init_table_page(page);
 
             // Because we're refcounting only contiguous regions, we know that
             // `prev_was_at_end` must be false for the next iteration.

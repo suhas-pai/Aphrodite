@@ -95,14 +95,12 @@ string_char_callback(struct printf_spec_info *const spec_info,
                      bool *const cont_out)
 {
     (void)spec_info;
-
-    struct string *const string = (struct string *)cb_info;
-    if (!string_append_char(string, ch, amount)) {
-        *cont_out = false;
-        return 0;
+    if (string_append_char((struct string *)cb_info, ch, amount)) {
+        return amount;
     }
 
-    return amount;
+    *cont_out = false;
+    return 0;
 }
 
 __optimize(3) uint32_t
@@ -112,14 +110,12 @@ string_sv_callback(struct printf_spec_info *const spec_info,
                    bool *const cont_out)
 {
     (void)spec_info;
-
-    struct string *const string = (struct string *)cb_info;
-    if (!string_append_sv(string, sv)) {
-        *cont_out = false;
-        return 0;
+    if (string_append_sv((struct string *)cb_info, sv)) {
+        return sv.length;
     }
 
-    return sv.length;
+    *cont_out = false;
+    return 0;
 }
 
 __optimize(3) uint32_t

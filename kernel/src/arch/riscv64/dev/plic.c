@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/sys/plic.c
+ * kernel/src/arch/riscv64/dev/plic.c
  * © suhas pai
  */
 
@@ -102,7 +102,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
 {
     (void)tree;
     const struct devicetree_prop *const intr_cntlr_prop =
-        devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPT_CONTROLLER);
+        devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
     if (intr_cntlr_prop == NULL) {
         printk(LOGLEVEL_WARN,
@@ -110,80 +110,88 @@ plic_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    const struct devicetree_prop_other *const ndev_prop =
-        devicetree_node_get_other_prop(node, SV_STATIC("riscv,ndev"));
-
-    if (ndev_prop == NULL) {
-        printk(LOGLEVEL_WARN,
-               "plic: dtb-node is missing \"riscv,ndev\" property\n");
-        return false;
-    }
-
     uint32_t ndev = 0;
-    if (!devicetree_prop_other_get_u32(ndev_prop, &ndev)) {
-        printk(LOGLEVEL_WARN,
-               "plic: dtb-node's 'riscv,ndev' prop is not an uint32\n");
-        return false;
+    struct range reg_range = RANGE_EMPTY();
+
+    const fdt32_t *intr_ext_list = NULL;
+    uint32_t intr_ext_count = 0;
+
+    {
+        const struct devicetree_prop_other *const ndev_prop =
+            devicetree_node_get_other_prop(node, SV_STATIC("riscv,ndev"));
+
+        if (ndev_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "plic: dtb-node is missing \"riscv,ndev\" property\n");
+            return false;
+        }
+
+        if (!devicetree_prop_other_get_u32(ndev_prop, &ndev)) {
+            printk(LOGLEVEL_WARN,
+                   "plic: dtb-node's 'riscv,ndev' prop is not an uint32\n");
+            return false;
+        }
+    }
+    {
+        const struct devicetree_prop_reg *const reg_prop =
+            (const struct devicetree_prop_reg *)
+                (uint64_t)devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+
+        if (reg_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "plic: dtb-node is missing a 'reg' property\n");
+            return false;
+        }
+
+        if (array_item_count(reg_prop->list) != 1) {
+            printk(LOGLEVEL_WARN,
+                   "plic: dtb-node has a malformed 'reg' property\n");
+            return false;
+        }
+
+        const struct devicetree_prop_reg_info *const reg_info =
+            array_front(reg_prop->list);
+
+        if (reg_info->size < sizeof(struct plic_registers)) {
+            printk(LOGLEVEL_WARN,
+                   "plic: dtb-node details memory space too small for "
+                   "registers\n");
+            return false;
+        }
+
+        reg_range = RANGE_INIT(reg_info->address, reg_info->size);
+    }
+    {
+        const struct devicetree_prop_other *const intr_ext_prop =
+            devicetree_node_get_other_prop(node,
+                                           SV_STATIC("interrupts-extended"));
+
+        if (intr_ext_prop == NULL) {
+            printk(LOGLEVEL_WARN,
+                   "plic: dtb-node is missing 'interrupts-extended' "
+                   "property\n");
+            return false;
+        }
+
+        if (!devicetree_prop_other_get_u32_list(intr_ext_prop,
+                                                /*u32_in_elem_count=*/2,
+                                                &intr_ext_list,
+                                                &intr_ext_count))
+        {
+            printk(LOGLEVEL_WARN,
+                "plic: dtb-node has a malformed 'interrupts-extended' "
+                "property\n");
+            return false;
+        }
     }
 
-    const struct devicetree_prop_other *const intr_ext_prop =
-        devicetree_node_get_other_prop(node, SV_STATIC("interrupts-extended"));
-
-    if (intr_ext_prop == NULL) {
-        printk(LOGLEVEL_WARN,
-               "plic: dtb-node is missing 'interrupts-extended' property\n");
-        return false;
-    }
-
-    const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)
-            (uint64_t)devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
-
-    if (reg_prop == NULL) {
-        printk(LOGLEVEL_WARN, "plic: dtb-node is missing a 'reg' property\n");
-        return false;
-    }
-
-    if (array_item_count(reg_prop->list) != 1) {
-        printk(LOGLEVEL_WARN,
-               "plic: dtb-node has a malformed 'reg' property\n");
-        return false;
-    }
-
-    const struct devicetree_prop_reg_info *const reg_info =
-        array_front(reg_prop->list);
-
-    if (reg_info->size < sizeof(struct plic_registers)) {
-        printk(LOGLEVEL_WARN,
-               "plic: dtb-node details memory space too small for registers\n");
-        return false;
-    }
-
-    g_mmio =
-        vmap_mmio(RANGE_INIT(reg_info->address, reg_info->size),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
-
+    g_mmio = vmap_mmio(reg_range, PROT_READ | PROT_WRITE, /*flags=*/0);
     if (g_mmio == NULL) {
         printk(LOGLEVEL_WARN, "plic: failed to map registers\n");
         return false;
     }
 
     g_regs = g_mmio->base;
-
-    const fdt32_t *intr_ext_list = NULL;
-    uint32_t intr_ext_count = 0;
-
-    if (!devicetree_prop_other_get_u32_list(intr_ext_prop,
-                                            /*u32_in_elem_count=*/2,
-                                            &intr_ext_list,
-                                            &intr_ext_count))
-    {
-        printk(LOGLEVEL_WARN,
-               "plic: dtb-node has a malformed 'interrupts-extended' "
-               "property\n");
-        return false;
-    }
 
     const fdt32_t *intr_ext_ptr = intr_ext_list;
     for (uint32_t i = 0; i != intr_ext_count; i++, intr_ext_ptr += 2) {

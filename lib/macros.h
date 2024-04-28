@@ -138,8 +138,7 @@
 #define distance_incl(begin, end) (distance(begin, end) + 1)
 
 #define RAND_VAR_NAME() VAR_CONCAT(__random__, __LINE__)
-#define bits_to_bytes_roundup(bits) \
-    ({ \
+#define bits_to_bytes_roundup(bits) ({ \
         const __auto_type __bits__ = (bits); \
         __bits__ % sizeof_bits(uint8_t) ? \
             bits_to_bytes_noround(__bits__) + 1 : \
@@ -168,11 +167,22 @@
 })
 
 #define rm_mask(num, mask) ((num) & ((typeof(num))~(mask)))
-
 #define div_round_up(a, b) ({\
     const __auto_type __a = (a); \
     const __auto_type __b = (b); \
     __a % __b != 0 ? (__a / __b) + 1 : (__a / __b); \
+})
+
+#define sign_extend_from_index(num, index) ({ \
+    const __auto_type __num__ = (num); \
+    const __auto_type __index__ = (index); \
+    \
+    __auto_type __result__ = __num__; \
+    if (__num__ & 1ull << __index__) { \
+        __result__ |= \
+            mask_for_n_bits(sizeof_bits(__num__) - __index__) << __index__; \
+    } \
+    __result__; \
 })
 
 #define carr_end(arr) ((arr) + countof(arr))

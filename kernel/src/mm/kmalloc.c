@@ -48,7 +48,7 @@ void kmalloc_init() {
 
 __optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
 void *kmalloc(const uint32_t size) {
-    assert_msg(kmalloc_is_initialized,
+    assert_msg(kmalloc_initialized(),
                "mm: kmalloc() called before kmalloc_init()");
 
     if (__builtin_expect(size == 0, 0)) {
@@ -75,7 +75,7 @@ void *kmalloc(const uint32_t size) {
 
 __optimize(3) __malloclike __malloc_dealloc(kfree, 1)
 void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
-    assert_msg(kmalloc_is_initialized,
+    assert_msg(kmalloc_initialized(),
                "mm: kmalloc_size() called before kmalloc_init()");
 
     if (__builtin_expect(size == 0, 0)) {

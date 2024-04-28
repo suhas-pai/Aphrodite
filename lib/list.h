@@ -144,7 +144,6 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
 
 #define list_prev_safe(ob, name, list) \
     (ob->name.prev != (list) ? list_prev(ob, name) : NULL)
-
 #define list_next_safe(ob, name, list) \
     (ob->name.next != (list) ? list_next(ob, name) : NULL)
 

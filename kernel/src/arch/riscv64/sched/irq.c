@@ -6,7 +6,7 @@
 #include "cpu/info.h"
 #include "sys/isr.h"
 
-__hidden isr_vector_t g_sched_vector = 0;
+__hidden isr_vector_t g_sched_sgi_vector = 0;
 
 void sched_init_irq() {
 
@@ -21,5 +21,5 @@ __optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
 }
 
 __optimize(3) isr_vector_t sched_get_isr_vector() {
-    return g_sched_vector;
+    return g_sched_sgi_vector;
 }

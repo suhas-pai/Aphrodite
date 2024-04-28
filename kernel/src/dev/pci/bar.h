@@ -23,48 +23,49 @@ struct pci_entity_bar_info {
 bool pci_map_bar(struct pci_entity_bar_info *bar);
 bool pci_unmap_bar(struct pci_entity_bar_info *bar);
 
+volatile void *pci_entity_bar_get_base(const struct pci_entity_bar_info *bar);
 struct pci_entity_info;
 
 uint8_t
-pci_entity_bar_read8(struct pci_entity_info *entity,
-                     struct pci_entity_bar_info *bar,
-                     uint32_t offset);
+pci_bar_read_u8(struct pci_entity_info *entity,
+                struct pci_entity_bar_info *bar,
+                uint32_t offset);
 
 uint16_t
-pci_entity_bar_read16(struct pci_entity_info *entity,
-                      struct pci_entity_bar_info *bar,
-                      uint32_t offset);
+pci_bar_read_u16(struct pci_entity_info *entity,
+                 struct pci_entity_bar_info *bar,
+                 uint32_t offset);
 
 uint32_t
-pci_entity_bar_read32(struct pci_entity_info *entity,
-                      struct pci_entity_bar_info *bar,
-                      uint32_t offset);
+pci_bar_read_u32(struct pci_entity_info *entity,
+                 struct pci_entity_bar_info *bar,
+                 uint32_t offset);
 
 uint64_t
-pci_entity_bar_read64(struct pci_entity_info *entity,
-                      struct pci_entity_bar_info *bar,
-                      uint32_t offset);
+pci_bar_read_u64(struct pci_entity_info *entity,
+                 struct pci_entity_bar_info *bar,
+                 uint32_t offset);
 
 void
-pci_entity_bar_write8(struct pci_entity_info *entity,
-                      struct pci_entity_bar_info *bar,
-                      uint32_t offset,
-                      uint8_t value);
+pci_bar_write_u8(struct pci_entity_info *entity,
+                 struct pci_entity_bar_info *bar,
+                 uint32_t offset,
+                 uint8_t value);
 
 void
-pci_entity_bar_write16(struct pci_entity_info *entity,
-                       struct pci_entity_bar_info *bar,
-                       uint32_t offset,
-                       uint16_t value);
+pci_bar_write_u16(struct pci_entity_info *entity,
+                  struct pci_entity_bar_info *bar,
+                  uint32_t offset,
+                  uint16_t value);
 
 void
-pci_entity_bar_write32(struct pci_entity_info *entity,
-                       struct pci_entity_bar_info *bar,
-                       uint32_t offset,
-                       uint32_t value);
+pci_bar_write_u32(struct pci_entity_info *entity,
+                  struct pci_entity_bar_info *bar,
+                  uint32_t offset,
+                  uint32_t value);
 
 void
-pci_entity_bar_write64(struct pci_entity_info *entity,
-                       struct pci_entity_bar_info *bar,
-                       uint32_t offset,
-                       uint64_t value);
+pci_bar_write_u64(struct pci_entity_info *entity,
+                  struct pci_entity_bar_info *bar,
+                  uint32_t offset,
+                  uint64_t value);

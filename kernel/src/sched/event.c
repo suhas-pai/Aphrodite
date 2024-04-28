@@ -69,20 +69,20 @@ events_await(struct event *const *const events,
              const bool block,
              const bool drop_after_recv)
 {
-    int flag = disable_interrupts_if_not();
+    int flag = disable_irqs_if_enabled();
     lock_events(events, events_count);
 
     int64_t index = find_pending(events, events_count);
     if (index != -1) {
         unlock_events(events, events_count);
-        enable_interrupts_if_flag(flag);
+        enable_irqs_if_flag(flag);
 
         return index;
     }
 
     if (!block) {
         unlock_events(events, events_count);
-        enable_interrupts_if_flag(flag);
+        enable_irqs_if_flag(flag);
 
         return -1;
     }
@@ -95,7 +95,7 @@ events_await(struct event *const *const events,
     unlock_events(events, events_count);
     sched_yield();
 
-    flag = disable_interrupts_if_not();
+    flag = disable_irqs_if_enabled();
     index = thread->event_index;
 
     thread->event_index = -1;
@@ -103,13 +103,13 @@ events_await(struct event *const *const events,
         remove_thread_from_listeners(events[index], thread);
     }
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return index;
 }
 
 __optimize(3)
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
-    const int flag = spin_acquire_irq_save(&event->lock);
+    const int flag = spin_acquire_save_irq(&event->lock);
     if (!array_empty(event->listeners)) {
         array_foreach(&event->listeners, const struct event_listener, listener)
         {
@@ -122,5 +122,5 @@ void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
         }
     }
 
-    spin_release_irq_restore(&event->lock, flag);
+    spin_release_restore_irq(&event->lock, flag);
 }

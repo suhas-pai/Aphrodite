@@ -58,6 +58,7 @@ void array_take_item(struct array *array, uint32_t index, void *item);
 void array_take_range(struct array *array, struct range range, void *item);
 
 void array_reserve(struct array *array, uint32_t amount);
+void array_reserve_and_set_item_count(struct array *array, uint32_t amount);
 
 bool array_empty(struct array array);
 void array_destroy(struct array *array);

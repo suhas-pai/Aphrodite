@@ -97,11 +97,11 @@ sv_find_char(const struct string_view sv, const uint32_t index, const char ch) {
     assert(sv_has_index(sv, index));
 
     char *const ptr = strchr(sv.begin + index, ch);
-    if (ptr == NULL) {
-        return -1;
+    if (ptr != NULL) {
+        return (uint32_t)distance(sv.begin, ptr);
     }
 
-    return (uint32_t)distance(sv.begin, ptr);
+    return -1;
 }
 
 __optimize(3)

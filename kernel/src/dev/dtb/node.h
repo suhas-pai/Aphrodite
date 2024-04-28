@@ -24,11 +24,11 @@ enum devicetree_prop_kind {
     DEVICETREE_PROP_DMA_COHERENT,
     DEVICETREE_PROP_DEVICE_TYPE,
     DEVICETREE_PROP_INTERRUPTS,
-    DEVICETREE_PROP_INTERRUPT_MAP,
-    DEVICETREE_PROP_INTERRUPT_PARENT,
-    DEVICETREE_PROP_INTERRUPT_CONTROLLER,
-    DEVICETREE_PROP_INTERRUPT_CELLS,
-    DEVICETREE_PROP_INTERRUPT_MAP_MASK,
+    DEVICETREE_PROP_INTR_MAP,
+    DEVICETREE_PROP_INTR_PARENT,
+    DEVICETREE_PROP_INTR_CONTROLLER,
+    DEVICETREE_PROP_INTR_CELLS,
+    DEVICETREE_PROP_INTR_MAP_MASK,
     DEVICETREE_PROP_MSI_CONTROLLER,
     DEVICETREE_PROP_SPECIFIER_MAP,
     DEVICETREE_PROP_SPECIFIER_CELLS,
@@ -118,16 +118,6 @@ struct devicetree_prop_device_type {
     struct string_view name;
 };
 
-enum devicetree_prop_intr_polarity {
-    DEVTREE_PROP_INT_MAP_INTR_ENTRY_POLARITY_LOW,
-    DEVTREE_PROP_INT_MAP_INTR_ENTRY_POLARITY_HIGH,
-};
-
-enum devicetree_prop_intr_trigger_mode {
-    DEVTREE_PROP_INT_MAP_INTR_ENTRY_TRIGGER_MODE_EDGE,
-    DEVTREE_PROP_INT_MAP_INTR_ENTRY_TRIGGER_MODE_LEVEL,
-};
-
 struct devicetree_prop_intr_info {
     uint32_t num;
     uint32_t flags;
@@ -143,17 +133,17 @@ struct devicetree_prop_interrupts {
     struct array list;
 };
 
-struct devicetree_prop_interrupt_parent {
+struct devicetree_prop_intr_parent {
     enum devicetree_prop_kind kind;
     uint32_t phandle;
 };
 
-struct devicetree_prop_interrupt_cells {
+struct devicetree_prop_intr_cells {
     enum devicetree_prop_kind kind;
     uint32_t count;
 };
 
-struct devicetree_prop_interrupt_map_entry {
+struct devicetree_prop_intr_map_entry {
     uint64_t child_unit_address;
     uint32_t child_intr_specifier;
     uint32_t phandle;
@@ -165,14 +155,14 @@ struct devicetree_prop_interrupt_map_entry {
     struct devicetree_prop_intr_info parent_intr_info;
 };
 
-struct devicetree_prop_interrupt_map {
+struct devicetree_prop_intr_map {
     enum devicetree_prop_kind kind;
     struct array list;
 
     bool has_flags;
 };
 
-struct devicetree_prop_interrupt_map_mask {
+struct devicetree_prop_intr_map_mask {
     enum devicetree_prop_kind kind;
     struct array list;
 };

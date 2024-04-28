@@ -14,7 +14,7 @@ void sched_algo_post_init();
 
 struct thread_context;
 
-void sched_next(struct thread_context *context, irq_number_t irq);
+void sched_next(irq_number_t irq, struct thread_context *context);
 void sched_yield();
 
 struct thread;

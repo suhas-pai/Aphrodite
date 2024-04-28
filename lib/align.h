@@ -10,10 +10,16 @@
 
 #include "assert.h"
 
+__optimize(3) static inline
+uint64_t offset_from_boundary(const uint64_t number, const uint64_t boundary) {
+    assert(boundary != 0);
+    return number & (boundary - 1);
+}
+
 __optimize(3)
 static inline bool has_align(const uint64_t number, const uint64_t boundary) {
     assert(boundary != 0);
-    return (number & (boundary - 1)) == 0;
+    return offset_from_boundary(number, boundary) == 0;
 }
 
 uint64_t align_down(uint64_t number, uint64_t boundary);

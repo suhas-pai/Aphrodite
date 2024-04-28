@@ -51,14 +51,17 @@ gicd_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     verify_not_reached();
 }
 
-__optimize(3)
-void gicd_free_msi_vector(const isr_vector_t vector, const uint16_t msi_index) {
+__optimize(3) void
+gicd_free_msi_vector(struct device *const device,
+                     const isr_vector_t vector,
+                     const uint16_t msi_index)
+{
     switch (g_version) {
         case 2:
             gicdv2_free_msi_vector(vector);
             return;
         case 3:
-            gicdv3_free_msi_vector(vector, msi_index);
+            gicdv3_free_msi_vector(device, vector, msi_index);
             return;
     }
 
@@ -195,10 +198,10 @@ void gic_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     verify_not_reached();
 }
 
-void gic_init_on_this_cpu(const uint64_t phys_addr, const uint64_t size) {
+void gic_init_on_this_cpu(const struct range range) {
     switch (g_version) {
         case 2:
-            gicv2_init_on_this_cpu(phys_addr, size);
+            gicv2_init_on_this_cpu(range);
             return;
         case 3:
             gicv3_init_on_this_cpu();

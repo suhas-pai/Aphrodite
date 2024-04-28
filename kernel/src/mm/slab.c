@@ -124,7 +124,7 @@ void *slab_alloc(struct slab_allocator *const alloc) {
 
     const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;
     if (needs_lock) {
-        flag = spin_acquire_irq_save(&alloc->lock);
+        flag = spin_acquire_save_irq(&alloc->lock);
     }
 
     struct page *head = NULL;
@@ -132,7 +132,7 @@ void *slab_alloc(struct slab_allocator *const alloc) {
         head = alloc_slab_page(alloc);
         if (head == NULL) {
             if (needs_lock) {
-                spin_release_irq_restore(&alloc->lock, flag);
+                spin_release_restore_irq(&alloc->lock, flag);
             }
 
             return NULL;
@@ -155,7 +155,7 @@ void *slab_alloc(struct slab_allocator *const alloc) {
     head->slab.head.first_free_index = result ? result->next : UINT32_MAX;
 
     if (needs_lock) {
-        spin_release_irq_restore(&alloc->lock, flag);
+        spin_release_restore_irq(&alloc->lock, flag);
     }
 
     // Zero-out free-block
@@ -169,7 +169,7 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
 
     const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;
     if (needs_lock) {
-        flag = spin_acquire_irq_save(&alloc->lock);
+        flag = spin_acquire_save_irq(&alloc->lock);
     }
 
     struct page *head = NULL;
@@ -177,7 +177,7 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
         head = alloc_slab_page(alloc);
         if (head == NULL) {
             if (needs_lock) {
-                spin_release_irq_restore(&alloc->lock, flag);
+                spin_release_restore_irq(&alloc->lock, flag);
             }
 
             return NULL;
@@ -202,7 +202,7 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
     head->slab.head.first_free_index = result ? result->next : UINT32_MAX;
 
     if (needs_lock) {
-        spin_release_irq_restore(&alloc->lock, flag);
+        spin_release_restore_irq(&alloc->lock, flag);
     }
 
     // Zero-out free-block
@@ -239,7 +239,7 @@ void slab_free(void *const mem) {
     const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;
 
     if (needs_lock) {
-        flag = spin_acquire_irq_save(&alloc->lock);
+        flag = spin_acquire_save_irq(&alloc->lock);
     }
 
     alloc->free_obj_count += 1;
@@ -254,7 +254,7 @@ void slab_free(void *const mem) {
             free_pages(head, alloc->slab_order);
 
             if (needs_lock) {
-                spin_release_irq_restore(&alloc->lock, flag);
+                spin_release_restore_irq(&alloc->lock, flag);
             }
 
             return;
@@ -273,7 +273,7 @@ void slab_free(void *const mem) {
         index_of_free_object(head, alloc, free_obj);
 
     if (needs_lock) {
-        spin_release_irq_restore(&alloc->lock, flag);
+        spin_release_restore_irq(&alloc->lock, flag);
     }
 }
 

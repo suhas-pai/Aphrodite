@@ -24,10 +24,12 @@ void gicv3_init_on_this_cpu();
 void gicdv3_mask_irq(irq_number_t irq);
 void gicdv3_unmask_irq(irq_number_t irq);
 
-isr_vector_t
-gicdv3_alloc_msi_vector(struct device *device, const uint16_t msi_index);
+isr_vector_t gicdv3_alloc_msi_vector(struct device *device, uint16_t msi_index);
 
-void gicdv3_free_msi_vector(isr_vector_t vector, uint16_t msi_index);
+void
+gicdv3_free_msi_vector(struct device *device,
+                       isr_vector_t vector,
+                       uint16_t msi_index);
 
 void gicdv3_set_irq_affinity(irq_number_t irq, uint8_t iface);
 void gicdv3_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);

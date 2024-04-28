@@ -34,13 +34,6 @@ __optimize(3) nsec_t system_timer_get_count_ns() {
 }
 
 __optimize(3) nsec_t nsec_since_boot() {
-    uint64_t cntvct = 0;
-    asm volatile ("isb\n"
-                  "mrs %0, cntvct_el0\n"
-                  "isb"
-                  : "=r"(cntvct)
-                  :: "memory");
-
     return seconds_to_nano(system_timer_get_count_ns() / g_frequency -
                            (sec_t)boot_get_time());
 }
@@ -60,7 +53,7 @@ __optimize(3) nsec_t system_timer_get_remaining_ns() {
     const nsec_t count = system_timer_get_count_ns();
     const nsec_t compare = system_timer_get_compare_ns();
 
-    if (count > compare || count == UINT64_MAX) {
+    if (__builtin_expect(count > compare || count == UINT64_MAX, 0)) {
         return 0;
     }
 
@@ -78,7 +71,7 @@ __optimize(3) void system_timer_stop_alarm() {
 
 __optimize(3) static void
 interrupt_handler(const uint64_t intr_no, struct thread_context *const frame) {
-    sched_next(frame, intr_no);
+    sched_next(intr_no, frame);
 }
 
 static void enable_dtb_timer_irqs() {

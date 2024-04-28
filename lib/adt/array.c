@@ -95,7 +95,7 @@ array_take_item(struct array *const array,
     const uint32_t byte_index = check_mul_assert(object_size, index);
 
     const void *const src = gbuffer_at(array->gbuffer, byte_index);
-    memcpy(item, src, object_size);
+    __builtin_memcpy(item, src, object_size);
 
     const struct range remove_range = RANGE_INIT(byte_index, object_size);
     gbuffer_remove_range(&array->gbuffer, remove_range);
@@ -114,7 +114,7 @@ array_take_range(struct array *const array,
 
     const void *const src = gbuffer_at(array->gbuffer, byte_index);
 
-    memcpy(item, src, range_size);
+    __builtin_memcpy(item, src, range_size);
     gbuffer_remove_range(&array->gbuffer, RANGE_INIT(byte_index, range_size));
 }
 
@@ -122,6 +122,14 @@ __optimize(3)
 void array_reserve(struct array *const array, const uint32_t amount) {
     const uint32_t byte_count = check_mul_assert(amount, array->object_size);
     gbuffer_ensure_can_add_capacity(&array->gbuffer, byte_count);
+}
+
+__optimize(3) void
+array_reserve_and_set_item_count(struct array *const array,
+                                 const uint32_t amount)
+{
+    array_reserve(array, amount);
+    array->gbuffer.index = check_mul_assert(amount, array->object_size);
 }
 
 __optimize(3) bool array_empty(const struct array array) {

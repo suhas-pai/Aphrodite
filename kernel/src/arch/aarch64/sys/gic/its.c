@@ -163,7 +163,7 @@ enum gic_its_interrupt_table_entry_flags {
         0xFFFFFull << GIC_ITS_INT_TABLE_VPEID_SHIFT,
 };
 
-struct gic_its_interrupt_table_entry {
+struct gic_its_intr_table_entry {
     uint64_t flags;
     uint32_t doorbell;
 };
@@ -192,7 +192,7 @@ struct gic_its_collection_table_entry {
     uint64_t flags;
 };
 
-#define GIC_MAX_ITS_INTERRUPT_TABLE_ENTRIES 32
+#define GIC_MAX_ITS_INTR_TABLE_ENTRIES 32
 #define GICD_DEFAULT_PRIO 0xA0
 
 #define DEVICE_TABLE_PAGE_ORDER 7
@@ -212,13 +212,13 @@ fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
         its->int_collection_table
         + (its->int_collection_table_entry_count * icid);
 
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     entry->flags =
         this_cpu()->processor_number
             << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
         | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return true;
 }
 
@@ -236,8 +236,8 @@ fill_out_device_table(struct gic_its_info *const its,
     uint64_t phys = 0;
     if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
         const uint64_t alloc_size =
-            sizeof(struct gic_its_interrupt_table_entry)
-            * GIC_MAX_ITS_INTERRUPT_TABLE_ENTRIES;
+            sizeof(struct gic_its_intr_table_entry)
+            * GIC_MAX_ITS_INTR_TABLE_ENTRIES;
 
         phys = phalloc(alloc_size);
         if (phys == INVALID_PHYS) {
@@ -246,7 +246,7 @@ fill_out_device_table(struct gic_its_info *const its,
 
         entry->flags |=
             (phys >> GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR_SHIFT) << 6
-            | (GIC_MAX_ITS_INTERRUPT_TABLE_ENTRIES - 1)
+            | (GIC_MAX_ITS_INTR_TABLE_ENTRIES - 1)
                 << GIC_ITS_DEVICE_TABLE_ENTRY_SIZE_SHIFT
             | __GIC_ITS_DEVICE_TABLE_ENTRY_VALID;
     } else {
@@ -255,7 +255,7 @@ fill_out_device_table(struct gic_its_info *const its,
                 << GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR_SHIFT;
     }
 
-    struct gic_its_interrupt_table_entry *const itt = phys_to_virt(phys);
+    struct gic_its_intr_table_entry *const itt = phys_to_virt(phys);
     itt[msi_index].flags =
         (uint64_t)(GIC_ITS_LPI_INTERRUPT_START + vector)
             << GIC_ITS_INT_TABLE_VECTOR_SHIFT
@@ -266,12 +266,35 @@ fill_out_device_table(struct gic_its_info *const its,
     return true;
 }
 
+static bool
+disable_msi_intr(struct gic_its_info *const its,
+                 struct device *const device,
+                 const uint16_t msi_index)
+{
+    const uint16_t id = device_get_id(device);
+    struct gic_its_device_table_entry *const entry =
+        its->device_table + (its->device_table_entry_size * id);
+
+    if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
+        return false;
+    }
+
+    const uint64_t phys =
+        ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR) >> 6)
+            << GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR_SHIFT;
+
+    struct gic_its_intr_table_entry *const itt = phys_to_virt(phys);
+    rm_mask(itt[msi_index].flags, __GIC_ITS_INT_TABLE_ENTRY_VALID);
+
+    return true;
+}
+
 __optimize(3) isr_vector_t
 gic_its_alloc_msi_vector(struct gic_its_info *const its,
                          struct device *const device,
                          const uint16_t msi_index)
 {
-    int flag = disable_interrupts_if_not();
+    int flag = disable_irqs_if_enabled();
     spin_acquire(&its->bitset_lock);
 
     const uint64_t vector =
@@ -280,7 +303,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     spin_release(&its->bitset_lock);
 
     const uint16_t icid = this_cpu()->icid;
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 
     if (vector == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
@@ -296,26 +319,28 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
         return ISR_INVALID_VECTOR;
     }
 
-    flag = disable_interrupts_if_not();
-    mmio_write(&((uint8_t *)this_cpu()->gicv3_prop_page)[vector],
+    flag = disable_irqs_if_enabled();
+    mmio_write(&((uint8_t *)this_cpu()->gic_its_prop_page)[vector],
                __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
                | GICD_DEFAULT_PRIO <<
                     GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return vector;
 }
 
 __optimize(3) void
 gic_its_free_msi_vector(struct gic_its_info *const its,
+                        struct device *const device,
                         const isr_vector_t vector,
                         const uint16_t msi_index)
 {
-    (void)msi_index;
-    const int flag = spin_acquire_irq_save(&its->bitset_lock);
+    const int flag = spin_acquire_save_irq(&its->bitset_lock);
 
     bitset_unset(its->bitset, vector);
-    spin_release_irq_restore(&its->bitset_lock, flag);
+    disable_msi_intr(its, device, msi_index);
+
+    spin_release_restore_irq(&its->bitset_lock, flag);
 }
 
 __optimize(3)
@@ -376,6 +401,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
     info->bitset = kmalloc(bitset_size_for_count(GIC_ITS_MAX_LPIS_SUPPORTED));
     if (info->bitset == NULL) {
         free_page(cmd_queue_page);
+
         vunmap_mmio(info->mmio);
         kfree(info);
 
@@ -494,7 +520,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                     return NULL;
                 }
 
-                mmio_write(baser_iter, baser | page_to_phys(table_page));
+                mmio_write(baser_iter, page_to_phys(table_page) | baser);
 
                 info->device_table = page_to_virt(table_page);
                 info->device_table_entry_size = entry_size;
@@ -513,7 +539,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                     return NULL;
                 }
 
-                mmio_write(baser_iter, baser | page_to_phys(table_page));
+                mmio_write(baser_iter, page_to_phys(table_page) | baser);
 
                 info->int_collection_table = page_to_virt(table_page);
                 info->int_collection_table_entry_count =
@@ -526,13 +552,12 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
 
     mmio_write(&regs->read_reg, 0);
     mmio_write(&regs->write_reg, 0);
-
     mmio_write(&regs->control, __GIC_ITS_CTRL_ENABLED);
-    printk(LOGLEVEL_INFO, "gic/its: fully initialized\n");
 
     list_add(&g_list, &info->list);
     g_count++;
 
+    printk(LOGLEVEL_INFO, "gic/its: fully initialized\n");
     return info;
 }
 

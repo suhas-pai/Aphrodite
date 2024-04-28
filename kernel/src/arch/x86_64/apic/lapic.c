@@ -52,7 +52,7 @@ static void calibrate_timer() {
      * obtain the lapic-timer frequency.
      */
 
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     const uint32_t sample_count = 0xFFFFF;
     const uint16_t pit_init_tick_number = pit_get_current_tick();
@@ -80,7 +80,7 @@ static void calibrate_timer() {
     this_cpu_mut()->lapic_timer_frequency =
         lapic_timer_freq_multiple * PIT_FREQUENCY;
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 __optimize(3) uint32_t lapic_read(const enum x2apic_lapic_reg reg) {
@@ -170,9 +170,9 @@ __optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     if (get_acpi_info()->using_x2apic) {
         lapic_write(X2APIC_LAPIC_REG_SELF_IPI, vector);
     } else {
-        const bool flag = disable_interrupts_if_not();
+        const bool flag = disable_irqs_if_enabled();
         const uint32_t lapic_id = this_cpu()->lapic_id;
-        enable_interrupts_if_flag(flag);
+        enable_irqs_if_flag(flag);
 
         lapic_send_ipi(lapic_id, vector);
     }
@@ -213,7 +213,7 @@ void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
 }
 
 void lapic_init() {
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     lapic_enable();
     lapic_timer_stop();
@@ -225,7 +225,7 @@ void lapic_init() {
            "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
            FREQ_TO_UNIT_FMT_ARGS_ABBREV(this_cpu()->lapic_timer_frequency));
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 void lapic_add(const struct lapic_info *const lapic_info) {

@@ -17,7 +17,7 @@ void sched_init() {
     struct thread *const idle_thread = kmalloc(sizeof(struct thread));
     assert(idle_thread != NULL);
 
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     sched_thread_init(idle_thread, &kernel_process, cpu_idle);
     g_base_cpu_info.idle_thread = idle_thread;
@@ -31,5 +31,5 @@ void sched_init() {
     sched_thread_init(&kernel_main_thread, &kernel_process, /*entry=*/NULL);
     sched_algo_post_init();
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }

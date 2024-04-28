@@ -48,17 +48,18 @@ __optimize(3) bool spin_try_acquire(struct spinlock *const lock) {
     return false;
 }
 
-__optimize(3) int spin_acquire_irq_save(struct spinlock *const lock) {
+__optimize(3) int spin_acquire_save_irq(struct spinlock *const lock) {
     const bool irqs_enabled = are_interrupts_enabled();
+    if (irqs_enabled) {
+        disable_interrupts();
+    }
 
-    disable_interrupts();
     spin_acquire(lock);
-
     return irqs_enabled;
 }
 
 __optimize(3)
-void spin_release_irq_restore(struct spinlock *const lock, const int flag) {
+void spin_release_restore_irq(struct spinlock *const lock, const int flag) {
     spin_release(lock);
     if (flag != 0) {
         enable_interrupts();
@@ -66,10 +67,10 @@ void spin_release_irq_restore(struct spinlock *const lock, const int flag) {
 }
 
 __optimize(3) bool
-spin_try_acquire_irq_save(struct spinlock *const lock, int *const flag_out) {
-    const bool irqs_enabled = disable_interrupts_if_not();
+spin_try_acquire_save_irq(struct spinlock *const lock, int *const flag_out) {
+    const bool irqs_enabled = disable_irqs_if_enabled();
     if (!spin_try_acquire(lock)) {
-        enable_interrupts_if_flag(irqs_enabled);
+        enable_irqs_if_flag(irqs_enabled);
         return false;
     }
 

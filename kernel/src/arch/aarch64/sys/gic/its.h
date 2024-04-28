@@ -52,6 +52,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *its,
 
 void
 gic_its_free_msi_vector(struct gic_its_info *its,
+                        struct device *device,
                         isr_vector_t vector,
                         uint16_t msi_index);
 

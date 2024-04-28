@@ -257,7 +257,7 @@ obj/%.c.o: src/%.c GNUmakefile src/limine.h src/dev/pci/vendors.h
 
 obj/flanterm/%.c.o: src/flanterm/%.c GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -Ofast -c $< -o $@
+	$(CC) $(filter-out -fsanitize=undefined,$(CFLAGS)) -Ofast $(CPPFLAGS) -c $< -o $@
 
 obj/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)

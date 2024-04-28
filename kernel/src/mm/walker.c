@@ -628,46 +628,42 @@ uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
         result |= (index & PT_LEVEL_MASKS[level]) << PAGE_SHIFTS[level - 1];
     }
 
-    return result;
+    return sign_extend_virt_addr(result);
 }
 
 uint64_t
-ptwalker_virt_get_phys(struct pagemap *const pagemap, const uint64_t virt) {
-    struct pt_walker walker;
-    ptwalker_default_for_pagemap(&walker, pagemap, virt);
-
+ptwalker_virt_get_phys(struct pt_walker *const walker, const uint64_t virt) {
     if (__builtin_expect(
-            walker.level > 1 && !pte_level_can_have_large(walker.level), 0))
+            walker->level > 1 && !pte_level_can_have_large(walker->level), 0))
     {
         return INVALID_PHYS;
     }
 
     const pte_t pte =
-        pte_read(walker.tables[walker.level - 1] +
-                 walker.indices[walker.level - 1]);
+        pte_read(walker->tables[walker->level - 1] +
+                 walker->indices[walker->level - 1]);
 
     if (!pte_is_present(pte)) {
         return INVALID_PHYS;
     }
 
-    if (walker.level != 1 && !pte_is_large(pte)) {
+    if (walker->level != 1 && !pte_is_large(pte)) {
         return INVALID_PHYS;
     }
 
     const uint64_t offset =
-        virt & mask_for_n_bits(PAGE_SHIFTS[walker.level - 1]);
+        virt & mask_for_n_bits(PAGE_SHIFTS[walker->level - 1]);
 
     return pte_to_phys(pte) + offset;
 }
 
 __optimize(3)
 bool ptwalker_points_to_largepage(const struct pt_walker *const walker) {
-    if (walker->level <= 1 || !pte_level_can_have_large(walker->level)) {
+    const int16_t level = walker->level;
+    if (level <= 1 || !pte_level_can_have_large(level)) {
         return false;
     }
 
-    pte_t *const pte =
-        &walker->tables[walker->level - 1][walker->indices[walker->level - 1]];
-
+    pte_t *const pte = &walker->tables[level - 1][walker->indices[level - 1]];
     return pte_is_large(pte_read(pte));
 }

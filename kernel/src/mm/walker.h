@@ -133,5 +133,5 @@ uint64_t ptwalker_get_virt_addr(const struct pt_walker *walker);
 // NOTE: ptwalker_virt_get_phys() requires that pagemap's addrspace-lock is
 // held.
 
-uint64_t ptwalker_virt_get_phys(struct pagemap *pagemap, uint64_t virt);
+uint64_t ptwalker_virt_get_phys(struct pt_walker *walker, uint64_t virt);
 bool ptwalker_points_to_largepage(const struct pt_walker *walker);

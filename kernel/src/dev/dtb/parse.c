@@ -142,19 +142,15 @@ parse_reg_pairs(const void *const dtb,
     }
 
     const uint32_t entry_count = data_length / entry_size;
-    array_reserve(array, entry_count);
+    array_reserve_and_set_item_count(array, entry_count);
 
+    struct devicetree_prop_reg_info *const info = array_begin(*array);
     for (uint32_t i = 0; i != entry_count; i++) {
-        struct devicetree_prop_reg_info info;
-        if (!parse_cell_pair(&data, data_end, addr_cells, &info.address)) {
+        if (!parse_cell_pair(&data, data_end, addr_cells, &info[i].address)) {
             return false;
         }
 
-        if (!parse_cell_pair(&data, data_end, size_cells, &info.size)) {
-            return false;
-        }
-
-        if (!array_append(array, &info)) {
+        if (!parse_cell_pair(&data, data_end, size_cells, &info[i].size)) {
             return false;
         }
     }
@@ -206,16 +202,17 @@ parse_ranges_prop(const void *const dtb,
     }
 
     const uint32_t entry_count = data_length / entry_size;
-    array_reserve(array, entry_count);
+    array_reserve_and_set_item_count(array, entry_count);
 
+    struct devicetree_prop_range_info *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
+
     for (uint32_t i = 0; i != entry_count; i++) {
-        struct devicetree_prop_range_info info;
         if (!parse_cell_pair_and_flags(&data,
                                        data_end,
                                        child_addr_cells,
-                                       &info.child_bus_address,
-                                       &info.flags))
+                                       &info[i].child_bus_address,
+                                       &info[i].flags))
         {
             return false;
         }
@@ -223,16 +220,12 @@ parse_ranges_prop(const void *const dtb,
         if (!parse_cell_pair(&data,
                              data_end,
                              parent_addr_cells,
-                             &info.parent_bus_address))
+                             &info[i].parent_bus_address))
         {
             return false;
         }
 
-        if (!parse_cell_pair(&data, data_end, size_cells, &info.size)) {
-            return false;
-        }
-
-        if (!array_append(array, &info)) {
+        if (!parse_cell_pair(&data, data_end, size_cells, &info[i].size)) {
             return false;
         }
     }
@@ -349,13 +342,11 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
     const fdt32_t *const num_list = (fdt32_t *)(uint64_t)fdt_prop->data;
 
     *array = ARRAY_INIT(sizeof(uint32_t));
-    array_reserve(array, data_length);
+    array_reserve_and_set_item_count(array, data_length);
 
+    uint32_t *const out_list = array_begin(*array);
     for (uint32_t i = 0; i != data_length; i++) {
-        const uint32_t num = fdt32_to_cpu(num_list[i]);
-        if (!array_append(array, &num)) {
-            return false;
-        }
+        out_list[i] = fdt32_to_cpu(num_list[i]);
     }
 
     return true;
@@ -493,7 +484,7 @@ parse_interrupt_map_prop(const void *const dtb,
 
     const fdt32_t *const data_end = data + data_length;
     while (data < data_end) {
-        struct devicetree_prop_interrupt_map_entry info;
+        struct devicetree_prop_intr_map_entry info;
         if (!parse_cell_pair_and_flags(&data,
                                        data_end,
                                        child_unit_addr_cells,
@@ -540,10 +531,10 @@ parse_interrupt_map_prop(const void *const dtb,
             }
         }
 
-        const struct devicetree_prop_interrupt_cells *const intr_cells_prop =
-            (const struct devicetree_prop_interrupt_cells *)
+        const struct devicetree_prop_intr_cells *const intr_cells_prop =
+            (const struct devicetree_prop_intr_cells *)
                 devicetree_node_get_prop(phandle_node,
-                                         DEVICETREE_PROP_INTERRUPT_CELLS);
+                                         DEVICETREE_PROP_INTR_CELLS);
 
         if (intr_cells_prop == NULL) {
             printk(LOGLEVEL_WARN,
@@ -556,7 +547,7 @@ parse_interrupt_map_prop(const void *const dtb,
 
         const struct devicetree_prop *const intr_ctrl_prop =
             devicetree_node_get_prop(phandle_node,
-                                     DEVICETREE_PROP_INTERRUPT_CONTROLLER);
+                                     DEVICETREE_PROP_INTR_CONTROLLER);
 
         if (intr_ctrl_prop == NULL) {
             printk(LOGLEVEL_WARN,
@@ -628,23 +619,28 @@ parse_specifier_map_prop(const void *const dtb,
     }
 
     const uint32_t entry_count = data_length / entry_size;
-    array_reserve(array, entry_count);
+    array_reserve_and_set_item_count(array, entry_count);
 
+    struct devicetree_prop_spec_map_entry *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
+
     for (uint32_t i = 0; i != entry_count; i++) {
-        struct devicetree_prop_spec_map_entry info;
-        if (!parse_cell_pair(&data, data_end, cells, &info.child_specifier)) {
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             cells,
+                             &info[i].child_specifier))
+        {
             return false;
         }
 
-        info.specifier_parent = fdt32_to_cpu(*data);
+        info[i].specifier_parent = fdt32_to_cpu(*data);
         data++;
 
-        if (!parse_cell_pair(&data, data_end, cells, &info.parent_specifier)) {
-            return false;
-        }
-
-        if (!array_append(array, &info)) {
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             cells,
+                             &info[i].parent_specifier))
+        {
             return false;
         }
     }
@@ -1105,7 +1101,7 @@ parse_node_prop(const void *const dtb,
             }
 
             [[fallthrough]];
-        case DEVICETREE_PROP_INTERRUPT_MAP:
+        case DEVICETREE_PROP_INTR_MAP:
             if (sv_equals(name, SV_STATIC("interrupt-map"))) {
                 const struct intr_map_info info =
                     INTR_MAP_INFO_INIT(fdt_prop, node, (uint32_t)prop_len);
@@ -1118,26 +1114,26 @@ parse_node_prop(const void *const dtb,
             }
 
             [[fallthrough]];
-        case DEVICETREE_PROP_INTERRUPT_PARENT:
+        case DEVICETREE_PROP_INTR_PARENT:
             if (sv_equals(name, SV_STATIC("interrupt-parent"))) {
                 uint32_t phandle = 0;
                 if (!parse_integer_prop(fdt_prop, prop_len, &phandle)) {
                     return false;
                 }
 
-                struct devicetree_prop_interrupt_parent *const prop =
+                struct devicetree_prop_intr_parent *const prop =
                     kmalloc(sizeof(*prop));
 
                 if (prop == NULL) {
                     return false;
                 }
 
-                prop->kind = DEVICETREE_PROP_INTERRUPT_PARENT;
+                prop->kind = DEVICETREE_PROP_INTR_PARENT;
                 prop->phandle = phandle;
 
                 if (!hashmap_add(
                         &node->known_props,
-                        hashmap_key_create(DEVICETREE_PROP_INTERRUPT_PARENT),
+                        hashmap_key_create(DEVICETREE_PROP_INTR_PARENT),
                         &prop))
                 {
                     kfree(prop);
@@ -1148,7 +1144,7 @@ parse_node_prop(const void *const dtb,
             }
 
             [[fallthrough]];
-        case DEVICETREE_PROP_INTERRUPT_CONTROLLER:
+        case DEVICETREE_PROP_INTR_CONTROLLER:
             if (sv_equals(name, SV_STATIC("interrupt-controller"))) {
                 struct devicetree_prop_no_value *const prop =
                     kmalloc(sizeof(*prop));
@@ -1157,11 +1153,11 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                prop->kind = DEVICETREE_PROP_INTERRUPT_CONTROLLER;
+                prop->kind = DEVICETREE_PROP_INTR_CONTROLLER;
                 if (!hashmap_add(
                         &node->known_props,
                         hashmap_key_create(
-                            DEVICETREE_PROP_INTERRUPT_CONTROLLER),
+                            DEVICETREE_PROP_INTR_CONTROLLER),
                         &prop))
                 {
                     kfree(prop);
@@ -1172,26 +1168,26 @@ parse_node_prop(const void *const dtb,
             }
 
             [[fallthrough]];
-        case DEVICETREE_PROP_INTERRUPT_CELLS:
+        case DEVICETREE_PROP_INTR_CELLS:
             if (sv_equals(name, SV_STATIC("#interrupt-cells"))) {
                 uint32_t count = 0;
                 if (!parse_integer_prop(fdt_prop, prop_len, &count)) {
                     return false;
                 }
 
-                struct devicetree_prop_interrupt_cells *const prop =
+                struct devicetree_prop_intr_cells *const prop =
                     kmalloc(sizeof(*prop));
 
                 if (prop == NULL) {
                     return false;
                 }
 
-                prop->kind = DEVICETREE_PROP_INTERRUPT_CELLS;
+                prop->kind = DEVICETREE_PROP_INTR_CELLS;
                 prop->count = count;
 
                 if (!hashmap_add(
                         &node->known_props,
-                        hashmap_key_create(DEVICETREE_PROP_INTERRUPT_CELLS),
+                        hashmap_key_create(DEVICETREE_PROP_INTR_CELLS),
                         &prop))
                 {
                     kfree(prop);
@@ -1202,7 +1198,7 @@ parse_node_prop(const void *const dtb,
             }
 
             [[fallthrough]];
-        case DEVICETREE_PROP_INTERRUPT_MAP_MASK:
+        case DEVICETREE_PROP_INTR_MAP_MASK:
             if (sv_equals(name, SV_STATIC("interrupt-map-mask"))) {
                 struct array list = ARRAY_INIT(sizeof(uint32_t));
                 if (!parse_integer_list_prop(fdt_prop, prop_len, &list)) {
@@ -1210,7 +1206,7 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_interrupt_map_mask *const prop =
+                struct devicetree_prop_intr_map_mask *const prop =
                     kmalloc(sizeof(*prop));
 
                 if (prop == NULL) {
@@ -1218,12 +1214,12 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                prop->kind = DEVICETREE_PROP_INTERRUPT_MAP_MASK;
+                prop->kind = DEVICETREE_PROP_INTR_MAP_MASK;
                 prop->list = list;
 
                 if (!hashmap_add(
                         &node->known_props,
-                        hashmap_key_create(DEVICETREE_PROP_INTERRUPT_MAP_MASK),
+                        hashmap_key_create(DEVICETREE_PROP_INTR_MAP_MASK),
                         &prop))
                 {
                     kfree(prop);
@@ -1573,7 +1569,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
     array_foreach(&later_info.intr_map_list, const struct intr_map_info, iter) {
         bool has_flags = false;
         struct array list =
-            ARRAY_INIT(sizeof(struct devicetree_prop_interrupt_map_entry));
+            ARRAY_INIT(sizeof(struct devicetree_prop_intr_map_entry));
 
         if (!parse_interrupt_map_prop(dtb,
                                       iter->fdt_prop,
@@ -1591,7 +1587,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             return false;
         }
 
-        struct devicetree_prop_interrupt_map *const map_prop =
+        struct devicetree_prop_intr_map *const map_prop =
             kmalloc(sizeof(*map_prop));
 
         if (map_prop == NULL) {
@@ -1603,12 +1599,12 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             return false;
         }
 
-        map_prop->kind = DEVICETREE_PROP_INTERRUPT_MAP;
+        map_prop->kind = DEVICETREE_PROP_INTR_MAP;
         map_prop->list = list;
         map_prop->has_flags = has_flags;
 
         if (!hashmap_add(&iter->node->known_props,
-                         hashmap_key_create(DEVICETREE_PROP_INTERRUPT_MAP),
+                         hashmap_key_create(DEVICETREE_PROP_INTR_MAP),
                          &map_prop))
         {
             array_destroy(&list);
@@ -1628,10 +1624,10 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         struct devicetree_node *const node = iter->node;
         struct devicetree_node *const parent = node->parent;
 
-        const struct devicetree_prop_interrupt_parent *const intr_parent =
-            (const struct devicetree_prop_interrupt_parent *)(uint64_t)
+        const struct devicetree_prop_intr_parent *const intr_parent =
+            (const struct devicetree_prop_intr_parent *)(uint64_t)
                 devicetree_node_get_prop(parent,
-                                         DEVICETREE_PROP_INTERRUPT_PARENT);
+                                         DEVICETREE_PROP_INTR_PARENT);
 
         if (intr_parent == NULL) {
             printk(LOGLEVEL_WARN,
@@ -1672,10 +1668,10 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             continue;
         }
 
-        const struct devicetree_prop_interrupt_cells *const intr_cells_prop =
-            (const struct devicetree_prop_interrupt_cells *)
+        const struct devicetree_prop_intr_cells *const intr_cells_prop =
+            (const struct devicetree_prop_intr_cells *)
                 devicetree_node_get_prop(intc_node,
-                                         DEVICETREE_PROP_INTERRUPT_CELLS);
+                                         DEVICETREE_PROP_INTR_CELLS);
 
         if (intr_cells_prop == NULL) {
             printk(LOGLEVEL_WARN,

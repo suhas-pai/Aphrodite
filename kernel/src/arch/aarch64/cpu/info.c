@@ -10,8 +10,6 @@
 
 #include "cpu/cpu_info.h"
 #include "dev/printk.h"
-
-#include "mm/kmalloc.h"
 #include "sched/thread.h"
 
 #include "info.h"
@@ -1436,31 +1434,4 @@ struct cpu_info *cpu_mut_for_intr_number(const uint32_t intr_number) {
     }
 
     return NULL;
-}
-
-void
-cpu_add_gic_interface(
-    const struct acpi_madt_entry_gic_cpu_interface *const intr)
-{
-    struct cpu_info *cpu = &g_base_cpu_info;
-    if (intr->mpidr != g_base_cpu_info.affinity) {
-        cpu = kmalloc(sizeof(struct cpu_info));
-        if (cpu == NULL) {
-            printk(LOGLEVEL_WARN,
-                   "cpu: failed to alloc cpu-info for info created from "
-                   "gic-cpu-interface\n");
-            return;
-        }
-
-        list_init(&cpu->cpu_list);
-        list_add(&g_cpu_list, &cpu->cpu_list);
-    }
-
-    cpu->spur_intr_count = 0;
-    cpu->processor_number = intr->acpi_processor_id;
-    cpu->interface_number = intr->cpu_interface_number;
-    cpu->spe_overflow_interrupt = intr->spe_overflow_interrupt;
-    cpu->affinity = intr->mpidr;
-
-    gicv2_init_on_this_cpu(intr->phys_base_address, PAGE_SIZE);
 }

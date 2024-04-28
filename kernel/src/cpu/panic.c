@@ -13,6 +13,7 @@
 
 __optimize(3) void panic(const char *const fmt, ...) {
     disable_interrupts();
+
     va_list list;
     va_start(list, fmt);
 

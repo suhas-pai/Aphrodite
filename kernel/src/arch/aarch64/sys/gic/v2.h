@@ -17,7 +17,7 @@ bool
 gicv2_init_from_dtb(const struct devicetree *tree,
                     const struct devicetree_node *node);
 
-void gicv2_init_on_this_cpu(uint64_t phys_address, uint64_t size);
+void gicv2_init_on_this_cpu(struct range range);
 bool gicv2_init_from_info(uint64_t phys_base_address);
 
 isr_vector_t gicdv2_alloc_msi_vector();

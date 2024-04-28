@@ -37,18 +37,18 @@ __optimize(3) void sched_algo_post_init() {
 }
 
 __optimize(3) void sched_enqueue_thread(struct thread *const thread) {
-    const int flag = spin_acquire_irq_save(&g_run_queue_lock);
+    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     list_radd(&g_run_queue, &thread->sched_info.list);
     atomic_store_explicit(&thread->sched_info.enqueued,
                           true,
                           memory_order_relaxed);
 
-    spin_release_irq_restore(&g_run_queue_lock, flag);
+    spin_release_restore_irq(&g_run_queue_lock, flag);
 }
 
 __optimize(3) void sched_dequeue_thread(struct thread *const thread) {
-    const int flag = spin_acquire_irq_save(&g_run_queue_lock);
+    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     assert(thread != thread->cpu->idle_thread);
     atomic_store_explicit(&thread->sched_info.enqueued,
@@ -56,7 +56,7 @@ __optimize(3) void sched_dequeue_thread(struct thread *const thread) {
                           memory_order_relaxed);
 
     list_remove(&thread->sched_info.list);
-    spin_release_irq_restore(&g_run_queue_lock, flag);
+    spin_release_restore_irq(&g_run_queue_lock, flag);
 }
 
 __optimize(3) bool thread_enqueued(const struct thread *const thread) {
@@ -67,23 +67,23 @@ __optimize(3) bool thread_enqueued(const struct thread *const thread) {
 extern void sched_set_current_thread(struct thread *thread);
 
 __optimize(3) static struct thread *get_next_thread(struct thread *const prev) {
-    const int flag = spin_acquire_irq_save(&g_run_queue_lock);
+    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
     struct thread *next = NULL;
 
     list_foreach(next, &g_run_queue, sched_info.list) {
         if (next != prev) {
-            spin_release_irq_restore(&g_run_queue_lock, flag);
+            spin_release_restore_irq(&g_run_queue_lock, flag);
             return next;
         }
     }
 
     if (thread_enqueued(prev)) {
-        spin_release_irq_restore(&g_run_queue_lock, flag);
+        spin_release_restore_irq(&g_run_queue_lock, flag);
         return prev;
     }
 
     struct thread *const result = prev->cpu->idle_thread;
-    spin_release_irq_restore(&g_run_queue_lock, flag);
+    spin_release_restore_irq(&g_run_queue_lock, flag);
 
     return result;
 }
@@ -116,7 +116,7 @@ static void update_alarm_list(struct thread *const current_thread) {
     alarm_list_unlock(flag);
 }
 
-void sched_next(struct thread_context *const context, const irq_number_t irq) {
+void sched_next(const irq_number_t irq, struct thread_context *const context) {
     struct thread *const curr_thread = current_thread();
     if (!preemption_enabled()) {
         sched_irq_eoi(irq);
@@ -126,9 +126,9 @@ void sched_next(struct thread_context *const context, const irq_number_t irq) {
     }
 
     update_alarm_list(curr_thread);
-    if (curr_thread->sched_info.awaiting) {
-        curr_thread->sched_info.awaiting = false;
-    }
+
+    curr_thread->sched_info.awaiting = false;
+    curr_thread->sched_info.remaining = 0;
 
     struct thread *const next_thread = get_next_thread(curr_thread);
 

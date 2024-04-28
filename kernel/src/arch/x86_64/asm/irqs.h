@@ -25,14 +25,14 @@ __optimize(3) static inline void enable_interrupts() {
     asm volatile ("sti");
 }
 
-__optimize(3) static inline bool disable_interrupts_if_not() {
+__optimize(3) static inline bool disable_irqs_if_enabled() {
     const bool result = are_interrupts_enabled();
     disable_interrupts();
 
     return result;
 }
 
-__optimize(3) static inline void enable_interrupts_if_flag(const bool flag) {
+__optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
     if (flag) {
         enable_interrupts();
     }

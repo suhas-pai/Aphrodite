@@ -6,7 +6,7 @@
 #include "pci/entity.h"
 #include "device.h"
 
-uint64_t device_get_id(struct device *const device) {
+__optimize(3) uint64_t device_get_id(struct device *const device) {
     switch (device->kind) {
         case DEVICE_KIND_PCI_ENTITY: {
             struct pci_entity_info *const entity =

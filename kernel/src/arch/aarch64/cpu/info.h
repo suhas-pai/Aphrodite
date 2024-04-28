@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include "acpi/structs.h"
 #include "cpu/cpu_info.h"
 
 #include "sched/info.h"
@@ -29,8 +27,8 @@ struct cpu_info {
     uint16_t spe_overflow_interrupt;
     uint16_t icid;
 
-    void *gicv3_pend_page;
-    void *gicv3_prop_page;
+    void *gic_its_pend_page;
+    void *gic_its_prop_page;
 
     bool is_active : 1;
     bool in_lpi : 1;
@@ -39,8 +37,4 @@ struct cpu_info {
 };
 
 extern struct list g_cpu_list;
-
 struct cpu_info *cpu_mut_for_intr_number(uint32_t intr_number);
-
-void
-cpu_add_gic_interface(const struct acpi_madt_entry_gic_cpu_interface *intr);

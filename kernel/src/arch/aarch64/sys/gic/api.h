@@ -39,7 +39,10 @@ void gicd_unmask_irq(irq_number_t irq);
 isr_vector_t
 gicd_alloc_msi_vector(struct device *device, const uint16_t msi_index);
 
-void gicd_free_msi_vector(isr_vector_t vector, uint16_t msi_index);
+void
+gicd_free_msi_vector(struct device *device,
+                     isr_vector_t vector,
+                     uint16_t msi_index);
 
 void gicd_set_irq_affinity(irq_number_t irq, uint8_t iface);
 void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);

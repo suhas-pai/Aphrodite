@@ -177,9 +177,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                     continue;
                 }
 
-                virt_device.pci.common_cfg = bar->mmio->base + offset;
-                cfg_kind = "common-cfg";
+                virt_device.pci.common_cfg =
+                    pci_entity_bar_get_base(bar) + offset;
 
+                cfg_kind = "common-cfg";
                 break;
             case VIRTIO_PCI_CAP_NOTIFY_CFG: {
                 if (cap_len < sizeof(struct virtio_pci_notify_cfg_cap)) {
@@ -191,8 +192,9 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                     continue;
                 }
 
+                volatile void *const base = pci_entity_bar_get_base(bar);
                 virt_device.pci.notify_cfg_range =
-                    RANGE_INIT((uint64_t)bar->mmio->base + offset, length);
+                    RANGE_INIT((uint64_t)base + offset, length);
 
                 cfg_kind = "notify-cfg";
                 break;
@@ -210,12 +212,14 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                 cfg_kind = "isr-cfg";
 
                 break;
-            case VIRTIO_PCI_CAP_DEVICE_CFG:
+            case VIRTIO_PCI_CAP_DEVICE_CFG: {
+                volatile void *const base = pci_entity_bar_get_base(bar);
                 virt_device.pci.device_cfg =
-                    RANGE_INIT((uint64_t)bar->mmio->base + offset, length);
+                    RANGE_INIT((uint64_t)base + offset, length);
 
                 cfg_kind = "device-cfg";
                 break;
+            }
             case VIRTIO_PCI_CAP_PCI_CFG:
                 if (cap_len < sizeof(struct virtio_pci_cap)) {
                     printk(LOGLEVEL_WARN,

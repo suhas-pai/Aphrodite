@@ -330,6 +330,7 @@ __optimize(3) void addrspace_remove_node(struct addrspace_node *const node) {
     list_deinit(&node->list);
 }
 
+#if defined(BUILD_KERNEL)
 __optimize(3)
 void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
     (void)cb_info;
@@ -344,6 +345,7 @@ void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
            RANGE_FMT_ARGS(node->range),
            node->largest_free_to_prev);
 }
+#endif /* defined(BUILD_KERNEL) */
 
 #if defined(BUILD_KERNEL)
     __optimize(3)

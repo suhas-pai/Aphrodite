@@ -161,20 +161,20 @@ void devicetree_node_free(struct devicetree_node *const node) {
                     array_destroy(&intr_prop->list);
                     goto free_prop;
                 }
-                case DEVICETREE_PROP_INTERRUPT_MAP: {
-                    struct devicetree_prop_interrupt_map *const map_prop =
-                        (struct devicetree_prop_interrupt_map *)(uint64_t)prop;
+                case DEVICETREE_PROP_INTR_MAP: {
+                    struct devicetree_prop_intr_map *const map_prop =
+                        (struct devicetree_prop_intr_map *)(uint64_t)prop;
 
                     array_destroy(&map_prop->list);
                     goto free_prop;
                 }
-                case DEVICETREE_PROP_INTERRUPT_PARENT:
-                case DEVICETREE_PROP_INTERRUPT_CONTROLLER:
-                case DEVICETREE_PROP_INTERRUPT_CELLS:
+                case DEVICETREE_PROP_INTR_PARENT:
+                case DEVICETREE_PROP_INTR_CONTROLLER:
+                case DEVICETREE_PROP_INTR_CELLS:
                     goto free_prop;
-                case DEVICETREE_PROP_INTERRUPT_MAP_MASK: {
-                    struct devicetree_prop_interrupt_map_mask *const map_prop =
-                        (struct devicetree_prop_interrupt_map_mask *)
+                case DEVICETREE_PROP_INTR_MAP_MASK: {
+                    struct devicetree_prop_intr_map_mask *const map_prop =
+                        (struct devicetree_prop_intr_map_mask *)
                             (uint64_t)prop;
 
                     array_destroy(&map_prop->list);

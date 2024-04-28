@@ -67,6 +67,7 @@ typedef uint8_t pgt_level_t;
 typedef uint16_t pgt_index_t;
 
 pgt_level_t pgt_get_top_level();
+uint64_t sign_extend_virt_addr(uint64_t virt);
 
 bool pte_is_present(pte_t pte);
 bool pte_level_can_have_large(pgt_level_t level);

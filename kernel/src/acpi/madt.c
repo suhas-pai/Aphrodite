@@ -4,7 +4,6 @@
  */
 
 #include "acpi/api.h"
-#include "acpi/structs.h"
 
 #if __has_include("acpi/extra_structs.h")
     #include "acpi/extra_structs.h"
@@ -40,7 +39,7 @@ void madt_init(const struct acpi_madt *const madt) {
     struct array its_list =
         ARRAY_INIT(sizeof(struct acpi_madt_entry_gic_its *));
 
-    uint64_t gicv3_cpu_intr_phys_addr = 0;
+    uint64_t gicv2_cpu_intr_phys_addr = 0;
 #endif /* defined(_-x86_64__) */
 
     uint32_t length = madt->sdt.length - sizeof(*madt);
@@ -374,18 +373,18 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
 
-                if (gicv3_cpu_intr_phys_addr != 0) {
-                    if (gicv3_cpu_intr_phys_addr != cpu->phys_base_address) {
+                if (gicv2_cpu_intr_phys_addr != 0) {
+                    if (gicv2_cpu_intr_phys_addr != cpu->phys_base_address) {
                         printk(LOGLEVEL_WARN,
                                "madt: gic cpu-interface has multiple "
                                "conflicitng phys-addresses: 0x%" PRIx64 " vs "
                                "0x%" PRIx64 "\n",
-                               gicv3_cpu_intr_phys_addr,
+                               gicv2_cpu_intr_phys_addr,
                                cpu->phys_base_address);
                         return;
                     }
                 } else {
-                    gicv3_cpu_intr_phys_addr = cpu->phys_base_address;
+                    gicv2_cpu_intr_phys_addr = cpu->phys_base_address;
                 }
             #else
                 printk(LOGLEVEL_WARN,
@@ -537,7 +536,7 @@ void madt_init(const struct acpi_madt *const madt) {
             case ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE:
                 continue;
         #if defined(__riscv64)
-            case ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CNTRLR: {
+            case ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER: {
                 if (iter->length
                         != sizeof(struct acpi_madt_riscv_hart_irq_controller))
                 {
@@ -548,7 +547,7 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
 
-                const struct acpi_madt_riscv_hart_irq_controller *const cntrl =
+                const struct acpi_madt_riscv_hart_irq_controller *const ctrlr =
                     (const struct acpi_madt_riscv_hart_irq_controller *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -558,20 +557,30 @@ void madt_init(const struct acpi_madt *const madt) {
                        "\t\tenabled: %s\n"
                        "\t\tonline capable: %s\n"
                        "\thart id: %" PRIu64 "\n"
-                       "\tacpi processor uid: %" PRIu32 "\n",
-                       cntrl->version,
-                       cntrl->flags,
-                       cntrl->flags &
+                       "\tacpi processor uid: %" PRIu32 "\n"
+                       "\texternal irq controller id: %" PRIu32 "\n"
+                       "\timsic base address: %p\n"
+                       "\timsic size: %" PRIu32 "\n",
+                       ctrlr->version,
+                       ctrlr->flags,
+                       ctrlr->flags &
                             __ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED ?
                                 "yes" : "no",
-                        cntrl->flags &
+                        ctrlr->flags &
                             __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE ?
                                 "yes" : "no",
-                       cntrl->hart_id,
-                       cntrl->acpi_proc_uid);
+                       ctrlr->hart_id,
+                       ctrlr->acpi_proc_uid,
+                       ctrlr->external_irq_controller_id,
+                       (void *)ctrlr->imsic_base_addr,
+                       ctrlr->imsic_size);
 
                 continue;
             }
+            case ACPI_MADT_ENTRY_KIND_RISCV_IMSIC:
+            case ACPI_MADT_ENTRY_KIND_RISCV_APLIC:
+            case ACPI_MADT_ENTRY_KIND_RISCV_PLIC:
+                continue;
         #endif /* defined(__riscv64) */
         }
 
@@ -592,7 +601,8 @@ void madt_init(const struct acpi_madt *const madt) {
     switch (gic_dist->gic_version) {
         case 2:
             gicv2_init_from_info(gic_dist->phys_base_address);
-            gicv2_init_on_this_cpu(gicv3_cpu_intr_phys_addr, PAGE_SIZE);
+            gicv2_init_on_this_cpu(
+                RANGE_INIT(gicv2_cpu_intr_phys_addr, PAGE_SIZE));
 
             array_foreach(&its_list,
                           struct acpi_madt_entry_gic_msi_frame *,

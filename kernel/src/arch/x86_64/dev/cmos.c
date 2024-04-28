@@ -24,7 +24,7 @@ static inline void select_cmos_register(const enum cmos_register reg) {
 }
 
 __optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     // Note: We have to select the cmos register every time as reading/writing
     // from cmos deselects cmos.
@@ -32,16 +32,16 @@ __optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
     select_cmos_register(reg);
     const uint8_t result = pio_read8(PIO_PORT_CMOS_REGISTER_READ);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return result;
 }
 
 __optimize(3)
 void cmos_write(const enum cmos_register reg, const uint8_t data) {
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     select_cmos_register((uint8_t)reg);
     pio_write8((uint8_t)reg, data);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }

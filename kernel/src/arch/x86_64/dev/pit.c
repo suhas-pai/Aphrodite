@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <stdatomic.h>
+
 #include "asm/context.h"
 #include "asm/irqs.h"
 
@@ -23,11 +25,11 @@ void irq$pit(const uint64_t intr_no, struct thread_context *const regs) {
     (void)regs;
 
     g_tick++;
-    isr_eoi(intr_no);
-
     if ((g_tick % 1000) == 0) {
         printk(LOGLEVEL_INFO, "pit: tick at %" PRIu64 "\n", g_tick);
     }
+
+    isr_eoi(intr_no);
 }
 
 #define PIT_IRQ 0
@@ -38,9 +40,10 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     const isr_vector_t vector = isr_alloc_vector();
     assert(vector != ISR_INVALID_VECTOR);
 
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
+
     isr_assign_irq_to_cpu(this_cpu(), PIT_IRQ, vector, /*masked=*/false);
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 
     isr_set_vector(vector, irq$pit, &ARCH_ISR_INFO_NONE());
 
@@ -67,21 +70,21 @@ __optimize(3) void pit_sleep_for(const uint32_t ms) {
 }
 
 __optimize(3) uint16_t pit_get_current_tick() {
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
     pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0);
 
     const uint8_t low = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
     const uint8_t high = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     return (uint16_t)high << 8 | low;
 }
 
 __optimize(3) void pit_set_reload_value(const uint16_t count) {
-    const bool flag = disable_interrupts_if_not();
+    const bool flag = disable_irqs_if_enabled();
 
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, count & 0xFF);
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, (count & 0xFF00) >> 8);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }

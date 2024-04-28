@@ -51,8 +51,14 @@ ifeq ($(ARCH), x86_64)
 endif
 
 MACHINE=$(DEFAULT_MACHINE)
+ifeq ($(ARCH), x86_64)
 ifeq ($(DISABLE_ACPI), 1)
-	MACHINE=$(DEFAULT_MACHINE),acpi=off
+$(error ACPI cannot be disabled on x86_64)
+endif
+else
+	ifeq ($(DISABLE_ACPI), 1)
+		MACHINE=$(DEFAULT_MACHINE),acpi=off
+	endif
 endif
 
 DEFAULT_DRIVE_KIND=block
@@ -96,7 +102,7 @@ $(eval $(call DEFAULT_VAR,NVME_MAX_QUEUE_COUNT,$(DEFAULT_NVME_MAX_QUEUE_COUNT)))
 	DRIVE_CD_QEMU_ARG=-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
 	DRIVE_HDD_QEMU_ARG=-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
 else
-	$(error "Unrecognized value for variable DRIVE_KIND")
+$(error "Unrecognized value for variable DRIVE_KIND")
 endif
 
 .PHONY: all
@@ -134,12 +140,12 @@ run-hdd-aarch64: ovmf $(IMAGE_NAME).hdd
 .PHONY: run-riscv64
 run-riscv64: QEMU_RUN = 1
 run-riscv64: ovmf $(IMAGE_NAME).iso
-	qemu-system-riscv64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_CD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-riscv64 -M $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1 -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_CD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-riscv64
 run-hdd-riscv64: QEMU_RUN = 1
 run-hdd-riscv64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-riscv64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-riscv64 -M $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1 -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-bios
 run-bios: QEMU_RUN = 1

@@ -91,7 +91,7 @@ __optimize(3) sec_t pl031_get_wallclock() {
 }
 
 static const struct string_view compat[] = { SV_STATIC("arm,pl031") };
-static struct dtb_driver dtb_driver = {
+static const struct dtb_driver dtb_driver = {
     .init = init_from_dtb,
     .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 

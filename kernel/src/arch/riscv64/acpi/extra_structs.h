@@ -76,4 +76,53 @@ struct acpi_madt_riscv_hart_irq_controller {
     uint32_t flags;
     uint64_t hart_id;
     uint32_t acpi_proc_uid;
+
+    uint32_t external_irq_controller_id;
+    uint64_t imsic_base_addr;
+    uint32_t imsic_size;
+} __packed;
+
+struct acpi_madt_riscv_imsic {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint32_t flags;
+    uint16_t guest_node_irq_identity_count;
+
+    uint8_t guest_index_bits;
+    uint8_t hart_index_bits;
+    uint8_t group_index_bits;
+    uint8_t group_index_shift;
+} __packed;
+
+struct acpi_madt_riscv_aplic {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint8_t id;
+    uint32_t flags;
+    uint64_t hardware_id;
+    uint16_t idc_count;
+    uint16_t ext_irq_source_count;
+
+    uint32_t gsi_base;
+
+    uint64_t aplic_base;
+    uint32_t aplic_size;
+} __packed;
+
+struct acpi_madt_riscv_plic {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint8_t id;
+    uint64_t hardware_id;
+    uint16_t total_ext_irq_source_supported;
+    uint16_t max_prio;
+    uint32_t flags;
+
+    uint32_t plic_size;
+    uint64_t plic_base;
+
+    uint32_t gsi_base;
 } __packed;

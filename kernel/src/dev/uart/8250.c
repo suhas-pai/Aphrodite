@@ -118,25 +118,25 @@ uart8250_send_char(struct terminal *const term,
                    const uint32_t amount)
 {
     struct uart8250_info *const info = (struct uart8250_info *)term;
-    const bool flag = spin_acquire_irq_save(&info->lock);
+    const bool flag = spin_acquire_save_irq(&info->lock);
 
     for (uint32_t i = 0; i != amount; i++) {
         uart8250_putc(info->base, info, ch);
     }
 
-    spin_release_irq_restore(&info->lock, flag);
+    spin_release_restore_irq(&info->lock, flag);
 }
 
 __optimize(3) static void
 uart8250_send_sv(struct terminal *const term, const struct string_view sv) {
     struct uart8250_info *const info = (struct uart8250_info *)term;
-    const bool flag = spin_acquire_irq_save(&info->lock);
+    const bool flag = spin_acquire_save_irq(&info->lock);
 
     sv_foreach(sv, iter) {
         uart8250_putc(info->base, info, *iter);
     }
 
-    spin_release_irq_restore(&info->lock, flag);
+    spin_release_restore_irq(&info->lock, flag);
 }
 
 bool
@@ -250,7 +250,7 @@ init_from_dtb(const struct devicetree *const tree,
 }
 
 static const struct string_view dtb_compat_list[] = { SV_STATIC("ns16550a") };
-static struct dtb_driver dtb_driver = {
+static const struct dtb_driver dtb_driver = {
     .init = init_from_dtb,
     .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 

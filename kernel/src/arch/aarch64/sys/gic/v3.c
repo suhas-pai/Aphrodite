@@ -199,25 +199,25 @@ volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
 }
 
 __optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     atomic_store_explicit(&dist->irq_clear_enable[irq / sizeof_bits(uint32_t)],
                           1ull << (irq % sizeof_bits(uint32_t)),
                           memory_order_relaxed);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 __optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     atomic_store_explicit(&dist->irq_set_enable[irq / sizeof_bits(uint32_t)],
                           1ull << (irq % sizeof_bits(uint32_t)),
                           memory_order_relaxed);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 __optimize(3) isr_vector_t
@@ -234,10 +234,13 @@ gicdv3_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __optimize(3) void
-gicdv3_free_msi_vector(const isr_vector_t vector, const uint16_t msi_index) {
+gicdv3_free_msi_vector(struct device *const device,
+                       const isr_vector_t vector,
+                       const uint16_t msi_index)
+{
     struct gic_its_info *its = NULL;
     list_foreach(its, gic_its_get_list(), list) {
-        gic_its_free_msi_vector(its, vector, msi_index);
+        gic_its_free_msi_vector(its, device, vector, msi_index);
     }
 }
 
@@ -269,7 +272,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
         return;
     }
 
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     const uint32_t bit_offset = (irq % sizeof_bits(uint16_t)) * 2;
@@ -300,12 +303,12 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
                           rm_mask(group_mod, 1ull << group_bit_offset),
                           memory_order_relaxed);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 __optimize(3)
 void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
@@ -317,7 +320,7 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
                           | (uint32_t)priority << bit_index,
                           memory_order_relaxed);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 __optimize(3)
@@ -335,10 +338,10 @@ void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
 }
 
 __optimize(3) void gicdv3_send_sipi(const uint8_t int_no) {
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     const struct cpu_info *const cpu = this_cpu();
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     gicdv3_send_ipi(cpu, int_no);
 }
 
@@ -363,9 +366,9 @@ __optimize(3) irq_number_t gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     uint64_t iar1 = 0;
     asm volatile("mrs %0, icc_iar1_el1" : "=r"(iar1));
 
-    uint32_t irq = iar1 & 0xFFFFFF;
+    const uint64_t irq = iar1 & 0xFFFFFF;
     if (irq < GIC_SPI_INTERRUPT_START || irq >= GIC_ITS_LPI_INTERRUPT_START) {
-        asm volatile("msr icc_eoir1_el1, %0" :: "r"((uint64_t)irq));
+        asm volatile("msr icc_eoir1_el1, %0" :: "r"(irq));
     }
 
     *cpu_id_out = 0;
@@ -380,15 +383,16 @@ __optimize(3)
 void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
     (void)cpu_id;
 
-    if (this_cpu()->in_lpi) {
-        this_cpu_mut()->in_lpi = false;
+    struct cpu_info *const cpu = this_cpu_mut();
+    if (cpu->in_lpi) {
+        cpu->in_lpi = false;
     } else {
         asm volatile("msr icc_dir_el1, %0" :: "r"((uint64_t)irq));
     }
 }
 
 void gic_redist_init_on_this_cpu() {
-    const int flag = disable_interrupts_if_not();
+    const int flag = disable_irqs_if_enabled();
     volatile struct gicv3_redist_registers *const redist =
         gic_redist_for_this_cpu();
 
@@ -416,19 +420,11 @@ void gic_redist_init_on_this_cpu() {
         return;
     }
 
-    atomic_store_explicit(&redist->dist.irq_group[0],
-                          UINT32_MAX,
-                          memory_order_relaxed);
-
-    atomic_store_explicit(&redist->dist.irq_group_mod[0],
-                          0,
-                          memory_order_relaxed);
-
-    atomic_store_explicit(&redist->control,
-                          atomic_load_explicit(&redist->control,
-                                               memory_order_relaxed)
-                          | __GICV3_REDIST_CONTROL_ENABLE_LPIS,
-                          memory_order_relaxed);
+    mmio_write(&redist->dist.irq_group[0], UINT32_MAX);
+    mmio_write(&redist->dist.irq_group_mod[0], 0);
+    mmio_write(&redist->control,
+               mmio_read(&redist->control)
+                | __GICV3_REDIST_CONTROL_ENABLE_LPIS);
 
     // Pending page has to be aligned to 64kib
     struct page *const pend_page =
@@ -455,27 +451,20 @@ void gic_redist_init_on_this_cpu() {
     const uint64_t pend_phys = page_to_phys(pend_page);
     const uint64_t prop_phys = page_to_phys(prop_page);
 
-    atomic_store_explicit(&redist->prop_baser,
-                          atomic_load_explicit(&redist->prop_baser,
-                                               memory_order_relaxed)
-                          | prop_phys
-                          | (GIC_REDIST_IDBITS - 1),
-                          memory_order_relaxed);
-
-    atomic_store_explicit(&redist->pend_baser,
-                          atomic_load_explicit(&redist->pend_baser,
-                                               memory_order_relaxed)
-                          | pend_phys,
-                          memory_order_relaxed);
+    mmio_write(&redist->pend_baser, mmio_read(&redist->pend_baser) | pend_phys);
+    mmio_write(&redist->prop_baser,
+               mmio_read(&redist->prop_baser)
+                | prop_phys
+                | (GIC_REDIST_IDBITS - 1));
 
     this_cpu_mut()->processor_number =
         (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
             >> GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
 
-    this_cpu_mut()->gicv3_pend_page = phys_to_virt(pend_phys);
-    this_cpu_mut()->gicv3_prop_page = phys_to_virt(prop_phys);
+    this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
+    this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
 }
 
 void gicv3_init_on_this_cpu() {
@@ -613,7 +602,7 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
 {
     (void)tree;
     const struct devicetree_prop *const intr_controller_node =
-        devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPT_CONTROLLER);
+        devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
     if (intr_controller_node == NULL) {
         printk(LOGLEVEL_WARN,
@@ -641,7 +630,8 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
 
     if (dist_reg_info->size < sizeof(struct gicd_v3_registers)) {
         printk(LOGLEVEL_WARN,
-               "gicv3: reg property describes dist range smaller than needed\n");
+               "gicv3: reg property describes dist range smaller than "
+               "needed\n");
         return false;
     }
 

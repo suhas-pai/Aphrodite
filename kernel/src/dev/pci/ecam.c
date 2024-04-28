@@ -36,10 +36,7 @@ pci_add_ecam_domain(const struct range bus_range,
         return NULL;
     }
 
-    ecam_domain->domain = PCI_DOMAIN_INIT(PCI_DOMAIN_ECAM);
-    list_init(&ecam_domain->list);
-
-    ecam_domain->domain.kind = PCI_DOMAIN_ECAM;
+    ecam_domain->domain = PCI_DOMAIN_INIT(PCI_DOMAIN_ECAM, segment);
     ecam_domain->mmio =
         vmap_mmio(RANGE_INIT(base_addr, map_size_for_bus_range(bus_range)),
                   PROT_READ | PROT_WRITE,
@@ -47,21 +44,21 @@ pci_add_ecam_domain(const struct range bus_range,
 
     if (ecam_domain->mmio == NULL) {
         kfree(ecam_domain);
-        printk(LOGLEVEL_WARN, "pci-ecam: failed to mmio-map config-domain\n");
+        printk(LOGLEVEL_WARN, "pci/ecam: failed to mmio-map config-domain\n");
 
         return NULL;
     }
 
+    list_init(&ecam_domain->list);
     ecam_domain->bus_range = bus_range;
-    ecam_domain->domain.segment = segment;
 
-    const int flag = spin_acquire_irq_save(&g_ecam_domain_lock);
+    const int flag = spin_acquire_save_irq(&g_ecam_domain_lock);
 
     list_add(&g_ecam_entity_list, &ecam_domain->list);
     g_ecam_entity_count++;
 
     if (!pci_add_domain(&ecam_domain->domain)) {
-        spin_release_irq_restore(&g_ecam_domain_lock, flag);
+        spin_release_restore_irq(&g_ecam_domain_lock, flag);
 
         vunmap_mmio(ecam_domain->mmio);
         kfree(ecam_domain);
@@ -69,13 +66,13 @@ pci_add_ecam_domain(const struct range bus_range,
         return NULL;
     }
 
-    spin_release_irq_restore(&g_ecam_domain_lock, flag);
+    spin_release_restore_irq(&g_ecam_domain_lock, flag);
     return ecam_domain;
 }
 
 __optimize(3)
 bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
-    const int flag = spin_acquire_irq_save(&g_ecam_domain_lock);
+    const int flag = spin_acquire_save_irq(&g_ecam_domain_lock);
 
     pci_remove_domain(&ecam_domain->domain);
     vunmap_mmio(ecam_domain->mmio);
@@ -83,7 +80,7 @@ bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
     list_deinit(&ecam_domain->list);
     g_ecam_entity_count--;
 
-    spin_release_irq_restore(&g_ecam_domain_lock, flag);
+    spin_release_restore_irq(&g_ecam_domain_lock, flag);
     kfree(ecam_domain);
 
     return true;
@@ -234,12 +231,12 @@ parse_dtb_resources(const struct devicetree_node *const node,
 
     if (ranges_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "pci-ecam: 'ranges' property in dtb node is missing\n");
+               "pci/ecam: 'ranges' property in dtb node is missing\n");
         return false;
     }
 
     if (!ranges_prop->has_flags) {
-        printk(LOGLEVEL_WARN, "pci-ecam: 'ranges' prop is missing flags\n");
+        printk(LOGLEVEL_WARN, "pci/ecam: 'ranges' prop is missing flags\n");
         return false;
     }
 
@@ -272,7 +269,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
 
         if (iter->size == 0) {
             printk(LOGLEVEL_WARN,
-                   "pci-ecam: range #%" PRIu32 " in 'ranges' dtb-node prop has "
+                   "pci/ecam: range #%" PRIu32 " in 'ranges' dtb-node prop has "
                    "a size of zero\n",
                    index + 1);
             continue;
@@ -284,7 +281,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
         struct range res_mmio_range = RANGE_EMPTY();
         if (!range_align_out(res_range, PAGE_SIZE, &res_mmio_range)) {
             printk(LOGLEVEL_WARN,
-                   "pci-ecam: can't align range #%" PRIu32 " in 'ranges' "
+                   "pci/ecam: can't align range #%" PRIu32 " in 'ranges' "
                    "dtb-node prop has a size of zero\n",
                    index);
             continue;
@@ -300,7 +297,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
 
         if (mmio == NULL) {
             printk(LOGLEVEL_WARN,
-                   "pci-ecam: failed to mmio-map range #%" PRIu32 " in "
+                   "pci/ecam: failed to mmio-map range #%" PRIu32 " in "
                    "'ranges' dtb-node prop has a size of zero\n",
                    index);
             continue;
@@ -316,7 +313,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
 
         if (!array_append(&root_bus->resources, &resource)) {
             printk(LOGLEVEL_INFO,
-                   "pci-ecam: failed to add resource to bus-list\n");
+                   "pci/ecam: failed to add resource to bus-list\n");
             return false;
         }
 
@@ -337,13 +334,13 @@ init_from_dtb(const struct devicetree *const tree,
 
     if (reg_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "pci-ecam: 'reg' property in dtb node is missing\n");
+               "pci/ecam: 'reg' property in dtb node is missing\n");
         return false;
     }
 
     if (array_empty(reg_prop->list)) {
         printk(LOGLEVEL_WARN,
-               "pci-ecam: 'reg' property in dtb node is empty\n");
+               "pci/ecam: 'reg' property in dtb node is empty\n");
         return false;
     }
 
@@ -353,7 +350,7 @@ init_from_dtb(const struct devicetree *const tree,
 
     if (bus_range_prop == NULL) {
         printk(LOGLEVEL_WARN,
-               "pci-ecam: 'bus-range' property in dtb node is missing\n");
+               "pci/ecam: 'bus-range' property in dtb node is missing\n");
         return false;
     }
 
@@ -362,13 +359,13 @@ init_from_dtb(const struct devicetree *const tree,
 
     if (!range_get_end(bus_range, &bus_range_end)) {
         printk(LOGLEVEL_WARN,
-               "pci-ecam: 'bus-range' provided in dtb node overflows\n");
+               "pci/ecam: 'bus-range' provided in dtb node overflows\n");
         return false;
     }
 
     if (bus_range_end > UINT8_MAX) {
         printk(LOGLEVEL_WARN,
-               "pci-ecam: 'bus-range' provided in dtb node " RANGE_FMT " is "
+               "pci/ecam: 'bus-range' provided in dtb node " RANGE_FMT " is "
                "too wide\n",
                RANGE_FMT_ARGS(bus_range));
         return false;
@@ -384,7 +381,7 @@ init_from_dtb(const struct devicetree *const tree,
                                           map_size_for_bus_range(bus_range))))
     {
         printk(LOGLEVEL_INFO,
-               "pci-ecam: bus-range " RANGE_FMT " of dtb node can't fit in "
+               "pci/ecam: bus-range " RANGE_FMT " of dtb node can't fit in "
                "provided mmio-range " RANGE_FMT "\n",
                RANGE_FMT_ARGS(bus_range),
                RANGE_FMT_ARGS(mmio_range));
@@ -399,7 +396,7 @@ init_from_dtb(const struct devicetree *const tree,
     if (root_bus == NULL) {
         pci_remove_ecam_domain(ecam_domain);
         printk(LOGLEVEL_WARN,
-               "pci-ecam: failed to create root-bus from dtb node\n");
+               "pci/ecam: failed to create root-bus from dtb node\n");
 
         return false;
     }
@@ -409,7 +406,7 @@ init_from_dtb(const struct devicetree *const tree,
         pci_remove_root_bus(root_bus);
         pci_remove_ecam_domain(ecam_domain);
 
-        printk(LOGLEVEL_INFO, "pci-ecam: failed to add bus to root-bus list\n");
+        printk(LOGLEVEL_INFO, "pci/ecam: failed to add bus to root-bus list\n");
         return false;
     }
 

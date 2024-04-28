@@ -8,9 +8,7 @@
 
 __optimize(3) struct stack_trace *stacktrace_top() {
     struct stack_trace *stk = NULL;
-    asm volatile ("mov %%rbp, %0"
-                  : "=r"(stk)
-                  :: "memory");
+    asm volatile ("mov %%rbp, %0" : "=r"(stk) :: "memory");
 
     return stk;
 }

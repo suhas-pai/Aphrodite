@@ -82,7 +82,7 @@ pagemap_find_space_and_add_vma(struct pagemap *const pagemap,
                                const uint64_t phys_addr,
                                const uint64_t align)
 {
-    const int flag = spin_acquire_irq_save(&pagemap->addrspace_lock);
+    const int flag = spin_acquire_save_irq(&pagemap->addrspace_lock);
     const uint64_t addr =
         addrspace_find_space_and_add_node(&pagemap->addrspace,
                                           in_range,
@@ -91,17 +91,17 @@ pagemap_find_space_and_add_vma(struct pagemap *const pagemap,
 
 
     if (addr == ADDRSPACE_INVALID_ADDR) {
-        spin_release_irq_restore(&pagemap->addrspace_lock, flag);
+        spin_release_restore_irq(&pagemap->addrspace_lock, flag);
         return false;
     }
 
     if (vma->prot == PROT_NONE) {
-        spin_release_irq_restore(&pagemap->addrspace_lock, flag);
+        spin_release_restore_irq(&pagemap->addrspace_lock, flag);
         return true;
     }
 
-    const int flag2 = spin_acquire_irq_save(&vma->lock);
-    spin_release_irq_restore(&pagemap->addrspace_lock, flag);
+    const int flag2 = spin_acquire_save_irq(&vma->lock);
+    spin_release_restore_irq(&pagemap->addrspace_lock, flag);
 
     const bool map_result =
         arch_make_mapping(pagemap,
@@ -111,7 +111,7 @@ pagemap_find_space_and_add_vma(struct pagemap *const pagemap,
                           vma->cachekind,
                           /*is_overwrite=*/false);
 
-    spin_release_irq_restore(&vma->lock, flag2);
+    spin_release_restore_irq(&vma->lock, flag2);
     return map_result;
 }
 
@@ -120,19 +120,19 @@ pagemap_add_vma(struct pagemap *const pagemap,
                 struct vm_area *const vma,
                 uint64_t phys_addr)
 {
-    const int flag = spin_acquire_irq_save(&pagemap->addrspace_lock);
+    const int flag = spin_acquire_save_irq(&pagemap->addrspace_lock);
     if (!addrspace_add_node(&pagemap->addrspace, &vma->node)) {
-        spin_release_irq_restore(&pagemap->addrspace_lock, flag);
+        spin_release_restore_irq(&pagemap->addrspace_lock, flag);
         return false;
     }
 
     if (vma->prot == PROT_NONE) {
-        spin_release_irq_restore(&pagemap->addrspace_lock, flag);
+        spin_release_restore_irq(&pagemap->addrspace_lock, flag);
         return true;
     }
 
-    const int flag2 = spin_acquire_irq_save(&vma->lock);
-    spin_release_irq_restore(&pagemap->addrspace_lock, flag);
+    const int flag2 = spin_acquire_save_irq(&vma->lock);
+    spin_release_restore_irq(&pagemap->addrspace_lock, flag);
 
     const bool map_result =
         arch_make_mapping(pagemap,
@@ -142,7 +142,7 @@ pagemap_add_vma(struct pagemap *const pagemap,
                           vma->cachekind,
                           /*is_overwrite=*/false);
 
-    spin_release_irq_restore(&vma->lock, flag2);
+    spin_release_restore_irq(&vma->lock, flag2);
     return map_result;
 }
 
@@ -154,7 +154,7 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     assert(pagemap->root != NULL);
 #endif /* defined(__aarch64__) */
 
-    const int flag = spin_acquire_irq_save(&pagemap->cpu_lock);
+    const int flag = spin_acquire_save_irq(&pagemap->cpu_lock);
 
     list_remove(&this_cpu_mut()->pagemap_node);
     list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);
@@ -180,5 +180,5 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     asm volatile ("sfence.vma" ::: "memory");
 #endif /* defined(__x86_64__) */
 
-    spin_release_irq_restore(&pagemap->cpu_lock, flag);
+    spin_release_restore_irq(&pagemap->cpu_lock, flag);
 }

@@ -231,8 +231,8 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
         return;
     }
 
-    const bool flag = disable_interrupts_if_not();
-    g_ps2_vector = isr_alloc_vector(/*for_msi=*/false);
+    const bool flag = disable_irqs_if_enabled();
+    g_ps2_vector = isr_alloc_vector();
 
     assert(g_ps2_vector != ISR_INVALID_VECTOR);
 
@@ -242,6 +242,6 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
                           g_ps2_vector,
                           /*masked=*/false);
 
-    enable_interrupts_if_flag(flag);
+    enable_irqs_if_flag(flag);
     printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
 }

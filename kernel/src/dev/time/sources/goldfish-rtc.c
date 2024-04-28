@@ -141,7 +141,7 @@ init_from_dtb(const struct devicetree *const tree,
 }
 
 static const struct string_view compat[] = { SV_STATIC("google,goldfish-rtc") };
-static struct dtb_driver dtb_driver = {
+static const struct dtb_driver dtb_driver = {
     .init = init_from_dtb,
     .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 

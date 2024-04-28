@@ -26,11 +26,11 @@ void isr_init() {
 }
 
 __optimize(3) isr_vector_t isr_alloc_vector() {
-    const int flag = spin_acquire_irq_save(&g_lock);
+    const int flag = spin_acquire_save_irq(&g_lock);
     const uint64_t result =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
-    spin_release_irq_restore(&g_lock, flag);
+    spin_release_restore_irq(&g_lock, flag);
     if (result == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
@@ -47,12 +47,12 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __optimize(3) void isr_free_vector(const isr_vector_t vector) {
-    const int flag = spin_acquire_irq_save(&g_lock);
+    const int flag = spin_acquire_save_irq(&g_lock);
 
     bitset_unset(g_bitset, vector);
     isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
 
-    spin_release_irq_restore(&g_lock, flag);
+    spin_release_restore_irq(&g_lock, flag);
 }
 
 __optimize(3) void
@@ -93,7 +93,7 @@ isr_handle_interrupt(const uint64_t cause,
                 return;
             case CAUSE_INTERRUPT_SUPERVISOR_TIMER:
                 stimer_stop();
-                sched_next(frame, code);
+                sched_next(code, frame);
 
                 return;
             case CAUSE_INTERRUPT_MACHINE_IPI:

@@ -34,9 +34,9 @@ _Static_assert(
 
 __optimize(3)
 static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
-    const int flag = spin_acquire_irq_save(&port->lock);
+    const int flag = spin_acquire_save_irq(&port->lock);
     if (port->ports_bitset == UINT32_MAX) {
-        spin_release_irq_restore(&port->lock, flag);
+        spin_release_restore_irq(&port->lock, flag);
         return UINT8_MAX;
     }
 
@@ -44,12 +44,12 @@ static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
        find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
 
     if (slot > sizeof_bits(uint32_t)) {
-        spin_release_irq_restore(&port->lock, flag);
+        spin_release_restore_irq(&port->lock, flag);
         return UINT8_MAX;
     }
 
     port->ports_bitset |= 1ul << slot;
-    spin_release_irq_restore(&port->lock, flag);
+    spin_release_restore_irq(&port->lock, flag);
 
     return slot;
 }
@@ -1098,9 +1098,9 @@ send_ata_command(struct ahci_hba_port *const port,
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
 
-    const int flag = spin_acquire_irq_save(&port->lock);
+    const int flag = spin_acquire_save_irq(&port->lock);
     port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
-    spin_release_irq_restore(&port->lock, flag);
+    spin_release_restore_irq(&port->lock, flag);
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);
@@ -1185,10 +1185,10 @@ send_atapi_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-    const int flag = spin_acquire_irq_save(&port->lock);
+    const int flag = spin_acquire_save_irq(&port->lock);
 
     port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
-    spin_release_irq_restore(&port->lock, flag);
+    spin_release_restore_irq(&port->lock, flag);
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);
