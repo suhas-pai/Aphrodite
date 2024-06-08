@@ -204,7 +204,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     mmio_write(&regs->global_host_control,
                __AHCI_HBA_GLOBAL_HOST_CTRL_AHCI_ENABLE
-               | __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE);
+               | __AHCI_HBA_GLOBAL_HOST_CTRL_INTR_ENABLE);
 
     uint8_t usable_port_count = 0;
     for (uint8_t index = 0; index != AHCI_HBA_MAX_PORT_COUNT; index++) {

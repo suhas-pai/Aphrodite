@@ -17,7 +17,7 @@ struct thread_context {
     uint64_t rip, cs, rflags, rsp, ss;
 };
 
-#define THREAD_CONTEXT_INIT(process, stack, func, arg) \
+#define THREAD_CONTEXT_INIT(process, stack, stack_size, func, arg) \
     ((struct thread_context){ \
         .r15 = 0, \
         .r14 = 0, \
@@ -38,6 +38,6 @@ struct thread_context {
         .rip = (uint64_t)(func), \
         .cs = (process == &kernel_process) ? 0x28 : 0x4b, \
         .rflags = __RFLAGS_INTERRUPTS_ENABLED, \
-        .rsp = (uint64_t)(stack), \
+        .rsp = (uint64_t)(stack) + ((stack_size) - 1), \
         .ss = 0x30, \
     })

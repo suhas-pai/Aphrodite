@@ -40,7 +40,7 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     const isr_vector_t vector = isr_alloc_vector();
     assert(vector != ISR_INVALID_VECTOR);
 
-    const int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
 
     isr_assign_irq_to_cpu(this_cpu(), PIT_IRQ, vector, /*masked=*/false);
     enable_irqs_if_flag(flag);

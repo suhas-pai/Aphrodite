@@ -6,7 +6,6 @@
 #include "dev/driver.h"
 #include "dev/printk.h"
 
-#include "mm/mmio.h"
 #include "sys/mmio.h"
 #include "time/kstrftime.h"
 
@@ -44,7 +43,7 @@ init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
     if (reg_prop == NULL) {
-        printk(LOGLEVEL_INFO, "pl031: dtb-node is missing 'reg' prop\n");
+        printk(LOGLEVEL_INFO, "pl031: dtb-node is missing a 'reg' prop\n");
         return false;
     }
 

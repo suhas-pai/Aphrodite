@@ -29,6 +29,8 @@ struct cpu_info {
     uint32_t lapic_timer_frequency;
 
     bool active : 1;
+    bool in_exception : 1;
+
     uint32_t timer_ticks;
 
     struct process *process;

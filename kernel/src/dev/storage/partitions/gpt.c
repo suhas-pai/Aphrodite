@@ -6,8 +6,7 @@
 #include "lib/adt/string_view.h"
 #include "gpt.h"
 
-__optimize(3)
-bool verify_gpt_header(const struct gpt_header *const header) {
+__optimize(3) bool verify_gpt_header(const struct gpt_header *const header) {
     if (!sv_equals(sv_of_carr(header->signature), GPT_HEADER_MAGIC_SV)) {
         return false;
     }
@@ -37,7 +36,7 @@ __optimize(3) bool gpt_entry_mount_ok(const struct gpt_entry *const entry) {
     }
 
     const uint64_t mask =
-        __GPT_ENTRY_ATTR_REQUIRED_TO_FUNCTION | __GPT_ENTRY_ATTR_USED_BY_OS;
+        __GPT_ENTRY_ATTR_REQ_TO_FUNCTION | __GPT_ENTRY_ATTR_USED_BY_OS;
 
     if (entry->attributes & mask) {
         return false;

@@ -23,7 +23,10 @@ void spin_acquire(struct spinlock *lock);
 void spin_release(struct spinlock *lock);
 
 int spin_acquire_save_irq(struct spinlock *lock);
+void spin_acquire_preempt_disable(struct spinlock *lock);
+
 void spin_release_restore_irq(struct spinlock *lock, int flag);
+void spin_release_preempt_enable(struct spinlock *lock);
 
 bool spin_try_acquire(struct spinlock *lock);
 bool spin_try_acquire_save_irq(struct spinlock *lock, int *flag_out);

@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "asm/stack_frame.h"
+#include "asm/context.h"
 
 struct process_arch_info {
 
@@ -14,7 +14,7 @@ struct process;
 void sched_process_arch_info_init(struct process *proc);
 
 struct thread_arch_info {
-    struct stack_frame frame;
+    struct page *kernel_stack;
 };
 
 struct thread;

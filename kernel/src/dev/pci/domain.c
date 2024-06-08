@@ -17,13 +17,10 @@ static struct spinlock g_domain_lock = SPINLOCK_INIT();
 
 __optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
     const int flag = spin_acquire_save_irq(&g_domain_lock);
-    if (!array_append(&g_domain_list, &domain)) {
-        spin_release_restore_irq(&g_domain_lock, flag);
-        return false;
-    }
+    const bool result = array_append(&g_domain_list, &domain);
 
     spin_release_restore_irq(&g_domain_lock, flag);
-    return true;
+    return result;
 }
 
 __optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {

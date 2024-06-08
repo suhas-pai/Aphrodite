@@ -166,7 +166,7 @@ __optimize(3) uint64_t early_alloc_page() {
     }
 
     // Take the last page out of the list, because the first page stores the
-    // freepage_info struct.
+    // freepages_info struct.
 
     const uint64_t free_page =
         virt_to_phys(info) + (info->avail_page_count << PAGE_SHIFT);

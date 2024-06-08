@@ -14,7 +14,7 @@ range_create_and_verify(const uint64_t base,
                         struct range *const out)
 {
     uint64_t end = 0;
-    if (!check_add(base, size, &end)) {
+    if (__builtin_expect(!check_add(base, size, &end), 0)) {
         return false;
     }
 

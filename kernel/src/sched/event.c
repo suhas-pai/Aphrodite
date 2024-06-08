@@ -4,8 +4,6 @@
  */
 
 #include "asm/irqs.h"
-#include "sched/thread.h"
-
 #include "event.h"
 
 __optimize(3) static inline void
@@ -69,7 +67,7 @@ events_await(struct event *const *const events,
              const bool block,
              const bool drop_after_recv)
 {
-    int flag = disable_irqs_if_enabled();
+    bool flag = disable_irqs_if_enabled();
     lock_events(events, events_count);
 
     int64_t index = find_pending(events, events_count);

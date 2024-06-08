@@ -5,11 +5,8 @@
 
 #include <stdatomic.h>
 
-#include "cpu/spinlock.h"
 #include "sched/scheduler.h"
-
 #include "alarm.h"
-#include "thread.h"
 
 static struct list g_list = LIST_INIT(g_list);
 static struct spinlock g_lock = SPINLOCK_INIT();

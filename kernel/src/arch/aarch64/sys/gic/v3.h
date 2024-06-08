@@ -32,7 +32,7 @@ gicdv3_free_msi_vector(struct device *device,
                        uint16_t msi_index);
 
 void gicdv3_set_irq_affinity(irq_number_t irq, uint8_t iface);
-void gicdv3_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
+void gicdv3_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mode mode);
 void gicdv3_set_irq_priority(irq_number_t irq, uint8_t priority);
 
 void gicdv3_send_ipi(const struct cpu_info *cpu, uint8_t int_no);

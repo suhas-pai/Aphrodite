@@ -20,7 +20,7 @@ struct thread_context {
     uint64_t far_el1;
 };
 
-#define THREAD_CONTEXT_INIT(stack, func, arg) \
+#define THREAD_CONTEXT_INIT(stack, stack_size, func, arg) \
     ((struct thread_context){ \
         .x0 = (uint64_t)(arg), \
         .x1 = 0, \
@@ -53,7 +53,7 @@ struct thread_context {
         .x28 = 0, \
         .x29 = 0, \
         .x30 = 0, \
-        .sp_el1 = (uint64_t)(stack), \
+        .sp_el1 = (uint64_t)(stack) + ((stack_size) - 1), \
         .elr_el1 = (uint64_t)(func), \
         .spsr_el1 = SPSR_MODE_EL1t, \
         .esr_el1 = 0, \

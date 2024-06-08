@@ -130,9 +130,7 @@ parse_reg_pairs(const void *const dtb,
         return true;
     }
 
-    const fdt32_t *const data_end = data + data_length;
     const uint32_t entry_size = (uint32_t)(addr_cells + size_cells);
-
     if (entry_size == 0) {
         return false;
     }
@@ -145,6 +143,8 @@ parse_reg_pairs(const void *const dtb,
     array_reserve_and_set_item_count(array, entry_count);
 
     struct devicetree_prop_reg_info *const info = array_begin(*array);
+    const fdt32_t *const data_end = data + data_length;
+
     for (uint32_t i = 0; i != entry_count; i++) {
         if (!parse_cell_pair(&data, data_end, addr_cells, &info[i].address)) {
             return false;
@@ -1156,8 +1156,7 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_INTR_CONTROLLER;
                 if (!hashmap_add(
                         &node->known_props,
-                        hashmap_key_create(
-                            DEVICETREE_PROP_INTR_CONTROLLER),
+                        hashmap_key_create(DEVICETREE_PROP_INTR_CONTROLLER),
                         &prop))
                 {
                     kfree(prop);
@@ -1520,8 +1519,8 @@ parse_node_children(const void *const dtb,
     return true;
 }
 
-__optimize(3)
-static inline bool node_has_gic_compat(struct devicetree_node *const node) {
+__optimize(3) static inline
+bool node_has_gic_compat(const struct devicetree_node *const node) {
     carr_foreach(gicv2_compat_sv_list, iter) {
         if (devicetree_node_has_compat_sv(node, *iter)) {
             return true;
@@ -1642,9 +1641,8 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             return false;
         }
 
-        struct devicetree_node *const intc_node =
-            (struct devicetree_node *)(uint64_t)
-                devicetree_get_node_for_phandle(tree, intr_parent->phandle);
+        const struct devicetree_node *const intc_node =
+            devicetree_get_node_for_phandle(tree, intr_parent->phandle);
 
         if (intc_node == NULL) {
             printk(LOGLEVEL_WARN,
@@ -1747,7 +1745,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         struct devicetree_prop_interrupts *const prop = kmalloc(sizeof(*prop));
         if (prop == NULL) {
             printk(LOGLEVEL_WARN,
-                   "devicetree: failed to allocate memory while parsing\n");
+                   "devicetree: failed to alloc memory while parsing\n");
 
             parse_later_info_destroy(&later_info);
             devicetree_node_free(tree->root);

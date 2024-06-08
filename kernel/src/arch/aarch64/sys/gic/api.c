@@ -84,7 +84,7 @@ void gicd_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
 
 __optimize(3) void
 gicd_set_irq_trigger_mode(const irq_number_t irq,
-                          const enum irq_trigger_mpde mode)
+                          const enum irq_trigger_mode mode)
 {
     switch (g_version) {
         case 2:
@@ -221,7 +221,7 @@ void gic_init_from_dtb() {
         return;
     }
 
-    struct dtb_driver gicv3_driver = {
+    const struct dtb_driver gicv3_driver = {
         .init = gicv3_init_from_dtb,
         .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
@@ -233,7 +233,7 @@ void gic_init_from_dtb() {
         return;
     }
 
-    struct dtb_driver gic_driver = {
+    const struct dtb_driver gic_driver = {
         .init = gicv2_init_from_dtb,
         .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 

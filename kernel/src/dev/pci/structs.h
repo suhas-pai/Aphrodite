@@ -139,7 +139,7 @@ enum pci_spec_entity_cmdreg_flags {
 
     // If set to 1 the assertion of the devices INTx# signal is disabled;
     // otherwise, assertion of the signal is enabled.
-    __PCI_DEVCMDREG_PIN_INT_DISABLE = 1ull << 10,
+    __PCI_DEVCMDREG_PIN_INTR_DISABLE = 1ull << 10,
 };
 
 enum pci_spec_device_status_flags {
@@ -384,14 +384,14 @@ enum pci_spec_cap_pcie_dev_port_kind {
 enum pci_spec_cap_pcie_capability_shifts {
     __PCIE_SPEC_CAP_PCIE_CAP_VERSION_SHIFT,
     __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_SHIFT = 4,
-    __PCIE_SPEC_CAP_PCIE_CAP_INT_MSG_NUM_SHIFT = 9
+    __PCIE_SPEC_CAP_PCIE_CAP_INTR_MSG_NUM_SHIFT = 9
 };
 
 enum pci_spec_cap_pcie_capability_masks {
     __PCIE_SPEC_CAP_PCIE_CAP_VERSION_MASK = 0b1111,
     __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_TYPE_MASK =
         0b1111 << __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_SHIFT,
-    __PCIE_SPEC_CAP_PCIE_CAP_INT_MSG_NUM_MASK =
+    __PCIE_SPEC_CAP_PCIE_CAP_INTR_MSG_NUM_MASK =
         0b1111 << __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_SHIFT
 };
 

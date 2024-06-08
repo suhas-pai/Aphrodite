@@ -17,16 +17,16 @@
                   ((n) % sizeof_bits(uint64_t))] = {0}
 
 #define bitset_has(name, index) \
-    (name[(index) / sizeof_bits(uint64_t)] \
+    ((name)[(index) / sizeof_bits(uint64_t)] \
         & 1ull << ((index) % sizeof_bits(uint64_t)))
 
 #define bitset_set(name, index) \
-    name[(index) / sizeof_bits(uint64_t)] |= \
+    (name)[(index) / sizeof_bits(uint64_t)] |= \
         1ull << ((index) % sizeof_bits(uint64_t))
 
 #define bitset_unset(name, index) \
-    name[(index) / sizeof_bits(uint64_t)] = \
-        rm_mask(name[(index) / sizeof_bits(uint64_t)], \
+    (name)[(index) / sizeof_bits(uint64_t)] = \
+        rm_mask((name)[(index) / sizeof_bits(uint64_t)], \
                 1ull << ((index) % sizeof_bits(uint64_t)))
 
 #define bitset_find_set(bitset, length, invert) \

@@ -46,3 +46,11 @@
                  : "memory"); \
     __csrwrite_val__; \
 })
+
+#define csr_read_and_zero(csr) ({ \
+    uint64_t __csrreadzero_val__ = 0; \
+    asm volatile("csrrw %0, " #csr ", zero" \
+                 : "=r" (__csrreadzero_val__) \
+                 :: "memory"); \
+    __csrreadzero_val__; \
+})

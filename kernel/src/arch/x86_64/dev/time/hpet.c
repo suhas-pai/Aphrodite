@@ -28,8 +28,8 @@ enum hpet_addrspace_timer_flags {
     __HPET_TIMER_SET_PERIODIC_COUNTER = 1 << 6,
     __HPET_TIMER_FORCED_32BIT_COUNTER = 1 << 8,
 
-    __HPET_TIMER_USE_FSB_INT_MAPPING = 1 << 14,
-    __HPET_TIMER_SUPPORTS_FSB_INT_MAPPING = 1 << 15,
+    __HPET_TIMER_USE_FSB_INTR_MAPPING = 1 << 14,
+    __HPET_TIMER_SUPPORTS_FSB_INTR_MAPPING = 1 << 15,
 };
 
 struct hpet_addrspace {

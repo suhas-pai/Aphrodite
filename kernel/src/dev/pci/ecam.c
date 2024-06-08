@@ -31,11 +31,6 @@ pci_add_ecam_domain(const struct range bus_range,
                     const uint64_t base_addr,
                     const uint16_t segment)
 {
-    struct pci_ecam_domain *const ecam_domain = kmalloc(sizeof(*ecam_domain));
-    if (ecam_domain == NULL) {
-        return NULL;
-    }
-
     struct range range = RANGE_EMPTY();
     if (!range_create_and_verify(base_addr,
                                  map_size_for_bus_range(bus_range),
@@ -45,6 +40,13 @@ pci_add_ecam_domain(const struct range bus_range,
                "pci: ecam domain at base %p, segment %" PRIu16 " overflows\n",
                (void *)base_addr,
                segment);
+
+        return NULL;
+    }
+
+    struct pci_ecam_domain *const ecam_domain = kmalloc(sizeof(*ecam_domain));
+    if (ecam_domain == NULL) {
+        printk(LOGLEVEL_WARN, "pci: failed to alloc ecam domain info\n");
         return NULL;
     }
 
@@ -66,16 +68,16 @@ pci_add_ecam_domain(const struct range bus_range,
     list_add(&g_ecam_entity_list, &ecam_domain->list);
     g_ecam_entity_count++;
 
-    if (!pci_add_domain(&ecam_domain->domain)) {
-        spin_release_restore_irq(&g_ecam_domain_lock, flag);
+    const bool result = pci_add_domain(&ecam_domain->domain);
+    spin_release_restore_irq(&g_ecam_domain_lock, flag);
 
+    if (!result) {
         vunmap_mmio(ecam_domain->mmio);
         kfree(ecam_domain);
 
         return NULL;
     }
 
-    spin_release_restore_irq(&g_ecam_domain_lock, flag);
     return ecam_domain;
 }
 
@@ -230,6 +232,33 @@ enum pci_ecam_dtb_child_addr_flags {
     __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM = 1 << 30
 };
 
+__optimize(3) static inline bool
+resource_kind_from_kind(const uint32_t flags,
+                        enum pci_bus_resource_kind *const kind_out)
+{
+    const enum pci_ecam_dtb_range_kind kind =
+        (flags & __PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND) >>
+            PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT;
+
+    switch (kind) {
+        case PCI_ECAM_DTB_RANGE_KIND_IO:
+            *kind_out = PCI_BUS_RESOURCE_IO;
+            return true;
+        case PCI_ECAM_DTB_RANGE_KIND_MEM32:
+        case PCI_ECAM_DTB_RANGE_KIND_MEM64:
+            if (flags & __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM) {
+                *kind_out = PCI_BUS_RESOURCE_PREFETCH_MEM;
+            } else {
+                *kind_out = PCI_BUS_RESOURCE_MEM;
+            }
+
+            return true;
+    }
+
+    printk(LOGLEVEL_WARN, "pci/ecam: unrecognized range kind in flags\n");
+    return false;
+}
+
 static bool
 parse_dtb_resources(const struct devicetree_node *const node,
                     struct pci_bus *const root_bus)
@@ -254,28 +283,6 @@ parse_dtb_resources(const struct devicetree_node *const node,
                   const struct devicetree_prop_range_info,
                   iter)
     {
-        const enum pci_ecam_dtb_range_kind kind =
-            (iter->flags & __PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND) >>
-                PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT;
-
-        enum pci_bus_resource_kind res_kind = PCI_BUS_RESOURCE_IO;
-        switch (kind) {
-            case PCI_ECAM_DTB_RANGE_KIND_IO:
-                res_kind = PCI_BUS_RESOURCE_IO;
-                break;
-            case PCI_ECAM_DTB_RANGE_KIND_MEM32:
-            case PCI_ECAM_DTB_RANGE_KIND_MEM64:
-                if (iter->flags & __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM) {
-                    res_kind = PCI_BUS_RESOURCE_PREFETCH_MEM;
-                } else {
-                    res_kind = PCI_BUS_RESOURCE_MEM;
-                }
-
-                break;
-            default:
-                verify_not_reached();
-        }
-
         if (iter->size == 0) {
             printk(LOGLEVEL_WARN,
                    "pci/ecam: range #%" PRIu32 " in 'ranges' dtb-node prop has "
@@ -302,6 +309,11 @@ parse_dtb_resources(const struct devicetree_node *const node,
                    "pci/ecam: can't align range #%" PRIu32 " in 'ranges' "
                    "dtb-node prop has a size of zero\n",
                    index);
+            continue;
+        }
+
+        enum pci_bus_resource_kind res_kind;
+        if (!resource_kind_from_kind(iter->flags, &res_kind)) {
             continue;
         }
 

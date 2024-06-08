@@ -114,7 +114,9 @@ void idt_init() {
 
 void
 handle_exception(const uint64_t intr_no, struct thread_context *const context) {
-    const char *except_str = NULL;
+    this_cpu_mut()->in_exception = true;
+
+    const char *except_str = "<unknown>";
     switch ((enum exception)intr_no) {
         case EXCEPTION_DIVIDE_BY_ZERO:
             except_str = "Divide by zero exception";
@@ -200,7 +202,9 @@ handle_exception(const uint64_t intr_no, struct thread_context *const context) {
            except_str,
            (void *)context->rip);
 
+    print_stack_trace(/*max_lines=*/10);
     lapic_eoi();
+
     cpu_idle();
 }
 

@@ -489,7 +489,7 @@ enum alloc_and_map_result {
     ALLOC_AND_MAP_RESTART
 };
 
-__optimize(3) enum alloc_and_map_result
+__optimize(3) static enum alloc_and_map_result
 alloc_and_map_normal_no_overwrite(
     struct pt_walker *const walker,
     uint64_t *const offset_in,
@@ -700,7 +700,7 @@ alloc_and_map_normal_overwrite(
     } while (true);
 }
 
-__optimize(3) enum alloc_and_map_result
+__optimize(3) static enum alloc_and_map_result
 alloc_and_map_normal(struct pt_walker *const walker,
                      struct current_split_info *const curr_split,
                      struct pageop *const pageop,
@@ -733,7 +733,7 @@ alloc_and_map_normal(struct pt_walker *const walker,
                                           alloc_options);
 }
 
-__optimize(3) enum map_result
+__optimize(3) static enum map_result
 map_large_at_top_level_overwrite(struct pt_walker *const walker,
                                  struct current_split_info *const curr_split,
                                  struct pageop *const pageop,
@@ -802,7 +802,7 @@ map_large_at_top_level_overwrite(struct pt_walker *const walker,
     return MAP_CONTINUE;
 }
 
-__optimize(3) enum map_result
+__optimize(3) static enum map_result
 map_large_at_top_level_no_overwrite(struct pt_walker *const walker,
                                     const uint64_t phys_begin,
                                     uint64_t *const offset_in,
@@ -842,7 +842,7 @@ map_large_at_top_level_no_overwrite(struct pt_walker *const walker,
     return MAP_CONTINUE;
 }
 
-__optimize(3) enum map_result
+__optimize(3) static enum map_result
 map_large_at_level_overwrite(struct pt_walker *const walker,
                              struct current_split_info *const curr_split,
                              struct pageop *const pageop,
@@ -935,7 +935,7 @@ map_large_at_level_overwrite(struct pt_walker *const walker,
     return MAP_CONTINUE;
 }
 
-__optimize(3) enum alloc_and_map_result
+__optimize(3) static enum alloc_and_map_result
 alloc_and_map_large_overwrite(
     struct pt_walker *const walker,
     struct current_split_info *const curr_split,
@@ -1038,7 +1038,7 @@ alloc_and_map_large_overwrite(
     return ALLOC_AND_MAP_CONTINUE;
 }
 
-__optimize(3) enum map_result
+__optimize(3) static enum map_result
 map_large_at_level_no_overwrite(struct pt_walker *const walker,
                                 const uint64_t phys_begin,
                                 uint64_t *const offset_in,
@@ -1089,14 +1089,12 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
                 phys_create_pte(phys_addr) | PTE_LARGE_FLAGS(level) | pte_flags;
 
             pte_write(pte, new_pte_value);
-
-            pte++;
             phys_addr += largepage_size;
 
             if (phys_addr == phys_end) {
                 if (should_ref) {
                     refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
+                                       (pte - start) + 1);
                 }
 
                 walker->indices[level - 1] = pte - table;
@@ -1105,6 +1103,7 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
                 return MAP_DONE;
             }
 
+            pte++;
             if (pte == end) {
                 if (should_ref) {
                     refcount_increment(&virt_to_table(table)->table.refcount,
@@ -1149,7 +1148,7 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
     } while (true);
 }
 
-__optimize(3) enum alloc_and_map_result
+__optimize(3) static enum alloc_and_map_result
 alloc_and_map_large_no_overwrite(
     struct pt_walker *const walker,
     uint64_t *const offset_in,
@@ -1189,7 +1188,7 @@ alloc_and_map_large_no_overwrite(
     uint64_t offset = *offset_in;
     do {
         pte_t *const table = walker->tables[level - 1];
-        pte_t *const start = walker->tables[level - 1];
+        pte_t *const start = &table[walker->indices[level - 1]];
 
         pte_t *pte = start;
         const pte_t *const end = &table[PGT_PTE_COUNT(level)];
@@ -1268,7 +1267,7 @@ alloc_and_map_large_no_overwrite(
     } while (true);
 }
 
-enum map_result
+__optimize(3) static enum map_result
 map_large_at_level(struct pt_walker *const walker,
                    struct current_split_info *const curr_split,
                    struct pageop *const pageop,
@@ -1473,19 +1472,19 @@ pgmap_at(struct pagemap *const pagemap,
         ptwalker_default_for_pagemap(&walker, pagemap, virt_addr);
     }
 
-    /*
-     * There's a chance the virtual address is pointing into the middle of a
-     * large page, in which case we have to split the large page and
-     * appropriately setup the current_split_info, but only if the large page
-     * needs to be replaced (has a different phys-addr or different flags).
-     */
-
     struct current_split_info curr_split = CURRENT_SPLIT_INFO_INIT();
     struct pageop pageop;
 
     if (options->is_overwrite) {
         pageop_init(&pageop, pagemap, virt_range);
     }
+
+    /*
+     * There's a chance the virtual address is pointing into the middle of a
+     * large page, in which case we have to split the large page and
+     * appropriately setup the current_split_info, but only if the large page
+     * needs to be replaced (has a different phys-addr or different flags).
+     */
 
     if (options->is_overwrite && ptwalker_points_to_largepage(&walker)) {
         const uint64_t walker_virt_addr = ptwalker_get_virt_addr(&walker);

@@ -22,6 +22,10 @@ parse_gpt_entries(struct storage_device *const device,
     const uint32_t total_size =
         sizeof(struct gpt_entry) * header->partition_entry_count;
 
+    printk(LOGLEVEL_INFO,
+           "storage/gpt: found %" PRIu32 " entries\n",
+           header->partition_entry_count);
+
     const uint32_t alloc_size = min(total_size, device->lba_size);
     struct gpt_entry *const entry_list = kmalloc(alloc_size);
 
@@ -74,7 +78,8 @@ parse_gpt_entries(struct storage_device *const device,
             }
 
             const struct string_view name_sv =
-                sv_create_length((const char *)entry->name, sizeof(entry->name));
+                sv_create_upto_length((const char *)entry->name,
+                                      sizeof(entry->name));
 
             struct string name = string_alloc(name_sv);
             if (!partition_init(partition, name, device, full_range)) {
@@ -257,7 +262,7 @@ storage_device_read(struct storage_device *const device,
             const uint64_t left = range.size - buf_offset;
             uint64_t copy_size = device->lba_size - block_offset;
 
-            if (left < copy_size) {
+            if (left <= copy_size) {
                 memcpy(buf + buf_offset, block + block_offset, left);
                 break;
             }
@@ -287,7 +292,7 @@ storage_device_write(struct storage_device *const device,
 
     const uint64_t phys = phalloc(SECTOR_SIZE);
     if (phys == INVALID_PHYS) {
-        return 0;
+        return UINT64_MAX;
     }
 
     void *const virt = phys_to_virt(phys);

@@ -18,7 +18,7 @@ void sched_timer_stop() {
 }
 
 void sched_irq_eoi(const irq_number_t irq) {
-    gic_cpu_eoi(this_cpu()->interface_number, irq);
+    gic_cpu_eoi(this_cpu()->gic_iface_no, irq);
 }
 
 __optimize(3) usec_t sched_timer_remaining() {

@@ -16,85 +16,89 @@ define DEFAULT_VAR =
 endef
 
 # Target architecture to build for. Default to x86_64.
-override DEFAULT_ARCH := x86_64
-$(eval $(call DEFAULT_VAR,ARCH,$(DEFAULT_ARCH)))
+override DEFAULT_KARCH := x86_64
+$(eval $(call DEFAULT_VAR,KARCH,$(DEFAULT_KARCH)))
 
 # It is suggested to use a custom built cross toolchain to build a kernel.
 # We are using the standard "cc" here, it may work by using
 # the host system's toolchain, but this is not guaranteed.
-override DEFAULT_CC := clang
-$(eval $(call DEFAULT_VAR,CC,$(DEFAULT_CC)))
+override DEFAULT_KCC := clang
+$(eval $(call DEFAULT_VAR,KCC,$(DEFAULT_KCC)))
 
-override CC_IS_CLANG := no
-ifeq ($(shell $(CC) --version 2>&1 | grep -i 'clang' >/dev/null 2>&1 && echo 1),1)
-    override CC_IS_CLANG := yes
+override KCC_IS_CLANG := no
+ifeq ($(shell $(KCC) --version 2>&1 | grep -i 'clang' >/dev/null 2>&1 && echo 1),1)
+    override KCC_IS_CLANG := yes
 endif
 
 # Same thing for "ld" (the linker).
-override DEFAULT_LD := ld
-$(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
+override DEFAULT_KLD := ld
+$(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
 
-override LD_IS_LLD := no
-ifeq ($(shell $(LD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
-    override LD_IS_LLD := yes
+override KLD_IS_LLD := no
+ifeq ($(shell $(KLD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
+    override KLD_IS_LLD := yes
 endif
 
-COMMON_CFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
-                -Wsign-conversion -Werror -Wfloat-equal -Wredundant-decls \
-                -Wshadow -Wstrict-overflow=5 -Wundef -Wnull-dereference \
-                -funsigned-char -Wformat=2 -Isrc/arch/$(ARCH) -DBUILD_KERNEL \
-                -Wno-address-of-packed-member -fno-omit-frame-pointer \
-                -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_ROUND_ROBIN \
-                -fsanitize=undefined
+COMMON_KCFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
+                 -Wsign-conversion -Werror -Wfloat-equal -Wredundant-decls \
+                 -Wshadow -Wstrict-overflow=5 -Wundef -Wnull-dereference \
+                 -funsigned-char -Wformat=2 -Isrc/arch/$(KARCH) -DBUILD_KERNEL \
+                 -Wno-address-of-packed-member -fno-omit-frame-pointer \
+                 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_ROUND_ROBIN \
+                 -fsanitize=undefined
 
-ifeq ($(ARCH), riscv64)
-    override COMMON_CFLAGS += -D__riscv64
+ifeq ($(KARCH), riscv64)
+    override COMMON_KCFLAGS += -D__riscv64
 endif
 
-ifneq ($(ARCH), x86_64)
-    override COMMON_CFLAGS += -DHAS_64B_PORTS
+ifneq ($(KARCH), x86_64)
+    override COMMON_KCFLAGS += -DHAS_64B_PORTS
 endif
 
 ifeq ($(IN_QEMU), 1)
-    override COMMON_CFLAGS += -DIN_QEMU
+    override COMMON_KCFLAGS += -DIN_QEMU
 endif
 
 ifeq ($(RELEASE), 1)
-    override COMMON_CFLAGS += -Ofast
+    override COMMON_KCFLAGS += -O3
 endif
 
 ifeq ($(USE_16K_PAGES), 1)
-    override COMMON_CFLAGS += -DAARCH64_USE_16K_PAGES
+    override COMMON_KCFLAGS += -DAARCH64_USE_16K_PAGES
 endif
 
 ifeq ($(DISABLE_FLANTERM), 1)
-    override COMMON_CFLAGS += -DDISABLE_FLANTERM
+    override COMMON_KCFLAGS += -DDISABLE_FLANTERM
 endif
 
 ifeq ($(DEBUG_LOCKS), 1)
-    override COMMON_CFLAGS += -DDEBUG_LOCKS
+    override COMMON_KCFLAGS += -DDEBUG_LOCKS
+endif
+
+ifeq ($(CHECK_SLABS), 1)
+    override COMMON_KCFLAGS += -DCHECK_SLABS
 endif
 
 # User controllable C flags.
-override DEFAULT_CFLAGS += $(COMMON_CFLAGS)
-$(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
+override DEFAULT_KCFLAGS += $(COMMON_KCFLAGS)
+$(eval $(call DEFAULT_VAR,KCFLAGS,$(DEFAULT_KCFLAGS)))
 
 # User controllable C preprocessor flags. We set none by default.
-override DEFAULT_CPPFLAGS := -I..
-$(eval $(call DEFAULT_VAR,CPPFLAGS,$(DEFAULT_CPPFLAGS)))
+override DEFAULT_KCPPFLAGS := -I..
+$(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
 
-ifeq ($(ARCH), x86_64)
+ifeq ($(KARCH), x86_64)
     # User controllable nasm flags.
-    override DEFAULT_NASMFLAGS := -F dwarf -g
-    $(eval $(call DEFAULT_VAR,NASMFLAGS,$(DEFAULT_NASMFLAGS)))
+    override DEFAULT_KNASMFLAGS := -F dwarf -g
+    $(eval $(call DEFAULT_VAR,KNASMFLAGS,$(DEFAULT_KNASMFLAGS)))
 endif
 
 # User controllable linker flags. We set none by default.
-override DEFAULT_LDFLAGS :=
-$(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
+override DEFAULT_KLDFLAGS :=
+$(eval $(call DEFAULT_VAR,KLDFLAGS,$(DEFAULT_KLDFLAGS)))
 
 # Internal C flags that should not be changed by the user.
-override CFLAGS += \
+override KCFLAGS += \
     -Wall \
     -Wextra \
     -std=gnu11 \
@@ -105,21 +109,21 @@ override CFLAGS += \
     -fPIE
 
 # Internal C preprocessor flags that should not be changed by the user.
-override CPPFLAGS := \
+override KCPPFLAGS := \
     -I src \
-    $(CPPFLAGS) \
+    $(KCPPFLAGS) \
     -MMD \
     -MP
 
-ifeq ($(ARCH),x86_64)
+ifeq ($(KARCH),x86_64)
     # Internal nasm flags that should not be changed by the user.
     override NASMFLAGS += \
         -Wall
 endif
 
 ifeq ($(RELEASE), 1)
-    ifeq ($(CC_IS_CLANG),yes)
-        override CFLAGS += \
+    ifeq ($(KCC_IS_CLANG),yes)
+        override KCFLAGS += \
             -mllvm -enable-cond-stores-vec \
             -mllvm -enable-loopinterchange \
             -mllvm -enable-loop-distribute \
@@ -129,8 +133,8 @@ ifeq ($(RELEASE), 1)
             -mllvm -unroll-runtime-multi-exit \
             -mllvm -aggressive-ext-opt
     endif
-    ifeq ($(LD_IS_LLD),yes)
-        override LDFLAGS +=
+    ifeq ($(KLD_IS_LLD),yes)
+        override KLDFLAGS +=
             -flto=thin \
             -Wl,--lto-O3 \
             -Wl,--lto-CGO3 \
@@ -142,12 +146,12 @@ ifeq ($(RELEASE), 1)
 endif
 
 # Architecture specific internal flags.
-ifeq ($(ARCH),x86_64)
-    ifeq ($(CC_IS_CLANG),yes)
-        override CC += \
+ifeq ($(KARCH),x86_64)
+    ifeq ($(KCC_IS_CLANG),yes)
+        override KCC += \
             -target x86_64-elf
     endif
-    override CFLAGS += \
+    override KCFLAGS += \
         -m64 \
         -march=x86-64-v3 \
         -mno-80387 \
@@ -155,56 +159,54 @@ ifeq ($(ARCH),x86_64)
         -mno-sse \
         -mno-sse2 \
         -mno-red-zone
-    override LDFLAGS += \
+    override KLDFLAGS += \
         -m elf_x86_64
-    override NASMFLAGS += \
+    override KNASMFLAGS += \
         -f elf64
-else ifeq ($(ARCH),aarch64)
-    ifeq ($(CC_IS_CLANG),yes)
-        override CC += \
+else ifeq ($(KARCH),aarch64)
+    ifeq ($(KCC_IS_CLANG),yes)
+        override KCC += \
             -target aarch64-elf
     else
-        override CFLAGS += \
+        override KCFLAGS += \
             -mno-outline-atomics
     endif
-    override CFLAGS += \
+    override KCFLAGS += \
         -march=armv9.3-a \
         -mgeneral-regs-only
-    override LDFLAGS += \
+    override KLDFLAGS += \
         -m aarch64elf
-else ifeq ($(ARCH),riscv64)
-    ifeq ($(CC_IS_CLANG),yes)
-        override CC += \
+else ifeq ($(KARCH),riscv64)
+    ifeq ($(KCC_IS_CLANG),yes)
+        override KCC += \
             -target riscv64-elf
-        override CFLAGS += \
+        override KCFLAGS += \
             -march=rv64imaczicboz
     else
         override CFLAGS += \
             -march=rv64imac_zicsr_zifencei
     endif
-    override CFLAGS += \
+    override KCFLAGS += \
         -mabi=lp64 \
         -mno-relax
-    override LDFLAGS += \
+    override KLDFLAGS += \
         -m elf64lriscv \
         --no-relax
 else
-    $(error Architecture $(ARCH) not supported)
+    $(error Architecture $(KARCH) not supported)
 endif
 
 # Internal linker flags that should not be changed by the user.
-override LDFLAGS += \
+override KLDFLAGS += \
     -nostdlib \
-    -static \
     -pie \
-    --no-dynamic-linker \
     -z text \
     -z max-page-size=0x1000 \
-    -T src/arch/$(ARCH)/linker.ld
+    -T src/arch/$(KARCH)/linker.ld
 
 define FIND_FILES
     override $(1) += $(addprefix src/,$(shell cd src && find -L * -type f -name $(2) -not -path "arch/*"))
-    override $(1) += $(addprefix src/arch/$(ARCH)/,$(shell cd src/arch/$(ARCH) && find -L * -type f -name $(2)))
+    override $(1) += $(addprefix src/arch/$(KARCH)/,$(shell cd src/arch/$(KARCH) && find -L * -type f -name $(2)))
 endef
 
 # Use "find" to glob all *.c, *.S, and *.asm files in the tree and obtain the
@@ -243,9 +245,9 @@ src/dev/pci/vendors.h:
 	rm $@-e
 
 # Link rules for the final kernel executable.
-bin/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
+bin/$(KERNEL): GNUmakefile src/arch/$(KARCH)/linker.ld $(OBJ)
 	mkdir -p "$$(dirname $@)"
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	$(KLD) $(OBJ) $(KLDFLAGS) -o $@
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
@@ -253,25 +255,25 @@ bin/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c GNUmakefile src/limine.h src/dev/pci/vendors.h
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 obj/flanterm/%.c.o: src/flanterm/%.c GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(filter-out -fsanitize=undefined,$(CFLAGS)) -Ofast $(CPPFLAGS) -c $< -o $@
+	$(KCC) $(filter-out -fsanitize=undefined,$(KCFLAGS)) -O3 $(KCPPFLAGS) -c $< -o $@
 
 obj/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
 obj/%.S.o: src/%.S GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 obj/%.asm.o: src/%.asm GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	nasm $(NASMFLAGS) $< -o $@
+	nasm -felf64 $(˚NASMFLAGS) $< -o $@
 
 # Remove object files and the final executable.
 .PHONY: clean

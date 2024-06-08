@@ -27,11 +27,3 @@ enum satp_flags {
     __SATP_PHYS_ASID = 0xFFull << SATP_PHYS_ASID_SHIFT,
     __SATP_PHYS_MODE = 0xFull << SATP_PHYS_MODE_SHIFT,
 };
-
-__optimize(3) static inline uint64_t read_satp() {
-    return csr_read(satp);
-}
-
-__optimize(3) static inline void write_satp(const uint64_t value) {
-    csr_write(satp, value);
-}

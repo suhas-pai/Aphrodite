@@ -10,6 +10,7 @@
 
 #include "cpu/init.h"
 #include "cpu/isr.h"
+#include "cpu/smp.h"
 #include "cpu/util.h"
 
 #include "dev/flanterm.h"
@@ -28,7 +29,8 @@
 // base revision described by the Limine boot protocol specification.
 // See specification for further info.
 
-static volatile LIMINE_BASE_REVISION(1)
+__attribute__((used, section(".requests")))
+static volatile LIMINE_BASE_REVISION(2)
 
 static void test_alloc_largepage() {
     struct page *const largepage =
@@ -86,18 +88,19 @@ void _start(void) {
     arch_init();
     arch_post_mm_init();
 
+    smp_init();
     dtb_parse_main_tree();
 
     isr_init();
     enable_interrupts();
 
-    sched_init();
     dev_init();
+    sched_init();
+    dev_init_drivers();
 
     test_alloc_largepage();
 
     printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
-#if defined(__x86_64__) || defined(__aarch64__)
     sched_sleep_us(seconds_to_micro(5));
     printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 
@@ -105,7 +108,4 @@ void _start(void) {
     sched_yield();
 
     verify_not_reached();
-#else
-    cpu_idle();
-#endif
 }

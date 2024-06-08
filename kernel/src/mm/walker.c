@@ -619,7 +619,7 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
     walker->level = level;
 }
 
-// FIXME: This doesn't work and is also arch-dependent
+__optimize(3)
 uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     uint64_t result = 0;
     for (pgt_level_t level = walker->level; level <= walker->top_level; level++)
@@ -631,7 +631,7 @@ uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     return sign_extend_virt_addr(result);
 }
 
-uint64_t
+__optimize(3) uint64_t
 ptwalker_virt_get_phys(struct pt_walker *const walker, const uint64_t virt) {
     if (__builtin_expect(
             walker->level > 1 && !pte_level_can_have_large(walker->level), 0))
@@ -644,7 +644,7 @@ ptwalker_virt_get_phys(struct pt_walker *const walker, const uint64_t virt) {
                  walker->indices[walker->level - 1]);
 
     if (!pte_is_present(pte)) {
-        return INVALID_PHYS;
+        return INVALID_PHYS - 1;
     }
 
     if (walker->level != 1 && !pte_is_large(pte)) {

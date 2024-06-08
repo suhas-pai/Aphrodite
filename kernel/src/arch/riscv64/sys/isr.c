@@ -14,6 +14,7 @@
 
 #include "dev/printk.h"
 #include "sched/scheduler.h"
+#include "sys/imsic.h"
 
 #define ISR_IRQ_COUNT 240
 static bitset_decl(g_bitset, ISR_IRQ_COUNT);
@@ -43,7 +44,7 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     (void)device;
     (void)msi_index;
 
-    return isr_alloc_vector();
+    return imsic_alloc_msg(RISCV64_PRIVL_SUPERVISOR);
 }
 
 __optimize(3) void isr_free_vector(const isr_vector_t vector) {
@@ -63,7 +64,7 @@ isr_free_msi_vector(struct device *const device,
     (void)device;
     (void)msi_index;
 
-    return isr_free_vector(vector);
+    imsic_free_msg(RISCV64_PRIVL_SUPERVISOR, vector);
 }
 
 __optimize(3) void isr_mask_irq(const isr_vector_t irq) {
@@ -76,39 +77,24 @@ __optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
 
 void isr_eoi(const uint64_t int_no) {
     (void)int_no;
+
+    const uint8_t code = this_cpu()->isr_oode;
+    this_cpu_mut()->isr_oode = 0;
+
+    csr_write(sip, rm_mask(csr_read(sip), 1ull << code));
 }
 
 extern
 void handle_exception(const uint64_t vector, struct thread_context *frame);
 
 __optimize(3) void
-isr_handle_interrupt(const uint64_t cause,
-                     const uint64_t epc,
-                     struct thread_context *const frame)
+isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
 {
     const isr_vector_t code = cause & __SCAUSE_CODE;
-    if (cause & __SCAUSE_IS_INT) {
-        switch ((enum cause_interrupt_kind)code) {
-            case CAUSE_INTERRUPT_SUPERVISOR_IPI:
-                return;
-            case CAUSE_INTERRUPT_SUPERVISOR_TIMER:
-                stimer_stop();
-                sched_next(code, frame);
+    this_cpu_mut()->isr_oode = code;
 
-                return;
-            case CAUSE_INTERRUPT_MACHINE_IPI:
-            case CAUSE_INTERRUPT_MACHINE_TIMER:
-                verify_not_reached();
-        }
-
-        if (g_funcs[code] != NULL) {
-            g_funcs[code](code, frame);
-        } else {
-            printk(LOGLEVEL_INFO,
-                   "isr: got unhandled interrupt: " ISR_VECTOR_FMT "\n",
-                   code);
-        }
-    } else {
+    if ((cause & __SCAUSE_IS_INTR) == 0) {
+        this_cpu_mut()->in_exception = true;
         printk(LOGLEVEL_INFO,
                "exception:\n"
                "\tscause: " SV_FMT " (0x%" PRIx64 ")\n"
@@ -116,11 +102,47 @@ isr_handle_interrupt(const uint64_t cause,
                "\tstval: 0x%" PRIx64 "\n\n",
                SV_FMT_ARGS(cause_exception_kind_get_sv(code)),
                cause,
-               epc,
+               context->sepc,
                csr_read(stval));
 
         cpu_idle();
     }
+
+    switch ((enum cause_interrupt_kind)code) {
+        case CAUSE_INTERRUPT_MACHINE_SW_INTR:
+            panic("Got machine software interrupt");
+        case CAUSE_INTERRUPT_USER_SW_INTR:
+            panic("Got user software interrupt");
+        case CAUSE_INTERRUPT_SUPERVISOR_SW_INTR:
+            return;
+        case CAUSE_INTERRUPT_USER_TIMER:
+            panic("Got user timer interrupt");
+        case CAUSE_INTERRUPT_SUPERVISOR_TIMER:
+            stimer_stop();
+            sched_next(code, context);
+
+            return;
+        case CAUSE_INTERRUPT_MACHINE_TIMER:
+            panic("Got machine timer interrupt");
+        case CAUSE_INTERRUPT_USER_EXTERNAL:
+            panic("Got user external interrupt");
+        case CAUSE_INTERRUPT_SUPERVISOR_EXTERNAL:
+            imsic_handle(RISCV64_PRIVL_SUPERVISOR, context);
+            return;
+        case CAUSE_INTERRUPT_MACHINE_EXTERNAL:
+            panic("Got machine external interrupt");
+    }
+
+    if (g_funcs[code] != NULL) {
+        g_funcs[code](code, context);
+        return;
+    }
+
+    printk(LOGLEVEL_INFO,
+           "isr: got unhandled interrupt: " ISR_VECTOR_FMT "\n",
+           code);
+
+    cpu_idle();
 }
 
 void
@@ -128,11 +150,8 @@ isr_set_vector(const isr_vector_t vector,
                const isr_func_t handler,
                struct arch_isr_info *const info)
 {
-    (void)vector;
-    (void)handler;
     (void)info;
-
-    panic("isr: isr_set_vector() not implemented");
+    imsic_set_msg_handler(RISCV64_PRIVL_SUPERVISOR, vector, handler);
 }
 
 void
@@ -140,11 +159,10 @@ isr_set_msi_vector(const isr_vector_t vector,
                    const isr_func_t handler,
                    struct arch_isr_info *const info)
 {
-    (void)vector;
-    (void)handler;
     (void)info;
 
-    panic("isr: isr_set_msi_vector() not implemented");
+    imsic_set_msg_handler(RISCV64_PRIVL_SUPERVISOR, vector, handler);
+    imsic_enable_msg(RISCV64_PRIVL_SUPERVISOR, vector);
 }
 
 void
@@ -157,29 +175,23 @@ isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
     (void)irq;
     (void)vector;
     (void)masked;
-
-    panic("isr: isr_assign_irq_to_cpu() not implemented");
 }
 
 __optimize(3) uint64_t
 isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
-    (void)cpu;
     (void)vector;
-
-    verify_not_reached();
+    return cpu->imsic_phys;
 }
 
 __optimize(3) uint64_t
 isr_get_msix_address(const struct cpu_info *const cpu,
                      const isr_vector_t vector)
 {
-    (void)cpu;
     (void)vector;
-
-    verify_not_reached();
+    return cpu->imsic_phys;
 }
 
 __optimize(3) enum isr_msi_support isr_get_msi_support() {
-    return ISR_MSI_SUPPORT_NONE;
+    return ISR_MSI_SUPPORT_MSIX;
 }

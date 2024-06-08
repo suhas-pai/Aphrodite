@@ -8,34 +8,30 @@
 #include <stdbool.h>
 #include "status.h"
 
-// ip = "Interrupt Pending"
-enum ip_flags {
-    __IP_USER_SW_INT_PENDING = 1ull << 0,
-    __IP_SUPERVISOR_SW_INT_PENDING = 1ull << 1,
-    __IP_MACHINE_SW_INT_PENDING = 1ull << 3,
-
-    __IP_USER_TIMER_INT_PENDING = 1ull << 4,
-    __IP_SUPERVISOR_TIMER_INT_PENDING = 1ull << 5,
-    __IP_MACHINE_TIMER_INT_PENDING = 1ull << 7,
-
-    __IP_USER_EXT_INT_PENDING = 1ull << 8,
-    __IP_SUPERVISOR_EXT_INT_PENDING = 1ull << 9,
-    __IP_MACHINE_EXT_INT_PENDING = 1ull << 11,
-};
-
 // ie = "Interrupt Enable"
 enum ie_flags {
-    __IE_USER_SW_INT_ENABLE = 1ull << 0,
-    __IE_SUPERVISOR_SW_INT_ENABLE = 1ull << 1,
-    __IE_MACHINE_SW_INT_ENABLE = 1ull << 3,
+    __INTR_USER_SOFTWARE = 1ull << 0,
+    __INTR_SUPERVISOR_SOFTWARE = 1ull << 1,
+    __INTR_MACHINE_SOFTWARE = 1ull << 3,
 
-    __IE_USER_TIMER_INT_ENABLE = 1ull << 4,
-    __IE_SUPERVISOR_TIMER_INT_ENABLE = 1ull << 5,
-    __IE_MACHINE_TIMER_INT_ENABLE = 1ull << 7,
+    __INTR_USER_TIMER = 1ull << 4,
+    __INTR_SUPERVISOR_TIMER = 1ull << 5,
+    __INTR_MACHINE_TIMER = 1ull << 7,
 
-    __IE_USER_EXT_INT_ENABLE = 1ull << 8,
-    __IE_SUPERVISOR_EXT_INT_ENABLE = 1ull << 9,
-    __IE_MACHINE_EXT_INT_ENABLE = 1ull << 11,
+    __INTR_USER_EXTERNAL = 1ull << 8,
+    __INTR_SUPERVISOR_EXTERNAL = 1ull << 9,
+    __INTR_MACHINE_EXTERNAL = 1ull << 11,
+
+    __INTR_USER_ALL =
+        __INTR_USER_SOFTWARE | __INTR_USER_TIMER | __INTR_USER_EXTERNAL,
+
+    __INTR_SUPERVISOR_ALL =
+        __INTR_SUPERVISOR_SOFTWARE
+        | __INTR_SUPERVISOR_TIMER
+        | __INTR_SUPERVISOR_EXTERNAL,
+
+    __INTR_MACHINE_ALL =
+        __INTR_MACHINE_SOFTWARE | __INTR_MACHINE_TIMER | __INTR_MACHINE_EXTERNAL
 };
 
 __optimize(3) static inline void disable_interrupts(void) {
@@ -47,12 +43,14 @@ __optimize(3) static inline void enable_interrupts(void) {
 }
 
 __optimize(3) static inline bool are_interrupts_enabled() {
-    return read_sstatus() & __SSTATUS_SUPERVISOR_INT_ENABLE;
+    return read_sstatus() & __SSTATUS_SUPERVISOR_INTR_ENABLE;
 }
 
 __optimize(3) static inline bool disable_irqs_if_enabled() {
     const bool result = are_interrupts_enabled();
-    disable_interrupts();
+    if (result) {
+        disable_interrupts();
+    }
 
     return result;
 }

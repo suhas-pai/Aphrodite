@@ -18,7 +18,7 @@ static uint64_t g_frequency = 0;
 
 enum cntp_ctl {
     __CNTP_CTL_ENABLE = 1 << 0,
-    __CNTP_CTL_INT_MASK = 1 << 1,
+    __CNTP_CTL_INTR_MASK = 1 << 1,
     __CNTP_CTL_COND_MET = 1 << 2,
 };
 
@@ -38,7 +38,7 @@ __optimize(3) nsec_t nsec_since_boot() {
                            (sec_t)boot_get_time());
 }
 
-__optimize(3) uint64_t system_timer_get_frequency_ns() {
+__optimize(3) uint64_t system_timer_get_freq_ns() {
     return g_frequency;
 }
 
@@ -61,7 +61,7 @@ __optimize(3) nsec_t system_timer_get_remaining_ns() {
 }
 
 __optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
-    const usec_t tval = nano_to_seconds(g_frequency * nano);
+    const usec_t tval = nano_to_seconds(check_mul_assert(g_frequency, nano));
     asm volatile ("msr cntp_tval_el0, %0" :: "r"(tval));
 }
 
@@ -120,6 +120,50 @@ static void enable_dtb_timer_irqs() {
     }
 }
 
+void
+enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
+                       const uint32_t non_secure_el1_timer_gsiv,
+                       const uint32_t virtual_el1_timer_gsiv,
+                       const uint32_t virtual_el2_timer_gsiv,
+                       const uint32_t el2_timer_gsiv,
+                       const enum irq_trigger_mode secure_el1_trigger_mode,
+                       const enum irq_trigger_mode non_secure_el1_trigger_mode,
+                       const enum irq_trigger_mode virtual_el1_trigger_mode,
+                       const enum irq_trigger_mode el2_trigger_mode,
+                       const enum irq_trigger_mode virtual_el2_trigger_mode)
+{
+    (void)el2_trigger_mode;
+    (void)el2_timer_gsiv;
+    (void)virtual_el2_timer_gsiv;
+    (void)virtual_el2_trigger_mode;
+
+    isr_set_vector(secure_el1_timer_gsiv,
+                   interrupt_handler,
+                   &ARCH_ISR_INFO_NONE());
+
+    isr_set_vector(non_secure_el1_timer_gsiv,
+                   interrupt_handler,
+                   &ARCH_ISR_INFO_NONE());
+    isr_set_vector(virtual_el1_timer_gsiv,
+                   interrupt_handler,
+                   &ARCH_ISR_INFO_NONE());
+
+    gicd_set_irq_trigger_mode(secure_el1_timer_gsiv, secure_el1_trigger_mode);
+    gicd_set_irq_trigger_mode(non_secure_el1_timer_gsiv,
+                              non_secure_el1_trigger_mode);
+
+    gicd_set_irq_trigger_mode(virtual_el1_timer_gsiv, virtual_el1_trigger_mode);
+
+    /* gicd_set_irq_trigger_mode(el2_timer_gsiv, el2_trigger_mode);
+       gicd_set_irq_trigger_mode(virtual_el2_timer_gsiv,
+                                 virtual_el2_trigger_mode); */
+
+    gicd_unmask_irq(secure_el1_timer_gsiv);
+    gicd_unmask_irq(non_secure_el1_timer_gsiv);
+    gicd_unmask_irq(virtual_el1_timer_gsiv);
+
+}
+
 void arch_init_time() {
     asm volatile ("mrs %0, cntfrq_el0" : "=r"(g_frequency));
     printk(LOGLEVEL_INFO,
@@ -136,8 +180,9 @@ void arch_init_time() {
     if (boot_get_dtb() != NULL) {
         enable_dtb_timer_irqs();
     } else {
-        assert_msg(get_acpi_info()->gtdt != NULL,
-                   "time: dtb is missing and acpi is missing 'gtdt' table");
+        const struct acpi_gtdt *const gtdt = get_acpi_info()->gtdt;
+        assert_msg(gtdt != NULL,
+                   "time: dtb is missing and acpi is missing a 'gtdt' table");
     }
 
     printk(LOGLEVEL_INFO,

@@ -26,7 +26,7 @@ uint64_t align_down(uint64_t number, uint64_t boundary);
 bool align_up(uint64_t number, uint64_t boundary, uint64_t *result_out);
 
 #define align_up_assert(number, boundary) ({ \
-    uint64_t __result__ = (number); \
-    assert(align_up(__result__, (boundary), &__result__)); \
-    __result__; \
+    uint64_t __alignupresult__ = (number); \
+    assert(align_up(__alignupresult__, (boundary), &__alignupresult__)); \
+    __alignupresult__; \
 })

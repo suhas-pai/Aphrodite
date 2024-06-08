@@ -53,9 +53,9 @@ struct acpi_madt {
 enum acpi_madt_entry_kind {
     ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC,
     ACPI_MADT_ENTRY_KIND_IO_APIC,
-    ACPI_MADT_ENTRY_KIND_INT_SRC_OVERRIDE,
-    ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INT_SRC,
-    ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INT,
+    ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE,
+    ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR_SRC,
+    ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR,
     ACPI_MADT_ENTRY_KIND_LOCAL_APIC_ADDR_OVERRIDE,
     ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC = 9,
     ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC_NMI,
@@ -66,12 +66,10 @@ enum acpi_madt_entry_kind {
     ACPI_MADT_ENTRY_KIND_GIC_INTR_TRANSLATE_SERVICE,
     ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE,
 
-#if defined(__riscv64)
     ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER = 24,
     ACPI_MADT_ENTRY_KIND_RISCV_IMSIC,
     ACPI_MADT_ENTRY_KIND_RISCV_APLIC,
     ACPI_MADT_ENTRY_KIND_RISCV_PLIC,
-#endif /* defined(__riscv64) */
 };
 
 struct acpi_madt_entry_header {
@@ -242,6 +240,75 @@ struct acpi_madt_entry_gic_its {
     uint64_t phys_base_address;
     uint32_t reserved_2;
 } __packed;
+
+enum acpi_madt_riscv_hart_irq_controller_flags {
+    __ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED = 1 << 0,
+    __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE = 1 << 1,
+};
+
+struct acpi_madt_riscv_hart_irq_controller {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint8_t reserved;
+    uint32_t flags;
+    uint64_t hart_id;
+
+    uint32_t acpi_proc_uid;
+    uint32_t external_irq_controller_id;
+
+    uint64_t imsic_base;
+    uint32_t imsic_size;
+} __packed;
+
+struct acpi_madt_riscv_imsic {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint8_t reserved;
+    uint32_t flags;
+
+    uint16_t supervisor_node_irq_identity_count;
+    uint16_t guest_node_irq_identity_count;
+
+    uint8_t guest_index_bits;
+    uint8_t hart_index_bits;
+    uint8_t group_index_bits;
+    uint8_t group_index_shift;
+} __packed;
+
+struct acpi_madt_riscv_aplic {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint8_t id;
+    uint32_t flags;
+    uint64_t hardware_id;
+    uint16_t idc_count;
+    uint16_t ext_irq_source_count;
+
+    uint32_t gsi_base;
+
+    uint64_t aplic_base;
+    uint32_t aplic_size;
+} __packed;
+
+struct acpi_madt_riscv_plic {
+    struct acpi_madt_entry_header header;
+
+    uint8_t version;
+    uint8_t id;
+    uint64_t hardware_id;
+    uint16_t total_ext_irq_source_supported;
+    uint16_t max_prio;
+    uint32_t flags;
+
+    uint32_t plic_size;
+    uint64_t plic_base;
+
+    uint32_t gsi_base;
+} __packed;
+
 
 enum acpi_gas_addrspace_kind {
     ACPI_GAS_ADDRSPACE_KIND_SYSMEM,

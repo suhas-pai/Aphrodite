@@ -11,7 +11,7 @@ enum irq_polarity {
     IRQ_POLARITY_HIGH,
 };
 
-enum irq_trigger_mpde {
+enum irq_trigger_mode {
     IRQ_TRIGGER_MODE_EDGE,
     IRQ_TRIGGER_MODE_LEVEL,
 };

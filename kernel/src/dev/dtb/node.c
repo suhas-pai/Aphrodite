@@ -4,7 +4,6 @@
  */
 
 #include "node.h"
-
 #define DEVICETREE_PROP_MAP_BUCKET_COUNT 6
 
 __optimize(3) void

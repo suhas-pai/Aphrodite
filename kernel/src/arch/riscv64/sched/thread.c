@@ -3,38 +3,35 @@
  * © suhas pai
  */
 
-#include "asm/csr.h"
-#include "cpu/util.h"
-#include "mm/pagemap.h"
+#include "mm/kmalloc.h"
 #include "sched/thread.h"
 
 __optimize(3) struct thread *current_thread() {
-    return (struct thread *)csr_read(sscratch);
+    struct thread *x = NULL;
+    asm volatile("mv %0, tp" : "=r"(x));
+
+    return x;
 }
 
 __optimize(3) void sched_set_current_thread(struct thread *const thread) {
-    csr_write(sscratch, (uint64_t)thread);
+    asm volatile("mv tp, %0" : : "r"((uint64_t)thread));
 }
 
-void sched_prepare_thread(struct thread *const thread) {
-    (void)thread;
-}
-
-extern void context_switch(struct stack_frame *prev, struct stack_frame *next);
+extern __noreturn void thread_spinup(const struct thread_context *context);
 
 __optimize(3) void
 sched_switch_to(struct thread *const prev,
                 struct thread *const next,
                 struct thread_context *const prev_context)
 {
-    (void)prev_context;
     if (prev->process != next->process) {
         switch_to_pagemap(&next->process->pagemap);
     }
 
-    context_switch(&prev->arch_info.frame, &next->arch_info.frame);
-}
+    if (prev->cpu == NULL || prev != prev->cpu->idle_thread) {
+        prev->context = *prev_context;
+    }
 
-__optimize(3) void sched_switch_to_idle() {
-    cpu_idle();
+    thread_spinup(&next->context);
+    verify_not_reached();
 }

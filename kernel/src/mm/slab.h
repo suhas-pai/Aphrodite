@@ -30,6 +30,8 @@ enum slab_allocator_flags {
     __SLAB_ALLOC_NO_LOCK = 1ull << 0
 };
 
+void check_slabs(struct slab_allocator *allocator);
+
 bool
 slab_allocator_init(struct slab_allocator *allocator,
                     uint32_t object_size,

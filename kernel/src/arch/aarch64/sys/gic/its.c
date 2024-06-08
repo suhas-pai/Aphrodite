@@ -34,7 +34,7 @@ enum gic_its_baser_kind {
     GIC_ITS_BASER_KIND_UNIMPLEMENTED,
     GIC_ITS_BASER_KIND_DEVICES,
     GIC_ITS_BASER_KIND_VPES,
-    GIC_ITS_BASER_KIND_INT_COLLECTIONS = 0b100,
+    GIC_ITS_BASER_KIND_INTR_COLLECTIONS = 0b100,
 };
 
 enum gic_its_baser_shifts {
@@ -49,7 +49,7 @@ enum gic_its_ctrl_flags {
 
 enum gic_its_typer_shifts {
     GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE_SHIFT = 4,
-    GIC_ITS_TYPER_INT_ID_BITS_MINUS_ONE_SHIFT = 8,
+    GIC_ITS_TYPER_INTR_ID_BITS_MINUS_ONE_SHIFT = 8,
     GIC_ITS_TYPER_DEV_ID_BITS_MINUS_ONE_SHIFT = 13,
     GIC_ITS_TYPER_HW_COLLECTION_COUNT_SHIFT = 24,
     GIC_ITS_TYPER_COLLECTION_ID_BITS_MINUS_ONE_SHIFT = 32,
@@ -60,8 +60,8 @@ enum gic_its_typer_flags {
     __GIC_ITS_TYPER_SUPPORTS_VIRT_LPIS = 1 << 1,
     __GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE =
         0xF << GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE_SHIFT,
-    __GIC_ITS_TYPER_INT_ID_BITS_MINUS_ONE =
-        0xF << GIC_ITS_TYPER_INT_ID_BITS_MINUS_ONE_SHIFT,
+    __GIC_ITS_TYPER_INTR_ID_BITS_MINUS_ONE =
+        0xF << GIC_ITS_TYPER_INTR_ID_BITS_MINUS_ONE_SHIFT,
     __GIC_ITS_TYPER_DEV_ID_BITS_MINUS_ONE =
         0xF << GIC_ITS_TYPER_DEV_ID_BITS_MINUS_ONE_SHIFT,
     __GIC_ITS_TYPER_SUPPORTS_SERROR_INT = 1 << 19,
@@ -148,19 +148,20 @@ struct gic_its_device_table_entry {
 };
 
 enum gic_its_interrupt_table_entry_shifts {
-    GIC_ITS_INT_TABLE_VECTOR_SHIFT = 2,
-    GIC_ITS_INT_TABLE_ICID_SHIFT = 32,
-    GIC_ITS_INT_TABLE_VPEID_SHIFT = 32,
+    GIC_ITS_INTR_TABLE_VECTOR_SHIFT = 2,
+    GIC_ITS_INTR_TABLE_ICID_SHIFT = 32,
+    GIC_ITS_INTR_TABLE_VPEID_SHIFT = 32,
 };
 
 enum gic_its_interrupt_table_entry_flags {
-    __GIC_ITS_INT_TABLE_ENTRY_VALID = 1 << 0,
-    __GIC_ITS_INT_TABLE_ENTRY_PHYSICAL_INTERRUPT = 1 << 1,
-    __GIC_ITS_INT_TABLE_ENTRY_VECTOR =
-        mask_for_n_bits(24) << GIC_ITS_INT_TABLE_VECTOR_SHIFT,
-    __GIC_ITS_INT_TABLE_ENTRY_ICID = 0xFFFFFull << GIC_ITS_INT_TABLE_ICID_SHIFT,
-    __GIC_ITS_INT_TABLE_ENTRY_VPEID =
-        0xFFFFFull << GIC_ITS_INT_TABLE_VPEID_SHIFT,
+    __GIC_ITS_INTR_TABLE_ENTRY_VALID = 1 << 0,
+    __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTERRUPT = 1 << 1,
+    __GIC_ITS_INTR_TABLE_ENTRY_VECTOR =
+        mask_for_n_bits(24) << GIC_ITS_INTR_TABLE_VECTOR_SHIFT,
+    __GIC_ITS_INTR_TABLE_ENTRY_ICID =
+        0xFFFFFull << GIC_ITS_INTR_TABLE_ICID_SHIFT,
+    __GIC_ITS_INTR_TABLE_ENTRY_VPEID =
+        0xFFFFFull << GIC_ITS_INTR_TABLE_VPEID_SHIFT,
 };
 
 struct gic_its_intr_table_entry {
@@ -212,13 +213,13 @@ fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
         its->int_collection_table
         + (its->int_collection_table_entry_count * icid);
 
-    const int flag = disable_irqs_if_enabled();
+    preempt_disable();
     entry->flags =
         this_cpu()->processor_number
             << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
         | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
 
-    enable_irqs_if_flag(flag);
+    preempt_enable();
     return true;
 }
 
@@ -258,10 +259,10 @@ fill_out_device_table(struct gic_its_info *const its,
     struct gic_its_intr_table_entry *const itt = phys_to_virt(phys);
     itt[msi_index].flags =
         (uint64_t)(GIC_ITS_LPI_INTERRUPT_START + vector)
-            << GIC_ITS_INT_TABLE_VECTOR_SHIFT
-        | (uint64_t)icid << GIC_ITS_INT_TABLE_ICID_SHIFT
-        | __GIC_ITS_INT_TABLE_ENTRY_PHYSICAL_INTERRUPT
-        | __GIC_ITS_INT_TABLE_ENTRY_VALID;
+            << GIC_ITS_INTR_TABLE_VECTOR_SHIFT
+        | (uint64_t)icid << GIC_ITS_INTR_TABLE_ICID_SHIFT
+        | __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTERRUPT
+        | __GIC_ITS_INTR_TABLE_ENTRY_VALID;
 
     return true;
 }
@@ -284,7 +285,7 @@ disable_msi_intr(struct gic_its_info *const its,
             << GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR_SHIFT;
 
     struct gic_its_intr_table_entry *const itt = phys_to_virt(phys);
-    rm_mask(itt[msi_index].flags, __GIC_ITS_INT_TABLE_ENTRY_VALID);
+    rm_mask(itt[msi_index].flags, __GIC_ITS_INTR_TABLE_ENTRY_VALID);
 
     return true;
 }
@@ -294,7 +295,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
                          struct device *const device,
                          const uint16_t msi_index)
 {
-    int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
     spin_acquire(&its->bitset_lock);
 
     const uint64_t vector =
@@ -319,13 +320,13 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
         return ISR_INVALID_VECTOR;
     }
 
-    flag = disable_irqs_if_enabled();
+    preempt_disable();
     mmio_write(&((uint8_t *)this_cpu()->gic_its_prop_page)[vector],
                __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
                | GICD_DEFAULT_PRIO <<
                     GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
 
-    enable_irqs_if_flag(flag);
+    preempt_enable();
     return vector;
 }
 
@@ -375,16 +376,16 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
         return NULL;
     }
 
-    info->bitset_lock = SPINLOCK_INIT();
-    info->queue_lock = SPINLOCK_INIT();
     info->mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
-
     if (info->mmio == NULL) {
         kfree(info);
         printk(LOGLEVEL_WARN, "gic/its: failed to mmio-map msi registers\n");
 
         return false;
     }
+
+    info->bitset_lock = SPINLOCK_INIT();
+    info->queue_lock = SPINLOCK_INIT();
 
     list_init(&info->list);
     struct page *const cmd_queue_page =
@@ -430,8 +431,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
            typer & __GIC_ITS_TYPER_SUPPORTS_VIRT_LPIS ? "yes" : "no",
            (typer & __GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE) >>
             GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE_SHIFT,
-           ((typer & __GIC_ITS_TYPER_INT_ID_BITS_MINUS_ONE) >>
-            GIC_ITS_TYPER_INT_ID_BITS_MINUS_ONE_SHIFT) + 1,
+           ((typer & __GIC_ITS_TYPER_INTR_ID_BITS_MINUS_ONE) >>
+            GIC_ITS_TYPER_INTR_ID_BITS_MINUS_ONE_SHIFT) + 1,
            ((typer & __GIC_ITS_TYPER_DEV_ID_BITS_MINUS_ONE) >>
             GIC_ITS_TYPER_DEV_ID_BITS_MINUS_ONE_SHIFT) + 1,
            typer & __GIC_ITS_TYPER_SUPPORTS_SERROR_INT ? "yes" : "no",
@@ -480,7 +481,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
             case GIC_ITS_BASER_KIND_VPES:
                 kind_desc = "vpes";
                 break;
-            case GIC_ITS_BASER_KIND_INT_COLLECTIONS:
+            case GIC_ITS_BASER_KIND_INTR_COLLECTIONS:
                 kind_desc = "interrupt collections";
                 break;
         }
@@ -529,7 +530,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
             }
             case GIC_ITS_BASER_KIND_VPES:
                 break;
-            case GIC_ITS_BASER_KIND_INT_COLLECTIONS: {
+            case GIC_ITS_BASER_KIND_INTR_COLLECTIONS: {
                 struct page *const table_page =
                     alloc_pages(PAGE_STATE_USED,
                                 __ALLOC_ZERO,
@@ -570,9 +571,8 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
                       const struct devicetree_node *const node)
 {
     (void)tree;
-    const struct devicetree_prop_no_value *const msi_controller_prop =
-        (const struct devicetree_prop_no_value *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_MSI_CONTROLLER);
+    const struct devicetree_prop *const msi_controller_prop =
+        devicetree_node_get_prop(node, DEVICETREE_PROP_MSI_CONTROLLER);
 
     if (msi_controller_prop == NULL) {
         printk(LOGLEVEL_WARN,

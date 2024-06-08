@@ -31,7 +31,7 @@ void gicdv2_mask_irq(irq_number_t irq);
 void gicdv2_unmask_irq(irq_number_t irq);
 
 void gicdv2_set_irq_affinity(irq_number_t irq, uint8_t iface);
-void gicdv2_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
+void gicdv2_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mode mode);
 void gicdv2_set_irq_priority(irq_number_t irq, uint8_t priority);
 
 void gicdv2_send_ipi(const struct cpu_info *cpu, uint8_t int_no);

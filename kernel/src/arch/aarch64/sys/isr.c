@@ -223,7 +223,7 @@ __optimize(3) void handle_interrupt(struct thread_context *const context) {
                irq,
                cpu_id);
 
-        cpu_mut_for_intr_number(cpu_id)->spur_intr_count++;
+        cpu_mut_for_gic_iface_no(cpu_id)->spur_intr_count++;
         gic_cpu_eoi(cpu_id, irq);
 
         return;
@@ -238,10 +238,14 @@ __optimize(3) void handle_interrupt(struct thread_context *const context) {
                "cpu %" PRIu8 "\n",
                irq,
                cpu_id);
+
+        gic_cpu_eoi(cpu_id, irq);
     }
 }
 
 __optimize(3) void handle_sync_exception(struct thread_context *const context) {
+    this_cpu_mut()->in_exception = true;
+
     const uint64_t esr = context->esr_el1;
     enable_interrupts();
 
@@ -326,6 +330,10 @@ __optimize(3) void handle_sync_exception(struct thread_context *const context) {
                    "isr: received a pc alignment fault from a lower el "
                    "exception\n");
             cpu_idle();
+        case ESR_ERROR_PAGE_TABLE_WALK_EL1:
+            printk(LOGLEVEL_WARN,
+                   "isr: received page table walk error at el1\n");
+            cpu_idle();
         case ESR_ERROR_CODE_DATA_ABORT_LOWER_EL:
             printk(LOGLEVEL_WARN,
                    "isr: received a data abort fault from a lower el "
@@ -391,7 +399,11 @@ __optimize(3) void handle_sync_exception(struct thread_context *const context) {
             cpu_idle();
     }
 
-    verify_not_reached();
+    printk(LOGLEVEL_WARN,
+           "isr: received unknown synchronous exception, with code %d\n",
+           error_code);
+
+    cpu_idle();
 }
 
 __optimize(3)

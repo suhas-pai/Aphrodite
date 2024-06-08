@@ -19,7 +19,7 @@ __optimize(3) void arch_early_init() {
 
     const uint64_t pte_flags = PTE_LEAF_FLAGS | __PTE_READ | __PTE_WRITE;
     const uint64_t root_phys =
-         (read_satp() & __SATP_PHYS_ROOT_NUM) << PML1_SHIFT;
+         (csr_read(satp) & __SATP_PHYS_ROOT_NUM) << PML1_SHIFT;
 
     mm_early_identity_map_phys(root_phys, QEMU_SERIAL_PHYS, pte_flags);
 }

@@ -6,6 +6,8 @@
 #pragma once
 
 #include "lib/macros.h"
+#include "lib/overflow.h"
+
 #include "mm/types.h"
 
 #define SIZEOF_STRUCTPAGE (sizeof(uint64_t) * 5)
@@ -28,9 +30,11 @@ struct page;
 
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))
 #define pfn_to_page(pfn) ({ \
-    __auto_type h_var(page) = PAGE_OFFSET + (SIZEOF_STRUCTPAGE * (pfn)); \
-    assert((uint64_t)h_var(page) >= PAGE_OFFSET && \
-           (uint64_t)h_var(page) < PAGE_END); \
+    __auto_type h_var(page) = \
+        PAGE_OFFSET + check_mul_assert(SIZEOF_STRUCTPAGE, (pfn)); \
+    assert_msg((uint64_t)h_var(page) >= PAGE_OFFSET && \
+               (uint64_t)h_var(page) < PAGE_END, \
+               "pfn_to_page(): pfn reaches outside range of page range"); \
     (struct page *)h_var(page); \
 })
 
@@ -38,14 +42,19 @@ struct page;
     _Generic((p), \
         const struct page *: ({ \
             const uint64_t h_var(page) = (uint64_t)(p); \
-            assert(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END); \
+            assert_msg(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END, \
+                       "page_to_pfn(): page %p is outside page range", \
+                       p); \
             check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
         }), \
         struct page *: ({ \
             const uint64_t h_var(page) = (uint64_t)(p); \
-            assert(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END); \
+            assert_msg(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END, \
+                       "page_to_pfn(): page %p is outside page range", \
+                       p); \
             check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
-        }))
+        }) \
+    )
 
 #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
 #define virt_to_page(virt) pfn_to_page(virt_to_pfn(virt))
@@ -53,14 +62,20 @@ struct page;
 #define page_to_virt(p) \
     _Generic((p), \
         const struct page *: ({ \
-            __auto_type __p = (p); \
-            assert((uint64_t)__p >= PAGE_OFFSET && (uint64_t)__p < PAGE_END); \
-            phys_to_virt(page_to_phys(__p)); \
+            __auto_type h_var(page) = (p); \
+            assert_msg((uint64_t)h_var(page) >= PAGE_OFFSET \
+                       && (uint64_t)h_var(page) < PAGE_END, \
+                       "page_to_virt(): %p is outside page range", \
+                       h_var(page)); \
+            phys_to_virt(page_to_phys(h_var(page))); \
         }), \
         struct page *: ({ \
-            __auto_type __p = (p); \
-            assert((uint64_t)__p >= PAGE_OFFSET && (uint64_t)__p < PAGE_END); \
-            phys_to_virt(page_to_phys(__p)); \
+            __auto_type h_var(page) = (p); \
+            assert_msg((uint64_t)h_var(page) >= PAGE_OFFSET \
+                       && (uint64_t)h_var(page) < PAGE_END, \
+                       "page_to_virt(): %p is outside page range", \
+                       h_var(page)); \
+            phys_to_virt(page_to_phys(h_var(page))); \
         }))
 
 typedef uint8_t pgt_level_t;

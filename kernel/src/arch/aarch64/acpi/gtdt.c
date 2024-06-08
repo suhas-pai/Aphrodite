@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "dev/time/time.h"
 #include "sys/gic/api.h"
 
 #include "dev/printk.h"
@@ -11,32 +12,32 @@
 #include "gtdt.h"
 
 void gtdt_init(const struct acpi_gtdt *const gtdt) {
-    const enum irq_trigger_mpde secure_el1_trigger_mode =
+    const enum irq_trigger_mode secure_el1_trigger_mode =
         (gtdt->secure_el1_timer_flags & __ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity secure_el1_polarity =
         (gtdt->secure_el1_timer_flags & __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
             IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
-    const enum irq_trigger_mpde non_secure_el1_trigger_mode =
+    const enum irq_trigger_mode non_secure_el1_trigger_mode =
         (gtdt->non_secure_el1_timer_flags & __ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity non_secure_el1_polarity =
         (gtdt->non_secure_el1_timer_flags &
             __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
             IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
-    const enum irq_trigger_mpde virtual_el1_trigger_mode =
+    const enum irq_trigger_mode virtual_el1_trigger_mode =
         (gtdt->virtual_el1_timer_flags & __ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity virtual_el1_polarity =
         (gtdt->virtual_el1_timer_flags & __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
             IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
-    const enum irq_trigger_mpde el2_trigger_mode =
+    const enum irq_trigger_mode el2_trigger_mode =
         (gtdt->el2_timer_flags & __ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity el2_polarity =
         (gtdt->el2_timer_flags & __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
             IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
-    const enum irq_trigger_mpde virtual_el2_trigger_mode =
+    const enum irq_trigger_mode virtual_el2_trigger_mode =
         (gtdt->virtual_el2_timer_flags & __ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity virtual_el2_polarity =
@@ -110,22 +111,16 @@ void gtdt_init(const struct acpi_gtdt *const gtdt) {
            gtdt->virtual_el2_timer_flags & __ACPI_GTDT_ALWAYS_ON_CAP ?
             "yes" : "off");
 
-    gicd_set_irq_trigger_mode(gtdt->secure_el1_timer_gsiv,
-                              secure_el1_trigger_mode);
-
-    gicd_set_irq_trigger_mode(gtdt->non_secure_el1_timer_gsiv,
-                              non_secure_el1_trigger_mode);
-
-    gicd_set_irq_trigger_mode(gtdt->virtual_el1_timer_gsiv,
-                              virtual_el1_trigger_mode);
-
-    /* gicd_set_irq_trigger_mode(gtdt->el2_timer_gsiv, el2_trigger_mode);
-       gicd_set_irq_trigger_mode(gtdt->virtual_el2_timer_gsiv,
-                                 virtual_el2_trigger_mode); */
-
-    gicd_unmask_irq(gtdt->secure_el1_timer_gsiv);
-    gicd_unmask_irq(gtdt->non_secure_el1_timer_gsiv);
-    gicd_unmask_irq(gtdt->virtual_el1_timer_gsiv);
+    enable_gtdt_timer_irqs(gtdt->secure_el1_timer_gsiv,
+                           gtdt->non_secure_el1_timer_gsiv,
+                           gtdt->virtual_el1_timer_gsiv,
+                           gtdt->virtual_el2_timer_gsiv,
+                           gtdt->el2_timer_gsiv,
+                           secure_el1_trigger_mode,
+                           non_secure_el1_trigger_mode,
+                           virtual_el1_trigger_mode,
+                           el2_trigger_mode,
+                           virtual_el2_trigger_mode);
 
     if (!index_in_bounds(gtdt->platform_timer_offset, gtdt->sdt.length)) {
         printk(LOGLEVEL_WARN,

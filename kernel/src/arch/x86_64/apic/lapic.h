@@ -93,7 +93,7 @@ enum lapic_reg {
     LAPIC_REG_TIMER_DVR = 0x3E0,
 };
 
-enum x2apic_lapic_reg {
+enum x2apic_reg {
     X2APIC_LAPIC_REG_ID = 0x2,
     X2APIC_LAPIC_REG_VERSION = 0x3,
 
@@ -208,8 +208,8 @@ extern volatile struct lapic_registers *lapic_regs;
 void lapic_init();
 void lapic_add(const struct lapic_info *info);
 
-uint32_t lapic_read(enum x2apic_lapic_reg reg);
-void lapic_write(enum x2apic_lapic_reg reg, const uint64_t val);
+uint32_t x2apic_read(enum x2apic_reg reg);
+void x2apic_write(enum x2apic_reg reg, const uint64_t val);
 
 void lapic_eoi();
 void lapic_enable();

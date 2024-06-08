@@ -5,10 +5,12 @@
 
 #pragma once
 
-#include "sys/irq.h"
+#include "sys/irqdef.h"
 #include "thread.h"
 
 void sched_init();
+void sched_init_on_cpu(struct cpu_info *cpu);
+
 void sched_algo_init();
 void sched_algo_post_init();
 
@@ -18,7 +20,6 @@ void sched_next(irq_number_t irq, struct thread_context *context);
 void sched_yield();
 
 struct thread;
-void sched_prepare_thread(struct thread *thread);
 
 void
 sched_switch_to(struct thread *prev,

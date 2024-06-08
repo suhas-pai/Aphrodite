@@ -154,6 +154,37 @@ static void xsave_init() {
 }
 
 static void init_cpuid_features() {
+    // Recommended settings for recent x86-64 cpus are:
+    //  0 for EM
+    //  1 for MP
+    //
+    // Enable rdgsbase/wrgsbase before the first call to printk() so
+    // cpu_in_bad_state() works properly.
+    //
+
+    const uint64_t cr0 = read_cr0();
+    write_cr0(rm_mask(cr0, __CR0_BIT_EM) | __CR0_BIT_MP);
+
+    const uint64_t cr4 = read_cr4();
+    const uint64_t cr4_bits =
+        __CR4_BIT_TSD
+        | __CR4_BIT_DE
+        | __CR4_BIT_PGE
+        | __CR4_BIT_OSFXSR
+        | __CR4_BIT_OSXMMEXCPTO
+        | __CR4_BIT_FSGSBASE
+        | __CR4_BIT_SMEP
+        | __CR4_BIT_SMAP
+        | __CR4_BIT_OSXSAVE;
+
+    write_cr4(cr4 | cr4_bits);
+    printk(LOGLEVEL_INFO,
+           "cpu: control-registers:\n"
+           "\tcr0: 0x%" PRIx64 "\n"
+           "\tcr4: 0x%" PRIx64 "\n",
+           cr0,
+           cr4);
+
     {
         uint64_t eax, ebx, ecx, edx;
         cpuid(CPUID_GET_FEATURES, /*subleaf=*/0, &eax, &ebx, &ecx, &edx);
@@ -383,33 +414,6 @@ static void init_cpuid_features() {
                "cpu: xsave supervisor size is %" PRIu16 "\n",
                g_cpu_capabilities.xsave_supervisor_size);
     }
-
-    // Recommended settings for recent x86-64 cpus are:
-    //  0 for EM
-    //  1 for MP
-
-    const uint64_t cr0 = read_cr0();
-    write_cr0(rm_mask(cr0, __CR0_BIT_EM) | __CR0_BIT_MP);
-
-    const uint64_t cr4 = read_cr4();
-    const uint64_t cr4_bits =
-        __CR4_BIT_TSD
-        | __CR4_BIT_DE
-        | __CR4_BIT_PGE
-        | __CR4_BIT_OSFXSR
-        | __CR4_BIT_OSXMMEXCPTO
-        | __CR4_BIT_FSGSBASE
-        | __CR4_BIT_SMEP
-        | __CR4_BIT_SMAP
-        | __CR4_BIT_OSXSAVE;
-
-    write_cr4(cr4 | cr4_bits);
-    printk(LOGLEVEL_INFO,
-           "cpu: control-registers:\n"
-           "\tcr0: 0x%" PRIx64 "\n"
-           "\tcr4: 0x%" PRIx64 "\n",
-           cr0,
-           cr4);
 
     // Enable Syscalls
     msr_write(IA32_MSR_EFER,

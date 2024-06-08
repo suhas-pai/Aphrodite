@@ -4,11 +4,12 @@
  */
 
 #include "lib/overflow.h"
+#include "mm/mm_types.h"
 
 __hidden uint64_t HHDM_OFFSET = 0;
 
 __optimize(3) void *phys_to_virt(const uint64_t phys) {
-    assert_msg(phys != 0, "phys_to_virt() got phys 0x0");
+    assert_msg(phys >= PAGE_SIZE, "phys_to_virt() got phys %p", (void *)phys);
     return (void *)check_add_assert(HHDM_OFFSET, phys);
 }
 

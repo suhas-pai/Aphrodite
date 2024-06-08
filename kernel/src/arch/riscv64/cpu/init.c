@@ -22,14 +22,14 @@ static void setup_from_dtb(const uint32_t hartid) {
     const struct devicetree_node *const cpus_node =
         devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
 
-    assert_msg(cpus_node != NULL, "cpu: dtb is missing 'cpus' node");
+    assert_msg(cpus_node != NULL, "cpu: dtb is missing a 'cpus' node");
     devicetree_node_foreach_child(cpus_node, iter) {
         const struct devicetree_prop_reg *const reg_prop =
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(cpus_node, DEVICETREE_PROP_REG);
 
         assert_msg(reg_prop != NULL,
-                   "cpu: dtb node of cpu is missing 'reg' prop");
+                   "cpu: dtb node of cpu is missing a 'reg' prop");
         assert_msg(array_item_count(reg_prop->list) == 1,
                    "cpu: 'reg' prop is of the wrong format");
 
@@ -48,7 +48,7 @@ static void setup_from_dtb(const uint32_t hartid) {
             devicetree_node_get_other_prop(cpus_node, cbo_sv);
 
         assert_msg(cbo_prop != NULL,
-                   "cpu: dtb node of cpu is missing '" SV_FMT "' prop",
+                   "cpu: dtb node of cpu is missing a '" SV_FMT "' prop",
                    SV_FMT_ARGS(cbo_sv));
 
         const struct string_view cmo_sv = SV_STATIC("riscv,cbom-block-size");
@@ -56,7 +56,7 @@ static void setup_from_dtb(const uint32_t hartid) {
             devicetree_node_get_other_prop(cpus_node, cmo_sv);
 
         assert_msg(cmo_prop != NULL,
-                   "cpu: dtb node of cpu is missing '" SV_FMT "' prop",
+                   "cpu: dtb node of cpu is missing a '" SV_FMT "' prop",
                    SV_FMT_ARGS(cmo_sv));
 
         uint32_t cbo_size = 0;
@@ -76,14 +76,11 @@ static void setup_from_dtb(const uint32_t hartid) {
 }
 
 extern void isr_interrupt_entry();
+extern void sched_set_current_thread(struct thread *thread);
 
 __optimize(3) void cpu_early_init() {
-    csr_write(sscratch, (uint64_t)&kernel_main_thread);
+    sched_set_current_thread(&kernel_main_thread);
     csr_write(stvec, (uint64_t)&isr_interrupt_entry);
-}
-
-__optimize(3) void cpu_init() {
-    this_cpu_mut()->hart_id = boot_get_smp()->bsp_hartid;
 }
 
 __optimize(3) void cpu_init_from_dtb() {

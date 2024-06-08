@@ -1,3 +1,4 @@
+bits 64
 section .text
 
 extern isr_handle_interrupt
@@ -41,6 +42,7 @@ extern lapic_eoi
 
 %macro idt_func 1
 align 16
+bits 64
 idt_func_%1:
     cld
     %if %1 != 8 && %1 != 10 && %1 != 11 && %1 != 12 && %1 != 13 && %1 != 14 && %1 != 17 && %1 != 30

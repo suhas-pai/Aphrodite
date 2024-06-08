@@ -14,21 +14,9 @@ define DEFAULT_VAR =
     endif
 endef
 
-# Toolchain for building the 'limine' executable for the host.
-override DEFAULT_HOST_CC := cc
-$(eval $(call DEFAULT_VAR,HOST_CC,$(DEFAULT_HOST_CC)))
-override DEFAULT_HOST_CFLAGS := -g -O2 -pipe
-$(eval $(call DEFAULT_VAR,HOST_CFLAGS,$(DEFAULT_HOST_CFLAGS)))
-override DEFAULT_HOST_CPPFLAGS :=
-$(eval $(call DEFAULT_VAR,HOST_CPPFLAGS,$(DEFAULT_HOST_CPPFLAGS)))
-override DEFAULT_HOST_LDFLAGS :=
-$(eval $(call DEFAULT_VAR,HOST_LDFLAGS,$(DEFAULT_HOST_LDFLAGS)))
-override DEFAULT_HOST_LIBS :=
-$(eval $(call DEFAULT_VAR,HOST_LIBS,$(DEFAULT_HOST_LIBS)))
-
 # Target architecture to build for. Default to x86_64.
-override DEFAULT_ARCH := x86_64
-$(eval $(call DEFAULT_VAR,ARCH,$(DEFAULT_ARCH)))
+override DEFAULT_KARCH := x86_64
+$(eval $(call DEFAULT_VAR,KARCH,$(DEFAULT_KARCH)))
 
 override DEFAULT_MEM := 4G
 $(eval $(call DEFAULT_VAR,MEM,$(DEFAULT_MEM)))
@@ -46,12 +34,12 @@ else
 endif
 
 DEFAULT_MACHINE=virt
-ifeq ($(ARCH), x86_64)
+ifeq ($(KARCH), x86_64)
 	DEFAULT_MACHINE=q35
 endif
 
 MACHINE=$(DEFAULT_MACHINE)
-ifeq ($(ARCH), x86_64)
+ifeq ($(KARCH), x86_64)
 ifeq ($(DISABLE_ACPI), 1)
 $(error ACPI cannot be disabled on x86_64)
 endif
@@ -62,7 +50,7 @@ else
 endif
 
 DEFAULT_DRIVE_KIND=block
-ifeq ($(ARCH), riscv64)
+ifeq ($(KARCH), riscv64)
 	DEFAULT_DRIVE_KIND=scsi
 endif
 
@@ -82,11 +70,14 @@ $(eval $(call DEFAULT_VAR,DISABLE_FLANTERM,$(DEFAULT_DISABLE_FLANTERM)))
 DEFAULT_DEBUG_LOCKS=0
 $(eval $(call DEFAULT_VAR,DEBUG_LOCKS,$(DEFAULT_DEBUG_LOCKS)))
 
+DEFAULT_CHECK_SLABS=0
+$(eval $(call DEFAULT_VAR,CHECK_SLABS,$(DEFAULT_CHECK_SLABS)))
+
 VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
 
 ifeq ($(DRIVE_KIND),block)
-	ifeq ($(ARCH), riscv64)
+	ifeq ($(KARCH), riscv64)
 		$(error "block device not supported on riscv64")
 	endif
 
@@ -112,10 +103,10 @@ all: $(IMAGE_NAME).iso
 all-hdd: $(IMAGE_NAME).hdd
 
 .PHONY: run
-run: run-$(ARCH)
+run: run-$(KARCH)
 
 .PHONY: run-hdd
-run-hdd: run-hdd-$(ARCH)
+run-hdd: run-hdd-$(KARCH)
 
 .PHONY: run-x86_64
 run-x86_64: QEMU_RUN = 1
@@ -130,7 +121,7 @@ run-hdd-x86_64: ovmf $(IMAGE_NAME).hdd
 .PHONY: run-aarch64
 run-aarch64: QEMU_RUN = 1
 run-aarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-aarch64 -M $(MACHINE),gic-version=max -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-$(ARCH)/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-aarch64 -M $(MACHINE),gic-version=max -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-$(KARCH)/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-aarch64
 run-hdd-aarch64: QEMU_RUN = 1
@@ -158,7 +149,7 @@ run-hdd-bios: $(IMAGE_NAME).hdd
 	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -hda $(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: ovmf
-ovmf: ovmf-$(ARCH)
+ovmf: ovmf-$(KARCH)
 
 ovmf-x86_64:
 	mkdir -p ovmf-x86_64
@@ -172,27 +163,23 @@ ovmf-riscv64:
 	mkdir -p ovmf-riscv64
 	cd ovmf-riscv64 && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT_CODE.fd && dd if=/dev/zero of=OVMF.fd bs=1 count=0 seek=33554432
 
-limine:
+limine/limine:
+	rm -rf limine
 	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
-	$(MAKE) -C limine \
-		CC="$(HOST_CC)" \
-		CFLAGS="$(HOST_CFLAGS)" \
-		CPPFLAGS="$(HOST_CPPFLAGS)" \
-		LDFLAGS="$(HOST_LDFLAGS)" \
-		LIBS="$(HOST_LIBS)"
+	$(MAKE) -C limine
 
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel DEBUG=$(DEBUG) DISABLE_FLANTERM=$(DISABLE_FLANTERM) DEBUG_LOCKS=$(DEBUG_LOCKS)
+	$(MAKE) -C kernel DEBUG=$(DEBUG) DISABLE_FLANTERM=$(DISABLE_FLANTERM) DEBUG_LOCKS=$(DEBUG_LOCKS) CHECK_SLABS_=$(CHECK_SLABS)
 
-$(IMAGE_NAME).iso: limine kernel
+$(IMAGE_NAME).iso: limine/limine kernel
 	rm -rf iso_root
 	mkdir -p iso_root/boot
 	cp -v kernel/bin/kernel iso_root/boot/
 	mkdir -p iso_root/boot/limine
 	cp -v limine.cfg iso_root/boot/limine/
 	mkdir -p iso_root/EFI/BOOT
-ifeq ($(ARCH),x86_64)
+ifeq ($(KARCH),x86_64)
 	cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
 	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
 	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
@@ -202,14 +189,14 @@ ifeq ($(ARCH),x86_64)
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 	./limine/limine bios-install $(IMAGE_NAME).iso
-else ifeq ($(ARCH),aarch64)
+else ifeq ($(KARCH),aarch64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine
 	cp -v limine/BOOTAA64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs \
 		--efi-boot boot/limine/limine-uefi-cd.bin \
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
-else ifeq ($(ARCH),riscv64)
+else ifeq ($(KARCH),riscv64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine
 	cp -v limine/BOOTRISCV64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs \
@@ -223,20 +210,20 @@ $(IMAGE_NAME).hdd: limine kernel
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
-ifeq ($(ARCH),x86_64)
+ifeq ($(KARCH),x86_64)
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 endif
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT ::/boot ::/boot/limine
 	mcopy -i $(IMAGE_NAME).hdd@@1M kernel/bin/kernel ::/boot
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine.cfg ::/boot/limine
-ifeq ($(ARCH),x86_64)
+ifeq ($(KARCH),x86_64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/limine-bios.sys ::/boot/limine
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTIA32.EFI ::/EFI/BOOT
-else ifeq ($(ARCH),aarch64)
+else ifeq ($(KARCH),aarch64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTAA64.EFI ::/EFI/BOOT
-else ifeq ($(ARCH),riscv64)
+else ifeq ($(KARCH),riscv64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTRISCV64.EFI ::/EFI/BOOT
 endif
 

@@ -10,6 +10,8 @@
 
 #define KMALLOC_MAX 12288
 
+void kmalloc_check_slabs();
+
 void kmalloc_init();
 bool kmalloc_initialized();
 

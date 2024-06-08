@@ -5,9 +5,12 @@
 
 #include <stdatomic.h>
 
-#include "cpu/spinlock.h"
-#include "lib/parse_printf.h"
+#include "asm/irqs.h"
 
+#include "cpu/info.h"
+#include "cpu/spinlock.h"
+
+#include "lib/parse_printf.h"
 #include "printk.h"
 
 static struct terminal *_Atomic g_first_term = NULL;
@@ -87,9 +90,16 @@ void putk_sv(const enum log_level level, const struct string_view sv) {
 __optimize(3) void
 vprintk(const enum log_level loglevel, const char *const string, va_list list) {
     (void)loglevel;
-
     static struct spinlock lock = SPINLOCK_INIT();
-    const int flag = spin_acquire_save_irq(&lock);
+
+    const bool flag = disable_irqs_if_enabled();
+    const bool in_exception = cpu_in_bad_state();
+
+    if (in_exception) {
+        lock = SPINLOCK_INIT();
+    } else {
+        spin_acquire(&lock);
+    }
 
     parse_printf(string,
                  write_char,
@@ -98,5 +108,9 @@ vprintk(const enum log_level loglevel, const char *const string, va_list list) {
                  /*sv_cb_info=*/NULL,
                  list);
 
-    spin_release_restore_irq(&lock, flag);
+    if (!in_exception) {
+        spin_release(&lock);
+    }
+
+    enable_irqs_if_flag(flag);
 }

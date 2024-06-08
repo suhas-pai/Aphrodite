@@ -320,14 +320,14 @@ enum ahci_hba_global_host_control_flags {
      * which bits are reset when this bit is set, see see section 10.4.3.
      */
     __AHCI_HBA_GLOBAL_HOST_CTRL_HBA_RESET = 1ull << 0,
-    __AHCI_HBA_GLOBAL_HOST_CTRL_INT_ENABLE = 1ull << 1,
+    __AHCI_HBA_GLOBAL_HOST_CTRL_INTR_ENABLE = 1ull << 1,
     __AHCI_HBA_GLOBAL_HOST_CTRL_MSI_REVERT_TO_SINGLE_MEASURE = 1ull << 2,
     __AHCI_HBA_GLOBAL_HOST_CTRL_AHCI_ENABLE = 1ull << 31,
 };
 
 enum ahci_hba_cmd_compl_coalescing_ctrl_shifts {
-    AHCI_HBA_CMD_COMPL_COALESCING_INT_NUMBER_SHIFT = 3,
-    AHCI_HBA_CMD_COMPL_COALESCING_COUNT_REQ_FOR_INT_SHIFT = 8,
+    AHCI_HBA_CMD_COMPL_COALESCING_INTR_NUMBER_SHIFT = 3,
+    AHCI_HBA_CMD_COMPL_COALESCING_COUNT_REQ_FOR_INTR_SHIFT = 8,
     AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS_SHIFT = 16
 };
 
@@ -342,8 +342,8 @@ enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
      * interrupt occurs, the IS.IPS[INT] bit shall be asserted to ‘1’. This
      * field also specifies the interrupt vector used for MSI.
      */
-    __AHCI_HBA_CMD_COMPL_COALESCING_INT_NUMBER =
-        0b11111 << AHCI_HBA_CMD_COMPL_COALESCING_INT_NUMBER_SHIFT,
+    __AHCI_HBA_CMD_COMPL_COALESCING_INTR_NUMBER =
+        0b11111 << AHCI_HBA_CMD_COMPL_COALESCING_INTR_NUMBER_SHIFT,
 
     /*
      * Specifies the number of command completions that are necessary to cause a
@@ -357,7 +357,7 @@ enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
      * interrupts are only generated based on the timer in this case.
      */
     __AHCI_HBA_CMD_COMPL_COALESCING_COUNT_REQ_FOR_INT =
-        0xffull << AHCI_HBA_CMD_COMPL_COALESCING_COUNT_REQ_FOR_INT_SHIFT,
+        0xffull << AHCI_HBA_CMD_COMPL_COALESCING_COUNT_REQ_FOR_INTR_SHIFT,
 
     /*
      * The timeout value is specified in 1 millisecond intervals. The timer
@@ -392,7 +392,7 @@ enum sata_sig {
 
 enum ahci_spec_hba_prdt_entry_flags {
     __AHCI_SPEC_HBA_PRDT_ENTRY_DATA_BYTE_COUNT_MINUS_ONE = mask_for_n_bits(22),
-    __AHCI_SPEC_HBA_PRDT_ENTRY_INT_ON_COMPLETION = 1ull << 31,
+    __AHCI_SPEC_HBA_PRDT_ENTRY_INTR_ON_COMPLETION = 1ull << 31,
 };
 
 struct ahci_spec_hba_prdt_entry {

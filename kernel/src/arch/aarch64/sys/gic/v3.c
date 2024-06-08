@@ -128,7 +128,7 @@ enum icc_sgi1r_routing_mode {
 
 enum icc_sgi1r_shifts {
     ICC_SGI1R_AFF1_SHIFT = 16,
-    ICC_SGI1R_INT_ID_SHIFT = 24,
+    ICC_SGI1R_INTR_ID_SHIFT = 24,
     ICC_SGI1R_AFF2_SHIFT = 32,
     ICC_SGI1R_ROUTING_MODE_SHIFT = 40,
     ICC_SGI1R_AFF3_SHIFT = 48,
@@ -137,7 +137,7 @@ enum icc_sgi1r_shifts {
 enum icc_sgi1r_flags {
     __ICC_SGI1R_TARGET_LIST = 0xFFFFull,
     __ICC_SGI1R_AFF1 = 0xFFull << ICC_SGI1R_AFF1_SHIFT,
-    __ICC_SGI1R_INT_ID = 0xFull << ICC_SGI1R_AFF1_SHIFT,
+    __ICC_SGI1R_INTR_ID = 0xFull << ICC_SGI1R_AFF1_SHIFT,
     __ICC_SGI1R_AFF2 = 0xFFull << ICC_SGI1R_AFF2_SHIFT,
     __ICC_SGI1R_ROUTING_MODE = 0xFFull << ICC_SGI1R_ROUTING_MODE_SHIFT,
     __ICC_SGI1R_AFF3 = 0xFFull << ICC_SGI1R_AFF3_SHIFT,
@@ -199,7 +199,7 @@ volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
 }
 
 __optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
-    const int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     atomic_store_explicit(&dist->irq_clear_enable[irq / sizeof_bits(uint32_t)],
@@ -210,7 +210,7 @@ __optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
 }
 
 __optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
-    const int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     atomic_store_explicit(&dist->irq_set_enable[irq / sizeof_bits(uint32_t)],
@@ -264,7 +264,7 @@ void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
 
 __optimize(3) void
 gicdv3_set_irq_trigger_mode(const irq_number_t irq,
-                            const enum irq_trigger_mpde mode)
+                            const enum irq_trigger_mode mode)
 {
     if (irq < GIC_PPI_INTERRUPT_START) {
         printk(LOGLEVEL_WARN,
@@ -272,7 +272,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
         return;
     }
 
-    const int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     const uint32_t bit_offset = (irq % sizeof_bits(uint16_t)) * 2;
@@ -308,7 +308,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
 
 __optimize(3)
 void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
-    const int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
@@ -329,7 +329,7 @@ void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
         (uint64_t)(uint8_t)(cpu->affinity >> 24) << ICC_SGI1R_AFF3_SHIFT
         | (uint64_t)(uint8_t)(cpu->affinity >> 16) << ICC_SGI1R_AFF2_SHIFT
         | (uint64_t)(uint8_t)(cpu->affinity >> 8) << ICC_SGI1R_AFF1_SHIFT
-        | (uint64_t)int_no << ICC_SGI1R_INT_ID_SHIFT
+        | (uint64_t)int_no << ICC_SGI1R_INTR_ID_SHIFT
         | 1 << (uint8_t)cpu->affinity;
 
     dsbisht();
@@ -338,11 +338,11 @@ void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
 }
 
 __optimize(3) void gicdv3_send_sipi(const uint8_t int_no) {
-    const int flag = disable_irqs_if_enabled();
+    preempt_disable();
     const struct cpu_info *const cpu = this_cpu();
 
-    enable_irqs_if_flag(flag);
     gicdv3_send_ipi(cpu, int_no);
+    preempt_enable();
 }
 
 __optimize(3)
@@ -392,7 +392,7 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 }
 
 void gic_redist_init_on_this_cpu() {
-    const int flag = disable_irqs_if_enabled();
+    const bool flag = disable_irqs_if_enabled();
     volatile struct gicv3_redist_registers *const redist =
         gic_redist_for_this_cpu();
 
@@ -433,20 +433,14 @@ void gic_redist_init_on_this_cpu() {
                              /*align=*/16,
                              GIC_REDIST_PENDING_ALLOC_ORDER);
 
-    if (pend_page == NULL) {
-        printk(LOGLEVEL_WARN,
+    assert_msg(pend_page != NULL,
                "gicv3: failed to alloc pending page for redistributor\n");
-        return;
-    }
 
     struct page *const prop_page =
         alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, GIC_REDIST_PROP_ALLOC_ORDER);
 
-    if (prop_page == NULL) {
-        printk(LOGLEVEL_WARN,
+    assert_msg(prop_page != NULL,
                "gicv3: failed to alloc pending page for redistributor\n");
-        return;
-    }
 
     const uint64_t pend_phys = page_to_phys(pend_page);
     const uint64_t prop_phys = page_to_phys(prop_page);
@@ -589,10 +583,9 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
     }
 
     gic_set_version(3);
-
     gic_initialized = true;
-    printk(LOGLEVEL_WARN, "gicv3: fully initialized\n");
 
+    printk(LOGLEVEL_WARN, "gicv3: fully initialized\n");
     return true;
 }
 

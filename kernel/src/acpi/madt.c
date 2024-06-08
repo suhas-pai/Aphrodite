@@ -4,10 +4,8 @@
  */
 
 #include "acpi/api.h"
-
-#if __has_include("acpi/extra_structs.h")
-    #include "acpi/extra_structs.h"
-#endif /* __has_include("acpi/extra_structs.h") */
+#include "cpu/info.h"
+#include "mm/mmio.h"
 
 #if defined(__x86_64__)
     #include "apic/ioapic.h"
@@ -23,6 +21,9 @@
 
     #include "sys/gic/v2.h"
     #include "sys/gic/v3.h"
+#elif defined(__riscv64)
+    #include "sys/aplic.h"
+    #include "sys/imsic.h"
 #endif /* defined(__aarch64__) */
 
 void madt_init(const struct acpi_madt *const madt) {
@@ -40,6 +41,14 @@ void madt_init(const struct acpi_madt *const madt) {
         ARRAY_INIT(sizeof(struct acpi_madt_entry_gic_its *));
 
     uint64_t gicv2_cpu_intr_phys_addr = 0;
+#elif defined(__riscv64)
+    struct array plic_list = ARRAY_INIT(sizeof(struct acpi_madt_riscv_plic *));
+    struct array aplic_list =
+        ARRAY_INIT(sizeof(struct acpi_madt_riscv_aplic *));
+    struct array hart_irq_ctlr_list =
+        ARRAY_INIT(sizeof(struct acpi_madt_riscv_hart_irq_controller *));
+
+    const struct acpi_madt_riscv_imsic *supervisor_imsic = NULL;
 #endif /* defined(_-x86_64__) */
 
     uint32_t length = madt->sdt.length - sizeof(*madt);
@@ -117,7 +126,7 @@ void madt_init(const struct acpi_madt *const madt) {
             #endif /* defined(__x86_64__) */
                 continue;
             }
-            case ACPI_MADT_ENTRY_KIND_INT_SRC_OVERRIDE: {
+            case ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE: {
                 if (iter->length != sizeof(struct acpi_madt_entry_iso)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid int-src override entry at "
@@ -157,7 +166,7 @@ void madt_init(const struct acpi_madt *const madt) {
                            "madt: failed to add apic iso-info to array");
                 continue;
             }
-            case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INT_SRC: {
+            case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR_SRC: {
                 if (iter->length != sizeof(struct acpi_madt_entry_nmi_src)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid nmi source entry at "
@@ -185,7 +194,7 @@ void madt_init(const struct acpi_madt *const madt) {
                         "yes" : "no");
                 continue;
             }
-            case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INT: {
+            case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR: {
                 if (iter->length != sizeof(struct acpi_madt_entry_nmi)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid nmi override entry at "
@@ -440,12 +449,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_entry_gic_msi_frame *const frame =
                     (const struct acpi_madt_entry_gic_msi_frame *)iter;
 
-                if (!array_append(&msi_frame_list, &frame)) {
-                    printk(LOGLEVEL_INFO,
-                           "madt: failed to add msi-frame to list\n");
-                    continue;
-                }
-
+                assert (array_append(&msi_frame_list, &frame));
                 printk(LOGLEVEL_INFO,
                        "madt: found msi-frame\n"
                        "\tmsi frame id: %" PRIu32 "\n"
@@ -493,6 +497,8 @@ void madt_init(const struct acpi_madt *const madt) {
                            "range:\n"
                            "\tdiscovery range: " RANGE_FMT "\n",
                            RANGE_FMT_ARGS(gicv3_redist_discovery_range));
+
+                    continue;
                 }
 
                 printk(LOGLEVEL_INFO,
@@ -520,12 +526,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_entry_gic_its *const its =
                     (const struct acpi_madt_entry_gic_its *)iter;
 
-                if (!array_append(&its_list, &its)) {
-                    printk(LOGLEVEL_INFO,
-                           "madt: failed to add gic its entry to list\n");
-                    continue;
-                }
-
+                assert(array_append(&its_list, &its));
                 printk(LOGLEVEL_INFO,
                        "madt: found gic interrupt translation service:\n"
                        "\tid: %" PRIu32 "\n"
@@ -543,7 +544,6 @@ void madt_init(const struct acpi_madt *const madt) {
             }
             case ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE:
                 continue;
-        #if defined(__riscv64)
             case ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER: {
                 if (iter->length
                         != sizeof(struct acpi_madt_riscv_hart_irq_controller))
@@ -555,16 +555,18 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
 
+            #if defined(__riscv64)
                 const struct acpi_madt_riscv_hart_irq_controller *const ctrlr =
                     (const struct acpi_madt_riscv_hart_irq_controller *)iter;
 
+                struct cpu_info *const cpu = cpu_for_hartid(ctrlr->hart_id);
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv hart irq controller\n"
                        "\tversion: %" PRIu8 "\n"
                        "\tflags: 0x%" PRIx32 "\n"
                        "\t\tenabled: %s\n"
                        "\t\tonline capable: %s\n"
-                       "\thart id: %" PRIu64 "\n"
+                       "\thart id: %" PRIu64 "%s\n"
                        "\tacpi processor uid: %" PRIu32 "\n"
                        "\texternal irq controller id: %" PRIu32 "\n"
                        "\timsic base address: %p\n"
@@ -578,18 +580,153 @@ void madt_init(const struct acpi_madt *const madt) {
                             __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE ?
                                 "yes" : "no",
                        ctrlr->hart_id,
+                       cpu != NULL ? "" : " (cpu not found)",
                        ctrlr->acpi_proc_uid,
                        ctrlr->external_irq_controller_id,
-                       (void *)ctrlr->imsic_base_addr,
+                       (void *)ctrlr->imsic_base,
                        ctrlr->imsic_size);
+
+                if (cpu != NULL) {
+                    struct mmio_region *const imsic_mmio =
+                        vmap_mmio(RANGE_INIT(ctrlr->imsic_base,
+                                             ctrlr->imsic_size),
+                                  PROT_READ | PROT_WRITE,
+                                  /*flags=*/0);
+
+                    assert_msg(imsic_mmio != NULL,
+                               "madt: failed to map imsic page\n");
+
+                    cpu->imsic_phys = ctrlr->imsic_base;
+                    cpu->imsic_page = imsic_mmio->base;
+                }
+
+                assert(array_append(&hart_irq_ctlr_list, &ctrlr));
+            #else
+                printk(LOGLEVEL_WARN,
+                       "madt: found riscv hart irq controller entry. "
+                       "ignoring\n");
+            #endif /* defined(__riscv64) */
 
                 continue;
             }
-            case ACPI_MADT_ENTRY_KIND_RISCV_IMSIC:
-            case ACPI_MADT_ENTRY_KIND_RISCV_APLIC:
-            case ACPI_MADT_ENTRY_KIND_RISCV_PLIC:
+            case ACPI_MADT_ENTRY_KIND_RISCV_IMSIC: {
+                if (iter->length != sizeof(struct acpi_madt_riscv_imsic)) {
+                    printk(LOGLEVEL_INFO,
+                           "madt: invalid riscv imsic at index: %" PRIu32 "\n",
+                           index);
+                    continue;
+                }
+
+            #if defined(__riscv64)
+                const struct acpi_madt_riscv_imsic *const imsic =
+                    (const struct acpi_madt_riscv_imsic *)iter;
+
+                printk(LOGLEVEL_INFO,
+                       "madt: found riscv imsic\n"
+                       "\tversion: %" PRIu8 "\n"
+                       "\tflags: 0x%" PRIx32 "\n"
+                       "\tguest node irq identity count: %" PRIu16 "\n"
+                       "\tsupervisor node irq identity count: %" PRIu16 "\n"
+                       "\tguest index bits: %" PRIu8 "\n"
+                       "\thart index bits: %" PRIu8 "\n"
+                       "\tgroup index bits: %" PRIu8 "\n"
+                       "\tgroup index shift: %" PRIu8 "\n",
+                       imsic->version,
+                       imsic->flags,
+                       imsic->guest_node_irq_identity_count,
+                       imsic->supervisor_node_irq_identity_count,
+                       imsic->guest_index_bits,
+                       imsic->hart_index_bits,
+                       imsic->group_index_bits,
+                       imsic->group_index_shift);
+
+                supervisor_imsic = imsic;
+            #else
+                printk(LOGLEVEL_WARN, "madt: found riscv imsic. ignoring ");
+            #endif /* defined(__riscv64) */
+
                 continue;
-        #endif /* defined(__riscv64) */
+            }
+            case ACPI_MADT_ENTRY_KIND_RISCV_APLIC: {
+                if (iter->length != sizeof(struct acpi_madt_riscv_aplic)) {
+                    printk(LOGLEVEL_INFO,
+                           "madt: invalid riscv aplic at index: %" PRIu32 "\n",
+                           index);
+                    continue;
+                }
+
+            #if defined(__riscv64)
+                const struct acpi_madt_riscv_aplic *const aplic =
+                    (const struct acpi_madt_riscv_aplic *)iter;
+
+                printk(LOGLEVEL_INFO,
+                       "madt: found riscv aplic\n"
+                       "\tversion: %" PRIu8 "\n"
+                       "\tid: %" PRIu8 "\n"
+                       "\tflags: 0x%" PRIx32 "\n"
+                       "\thardware id: %" PRIu64 "\n"
+                       "\tidc count: %" PRIu16 "\n"
+                       "\texternal irq source count: %" PRIu16 "\n"
+                       "\tgsi base: %" PRIu32 "\n"
+                       "\taplic base: %p\n"
+                       "\taplic size: %" PRIu32 "\n",
+                       aplic->version,
+                       aplic->id,
+                       aplic->flags,
+                       aplic->hardware_id,
+                       aplic->idc_count,
+                       aplic->ext_irq_source_count,
+                       aplic->gsi_base,
+                       (void *)aplic->aplic_base,
+                       aplic->aplic_size);
+
+                assert(array_append(&aplic_list, &aplic));
+            #else
+                printk(LOGLEVEL_WARN, "madt: found riscv aplic. ignoring ");
+            #endif /* defined(__riscv64) */
+
+                continue;
+            }
+            case ACPI_MADT_ENTRY_KIND_RISCV_PLIC: {
+                if (iter->length != sizeof(struct acpi_madt_riscv_plic)) {
+                    printk(LOGLEVEL_INFO,
+                           "madt: invalid riscv plic at index: %" PRIu32 "\n",
+                           index);
+                    continue;
+                }
+
+            #if defined(__riscv64)
+                const struct acpi_madt_riscv_plic *const plic =
+                    (const struct acpi_madt_riscv_plic *)iter;
+
+                printk(LOGLEVEL_INFO,
+                       "madt: found riscv plic\n"
+                       "\tversion: %" PRIu8 "\n"
+                       "\tid: %" PRIu8 "\n"
+                       "\thardware id: %" PRIu64 "\n"
+                       "\ttotal external irq sources supported: %" PRIu16 "\n"
+                       "\tmax priority: %" PRIu8 "\n"
+                       "\tflags: %" PRIu8 "\n"
+                       "\tplic base: %p\n"
+                       "\tplic size: %" PRIu32 "\n"
+                       "\tgsi base: %" PRIu32 "\n",
+                       plic->version,
+                       plic->id,
+                       plic->hardware_id,
+                       plic->total_ext_irq_source_supported,
+                       plic->max_prio,
+                       plic->flags,
+                       (void *)plic->plic_base,
+                       plic->plic_size,
+                       plic->gsi_base);
+
+                assert(array_append(&plic_list, &plic));
+            #else
+                printk(LOGLEVEL_WARN, "madt: found riscv plic. ignoring ");
+            #endif /* defined(__riscv64) */
+
+                continue;
+            }
         }
 
         printk(LOGLEVEL_INFO,
@@ -656,5 +793,73 @@ void madt_init(const struct acpi_madt *const madt) {
 
     panic("GIC with unsupported version %" PRIu8 " found",
           gic_dist->gic_version);
+#elif defined(__riscv64)
+    if (!array_empty(aplic_list)) {
+        assert_msg(supervisor_imsic != NULL,
+                   "madt: no imsic found, required for aplic\n");
+
+        array_foreach(&hart_irq_ctlr_list,
+                      struct acpi_madt_riscv_hart_irq_controller *,
+                      ctrlr_iter)
+        {
+            struct range range = RANGE_EMPTY();
+            struct acpi_madt_riscv_hart_irq_controller *const ctrlr =
+                *ctrlr_iter;
+
+            if (!range_create_and_verify(ctrlr->imsic_base,
+                                         ctrlr->imsic_size,
+                                         &range))
+            {
+                printk(LOGLEVEL_WARN,
+                       "madt: found hart irq controller with overflowing imsic "
+                       "range\n");
+                continue;
+            }
+
+            struct cpu_info *const cpu = cpu_for_hartid(ctrlr->hart_id);
+            if (cpu == NULL) {
+                printk(LOGLEVEL_WARN,
+                       "madt: found hart irq controller pointing to unknown "
+                       "cpu, with hartid: %" PRIu64 "\n",
+                       ctrlr->hart_id);
+
+                continue;
+            }
+
+            cpu->imsic_phys = ctrlr->imsic_base;
+            cpu->imsic_page = imsic_add_region(ctrlr->hart_id, range);
+        }
+
+        imsic_init_from_acpi(RISCV64_PRIVL_SUPERVISOR,
+                             supervisor_imsic->guest_index_bits,
+                             supervisor_imsic->guest_node_irq_identity_count);
+
+        imsic_enable(RISCV64_PRIVL_SUPERVISOR);
+        array_foreach(&aplic_list, struct acpi_madt_riscv_aplic *, aplic_iter) {
+            struct acpi_madt_riscv_aplic *const aplic = *aplic_iter;
+            struct range range = RANGE_EMPTY();
+
+            if (!range_create_and_verify(aplic->aplic_base,
+                                         aplic->aplic_size,
+                                         &range))
+            {
+                printk(LOGLEVEL_WARN,
+                       "madt: found aplic with overflowing register range\n");
+                continue;
+            }
+
+            aplic_init_from_acpi(range,
+                                 aplic->ext_irq_source_count,
+                                 aplic->gsi_base);
+        }
+    } else if (!array_empty(plic_list)) {
+        // TODO:
+    } else {
+        panic("No [a]plics found. Aborting init");
+    }
+
+    array_destroy(&aplic_list);
+    array_destroy(&plic_list);
+    array_destroy(&hart_irq_ctlr_list);
 #endif /* defined(__x86_64__) */
 }

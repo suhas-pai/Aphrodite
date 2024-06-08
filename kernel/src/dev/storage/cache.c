@@ -4,8 +4,6 @@
  */
 
 #include "dev/printk.h"
-#include "sched/thread.h"
-
 #include "cache.h"
 
 #define NVME_CACHE_HASHMAP_BUCKET_COUNT 15
@@ -26,15 +24,11 @@ storage_cache_push(struct storage_cache *const cache,
                    const uint64_t lba,
                    void *const block)
 {
-    preempt_disable();
-    spin_acquire(&cache->lock);
-
+    spin_acquire_preempt_disable(&cache->lock);
     const bool result =
         hashmap_add(&cache->items, hashmap_key_create(lba), &block);
 
-    spin_release(&cache->lock);
-    preempt_enable();
-
+    spin_release_preempt_enable(&cache->lock);
     if (!result) {
         printk(LOGLEVEL_WARN,
                "nvme: attempting to push already-cached item at "
@@ -45,15 +39,12 @@ storage_cache_push(struct storage_cache *const cache,
 
 void *
 storage_cache_find(struct storage_cache *const cache, const uint64_t lba) {
-    preempt_disable();
-    spin_acquire(&cache->lock);
+    spin_acquire_preempt_disable(&cache->lock);
 
     struct storage_cache_item *const most_recent = cache->most_recent;
     if (most_recent != NULL) {
         if (most_recent->lba == lba) {
-            spin_release(&cache->lock);
-            preempt_enable();
-
+            spin_release_preempt_enable(&cache->lock);
             return most_recent->block;
         }
     }
@@ -67,9 +58,7 @@ storage_cache_find(struct storage_cache *const cache, const uint64_t lba) {
         cache->most_recent = item;
     }
 
-    spin_release(&cache->lock);
-    preempt_enable();
-
+    spin_release_preempt_enable(&cache->lock);
     return result;
 }
 

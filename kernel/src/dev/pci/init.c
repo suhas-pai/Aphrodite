@@ -241,11 +241,10 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
         return;
     }
 
-    const enum isr_msi_support msi_support = isr_get_msi_support();
-
 #define pci_read_cap_field(type, field) \
     pci_read_from_base(entity, cap_offset, type, field)
 
+    const enum isr_msi_support msi_support = isr_get_msi_support();
     for (uint64_t i = 0; cap_offset != 0 && cap_offset != 0xff; i++) {
         if (i == 128) {
             printk(LOGLEVEL_INFO,
@@ -543,7 +542,7 @@ parse_function(struct pci_bus *const bus,
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
-        rm_mask(old_command, disable_flags) | __PCI_DEVCMDREG_PIN_INT_DISABLE;
+        rm_mask(old_command, disable_flags) | __PCI_DEVCMDREG_PIN_INTR_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     switch (hdrkind) {
@@ -885,6 +884,30 @@ __optimize(3) void pci_init() {
         pci_add_root_bus(root_bus);
     } else {
         printk(LOGLEVEL_INFO, "pci: no root-bus found. Aborting init\n");
+    }
+#elif defined(__riscv64)
+    if (array_empty(*bus_list)) {
+        pci_release_root_bus_list_lock(flag);
+        printk(LOGLEVEL_INFO, "pci: searching for entities in root bus\n");
+
+        int flag2 = 0;
+        const struct array *const domain_list =
+            pci_get_domain_list_locked(&flag2);
+
+        if (!array_empty(*domain_list)) {
+            struct pci_domain *const domain =
+                *(struct pci_domain **)array_front(*domain_list);
+            struct pci_bus *const root_bus =
+                pci_bus_create(domain, /*bus_id=*/0, /*segment=*/0);
+
+            assert_msg(root_bus != NULL,
+                       "pci: failed to allocate pci root bus");
+
+            pci_find_entities(root_bus);
+            pci_add_root_bus(root_bus);
+        }
+
+        pci_release_domain_list_lock(flag2);
     }
 #else
     if (!array_empty(*bus_list)) {

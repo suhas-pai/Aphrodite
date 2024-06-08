@@ -45,7 +45,7 @@ gicd_free_msi_vector(struct device *device,
                      uint16_t msi_index);
 
 void gicd_set_irq_affinity(irq_number_t irq, uint8_t iface);
-void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mpde mode);
+void gicd_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mode mode);
 void gicd_set_irq_priority(irq_number_t irq, uint8_t priority);
 
 void gicd_send_ipi(const struct cpu_info *cpu, uint8_t int_no);

@@ -175,8 +175,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
 
         if (intr_ext_prop == NULL) {
             printk(LOGLEVEL_WARN,
-                   "plic: dtb-node is missing 'interrupts-extended' "
-                   "property\n");
+                   "plic: dtb-node is missing a 'interrupts-extended' prop\n");
             return false;
         }
 

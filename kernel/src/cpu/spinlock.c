@@ -7,6 +7,7 @@
 
 #include "asm/irqs.h"
 #include "asm/pause.h"
+#include "sched/thread.h"
 
 #if defined(DEBUG_LOCKS)
     #include "lib/assert.h"
@@ -58,12 +59,22 @@ __optimize(3) int spin_acquire_save_irq(struct spinlock *const lock) {
     return irqs_enabled;
 }
 
+void spin_acquire_preempt_disable(struct spinlock *const lock) {
+    preempt_disable();
+    spin_acquire(lock);
+}
+
 __optimize(3)
 void spin_release_restore_irq(struct spinlock *const lock, const int flag) {
     spin_release(lock);
     if (flag != 0) {
         enable_interrupts();
     }
+}
+
+void spin_release_preempt_enable(struct spinlock *const lock) {
+    spin_release(lock);
+    preempt_enable();
 }
 
 __optimize(3) bool

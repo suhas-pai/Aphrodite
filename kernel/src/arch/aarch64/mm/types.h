@@ -136,9 +136,9 @@ enum pte_flags {
     __PTE_TABLE = 1ull << 1,
 
     __PTE_WC = 1ull << 2,
-    __PTE_WT = 2ull << 2,
+    __PTE_WT = 0b10ull << 2,
 
-    __PTE_MMIO = 3ull << 2, // Device uncacheable memory
+    __PTE_MMIO = 0b11ull << 2, // Device uncacheable memory
     __PTE_USER = 1ull << 6,
     __PTE_RO = 1ull << 7,
 

@@ -37,3 +37,7 @@ void arch_init_dev() {
     assert_msg(dtb_init_nodes_for_driver(&psci_dtb_driver, tree, tree->root),
                "dtb: psci not found or was malformed");
 }
+
+void arch_init_dev_drivers() {
+
+}

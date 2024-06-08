@@ -12,7 +12,9 @@
 struct process;
 struct cpu_info {
     struct process *process;
+
     struct list pagemap_node;
+    struct list cpu_list;
 
     struct thread *idle_thread;
 
@@ -23,8 +25,17 @@ struct cpu_info {
     uint16_t cmo_size;
 
     usec_t timer_start;
+
     bool is_active : 1;
+    bool in_exception : 1;
+
+    uint8_t isr_oode;
+    uint64_t imsic_phys;
+
+    volatile uint32_t *imsic_page;
 };
+
+struct cpu_info *cpu_for_hartid(uint16_t hart_id);
 
 struct cpus_info {
     uint64_t timebase_frequency;

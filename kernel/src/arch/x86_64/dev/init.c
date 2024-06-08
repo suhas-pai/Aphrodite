@@ -52,7 +52,9 @@ void arch_init_dev() {
     } else {
         printk(LOGLEVEL_WARN, "dev: failed to execute rdrand instruction\n");
     }
+}
 
+void arch_init_dev_drivers() {
     if (!g_found_ide) {
         ide_init(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
     } else {

@@ -19,10 +19,6 @@ __optimize(3) void sched_set_current_thread(struct thread *const thread) {
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)thread);
 }
 
-void sched_prepare_thread(struct thread *const thread) {
-    (void)thread;
-}
-
 extern __noreturn void thread_spinup(const struct thread_context *context);
 
 void
@@ -42,7 +38,10 @@ sched_switch_to(struct thread *const prev,
         xrstor_user_from(&next->arch_info.avx_state);
     }
 
-    prev->context = *prev_context;
+    // Don't overwrite context of idle threads
+    if (prev->cpu == NULL || prev != prev->cpu->idle_thread) {
+        prev->context = *prev_context;
+    }
 
     thread_spinup(&next->context);
     verify_not_reached();

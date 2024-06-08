@@ -71,8 +71,8 @@ static bool notify_queue_if_done(struct nvme_queue *const queue) {
 }
 
 __optimize(3)
-void handle_irq(const uint64_t int_no, struct thread_context *const frame) {
-    (void)frame;
+void handle_irq(const uint64_t int_no, struct thread_context *const context) {
+    (void)context;
 
     struct nvme_controller *iter = NULL;
     bool found = false;
@@ -135,13 +135,13 @@ __optimize(3) static inline
 bool wait_until_ready(volatile struct nvme_registers *const regs) {
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
         const uint8_t status = mmio_read(&regs->status);
-        if (status & __NVME_CNTLR_STATUS_READY) {
-            return true;
-        }
-
         if (status & __NVME_CNTLR_STATUS_FATAL) {
             printk(LOGLEVEL_WARN, "nvme: fatal status in controller\n");
             return false;
+        }
+
+        if (status & __NVME_CNTLR_STATUS_READY) {
+            return true;
         }
 
         cpu_pause();
@@ -268,10 +268,6 @@ nvme_controller_create(struct nvme_controller *const controller,
     controller->msix_vector = msix_vector;
     controller->isr_vector = isr_vector;
 
-    isr_set_msi_vector(controller->isr_vector,
-                       handle_irq,
-                       &ARCH_ISR_INFO_NONE());
-
     if (!nvme_queue_create(&controller->admin_queue,
                            controller,
                            /*id=*/0,
@@ -346,6 +342,10 @@ nvme_controller_create(struct nvme_controller *const controller,
            "table index %" PRIu16 "\n",
            controller->isr_vector,
            controller->msix_vector);
+
+    isr_set_msi_vector(controller->isr_vector,
+                       handle_irq,
+                       &ARCH_ISR_INFO_NONE());
 
     list_add(&g_controller_list, &controller->list);
     g_controller_count++;

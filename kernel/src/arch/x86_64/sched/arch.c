@@ -40,5 +40,9 @@ sched_thread_arch_info_init(struct thread *const thread,
 
     void *const stack = page_to_virt(thread->arch_info.kernel_stack);
     thread->context =
-        THREAD_CONTEXT_INIT(thread->process, stack, entry, /*arg=*/NULL);
+        THREAD_CONTEXT_INIT(thread->process,
+                            stack,
+                            /*stack_size=*/PAGE_SIZE << KERNEL_STACK_SIZE_ORDER,
+                            entry,
+                            /*arg=*/NULL);
 }

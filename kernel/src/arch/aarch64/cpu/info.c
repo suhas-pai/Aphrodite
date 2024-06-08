@@ -21,8 +21,9 @@ __hidden struct cpu_info g_base_cpu_info = {
 
     .cpu_list = LIST_INIT(g_base_cpu_info.cpu_list),
     .spur_intr_count = 0,
+    .mpidr = 0,
 
-    .interface_number = 0,
+    .gic_iface_no = 0,
     .processor_number = 0,
 
     .spe_overflow_interrupt = 0,
@@ -1405,7 +1406,7 @@ void print_cpu_features() {
 __optimize(3) void cpu_early_init() {
     const uint64_t mpidr = read_mpidr_el1();
     g_base_cpu_info.affinity =
-        ((mpidr >> 32) & 0xFF) << 24 | (mpidr & 0xFFFFFF);
+        (((mpidr >> 32) & 0xFF) << 24) | (mpidr & 0xFFFFFF);
 
     asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
 
@@ -1420,15 +1421,24 @@ __optimize(3) void cpu_early_init() {
     g_base_cpu_init = true;
 }
 
+extern struct list g_cpu_list;
+
 void cpu_init() {
+    g_base_cpu_info.mpidr = read_mpidr_el1();
+
+    list_add(&g_cpu_list, &g_base_cpu_info.cpu_list);
     print_cpu_features();
 }
 
+__optimize(3) bool cpu_in_bad_state() {
+    return this_cpu()->in_exception;
+}
+
 __optimize(3)
-struct cpu_info *cpu_mut_for_intr_number(const uint32_t intr_number) {
+struct cpu_info *cpu_mut_for_gic_iface_no(const uint32_t iface_no) {
     struct cpu_info *iter = NULL;
     list_foreach(iter, &g_cpu_list, cpu_list) {
-        if (iter->interface_number == intr_number) {
+        if (iter->gic_iface_no == iface_no) {
             return iter;
         }
     }

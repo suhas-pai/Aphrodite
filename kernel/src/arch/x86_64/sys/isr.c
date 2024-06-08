@@ -96,22 +96,23 @@ extern void
 handle_exception(const uint64_t vector, struct thread_context *const frame);
 
 __optimize(3) void
-isr_handle_interrupt(const uint64_t vector,
-                     struct thread_context *const frame)
+isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
 {
-    if (g_funcs[vector] != NULL) {
+    if (__builtin_expect(g_funcs[vector] != NULL, 1)) {
         g_funcs[vector](vector, frame);
-    } else {
-        if (index_in_bounds(vector, ISR_EXCEPTION_COUNT)) {
-            handle_exception(vector, frame);
-        } else {
-            printk(LOGLEVEL_INFO,
-                   "Got unhandled interrupt %" PRIu64 "\n",
-                   vector);
-        }
-
-        lapic_eoi();
+        return;
     }
+
+    if (index_in_bounds(vector, ISR_EXCEPTION_COUNT)) {
+        handle_exception(vector, frame);
+        return;
+    }
+
+    printk(LOGLEVEL_INFO,
+            "isr: got unhandled interrupt %" PRIu64 "\n",
+            vector);
+
+    lapic_eoi();
 }
 
 __optimize(3) static

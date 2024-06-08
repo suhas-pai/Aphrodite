@@ -103,3 +103,7 @@ void arch_init_dev() {
            "time: frequency is " FREQ_TO_UNIT_FMT "\n",
            FREQ_TO_UNIT_FMT_ARGS_ABBREV(get_cpus_info()->timebase_frequency));
 }
+
+void arch_init_dev_drivers() {
+
+}

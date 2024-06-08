@@ -8,6 +8,8 @@
 #include "asm/irqs.h"
 #include "asm/pause.h"
 
+#include "dev/printk.h"
+
 #include "sched/alarm.h"
 #include "sched/irq.h"
 #include "sched/scheduler.h"
@@ -66,7 +68,8 @@ __optimize(3) bool thread_enqueued(const struct thread *const thread) {
 
 extern void sched_set_current_thread(struct thread *thread);
 
-__optimize(3) static struct thread *get_next_thread(struct thread *const prev) {
+__optimize(3)
+static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
     struct thread *next = NULL;
 
@@ -88,6 +91,7 @@ __optimize(3) static struct thread *get_next_thread(struct thread *const prev) {
     return result;
 }
 
+__optimize(3)
 static void update_alarm_list(struct thread *const current_thread) {
     int flag = 0;
 
@@ -96,7 +100,7 @@ static void update_alarm_list(struct thread *const current_thread) {
 
     struct list *const alarm_list = alarm_get_list_locked(&flag);
     list_foreach_mut(iter, tmp, alarm_list, list) {
-        const uint64_t time_spent =
+        const usec_t time_spent =
             current_thread->sched_info.timeslice
             - current_thread->sched_info.remaining;
 
@@ -116,20 +120,22 @@ static void update_alarm_list(struct thread *const current_thread) {
     alarm_list_unlock(flag);
 }
 
+extern __noreturn void thread_spinup(const struct thread_context *context);
+
 void sched_next(const irq_number_t irq, struct thread_context *const context) {
     struct thread *const curr_thread = current_thread();
-    if (!preemption_enabled()) {
+    if (curr_thread->preemption_disabled != 0) {
         sched_irq_eoi(irq);
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
 
+        printk(LOGLEVEL_DEBUG, "sched: preemption disabled\n");
         return;
     }
-
-    update_alarm_list(curr_thread);
 
     curr_thread->sched_info.awaiting = false;
     curr_thread->sched_info.remaining = 0;
 
+    update_alarm_list(curr_thread);
     struct thread *const next_thread = get_next_thread(curr_thread);
 
     // Only possible if we were idle and will still be idle, or if our current
@@ -142,32 +148,24 @@ void sched_next(const irq_number_t irq, struct thread_context *const context) {
         return;
     }
 
-    const struct thread *const idle_thread = this_cpu()->idle_thread;
-    if (next_thread == idle_thread) {
-        sched_set_current_thread(next_thread);
-        sched_irq_eoi(irq);
+    struct cpu_info *const cpu = curr_thread->cpu;
+    const struct thread *const idle_thread = cpu->idle_thread;
 
-        sched_timer_oneshot(next_thread->sched_info.timeslice);
-        sched_switch_to(/*prev=*/curr_thread, next_thread, context);
-
-        verify_not_reached();
-    }
-
-    next_thread->cpu = curr_thread->cpu;
+    next_thread->cpu = cpu;
     if (curr_thread != idle_thread) {
         curr_thread->cpu = NULL;
     }
 
-    sched_prepare_thread(next_thread);
     sched_set_current_thread(next_thread);
-
     sched_irq_eoi(irq);
 
     sched_timer_oneshot(next_thread->sched_info.timeslice);
     sched_switch_to(/*prev=*/curr_thread, next_thread, context);
+
+    verify_not_reached();
 }
 
-__optimize(3) void sched_yield() {
+void sched_yield() {
     disable_interrupts();
     assert(preemption_enabled());
 

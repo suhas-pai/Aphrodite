@@ -4,9 +4,8 @@
  */
 
 #include <stdatomic.h>
-#include "sys/gic/api.h"
 
-#include "asm/irqs.h"
+#include "sys/gic/api.h"
 #include "dev/printk.h"
 
 #include "lib/align.h"
@@ -58,7 +57,7 @@ enum gicdv2_type_shifts {
 };
 
 enum gicdv2_type_flags {
-    __GICDV2_TYPE_INT_LINES = 0b11111ull,
+    __GICDV2_TYPE_INTR_LINES = 0b11111ull,
     __GICDV2_CPU_IMPLD_COUNT_MINUS_ONE =
         0b111ull << GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT,
 
@@ -162,8 +161,7 @@ enum gic_cpu_interrupt_control_flags {
     __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1 = 1ull << 1,
 
     __GIC_CPU_INTR_CTRL_ENABLE =
-        __GIC_CPU_INTR_CTRL_ENABLE_GROUP_0
-        | __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1,
+        __GIC_CPU_INTR_CTRL_ENABLE_GROUP_0 | __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1,
 
     // Only valid on GICv2
     __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_0 = 1ull << 5,
@@ -244,10 +242,9 @@ static bool g_use_split_eoi = false;
 
 static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
+    preempt_disable();
 
-    const bool flag = disable_irqs_if_enabled();
-    const uint8_t intr_number = this_cpu()->interface_number;
-
+    const uint8_t intr_number = this_cpu()->gic_iface_no;
     for (uint16_t irq = GIC_SPI_INTERRUPT_START;
          irq < g_dist.interrupt_lines_count;
          irq++)
@@ -259,7 +256,7 @@ static void init_with_regs() {
     }
 
     mmio_write(&g_regs->control, /*value=*/1);
-    enable_irqs_if_flag(flag);
+    preempt_enable();
 
     printk(LOGLEVEL_INFO, "gicv2: finished initializing gicd\n");
 }
@@ -335,8 +332,8 @@ void gicv2_init_on_this_cpu(const struct range range) {
         __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE;
 
     mmio_write(&g_cpu->interrupt_control,
-                __GIC_CPU_INTR_CTRL_ENABLE |
-                bypass
+                __GIC_CPU_INTR_CTRL_ENABLE
+                | bypass
                 | (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
 
     printk(LOGLEVEL_INFO,
@@ -372,7 +369,7 @@ bool gicv2_init_from_info(const uint64_t phys_base_address) {
     const uint8_t type = mmio_read(&g_regs->interrupt_controller_type);
 
     g_dist.interrupt_lines_count =
-        min(((type & __GICDV2_TYPE_INT_LINES) + 1) * 32, 1020);
+        min(((type & __GICDV2_TYPE_INTR_LINES) + 1) * 32, 1020);
     g_dist.impl_cpu_count =
         ((type & __GICDV2_CPU_IMPLD_COUNT_MINUS_ONE) >>
             GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT) + 1;
@@ -558,8 +555,8 @@ void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_target =
-        rm_mask(target, (uint32_t)0xFF << bit_index) |
-        1ull << (affinity + bit_index);
+        rm_mask(target, (uint32_t)0xFF << bit_index)
+        | 1ull << (affinity + bit_index);
 
     atomic_store_explicit(&g_regs->interrupt_targets[index],
                           new_target,
@@ -568,7 +565,7 @@ void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
 
 __optimize(3) void
 gicdv2_set_irq_trigger_mode(const irq_number_t irq,
-                            const enum irq_trigger_mpde mode)
+                            const enum irq_trigger_mode mode)
 {
     assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
                "gicdv2_set_irq_trigger_mode() called on sgi interrupt");
@@ -611,8 +608,8 @@ void gicdv2_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
 
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_priority =
-        rm_mask(irq_priority, (uint32_t)0xFF << bit_index) |
-        (uint32_t)priority << bit_index;
+        rm_mask(irq_priority, (uint32_t)0xFF << bit_index)
+        | (uint32_t)priority << bit_index;
 
     atomic_store_explicit(&g_regs->interrupt_priority[index],
                           new_priority,
@@ -623,7 +620,7 @@ __optimize(3)
 void gicdv2_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint32_t info =
         GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD
-        | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->interface_number)
+        | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->gic_iface_no)
         | int_no;
 
     atomic_store_explicit(&g_regs->software_generated_interrupts[0],
@@ -701,10 +698,9 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
             continue;
         }
 
-        const struct devicetree_prop_no_value *const msi_controller_prop =
-            (const struct devicetree_prop_no_value *)(uint64_t)
-                devicetree_node_get_prop(child_node,
-                                         DEVICETREE_PROP_MSI_CONTROLLER);
+        const struct devicetree_prop *const msi_controller_prop =
+            devicetree_node_get_prop(child_node,
+                                     DEVICETREE_PROP_MSI_CONTROLLER);
 
         if (msi_controller_prop == NULL) {
             printk(LOGLEVEL_WARN,

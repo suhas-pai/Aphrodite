@@ -49,7 +49,9 @@ It is recommended to build this project using a standard Linux distro, using a C
 
 This project can be built using Clang/LLVM for all architectures.
 
-This project can also be built using the host GCC toolchain on x86_64 when targetting x86_64 (`ARCH=x86_64`), but it is recommended to set up an `*-elf` [cross compiler](https://wiki.osdev.org/GCC_Cross-Compiler) for the chosen target, or use a native cross toolchain such as Clang/LLVM.
+This project can also be built using the host GCC toolchain on x86_64 when targetting x86_64 (`KARCH=x86_64`), but it is recommended to set up an `*-elf` [cross compiler](https://wiki.osdev.org/GCC_Cross-Compiler) for the chosen target, or use a native cross toolchain such as Clang/LLVM.
+
+The `KARCH` make variable determines the target architecture to build the kernel and image for. The `all` target (the default one) builds the kernel for the given architecture, and a bootable `.iso` image containing it. The `all-hdd` target builds a flat hard disk/USB image instead.
 
 The system currently supports the `x86_64`, `aarch64` (`arm64`), and `riscv64` architectures.
 `x86_64` is the most feature complete, while `aarch64` and `riscv64` are catching up
@@ -67,6 +69,12 @@ Several variables are available to configure launching in QEMU:
 The `all` target (default target) builds the system for the given architecture, creating a bootable .iso image containing the built system.
 The `all-hdd` target builds a flat hard disk/USB image instead.
 
-Here's an example command:
+For example, to build for `aarch64` run:
+```sh
+make KARCH=aarch64 KCC="clang" KLD="ld.lld"
+```
 
-```make clean && make run ARCH=<arch> MEM=<mem> SMP=<smp> RELEASE=1```
+The image can then be tested with the one of the `run` or `run-hdd` targets.
+```sh
+make KARCH=aarch64 KCC="clang" KLD="ld.lld" run
+```

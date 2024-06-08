@@ -4,9 +4,10 @@
  */
 
 #include "dev/time/stime.h"
-#include "lib/time.h"
+
+#include "cpu/isr.h"
 #include "sched/thread.h"
-#include "sys/irq.h"
+#include "sys/irqdef.h"
 
 __optimize(3) void sched_timer_oneshot(const usec_t usec) {
     stimer_oneshot(usec);
@@ -16,7 +17,7 @@ __optimize(3) void sched_timer_stop() {
     stimer_stop();
 }
 
-usec_t sched_timer_remaining() {
+__optimize(3) usec_t sched_timer_remaining() {
     preempt_disable();
     const usec_t remaining = stime_get() - this_cpu()->timer_start;
     preempt_enable();
@@ -24,6 +25,6 @@ usec_t sched_timer_remaining() {
     return remaining;
 }
 
-void sched_irq_eoi(const irq_number_t irq) {
-    (void)irq;
+__optimize(3) void sched_irq_eoi(const irq_number_t irq) {
+    isr_eoi(irq);
 }
