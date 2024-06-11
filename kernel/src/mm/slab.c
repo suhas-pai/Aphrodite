@@ -11,8 +11,16 @@
 #include "page_alloc.h"
 
 struct free_slab_object {
+    uint32_t magic;
     uint32_t next;
 };
+
+#define FREE_SLAB_MAGIC 0xcafefeed
+#define SLAB_ALIGNMENT 16
+
+_Static_assert(sizeof(struct free_slab_object) <= SLAB_ALIGNMENT,
+               "free_slab_object struct must not be greater than "
+               "SLAB_ALIGNMENT");
 
 #define MIN_OBJ_PER_SLAB 4
 
@@ -64,6 +72,7 @@ void slab_verify(struct slab_allocator *const alloc) {
             break;
         }
 
+        assert(free_obj->magic == FREE_SLAB_MAGIC);
         assert(index_in_bounds(free_obj->next, alloc->object_count_per_slab));
         assert(free_obj->next != prev);
 
@@ -86,7 +95,7 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
     // To store free_page_objects, every object must be at least 16 bytes.
     // We also make this the required minimum alignment.
 
-    if (!align_up(object_size, /*boundary=*/16, &object_size)
+    if (!align_up(object_size, SLAB_ALIGNMENT, &object_size)
         || object_size > UINT32_MAX)
     {
         return false;
@@ -148,10 +157,13 @@ static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
         struct free_slab_object *const free_obj =
             (struct free_slab_object *)(head_virt + object_byte_index);
 
+        free_obj->magic = FREE_SLAB_MAGIC;
         free_obj->next = i + 1;
     }
 
     struct free_slab_object *const last_object = head_virt + object_byte_index;
+
+    last_object->magic = FREE_SLAB_MAGIC;
     last_object->next = UINT32_MAX;
 
     return head;
@@ -198,7 +210,9 @@ void *slab_alloc(struct slab_allocator *const alloc) {
     }
 
     // Zero-out free-block
+    result->magic = 0;
     result->next = 0;
+
     return result;
 }
 
@@ -246,7 +260,9 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
     }
 
     // Zero-out free-block
+    result->magic = 0;
     result->next = 0;
+
     return head;
 }
 
@@ -309,7 +325,9 @@ void slab_free(void *const mem) {
 
     struct free_slab_object *const free_obj = (struct free_slab_object *)mem;
 
+    free_obj->magic = FREE_SLAB_MAGIC;
     free_obj->next = head->slab.head.first_free_index;
+
     head->slab.head.first_free_index =
         index_of_free_object(head, alloc, free_obj);
 
