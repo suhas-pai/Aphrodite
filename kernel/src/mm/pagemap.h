@@ -45,4 +45,5 @@ pagemap_add_vma(struct pagemap *pagemap,
                 struct vm_area *vma,
                 uint64_t phys_addr);
 
+uint64_t pagemap_virt_get_phys(const struct pagemap *pagemap, uint64_t virt);
 void switch_to_pagemap(struct pagemap *pagemap);

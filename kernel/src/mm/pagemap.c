@@ -16,6 +16,8 @@
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
+#include "mm/walker.h"
+
 #include "pgmap.h"
 
 __optimize(3) struct pagemap pagemap_empty() {
@@ -181,4 +183,21 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 #endif /* defined(__x86_64__) */
 
     spin_release_restore_irq(&pagemap->cpu_lock, flag);
+}
+
+__optimize(3) uint64_t
+pagemap_virt_get_phys(const struct pagemap *const pagemap, const uint64_t virt)
+{
+    struct pt_walker walker;
+    ptwalker_create_for_pagemap(&walker, pagemap, virt, NULL, NULL);
+
+    const uint64_t phys = ptwalker_get_phys_addr(&walker);
+    if (phys == INVALID_PHYS) {
+        return phys;
+    }
+
+    const uint64_t offset =
+        virt & mask_for_n_bits(PAGE_SHIFTS[walker.level - 1]);
+
+    return check_add_assert(phys, offset);
 }

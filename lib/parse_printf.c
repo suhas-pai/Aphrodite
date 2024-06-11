@@ -727,6 +727,10 @@ parse_printf(const char *const fmt,
         if (should_write_parsed) {
             if (curr_spec.add_base_prefix) {
                 switch (curr_spec.spec) {
+                    case 'b':
+                    case 'B':
+                        parsed_length += 2;
+                        break;
                     case 'o':
                         parsed_length += 1;
                         break;

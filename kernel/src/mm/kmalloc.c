@@ -23,7 +23,7 @@ __optimize(3) bool kmalloc_initialized() {
 void kmalloc_check_slabs() {
 #if defined(CHECK_SLABS)
     carr_foreach(kmalloc_slabs, alloc) {
-        check_slabs(alloc);
+        slab_verify(alloc);
     }
 #endif
 }

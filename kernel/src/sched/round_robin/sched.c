@@ -9,6 +9,7 @@
 #include "asm/pause.h"
 
 #include "dev/printk.h"
+#include "mm/kmalloc.h"
 
 #include "sched/alarm.h"
 #include "sched/irq.h"
@@ -123,12 +124,13 @@ static void update_alarm_list(struct thread *const current_thread) {
 extern __noreturn void thread_spinup(const struct thread_context *context);
 
 void sched_next(const irq_number_t irq, struct thread_context *const context) {
+    kmalloc_check_slabs();
+
     struct thread *const curr_thread = current_thread();
     if (curr_thread->preemption_disabled != 0) {
         sched_irq_eoi(irq);
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
 
-        printk(LOGLEVEL_DEBUG, "sched: preemption disabled\n");
         return;
     }
 

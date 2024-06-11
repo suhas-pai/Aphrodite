@@ -1710,7 +1710,7 @@ split_initial_large_page_if_necessary(
 
     uint64_t phys_front = curr_split->phys_range.front;
     if (calculate_phys) {
-        phys_front = ptwalker_virt_get_phys(walker, walker_virt_addr);
+        phys_front = ptwalker_get_phys_addr(walker);
         assert(phys_front != INVALID_PHYS);
     }
 

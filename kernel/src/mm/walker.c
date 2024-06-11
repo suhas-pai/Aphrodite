@@ -631,10 +631,11 @@ uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     return sign_extend_virt_addr(result);
 }
 
-__optimize(3) uint64_t
-ptwalker_virt_get_phys(struct pt_walker *const walker, const uint64_t virt) {
+__optimize(3)
+uint64_t ptwalker_get_phys_addr(const struct pt_walker *const walker) {
     if (__builtin_expect(
-            walker->level > 1 && !pte_level_can_have_large(walker->level), 0))
+            walker->level < 1 ||
+            (walker->level > 1 && !pte_level_can_have_large(walker->level)), 0))
     {
         return INVALID_PHYS;
     }
@@ -644,17 +645,14 @@ ptwalker_virt_get_phys(struct pt_walker *const walker, const uint64_t virt) {
                  walker->indices[walker->level - 1]);
 
     if (!pte_is_present(pte)) {
-        return INVALID_PHYS - 1;
+        return INVALID_PHYS;
     }
 
     if (walker->level != 1 && !pte_is_large(pte)) {
         return INVALID_PHYS;
     }
 
-    const uint64_t offset =
-        virt & mask_for_n_bits(PAGE_SHIFTS[walker->level - 1]);
-
-    return pte_to_phys(pte) + offset;
+    return pte_to_phys(pte);
 }
 
 __optimize(3)

@@ -13,10 +13,10 @@ override CFILES += \
 	../lib/strftime.c ../lib/adt/bitmap.c ../lib/math.c ../lib/bits.c \
 	../lib/memory.c ../lib/adt/hashmap.c
 
-override OBJ := $(foreach obj, $(CFILES:./%=%), obj/$(basename $(subst ../,,$(obj))).o) \
-				$(foreach obj, $(CPPFILES:./%=%), obj/$(basename $(obj)).cpp.o) \
-				$(foreach obj, $(ASFILES:./%=%), obj/$(basename $(obj)).S.o) \
-				$(foreach obj, $(NASMFILES:./%=%), obj/$(basename $(obj)).asm.o)
+override OBJ := $(foreach obj, $(CFILES:./%=%), obj-$(KARCH)/$(basename $(subst ../,,$(obj))).o) \
+				$(foreach obj, $(CPPFILES:./%=%), obj-$(KARCH)/$(basename $(obj)).cpp.o) \
+				$(foreach obj, $(ASFILES:./%=%), obj-$(KARCH)/$(basename $(obj)).S.o) \
+				$(foreach obj, $(NASMFILES:./%=%), obj-$(KARCH)/$(basename $(obj)).asm.o)
 
 define DEFAULT_VAR =
 	ifeq ($(origin $1),default)

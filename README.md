@@ -65,6 +65,7 @@ Several variables are available to configure launching in QEMU:
   * `DISABLE_ACPI=1` to start QEMU's machine without ACPI, relying exclusively on the DTB (Flattened Device Tree) (by default `0`)
   * `DISABLE_FLANTERM=1` to disable `flanterm`, the terminal emulator used. This option helps improve kernel performance (by default `0)
   * `TRACE=""` to trace certain logs in qemu to `log.txt`. Takes a space separated string and provides qemu with the correct argumentd (by default `""`)
+  * `CHECK_SLABS=1` to enable pervasive slab checks in kmalloc() and other allocators (by default `0`)
 
 The `all` target (default target) builds the system for the given architecture, creating a bootable .iso image containing the built system.
 The `all-hdd` target builds a flat hard disk/USB image instead.

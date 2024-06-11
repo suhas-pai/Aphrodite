@@ -17,7 +17,7 @@ struct printf_spec_info {
 
     char spec;
     uint32_t width;
-    int precision;
+    int precision; // -1 if no precision was provided
 
     struct string_view length_sv;
 };
@@ -33,6 +33,13 @@ struct printf_spec_info {
         .precision = 0, \
         .length_sv = SV_EMPTY() \
     })
+
+/*
+ * All callbacks should return length written-out.
+ * should_continue_out is initialized to true.
+ *
+ * spec_info is NULL for callbacks to write unformatted strings.
+ */
 
 typedef uint32_t
 (*printf_write_char_callback_t)(struct printf_spec_info *spec_info,

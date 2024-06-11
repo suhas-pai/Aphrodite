@@ -474,6 +474,9 @@ struct nvme_identity {
     const uint8_t reserved_5[204];
 
     uint8_t nvme_subsystem_qual_name[256];
+
+    uint32_t reserved_6[1401];
+    uint8_t vs[1024];
 } __packed;
 
 struct nvme_lba {

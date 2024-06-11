@@ -42,7 +42,7 @@ get_free_ptr(struct page *const page, struct slab_allocator *const alloc) {
                                    page->slab.head.first_free_index);
 }
 
-void check_slabs(struct slab_allocator *const alloc) {
+void slab_verify(struct slab_allocator *const alloc) {
 #if defined(CHECK_SLABS)
     if (list_empty(&alloc->free_slab_head_list)) {
         return;
@@ -158,7 +158,7 @@ static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
 }
 
 void *slab_alloc(struct slab_allocator *const alloc) {
-    check_slabs(alloc);
+    slab_verify(alloc);
     int flag = 0;
 
     const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;
@@ -204,7 +204,7 @@ void *slab_alloc(struct slab_allocator *const alloc) {
 
 struct page *
 slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
-    check_slabs(alloc);
+    slab_verify(alloc);
     int flag = 0;
 
     const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;
@@ -274,7 +274,7 @@ void slab_free(void *const mem) {
     struct slab_allocator *const alloc = head->slab.allocator;
 
     bzero(mem, alloc->object_size);
-    check_slabs(alloc);
+    slab_verify(alloc);
 
     int flag = 0;
     const bool needs_lock = (alloc->flags & __SLAB_ALLOC_NO_LOCK) == 0;

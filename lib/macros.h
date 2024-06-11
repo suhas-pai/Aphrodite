@@ -105,7 +105,7 @@
     for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
 
 #define swap(a, b) ({ \
-    const __auto_type __swaptmp = b; \
+    const __auto_type __swaptmp = (b); \
     b = a; \
     a = __swaptmp; \
 })
