@@ -83,7 +83,9 @@ parse_gpt_entries(struct storage_device *const device,
 
             struct string name = string_alloc(name_sv);
             if (!partition_init(partition, name, device, full_range)) {
+                string_destroy(&name);
                 kfree(partition);
+
                 continue;
             }
 

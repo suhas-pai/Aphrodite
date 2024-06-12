@@ -51,8 +51,8 @@ enum gpt_entry_attr_flags {
 };
 
 struct gpt_entry {
-    uint64_t typelow;
-    uint64_t typehi;
+    uint64_t type_guid_low64;
+    uint64_t type_guid_hi64;
 
     uint64_t guid_low64;
     uint64_t guid_hi64;

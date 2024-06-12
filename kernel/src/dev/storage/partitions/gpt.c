@@ -15,6 +15,10 @@ __optimize(3) bool verify_gpt_header(const struct gpt_header *const header) {
         return false;
     }
 
+    if (header->partition_entry_size != sizeof(struct gpt_entry)) {
+        return false;
+    }
+
     if (header->header_lba != 1) {
         return false;
     }

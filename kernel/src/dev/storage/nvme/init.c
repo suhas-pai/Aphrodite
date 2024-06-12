@@ -26,7 +26,8 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     if (pci_entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
         printk(LOGLEVEL_WARN,
-               "nvme: pci-entity does not support msi[x]. aborting init\n");
+               "nvme: pci-entity does not support msi[x] required by driver. "
+               "aborting init\n");
         return;
     }
 
