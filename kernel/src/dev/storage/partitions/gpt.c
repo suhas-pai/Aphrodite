@@ -7,7 +7,7 @@
 #include "gpt.h"
 
 __optimize(3) bool verify_gpt_header(const struct gpt_header *const header) {
-    if (!sv_equals(sv_of_carr(header->signature), GPT_HEADER_MAGIC_SV)) {
+    if (!sv_equals_c_str(GPT_HEADER_MAGIC_SV, header->signature)) {
         return false;
     }
 

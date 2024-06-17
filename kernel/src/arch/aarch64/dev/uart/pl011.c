@@ -29,13 +29,13 @@ struct pl011_device {
     volatile uint32_t dmacr_offset;
 } __packed;
 
-#define FR_BUSY (uint32_t)(1 << 3)
+#define __FR_BUSY (uint32_t)(1 << 3)
 
-#define CR_TXEN (uint32_t)(1 << 8)
-#define CR_UARTEN (uint32_t)(1 << 0)
+#define __CR_TXEN (uint32_t)(1 << 8)
+#define __CR_UARTEN (uint32_t)(1 << 0)
 
-#define LCR_FEN (uint32_t)(1 << 4)
-#define LCR_STP2 (uint32_t)(1 << 3)
+#define __LCR_FEN (uint32_t)(1 << 4)
+#define __LCR_STP2 (uint32_t)(1 << 3)
 
 #define MAX_ATTEMPTS 10
 
@@ -53,7 +53,7 @@ static uint8_t early_info_count = 0;
 __optimize(3) static
 void wait_for_tx_complete(volatile const struct pl011_device *const dev) {
     for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&dev->fr_offset) & FR_BUSY) == 0) {
+        if ((mmio_read(&dev->fr_offset) & __FR_BUSY) == 0) {
             return;
         }
     }
@@ -138,13 +138,13 @@ pl011_init(const port_t base,
     uint32_t lcr = mmio_read(&device->lcr_offset);
 
     // Disable UART before anything else
-    mmio_write(&device->cr_offset, cr & CR_UARTEN);
+    mmio_write(&device->cr_offset, cr & __CR_UARTEN);
 
     // Wait for any ongoing transmissions to complete
     wait_for_tx_complete(device);
 
     // Flush FIFOs
-    mmio_write(&device->lcr_offset, rm_mask(lcr, LCR_FEN));
+    mmio_write(&device->lcr_offset, rm_mask(lcr, __LCR_FEN));
 
     // Set frequency divisors (UARTIBRD and UARTFBRD) to configure the speed
     const uint32_t div = 4 * PL011_BASE_CLOCK / baudrate;
@@ -165,7 +165,7 @@ pl011_init(const port_t base,
 
     // Configure the number of stop bits
     if (stop_bits == 2) {
-        lcr |= LCR_STP2;
+        lcr |= __LCR_STP2;
     }
 
     // Mask all interrupts by setting corresponding bits to 1
@@ -175,10 +175,10 @@ pl011_init(const port_t base,
     mmio_write(&device->dmacr_offset, 0x0);
 
     // I only need transmission, so that's the only thing I enabled.
-    mmio_write(&device->cr_offset, CR_TXEN);
+    mmio_write(&device->cr_offset, __CR_TXEN);
 
     // Finally enable UART
-    mmio_write(&device->cr_offset, CR_TXEN | CR_UARTEN);
+    mmio_write(&device->cr_offset, __CR_TXEN | __CR_UARTEN);
 
     info->device = device;
     info->term.emit_ch = pl011_send_char,

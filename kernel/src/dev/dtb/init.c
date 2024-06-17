@@ -113,10 +113,8 @@ void dtb_parse_main_tree() {
         return;
     }
 
-    if (!devicetree_parse(&g_device_tree, dtb)) {
-        printk(LOGLEVEL_WARN, "dev: failed to parse dtb\n");
-        return;
-    }
+    assert_msg(devicetree_parse(&g_device_tree, dtb),
+               "dev: failed to parse devicetree");
 
     printk(LOGLEVEL_INFO, "dtb: parsed main tree\n");
 }

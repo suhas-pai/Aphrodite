@@ -398,10 +398,11 @@ parse_intr_info(const fdt32_t *const data,
 {
     if (parent_intr_cells != 3) {
         printk(LOGLEVEL_WARN,
-               "devicetree: interrupt-map's phandle %" PRIu32 "'s "
-               "corresponding node #interrupt-cells property doesn't have a "
-               "value of 3\n",
-               phandle);
+               "devicetree: interrupt-map of node with phandle %" PRIu32 " has "
+               "a corresponding node #interrupt-cells property doesn't have a "
+               "value of 3, instead: %" PRIu32 "\n",
+               phandle,
+               parent_intr_cells);
         return false;
     }
 
@@ -538,7 +539,7 @@ parse_interrupt_map_prop(const void *const dtb,
 
         if (intr_cells_prop == NULL) {
             printk(LOGLEVEL_WARN,
-                   "devicetree: interrupt-map's phandle 0x%" PRIx32 "'s "
+                   "devicetree: interrupt-map prop of phandle 0x%" PRIx32 "'s "
                    "corresponding node is missing the #interrupt-cells "
                    "property\n",
                    info.phandle);

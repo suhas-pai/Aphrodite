@@ -154,6 +154,7 @@ static void xsave_init() {
 }
 
 static void init_cpuid_features() {
+    //
     // Recommended settings for recent x86-64 cpus are:
     //  0 for EM
     //  1 for MP

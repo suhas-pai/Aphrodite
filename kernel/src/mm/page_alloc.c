@@ -98,9 +98,9 @@ take_off_freelist_to_add_later(struct page_section *const section,
     }
 
     if (section->max_order == freelist_order) {
-        const struct page_freelist *const end = section->freelist_list - 1;
-        const struct page_freelist *iter =
-            (section->freelist_list + freelist_order) - 1;
+        const struct page_freelist *iter = carr_rbegin(section->freelist_list);
+        const struct page_freelist *const end =
+            carr_rend(section->freelist_list);
 
         for (; iter != end; iter--) {
             if (iter->count != 0) {

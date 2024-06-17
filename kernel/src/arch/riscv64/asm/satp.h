@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include "asm/csr.h"
 #include "lib/macros.h"
 
 enum satp_mode {

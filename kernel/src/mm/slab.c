@@ -290,9 +290,7 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
 
 __optimize(3) static inline struct page *slab_head_of(const void *const mem) {
     struct page *const page = virt_to_page(mem);
-    const enum page_state state = page_get_state(page);
-
-    if (state == PAGE_STATE_SLAB_HEAD) {
+    if (page_get_state(page) == PAGE_STATE_SLAB_HEAD) {
         return page;
     }
 

@@ -8,6 +8,7 @@
 
 static struct cpu_info g_base_cpu_info = {
     .processor_id = 0,
+
     .lapic_id = 0,
     .lapic_timer_frequency = 0,
     .timer_ticks = 0,

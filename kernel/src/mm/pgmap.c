@@ -753,15 +753,13 @@ map_large_at_top_level_overwrite(struct pt_walker *const walker,
         .should_ref = !options->is_in_early,
     };
 
-    const uint64_t pte_flags = options->pte_flags;
+    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
     const pgt_level_t top_level = pgt_get_top_level();
 
     uint64_t offset = *offset_in;
     do {
         const pte_t new_pte_value =
-            phys_create_pte(phys_begin + offset)
-            | PTE_LARGE_FLAGS(level)
-            | pte_flags;
+            phys_create_pte(phys_begin + offset) | pte_flags;
 
         const enum override_result override_result =
             override_pte(walker,
@@ -817,16 +815,13 @@ map_large_at_top_level_no_overwrite(struct pt_walker *const walker,
     uint64_t offset = *offset_in;
     uint64_t phys_addr = phys_begin + offset;
 
-    const uint64_t pte_flags = options->pte_flags;
+    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
 
     pte_t *const table = walker->tables[level - 1];
     pte_t *pte = &table[walker->indices[level - 1]];
 
     do {
-        const pte_t new_pte_value =
-            phys_create_pte(phys_addr) | PTE_LARGE_FLAGS(level) | pte_flags;
-
-        pte_write(pte, new_pte_value);
+        pte_write(pte, phys_create_pte(phys_addr) | pte_flags);
         phys_addr += largepage_size;
 
         if (phys_addr == phys_end) {
@@ -876,14 +871,12 @@ map_large_at_level_overwrite(struct pt_walker *const walker,
     };
 
     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags;
+    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
 
     uint64_t offset = *offset_in;
     do {
         const pte_t new_pte_value =
-            phys_create_pte(phys_begin + offset)
-            | PTE_LARGE_FLAGS(level)
-            | pte_flags;
+            phys_create_pte(phys_begin + offset) | pte_flags;
 
         const enum override_result override_result =
             override_pte(walker,
@@ -969,7 +962,7 @@ alloc_and_map_large_overwrite(
     };
 
     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags;
+    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
 
     const pgmap_alloc_large_page_t alloc_a_large_page =
         alloc_options->alloc_large_page;
@@ -985,9 +978,7 @@ alloc_and_map_large_overwrite(
             return false;
         }
 
-        const pte_t new_pte_value =
-            phys_create_pte(page) | PTE_LARGE_FLAGS(level) | pte_flags;
-
+        const pte_t new_pte_value = phys_create_pte(page) | pte_flags;
         const enum override_result override_result =
             override_pte(walker,
                          curr_split,
@@ -1070,7 +1061,7 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
 
     const uint64_t phys_end = phys_begin + size;
     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags;
+    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
     const uint64_t supports_largepage_at_level_mask =
         options->supports_largepage_at_level_mask;
 
@@ -1085,8 +1076,7 @@ map_large_at_level_no_overwrite(struct pt_walker *const walker,
         const pte_t *const end = &table[PGT_PTE_COUNT(level)];
 
         do {
-            const pte_t new_pte_value =
-                phys_create_pte(phys_addr) | PTE_LARGE_FLAGS(level) | pte_flags;
+            const pte_t new_pte_value = phys_create_pte(phys_addr) | pte_flags;
 
             pte_write(pte, new_pte_value);
             phys_addr += largepage_size;
@@ -1178,7 +1168,7 @@ alloc_and_map_large_no_overwrite(
     }
 
     const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags;
+    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
 
     const pgmap_alloc_large_page_t alloc_a_large_page =
         alloc_options->alloc_large_page;
@@ -1201,10 +1191,9 @@ alloc_and_map_large_no_overwrite(
                 return ALLOC_AND_MAP_ALLOC_PAGE_FAIL;
             }
 
-            const pte_t new_pte_value =
-                phys_create_pte(page) | PTE_LARGE_FLAGS(level) | pte_flags;
-
+            const pte_t new_pte_value = phys_create_pte(page) | pte_flags;
             pte_write(pte, new_pte_value);
+
             if (offset == size) {
                 if (iterate_options.should_ref) {
                     refcount_increment(&virt_to_table(table)->table.refcount,

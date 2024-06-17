@@ -65,8 +65,7 @@ struct largepage_level_info {
 
 extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
 
-#define PAGE_SIZE_AT_LEVEL(level) \
-    ({\
+#define PAGE_SIZE_AT_LEVEL(level) ({ \
         const uint64_t __sizes__[] = { \
             PAGE_SIZE, \
             PAGE_SIZE_2MIB, \
@@ -75,7 +74,7 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
             PAGE_SIZE_1GIB * PGT_PTE_COUNT(3), \
             PAGE_SIZE_1GIB * PGT_PTE_COUNT(3) * PGT_PTE_COUNT(4) \
         }; \
-       __sizes__[level - 1];\
+        __sizes__[level - 1];\
     })
 
 enum pte_flags {
