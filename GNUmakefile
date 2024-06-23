@@ -54,7 +54,7 @@ ifeq ($(KARCH), riscv64)
 	DEFAULT_DRIVE_KIND=scsi
 endif
 
-DRIVE_KIND=none
+DRIVE_KIND?=block
 $(eval $(call DEFAULT_VAR,DRIVE_KIND,$(DEFAULT_DRIVE_KIND)))
 
 DEFAULT_TRACE=
