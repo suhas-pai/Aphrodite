@@ -218,6 +218,8 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
 #if !defined(__time_t_defined)
     typedef uint64_t time_t;
 #endif /* !defined(__time_t_defined) */
+
+#if !defined(__struct_tm_defined)
     struct tm {
         int tm_sec;
         int tm_min;
@@ -229,6 +231,7 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
         int tm_yday;
         int tm_isdst;
     };
+#endif /* !defined(__struct_tm_defined) */
 
 #if !defined(__timespec_defined) && !defined(_STRUCT_TIMESPEC)
     struct timespec {
