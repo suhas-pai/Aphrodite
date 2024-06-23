@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-       bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+       sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
        sudo apt install -y clang-18 lld-18 nasm xorriso
        echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-       bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+       sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
        sudo apt install -y clang-18 lld-18 nasm xorriso
        echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-       bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+       sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
        sudo apt install -y clang-18 lld-18 nasm xorriso
        echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
