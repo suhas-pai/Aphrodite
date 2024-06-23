@@ -20,6 +20,8 @@ hashmap_alloc(const uint32_t object_size,
               const hashmap_hash_t hash,
               void *const cb_info)
 {
+    assert_msg(hash != NULL, "hashmap_init(): hash function cannot be NULL");
+
     struct hashmap *const hashmap = malloc(sizeof(*hashmap));
     if (hashmap == NULL) {
         return NULL;
@@ -27,6 +29,11 @@ hashmap_alloc(const uint32_t object_size,
 
     *hashmap = HASHMAP_INIT(object_size, bucket_count, hash, cb_info);
     return hashmap;
+}
+
+__optimize(3)
+static inline bool hashmap_initialized(const struct hashmap *const hashmap) {
+    return hashmap->bucket_count != 0 && hashmap->object_size != 0;
 }
 
 __optimize(3) static inline
@@ -39,7 +46,7 @@ hashmap_add(struct hashmap *const hashmap,
             const hashmap_key_t key,
             const void *const object)
 {
-    assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
+    assert_msg(hashmap_initialized(hashmap),
                "hashmap_add(): hashmap not initialized");
 
     bool alloced_buckets = false;
@@ -123,7 +130,7 @@ hashmap_update(struct hashmap *const hashmap,
                const void *const object,
                const bool add_if_missing)
 {
-    assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
+    assert_msg(hashmap_initialized(hashmap),
                "hashmap_update(): hashmap not initialized");
 
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
@@ -184,7 +191,7 @@ hashmap_update(struct hashmap *const hashmap,
 
 void *
 hashmap_get(const struct hashmap *const hashmap, const hashmap_key_t key) {
-    assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
+    assert_msg(hashmap_initialized(hashmap),
                "hashmap_get(): hashmap not initialized");
 
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
@@ -212,7 +219,7 @@ hashmap_remove(struct hashmap *const hashmap,
                const hashmap_key_t key,
                void *const object_ptr)
 {
-    assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
+    assert_msg(hashmap_initialized(hashmap),
                "hashmap_remove(): hashmap not initialized");
 
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
@@ -252,12 +259,10 @@ hashmap_remove(struct hashmap *const hashmap,
 }
 
 static void
-destroy_hashmap_buckets(struct hashmap_bucket ***const buckets_out,
-                        uint32_t *const bucket_count_out)
+destroy_hashmap_buckets(struct hashmap_bucket **const buckets,
+                        const uint32_t bucket_count)
 {
-    struct hashmap_bucket **const buckets = *buckets_out;
-    struct hashmap_bucket **const end = buckets + *bucket_count_out;
-
+    struct hashmap_bucket **const end = buckets + bucket_count;
     for (__auto_type iter = buckets; iter != end; iter++) {
         struct hashmap_bucket *const bucket = *iter;
         if (bucket == NULL) {
@@ -275,18 +280,20 @@ destroy_hashmap_buckets(struct hashmap_bucket ***const buckets_out,
     }
 
     free(buckets);
-
-    *buckets_out = NULL;
-    *bucket_count_out = 0;
 }
 
 bool
 hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
-    assert_msg(hashmap->bucket_count != 0 && hashmap->object_size != 0,
+    assert_msg(hashmap_initialized(hashmap),
                "hashmap_resize(): hashmap not initialized");
     assert_msg(bucket_count != 0,
-               "hashmap_resize(): trying to resize with bucket-count of zero, "
+               "hashmap_resize(): trying to resize to bucket-count of zero, "
                "use hashmap_destroy() instead");
+
+    // Allow downsizing the hashmap
+    if (hashmap->bucket_count == bucket_count) {
+        return true;
+    }
 
     struct hashmap_bucket **const buckets =
         calloc(bucket_count, sizeof(struct hashmap_bucket *));
@@ -321,14 +328,17 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
     }
 
     if (old_buckets != NULL) {
-        destroy_hashmap_buckets(&old_buckets, &old_bucket_count);
+        destroy_hashmap_buckets(old_buckets, old_bucket_count);
     }
 
     return true;
 }
 
 void hashmap_destroy(struct hashmap *const hashmap) {
-    destroy_hashmap_buckets(&hashmap->buckets, &hashmap->bucket_count);
+    destroy_hashmap_buckets(hashmap->buckets, hashmap->bucket_count);
+
+    hashmap->buckets = NULL;
+    hashmap->bucket_count = 0;
 
     hashmap->hash = NULL;
     hashmap->object_size = 0;

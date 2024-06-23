@@ -6,7 +6,6 @@
 #include "lib/adt/bitset.h"
 
 #include "asm/irqs.h"
-#include "cpu/info.h"
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
@@ -15,7 +14,9 @@
 #include "mm/mmio.h"
 #include "mm/page_alloc.h"
 
+#include "sched/thread.h"
 #include "sys/mmio.h"
+
 #include "its.h"
 
 enum gic_its_baser_page_size {
@@ -155,7 +156,7 @@ enum gic_its_interrupt_table_entry_shifts {
 
 enum gic_its_interrupt_table_entry_flags {
     __GIC_ITS_INTR_TABLE_ENTRY_VALID = 1 << 0,
-    __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTERRUPT = 1 << 1,
+    __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTR = 1 << 1,
     __GIC_ITS_INTR_TABLE_ENTRY_VECTOR =
         mask_for_n_bits(24) << GIC_ITS_INTR_TABLE_VECTOR_SHIFT,
     __GIC_ITS_INTR_TABLE_ENTRY_ICID =
@@ -261,7 +262,7 @@ fill_out_device_table(struct gic_its_info *const its,
         (uint64_t)(GIC_ITS_LPI_INTERRUPT_START + vector)
             << GIC_ITS_INTR_TABLE_VECTOR_SHIFT
         | (uint64_t)icid << GIC_ITS_INTR_TABLE_ICID_SHIFT
-        | __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTERRUPT
+        | __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTR
         | __GIC_ITS_INTR_TABLE_ENTRY_VALID;
 
     return true;
@@ -446,7 +447,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
             GIC_ITS_TYPER_COLLECTION_ID_BITS_MINUS_ONE_SHIFT) + 1,
            typer & __GIC_ITS_TYPER_SUPPORTS_COLLECTION_ID_LIMIT ? "yes" : "no");
 
-    printk(LOGLEVEL_INFO, "baser\n");
+    printk(LOGLEVEL_INFO, "baser:\n");
     carr_foreach_mut(regs->table_address, baser_iter) {
         uint64_t baser = *baser_iter;
 

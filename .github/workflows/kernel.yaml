@@ -1,0 +1,35 @@
+name: Kernel CI
+
+on:
+  push:
+    branches: [ "trunk" ]
+  pull_request:
+    branches: [ "trunk" ]
+
+jobs:
+  mac-build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: make (x86_64)
+      run: make KARCH=x86_64
+    - name: make (aarch64)
+      run: make KARCH=aarch64
+    - name: make (riscv64)
+      run: make KARCH=riscv64
+
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+       bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+       sudo apt update
+       sudo apt install -y clang-18 lld-18 nasm xorriso
+       echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
+    - uses: actions/checkout@v4
+    - name: make (x86_64)
+      run: make KARCH=x86_64 KCC=clang-18 KLD=ld.lld
+    - name: make (aarch64)
+      run: make KARCH=aarch64 KCC=clang-18 KLD=ld.lld
+    - name: make (riscv64)
+      run: make KARCH=riscv64 KCC=clang-18 KLD=ld.lld

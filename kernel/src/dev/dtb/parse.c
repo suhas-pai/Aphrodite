@@ -393,19 +393,8 @@ __optimize(3) static inline bool
 parse_intr_info(const fdt32_t *const data,
                 const fdt32_t *const data_end,
                 const uint32_t parent_intr_cells,
-                const uint32_t phandle,
                 struct devicetree_prop_intr_info *const intr_info)
 {
-    if (parent_intr_cells != 3) {
-        printk(LOGLEVEL_WARN,
-               "devicetree: interrupt-map of node with phandle %" PRIu32 " has "
-               "a corresponding node #interrupt-cells property doesn't have a "
-               "value of 3, instead: %" PRIu32 "\n",
-               phandle,
-               parent_intr_cells);
-        return false;
-    }
-
     if (data + parent_intr_cells > data_end) {
         return false;
     }
@@ -562,7 +551,6 @@ parse_interrupt_map_prop(const void *const dtb,
         if (!parse_intr_info(data,
                              data_end,
                              /*parent_intr_cells=*/intr_cells_prop->count,
-                             info.phandle,
                              &info.parent_intr_info))
         {
             return false;
@@ -1185,10 +1173,9 @@ parse_node_prop(const void *const dtb,
                 prop->kind = DEVICETREE_PROP_INTR_CELLS;
                 prop->count = count;
 
-                if (!hashmap_add(
-                        &node->known_props,
-                        hashmap_key_create(DEVICETREE_PROP_INTR_CELLS),
-                        &prop))
+                if (!hashmap_add(&node->known_props,
+                                 hashmap_key_create(DEVICETREE_PROP_INTR_CELLS),
+                                 &prop))
                 {
                     kfree(prop);
                     return false;
@@ -1726,7 +1713,6 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             if (!parse_intr_info(data,
                                  end,
                                  intr_cells_prop->count,
-                                 intr_parent->phandle,
                                  &info))
             {
                 parse_later_info_destroy(&later_info);

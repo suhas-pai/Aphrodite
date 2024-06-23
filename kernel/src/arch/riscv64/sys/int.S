@@ -55,7 +55,6 @@ isr_interrupt_entry:
     sd sp, -248(sp)
     addi sp, sp, -264
 
-    // Save the registers.
     sd gp, 24(sp)
     sd tp, 32(sp)
     sd ra, 40(sp)

@@ -8,13 +8,12 @@
 #include "asm/irqs.h"
 #include "cpu/spinlock.h"
 #include "dev/printk.h"
-
 #include "lib/util.h"
+
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
 
 #include "sys/aplic.h"
-#include "sys/mmio.h"
 #include "imsic.h"
 
 enum {

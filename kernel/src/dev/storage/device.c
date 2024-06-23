@@ -4,6 +4,7 @@
  */
 
 #include "dev/printk.h"
+#include "fs/driver.h"
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
@@ -12,8 +13,6 @@
 #include "partitions/gpt.h"
 #include "partitions/mbr.h"
 #include "partitions/partition.h"
-
-#include "fs/driver.h"
 
 static bool
 parse_gpt_entries(struct storage_device *const device,

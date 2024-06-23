@@ -242,7 +242,7 @@ src/dev/pci/vendors.h:
 	sed -i -e 's/(???)//g' $@
 	sed -i -e s/\"NICEVT\"/\'NICEVT\'/g $@
 	rm src/dev/pci/pci.ids
-	rm $@-e
+	rm -f $@-e
 
 # Link rules for the final kernel executable.
 # The magic printf/dd command is used to force the final ELF file type to ET_DYN.
