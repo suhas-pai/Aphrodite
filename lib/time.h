@@ -214,7 +214,7 @@ typedef sec_t timestamp_t;
 struct tm tm_from_stamp(const timestamp_t timestamp);
 
 // Stop colliding with Apple's time.h
-#ifndef _TIME_H_
+#if !defined(__time_t_defined) && !defined(_TIME_H_)
     typedef uint64_t time_t;
     struct tm {
         int tm_sec;
@@ -232,7 +232,7 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
         sec_t tv_sec;
         nsec_t tv_nsec;
     };
-#endif /* _TIME_H_ */
+#endif /* !defined(__time_t_defined) && !defined(_TIME_H_) */
 
 #define TIMESPEC_NULL() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
 #define TIMESPEC_INIT(sec, nsec) \
