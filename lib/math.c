@@ -13,7 +13,8 @@ round_up(const uint64_t number,
 {
     assert(multiple != 0);
     if (number == 0) {
-        return multiple;
+        *result_out = multiple;
+        return true;
     }
 
     if (!check_add(number, multiple - 1, result_out)

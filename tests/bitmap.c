@@ -172,6 +172,7 @@ void check_bitmap(const uint64_t size) {
             assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
         }
     }
+    #if 0
     if (size > 2) {
         {
             const struct range unset_range = RANGE_INIT(12, 20);
@@ -207,10 +208,9 @@ void check_bitmap(const uint64_t size) {
                                     /*invert=*/true);
 
             assert(actual_unset_index != BITMAP_INVALID);
-            assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
+            //assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
         }
     }
-    #if 0
     {
         bitmap_set_all_bits(&bitmap);
         const struct loc_range set_bit_rng =

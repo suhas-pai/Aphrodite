@@ -85,6 +85,6 @@ void test_avltree() {
     avltree_delete(&tree, (void *)73, (avlnode_compare_key_t)identify, NULL);
     avltree_delete(&tree, (void *)71, (avlnode_compare_key_t)identify, NULL);
 
-    printf("After deleting:\n");
-    print_tree(&tree);
+    printf("After deleting, tree should be null\n");
+    assert(tree.root == NULL);
 }
