@@ -24,7 +24,7 @@ jobs:
     - name: Run Tests
       working-directory: tests/
       run:
-        make
+        make CC=clang LD=ld.lld
         ./test
 
   mac-build-aarch64:
@@ -44,7 +44,7 @@ jobs:
     - name: Run Tests
       working-directory: tests/
       run:
-        make
+        make CC=clang LD=ld.lld
         ./test
 
   mac-build-riscv64:
@@ -64,7 +64,7 @@ jobs:
     - name: Run Tests
       working-directory: tests/
       run:
-        make
+        make CC=clang LD=ld.lld
         ./test
 
   linux-build-x86_64:
@@ -83,7 +83,7 @@ jobs:
     - name: Run Tests
       working-directory: tests/
       run:
-        make
+        make CC=clang LD=ld.lld
         ./test
 
   linux-build-aarch64:
@@ -102,7 +102,7 @@ jobs:
     - name: Run Tests
       working-directory: tests/
       run:
-        make
+        make CC=clang LD=ld.lld
         ./test
 
   linux-build-riscv64:
@@ -121,5 +121,5 @@ jobs:
     - name: Run Tests
       working-directory: tests/
       run:
-        make
+        make CC=clang LD=ld.lld
         ./test
