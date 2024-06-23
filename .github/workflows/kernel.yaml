@@ -58,13 +58,13 @@ jobs:
     - run: |
        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
-       sudo apt install -y clang-18 lld-18 nasm xorriso
-       echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
+       sudo apt install -y clang lld nasm xorriso
+       echo "/usr/lib/llvm-*/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: make (x86_64)
-      run: make KARCH=x86_64 KCC=clang-18 KLD=ld.lld
+      run: make KARCH=x86_64 KCC=clang KLD=ld.lld
 
   linux-build-aarch64:
     runs-on: ubuntu-latest
@@ -72,13 +72,13 @@ jobs:
     - run: |
        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
-       sudo apt install -y clang-18 lld-18 nasm xorriso
-       echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
+       sudo apt install -y clang lld nasm xorriso
+       echo "/usr/lib/llvm-*/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=aarch64 KCC=clang-18 KLD=ld.lld
+      run: make KARCH=aarch64 KCC=clang KLD=ld.lld
 
   linux-build-riscv64:
     runs-on: ubuntu-latest
@@ -86,10 +86,10 @@ jobs:
     - run: |
        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
-       sudo apt install -y clang-18 lld-18 nasm xorriso
-       echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
+       sudo apt install -y clang lld nasm xorriso
+       echo "/usr/lib/llvm-*/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=riscv64 KCC=clang-18 KLD=ld.lld
+      run: make KARCH=riscv64 KCC=clang KLD=ld.lld
