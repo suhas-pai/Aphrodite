@@ -81,11 +81,11 @@ endif
 
 # User controllable C flags.
 override DEFAULT_KCFLAGS += $(COMMON_KCFLAGS)
-$(eval $(call DEFAULT_VAR,KCFLAGS,$(DEFAULT_KCFLAGS)))
+$(eval $(call DEFAULT_VAR,EXTRA_KCFLAGS,$(DEFAULT_KCFLAGS)))
 
 # User controllable C preprocessor flags. We set none by default.
 override DEFAULT_KCPPFLAGS := -I..
-$(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
+$(eval $(call DEFAULT_VAR,EXTRA_KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
 
 ifeq ($(KARCH), x86_64)
 # User controllable nasm flags.
@@ -106,12 +106,13 @@ override KCFLAGS += \
 	-fno-stack-protector \
 	-fno-stack-check \
 	-fno-lto \
-	-fPIE
+	-fPIE \
+	$(EXTRA_KCFLAGS)
 
 # Internal C preprocessor flags that should not be changed by the user.
 override KCPPFLAGS := \
 	-I src \
-	$(KCPPFLAGS) \
+	$(EXTRA_KCPPFLAGS) \
 	-MMD \
 	-MP
 

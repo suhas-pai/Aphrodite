@@ -49,12 +49,12 @@ else
 	endif
 endif
 
-DEFAULT_DRIVE_KIND=block
+DEFAULT_DRIVE_KIND=nvme
 ifeq ($(KARCH), riscv64)
 	DEFAULT_DRIVE_KIND=scsi
 endif
 
-DRIVE_KIND?=block
+DRIVE_KIND?=nvme
 $(eval $(call DEFAULT_VAR,DRIVE_KIND,$(DEFAULT_DRIVE_KIND)))
 
 DEFAULT_TRACE=
@@ -79,7 +79,7 @@ VIRTIO_HDD_QEMU_ARG=""
 
 ifeq ($(DRIVE_KIND),block)
 	ifeq ($(KARCH), riscv64)
-		$(error "block device not supported on riscv64")
+$(error "block device not supported on riscv64")
 	endif
 
 	DRIVE_CD_QEMU_ARG=-cdrom $(IMAGE_NAME).iso
