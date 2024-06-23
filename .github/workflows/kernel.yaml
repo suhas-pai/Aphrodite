@@ -11,22 +11,28 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
     - name: make
-      run: make KARCH=x86_64
+      run: make KARCH=x86_64 KCC=clang KLD=ld
 
   mac-build-aarch64:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
     - name: make (aarch64)
-      run: make KARCH=aarch64
+      run: make KARCH=aarch64 KCC=clang KLD=ld
 
   mac-build-riscv64:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
     - name: make (riscv64)
-      run: make KARCH=riscv64
+      run: make KARCH=riscv64 KCC=clang KLD=ld
 
   linux-build-x86_64:
     runs-on: ubuntu-latest
@@ -37,6 +43,8 @@ jobs:
        sudo apt install -y clang-18 lld-18 nasm xorriso
        echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
     - name: make (x86_64)
       run: make KARCH=x86_64 KCC=clang-18 KLD=ld.lld
 
@@ -49,6 +57,8 @@ jobs:
        sudo apt install -y clang-18 lld-18 nasm xorriso
        echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
     - name: make
       run: make KARCH=aarch64 KCC=clang-18 KLD=ld.lld
 
@@ -61,5 +71,7 @@ jobs:
        sudo apt install -y clang-18 lld-18 nasm xorriso
        echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
     - name: make
       run: make KARCH=riscv64 KCC=clang-18 KLD=ld.lld
