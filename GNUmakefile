@@ -54,6 +54,7 @@ ifeq ($(KARCH), riscv64)
 	DEFAULT_DRIVE_KIND=scsi
 endif
 
+DRIVE_KIND=
 $(eval $(call DEFAULT_VAR,DRIVE_KIND,$(DEFAULT_DRIVE_KIND)))
 
 DEFAULT_TRACE=
@@ -93,7 +94,7 @@ $(eval $(call DEFAULT_VAR,NVME_MAX_QUEUE_COUNT,$(DEFAULT_NVME_MAX_QUEUE_COUNT)))
 	DRIVE_CD_QEMU_ARG=-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
 	DRIVE_HDD_QEMU_ARG=-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
 else
-$(error "Unrecognized value for variable DRIVE_KIND")
+$(error "Unrecognized value for variable DRIVE_KIND: \"${DRIVE_KIND}\"")
 endif
 
 .PHONY: all
