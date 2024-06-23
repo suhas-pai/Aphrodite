@@ -230,11 +230,13 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
         int tm_isdst;
     };
 
+#if !defined(__timespec_defined)
     struct timespec {
         sec_t tv_sec;
         nsec_t tv_nsec;
     };
-#endif /* !defined(__time_t_defined) && !defined(_TIME_H_) */
+#endif /* !defined(__timespec_defined) */
+#endif /* !defined(_TIME_H_) */
 
 #define TIMESPEC_NULL() ((struct timespec){ .tv_sec = 0, .tv_nsec = 0 })
 #define TIMESPEC_INIT(sec, nsec) \
