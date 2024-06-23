@@ -13,7 +13,7 @@ jobs:
     - name: Install LLVM
       run: |
         brew update --preinstall
-        brew install llvm
+        brew install llvm make
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
@@ -26,7 +26,7 @@ jobs:
     - name: Install LLVM
       run: |
         brew update --preinstall
-        brew install llvm
+        brew install llvm make
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
@@ -39,7 +39,7 @@ jobs:
     - name: Install LLVM
       run: |
         brew update --preinstall
-        brew install llvm
+        brew install llvm make
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
