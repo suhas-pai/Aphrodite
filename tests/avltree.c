@@ -73,16 +73,18 @@ void test_avltree() {
     insert_node(&tree, 71);
 
     print_tree(&tree);
+    const avlnode_compare_key_t compare_identity =
+        (avlnode_compare_key_t)identify;
 
-    avltree_delete(&tree, (void *)53, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)11, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)21, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)9, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)8, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)61, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)33, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)73, (avlnode_compare_key_t)identify, NULL);
-    avltree_delete(&tree, (void *)71, (avlnode_compare_key_t)identify, NULL);
+    free(avltree_delete(&tree, (void *)53, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)11, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)21, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)9, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)8, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)61, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)33, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)73, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)71, compare_identity, NULL));
 
     printf("After deleting, tree should be null\n");
     assert(tree.root == NULL);

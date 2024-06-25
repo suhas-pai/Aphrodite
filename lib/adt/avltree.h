@@ -58,7 +58,7 @@ avltree_insert_at_loc(struct avltree *tree,
                       struct avlnode **link,
                       avlnode_update_t update);
 
-void
+struct avlnode *
 avltree_delete(struct avltree *tree,
                void *key,
                avlnode_compare_key_t identifier,
