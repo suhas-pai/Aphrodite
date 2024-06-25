@@ -23,7 +23,7 @@ jobs:
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
+      run: make KARCH=${{ matrix.arch }}
     - name: Run Tests
       working-directory: tests/
       run: |
@@ -45,7 +45,7 @@ jobs:
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
+      run: make KARCH=${{ matrix.arch }}
     - name: Run Tests
       working-directory: tests/
       run: |

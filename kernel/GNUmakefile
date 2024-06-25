@@ -31,7 +31,7 @@ ifeq ($(shell $(KCC) --version 2>&1 | grep -i 'clang' >/dev/null 2>&1 && echo 1)
 endif
 
 # Same thing for "ld" (the linker).
-override DEFAULT_KLD := ld
+override DEFAULT_KLD := ld.lld
 $(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
 
 override KLD_IS_LLD := no
