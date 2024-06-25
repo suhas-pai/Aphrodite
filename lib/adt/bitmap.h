@@ -28,14 +28,6 @@ bitmap_find(struct bitmap *bitmap,
             bool expected_value,
             bool invert);
 
-uint32_t
-bitmap_find_at_mult(struct bitmap *bitmap,
-                    uint32_t count,
-                    uint32_t mult,
-                    uint32_t start_index,
-                    bool expected_value,
-                    bool invert);
-
 bool bitmap_at(const struct bitmap *bitmap, uint32_t index);
 bool bitmap_has(const struct bitmap *bitmap, struct range range, bool value);
 

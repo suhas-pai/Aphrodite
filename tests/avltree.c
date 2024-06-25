@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include "lib/adt/avltree.h"
-#include "lib/list.h"
 
 struct node {
     struct avlnode info;

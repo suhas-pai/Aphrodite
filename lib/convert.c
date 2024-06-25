@@ -188,8 +188,9 @@ convert_cstr_to_64int(const char *string,
         }
 
         found_digit = true;
-        if (!check_mul(*result_out, base, result_out)
-            || !check_add(*result_out, digit, result_out))
+        if (__builtin_expect(
+                !check_mul(*result_out, base, result_out)
+                || !check_add(*result_out, digit, result_out), 0))
         {
             return E_STR_TO_NUM_OVERFLOW;
         }
@@ -394,8 +395,9 @@ convert_sv_to_64int(struct string_view sv,
         }
 
         found_digit = true;
-        if (!check_mul(*result_out, base, result_out)
-            || !check_add(*result_out, digit, result_out))
+        if (__builtin_expect(
+                !check_mul(*result_out, base, result_out)
+                || !check_add(*result_out, digit, result_out), 0))
         {
             return E_STR_TO_NUM_OVERFLOW;
         }

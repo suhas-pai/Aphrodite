@@ -42,29 +42,6 @@ void test_cont(struct bitmap *const bitmap, const uint64_t count) {
     assert(bitmap_has(bitmap, range, false));
 }
 
-void
-test_at_mult(struct bitmap *const bitmap,
-             const uint64_t mult,
-             const uint64_t count)
-{
-#if 0
-    uint64_t bit_index = 0;
-    assert(
-        bitmap_find_at_mult(bitmap,
-                            count,
-                            mult,
-                            /*search_start_bit_index=*/123,
-                            /*expected_value=*/false,
-                            /*set=*/true));
-
-    const struct range range = RANGE_INIT(bit_index, count);
-
-    assert(bitmap_has(*bitmap, range, true));
-    assert(bitmap_set(bitmap, range, false, true));
-    assert(bitmap_has(*bitmap, range, false));
-#endif
-}
-
 extern void *malloc(size_t size);
 void check_bitmap(const uint64_t size) {
     void *const buffer = malloc(sizeof(uint8_t) * size);
@@ -173,44 +150,6 @@ void check_bitmap(const uint64_t size) {
         }
     }
     #if 0
-    if (size > 2) {
-        {
-            const struct range unset_range = RANGE_INIT(12, 20);
-
-            bitmap_set_all(&bitmap, /*value=*/true);
-            bitmap_set_range(&bitmap, unset_range, /*value=*/false);
-
-            const uint64_t actual_unset_index =
-                bitmap_find_at_mult(&bitmap,
-                                    /*n=*/unset_range.size,
-                                    /*mult=*/unset_range.front,
-                                    /*start_index=*/0,
-                                    /*expected_value=*/false,
-                                    /*invert=*/true);
-
-            assert(actual_unset_index != BITMAP_INVALID);
-            assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
-        }
-    }
-    if (size > 7) {
-        {
-            const struct range unset_range = RANGE_INIT(56, 8);
-
-            bitmap_set_all(&bitmap, /*value=*/true);
-            bitmap_set_range(&bitmap, unset_range, /*value=*/false);
-
-            const uint64_t actual_unset_index =
-                bitmap_find_at_mult(&bitmap,
-                                    /*count=*/8,
-                                    /*mult=*/8,
-                                    /*start_index=*/0,
-                                    /*expected_value=*/false,
-                                    /*invert=*/true);
-
-            assert(actual_unset_index != BITMAP_INVALID);
-            //assert(bitmap_has(&bitmap, unset_range, /*value=*/true));
-        }
-    }
     {
         bitmap_set_all_bits(&bitmap);
         const struct loc_range set_bit_rng =

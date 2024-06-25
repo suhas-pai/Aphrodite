@@ -7,8 +7,11 @@ on:
     branches: [ "trunk" ]
 
 jobs:
-  mac-build-x86_64:
+  mac-build:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: ["x86_64","aarch64","riscv64"]
     steps:
     - name: Install Dependencies
       run: |
@@ -20,55 +23,18 @@ jobs:
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=x86_64 KCC=clang KLD=ld.lld
+      run: make KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
     - name: Run Tests
       working-directory: tests/
-      run:
-        make CC=clang LD=ld.lld
-        ./test
-
-  mac-build-aarch64:
-    runs-on: macos-latest
-    steps:
-    - name: Install Dependencies
       run: |
-        brew update --preinstall
-        brew install llvm make nasm xorriso
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
-        echo "/opt/homebrew/opt/make/libexec/gnubin" >> $GITHUB_PATH
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - name: make (aarch64)
-      run: make KARCH=aarch64 KCC=clang KLD=ld.lld
-    - name: Run Tests
-      working-directory: tests/
-      run:
         make CC=clang LD=ld.lld
         ./test
 
-  mac-build-riscv64:
-    runs-on: macos-latest
-    steps:
-    - name: Install Dependencies
-      run: |
-        brew update --preinstall
-        brew install llvm make nasm xorriso
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
-        echo "/opt/homebrew/opt/make/libexec/gnubin" >> $GITHUB_PATH
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - name: make (riscv64)
-      run: make KARCH=riscv64 KCC=clang KLD=ld.lld
-    - name: Run Tests
-      working-directory: tests/
-      run:
-        make CC=clang LD=ld.lld
-        ./test
-
-  linux-build-x86_64:
+  linux-build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ["x86_64","aarch64","riscv64"]
     steps:
     - run: |
        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
@@ -78,11 +44,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
-    - name: make (x86_64)
-      run: make KARCH=x86_64 KCC=clang KLD=ld.lld
+    - name: make
+      run: make KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
     - name: Run Tests
       working-directory: tests/
-      run:
+      run: |
         make CC=clang LD=ld.lld
         ./test
 
@@ -101,7 +67,7 @@ jobs:
       run: make KARCH=aarch64 KCC=clang KLD=ld.lld
     - name: Run Tests
       working-directory: tests/
-      run:
+      run: |
         make CC=clang LD=ld.lld
         ./test
 
@@ -120,6 +86,6 @@ jobs:
       run: make KARCH=riscv64 KCC=clang KLD=ld.lld
     - name: Run Tests
       working-directory: tests/
-      run:
+      run: |
         make CC=clang LD=ld.lld
         ./test
