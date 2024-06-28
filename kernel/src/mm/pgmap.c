@@ -434,7 +434,7 @@ write_ptes_at_level(
             phys_addr += level_page_size;
         }
 
-        const uint64_t count = (uint64_t)(pte - start);
+        const uint16_t count = pte - start;
         if (iterate_options->should_ref) {
             refcount_increment(&virt_to_table(table)->table.refcount, count);
         }
@@ -446,11 +446,9 @@ write_ptes_at_level(
             return UINT64_MAX;
         }
 
-        const uint64_t ptes_written =
-            check_mul_assert(leaf_pte_count_per_single_pte, count);
-
-        leaf_ptes_remaining -= ptes_written;
         write_pte_count -= count;
+        leaf_ptes_remaining -=
+            check_mul_assert(leaf_pte_count_per_single_pte, count);
     } while (write_pte_count != 0);
 
     *leaf_ptes_remaining_out = leaf_ptes_remaining;
@@ -535,12 +533,6 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
     const uint64_t supports_largepage_at_level_mask =
         options->supports_largepage_at_level_mask;
 
-    pgt_level_t level =
-        find_highest_possible_level(walker,
-                                    supports_largepage_at_level_mask,
-                                    phys_range,
-                                    /*offset=*/0);
-
     uint64_t phys_addr = phys_range.front;
     uint64_t total_remaining_leaf_pte = phys_range.size / PAGE_SIZE;
 
@@ -553,46 +545,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
         .should_ref = !options->is_in_early,
     };
 
-    uint64_t leaf_pte_remaining_until_next_large =
-        get_leaf_pte_count_until_next_large(phys_range,
-                                            phys_addr,
-                                            virt_begin,
-                                            /*check_virt=*/true,
-                                            level,
-                                            supports_largepage_at_level_mask);
-
-    if (total_remaining_leaf_pte <= leaf_pte_remaining_until_next_large) {
-        phys_addr =
-            write_ptes_at_level(walker,
-                                level,
-                                options->pte_flags,
-                                phys_addr,
-                                total_remaining_leaf_pte,
-                                &iterate_options,
-                                &total_remaining_leaf_pte);
-
-        if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
-            return false;
-        }
-
-        if (total_remaining_leaf_pte == 0) {
-            return true;
-        }
-    } else {
-        phys_addr =
-            write_ptes_at_level(walker,
-                                level,
-                                options->pte_flags,
-                                phys_addr,
-                                leaf_pte_remaining_until_next_large,
-                                &iterate_options,
-                                &total_remaining_leaf_pte);
-
-        if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
-            return false;
-        }
-    }
-
+    pgt_level_t level = 1;
     do {
         level =
             find_highest_possible_level(walker,
@@ -600,7 +553,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                                         phys_range,
                                         (phys_addr - phys_range.front));
 
-        leaf_pte_remaining_until_next_large =
+        const uint64_t leaf_pte_count_until_next_large =
             get_leaf_pte_count_until_next_large(
                 phys_range,
                 phys_addr,
@@ -609,7 +562,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                 level,
                 supports_largepage_at_level_mask);
 
-        if (total_remaining_leaf_pte <= leaf_pte_remaining_until_next_large) {
+        if (total_remaining_leaf_pte <= leaf_pte_count_until_next_large) {
             break;
         }
 
@@ -618,7 +571,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                                 level,
                                 options->pte_flags,
                                 phys_addr,
-                                leaf_pte_remaining_until_next_large,
+                                leaf_pte_count_until_next_large,
                                 &iterate_options,
                                 &total_remaining_leaf_pte);
 
@@ -869,11 +822,9 @@ alloc_ptes_at_level(
             return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
         }
 
-        const uint64_t ptes_written =
-            check_mul_assert(leaf_pte_count_per_single_pte, count);
-
-        leaf_ptes_remaining -= ptes_written;
         write_pte_count -= count;
+        leaf_ptes_remaining -=
+            check_mul_assert(leaf_pte_count_per_single_pte, count);
     } while (write_pte_count != 0);
 
     *leaf_ptes_remaining_out = leaf_ptes_remaining;
