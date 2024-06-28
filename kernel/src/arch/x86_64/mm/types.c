@@ -57,7 +57,7 @@ __optimize(3) uint64_t sign_extend_virt_addr(const uint64_t virt) {
 }
 
 __optimize(3) bool pte_is_present(const pte_t pte) {
-    return (pte & __PTE_PRESENT) != 0;
+    return pte & __PTE_PRESENT;
 }
 
 __optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
@@ -65,7 +65,7 @@ __optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
 }
 
 __optimize(3) bool pte_is_large(const pte_t pte) {
-    return (pte & __PTE_LARGE) != 0;
+    return pte & __PTE_LARGE;
 }
 
 __optimize(3) bool pte_is_dirty(const pte_t pte) {
