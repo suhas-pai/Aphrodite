@@ -95,9 +95,10 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     enable_irqs_if_flag(flag);
 
-    volatile struct ahci_spec_hba_registers *const regs = pci_entity_bar_get_base(bar);
-    const uint32_t version = mmio_read(&regs->version);
+    volatile struct ahci_spec_hba_regs *const regs =
+        pci_entity_bar_get_base(bar);
 
+    const uint32_t version = mmio_read(&regs->version);
     printk(LOGLEVEL_INFO,
            "ahci: version is %" PRIu16 ".%" PRIu16 "\n",
            version >> 16,

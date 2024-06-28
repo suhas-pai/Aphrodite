@@ -278,7 +278,7 @@ enum ahci_hba_bios_handoff_status_ctrl_flags {
     __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_BUSY = 1ull << 4,
 };
 
-struct ahci_spec_hba_registers {
+struct ahci_spec_hba_regs {
     volatile const uint32_t host_capabilities;
 
     volatile uint32_t global_host_control;
@@ -303,7 +303,7 @@ struct ahci_spec_hba_registers {
 };
 
 #define AHCI_HBA_MAX_PORT_COUNT \
-    sizeof_bits_field(struct ahci_spec_hba_registers, ports_implemented)
+    sizeof_bits_field(struct ahci_spec_hba_regs, ports_implemented)
 
 enum ahci_hba_global_host_control_flags {
     /*

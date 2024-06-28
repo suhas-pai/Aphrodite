@@ -19,7 +19,7 @@ struct ahci_hba_device {
     struct pci_entity_info *pci_entity;
     struct ahci_hba_port *port_list;
 
-    volatile struct ahci_spec_hba_registers *regs;
+    volatile struct ahci_spec_hba_regs *regs;
     uint8_t port_count;
 
     bool supports_64bit_dma : 1;
