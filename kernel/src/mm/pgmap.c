@@ -259,11 +259,6 @@ get_leaf_pte_count_until_next_large(
             &largepage_level_info_list[level - 1];
 
         if (info == carr_back(largepage_level_info_list)) {
-        last_large_level:
-            // Return the highest possible number, which is 64-bit max
-            // divided by this level's page size, as we multiply the return
-            // value from this function with the page size later.
-
             return UINT64_MAX;
         }
 
@@ -277,7 +272,7 @@ get_leaf_pte_count_until_next_large(
         }
 
         if (next_level_info == NULL) {
-            goto last_large_level;
+            return UINT64_MAX;
         }
     } else {
         next_level_info = &largepage_level_info_list[LARGEPAGE_LEVELS[0] - 1];
@@ -296,7 +291,7 @@ get_leaf_pte_count_until_next_large(
         }
 
         if (!next_level_info_valid) {
-            goto last_large_level;
+            return UINT64_MAX;
         }
     }
 
@@ -475,7 +470,7 @@ write_ptes_down_from_level(
                             &leaf_ptes_remaining);
 
     if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
-        return false;
+        return phys_addr;
     }
 
     if (leaf_ptes_remaining == 0) {
