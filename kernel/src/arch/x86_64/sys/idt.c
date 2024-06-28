@@ -6,6 +6,7 @@
 #include "apic/lapic.h"
 
 #include "asm/cr.h"
+#include "asm/error_code.h"
 #include "asm/stack_trace.h"
 
 #include "cpu/isr.h"
@@ -162,11 +163,37 @@ handle_exception(const uint64_t intr_no, struct thread_context *const context) {
             break;
         case EXCEPTION_PAGE_FAULT:
             printk(LOGLEVEL_ERROR,
-                   "Page Fault accessing %p from %p\n",
+                   "Page Fault accessing %p from instruction at %p\n"
+                   "\tPresent: %s\n"
+                   "\tWrite: %s\n"
+                   "\tUser: %s\n"
+                   "\tReserved Write: %s\n"
+                   "\tInstruction Fetch: %s\n"
+                   "\tProtection Key: %s\n"
+                   "\tShadow Stack: %s\n"
+                   "\tSoftware Guard Extensions: %s\n",
                    (void *)read_cr2(),
-                   (void *)context->rip);
+                   (void *)context->rip,
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_PRESENT
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_WRITE
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_USER
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_RESERVED_WRITE
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_INSTRUCTION_FETCH
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_PROTECTION_KEY
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_SHADOW_STACK
+                    ? "yes" : "no",
+                   context->err_code & __PAGE_FAULT_ERROR_CODE_SW_GUARD_EXT
+                    ? "yes" : "no");
 
+            printk(LOGLEVEL_ERROR, "Stack Frame:\n");
             print_stack_trace(/*max_lines=*/10);
+
             cpu_idle();
         case EXCEPTION_FPU_FAULT:
             except_str = "FPU fault exception";
