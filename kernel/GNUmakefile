@@ -253,7 +253,7 @@ src/dev/pci/vendors.h:
 bin-$(KARCH)/$(KERNEL): GNUmakefile src/arch/$(KARCH)/linker.ld $(OBJ)
 	mkdir -p "$$(dirname $@)"
 	$(KLD) $(OBJ) $(KLDFLAGS) -o $@
-	printf '\x03' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
+	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
