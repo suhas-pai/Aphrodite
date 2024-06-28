@@ -16,6 +16,12 @@ uint64_t offset_from_boundary(const uint64_t number, const uint64_t boundary) {
     return number & (boundary - 1);
 }
 
+__optimize(3) static inline
+uint64_t amount_to_boundary(const uint64_t number, const uint64_t boundary) {
+    assert(boundary != 0);
+    return boundary - offset_from_boundary(number, boundary);
+}
+
 __optimize(3)
 static inline bool has_align(const uint64_t number, const uint64_t boundary) {
     assert(boundary != 0);
