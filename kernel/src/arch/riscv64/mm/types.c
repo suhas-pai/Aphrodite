@@ -17,6 +17,13 @@ __hidden uint64_t PAGE_END = 0;
 
 __hidden
 struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
+    [0] = {
+        .order = 0,
+        .largepage_order = UINT8_MAX,
+        .level = 1,
+        .size = PAGE_SIZE,
+        .is_supported = true
+    },
     [LARGEPAGE_LEVEL_2MIB - 1] = {
         .order = 9,
         .largepage_order = 0,

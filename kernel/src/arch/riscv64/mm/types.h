@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "lib/assert.h"
+
 #define MAX_ORDER 31ul
 
 #define PML1_SHIFT 12ul
@@ -20,7 +22,7 @@
 #define PTE_PHYS_MASK 0x003ffffffffffc00ull
 
 #define PGT_LEVEL_COUNT 5ul
-#define PGT_PTE_COUNT(level) ({ (void)(level); (uint64_t)512; })
+#define PGT_PTE_COUNT(level) ({ (void)(level); (uint16_t)512; })
 
 #define PML1_MASK 0x1ffull
 #define PML2_MASK PML1_MASK
@@ -68,17 +70,29 @@ struct largepage_level_info {
 
 extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
 
-#define PAGE_SIZE_AT_LEVEL(level) \
-    ({\
-        const uint64_t __sizes__[] = { \
-            PAGE_SIZE, \
-            PAGE_SIZE_2MIB, \
-            PAGE_SIZE_1GIB, \
-            PAGE_SIZE_512GIB, \
-            PAGE_SIZE_512GIB * PGT_PTE_COUNT(4) \
-        }; \
-       __sizes__[level - 1];\
-    })
+#define PAGE_SIZE_AT_LEVEL(level) ({ \
+    __auto_type __pagesizelevelresult__ = (uint64_t)0; \
+    switch (level) { \
+        case 1: \
+            __pagesizelevelresult__ = PAGE_SIZE; \
+            break; \
+        case 2: \
+            __pagesizelevelresult__ = PAGE_SIZE_2MIB; \
+            break; \
+        case 3: \
+            __pagesizelevelresult__ = PAGE_SIZE_1GIB; \
+            break; \
+        case 4: \
+            __pagesizelevelresult__ = PAGE_SIZE_512GIB; \
+            break; \
+        case 5: \
+            __pagesizelevelresult__ = 1ull << PML5_SHIFT; \
+            break; \
+        default: \
+            verify_not_reached(); \
+    } \
+    __pagesizelevelresult__; \
+})
 
 enum pte_flags {
     __PTE_VALID    = 1ull << 0,

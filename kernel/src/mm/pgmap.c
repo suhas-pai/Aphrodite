@@ -129,7 +129,7 @@ enum override_result {
     OVERRIDE_DONE
 };
 
-static enum override_result
+__unused static enum override_result
 override_pte(struct pt_walker *const walker,
              struct current_split_info *const curr_split,
              struct pageop *const pageop,
@@ -244,1066 +244,284 @@ __optimize(3) static inline struct page *virt_to_table(const void *const ptr) {
     return page;
 }
 
-__optimize(3) static inline enum map_result
-map_normal_no_overwrite(struct pt_walker *const walker,
-                        const uint64_t phys_begin,
-                        uint64_t *const offset_in,
-                        const uint64_t size,
-                        const struct pgmap_options *const options)
-{
-    struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = !options->is_in_early,
-    };
-
-    uint64_t offset = *offset_in;
-    uint64_t phys_addr = phys_begin + offset;
-
-    const uint64_t phys_end = phys_begin + size;
-    const uint64_t pte_flags = options->pte_flags;
-
-    enum pt_walker_result ptwalker_result =
-        ptwalker_fill_in_to(walker,
-                            /*level=*/1,
-                            iterate_options.should_ref,
-                            options->alloc_pgtable_cb_info,
-                            options->free_pgtable_cb_info);
-
-    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-    panic:
-        panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
-    }
-
-    do {
-        pte_t *const table = walker->tables[0];
-        pte_t *const start = &table[walker->indices[0]];
-
-        pte_t *pte = start;
-        const pte_t *const end = &table[PGT_PTE_COUNT(1)];
-
-        do {
-            const pte_t new_pte_value =
-                phys_create_pte(phys_addr) | PTE_LEAF_FLAGS | pte_flags;
-
-            pte_write(pte, new_pte_value);
-
-            phys_addr += PAGE_SIZE;
-            pte++;
-
-            if (pte == end) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                if (phys_addr == phys_end) {
-                    *offset_in = phys_addr - phys_begin;
-                    return MAP_DONE;
-                }
-
-                walker->indices[0] = PGT_PTE_COUNT(1) - 1;
-
-                // Only fill in if we can't use largepages at the parent
-                // level.
-
-                const bool should_fill_in =
-                    (options->supports_largepage_at_level_mask & 1ull << 2)
-                        == 0;
-
-                iterate_options.alloc_parents = should_fill_in;
-                iterate_options.alloc_level = should_fill_in;
-
-                ptwalker_result =
-                    ptwalker_next_with_options(walker,
-                                               /*level=*/1,
-                                               &iterate_options);
-
-                if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0))
-                {
-                    goto panic;
-                }
-
-                // Exit if the level above is at index 0, which may mean that a
-                // large page can be placed at a higher level.
-
-                if (!should_fill_in) {
-                    *offset_in = phys_addr - phys_begin;
-                    return MAP_RESTART;
-                }
-
-                break;
-            } else if (phys_addr == phys_end) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                walker->indices[0] = pte - table;
-                *offset_in = phys_addr - phys_begin;
-
-                return MAP_DONE;
-            }
-        } while (true);
-    } while (true);
-}
-
-__optimize(3) static inline enum map_result
-map_normal_overwrite(struct pt_walker *const walker,
-                     struct current_split_info *const curr_split,
-                     struct pageop *const pageop,
-                     const uint64_t phys_begin,
-                     const uint64_t virt_begin,
-                     uint64_t *const offset_in,
-                     const uint64_t size,
-                     const struct pgmap_options *const options)
-{
-    struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = !options->is_in_early,
-    };
-
-    uint64_t offset = *offset_in;
-    const uint64_t pte_flags = options->pte_flags;
-
-    do {
-        enum pt_walker_result ptwalker_result =
-            ptwalker_fill_in_to(walker,
-                                /*level=*/1,
-                                iterate_options.should_ref,
-                                options->alloc_pgtable_cb_info,
-                                options->free_pgtable_cb_info);
-
-        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-        panic:
-            panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
-        }
-
-        do {
-            const pte_t new_pte_value =
-                phys_create_pte(phys_begin + offset)
-                | PTE_LEAF_FLAGS
-                | pte_flags;
-
-            const enum override_result override_result =
-                override_pte(walker,
-                             curr_split,
-                             pageop,
-                             phys_begin,
-                             virt_begin,
-                             &offset,
-                             size,
-                             /*level=*/1,
-                             new_pte_value,
-                             options,
-                             /*is_alloc_mapping=*/false);
-
-            switch (override_result) {
-                case OVERRIDE_OK:
-                    break;
-                case OVERRIDE_DONE:
-                    return MAP_DONE;
-            }
-
-            // Only fill in if we can't use largepages at the parent-level
-            const bool should_fill_in =
-                (options->supports_largepage_at_level_mask & 1ull << 2) == 0;
-
-            iterate_options.alloc_parents = should_fill_in;
-            iterate_options.alloc_level = should_fill_in;
-
-            ptwalker_result =
-                ptwalker_next_with_options(walker,
-                                           /*level=*/1,
-                                           &iterate_options);
-
-            if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-                goto panic;
-            }
-
-            offset += PAGE_SIZE;
-            if (offset == size) {
-                *offset_in = offset;
-                return MAP_DONE;
-            }
-
-            if (walker->indices[0] == 0) {
-                if (!should_fill_in) {
-                    *offset_in = offset;
-                    return MAP_RESTART;
-                }
-
-                break;
-            }
-        } while (true);
-    } while (true);
-}
-
-__optimize(3) static inline enum map_result
-map_normal(struct pt_walker *const walker,
-           struct current_split_info *const curr_split,
-           struct pageop *const pageop,
-           const uint64_t phys_begin,
-           const uint64_t virt_begin,
-           uint64_t *const offset_in,
-           const uint64_t size,
-           const struct pgmap_options *const options)
-{
-    uint64_t offset = *offset_in;
-    if (__builtin_expect(offset >= size, 0)) {
-        return MAP_DONE;
-    }
-
-    if (!options->is_overwrite) {
-        return map_normal_no_overwrite(walker,
-                                       phys_begin,
-                                       offset_in,
-                                       size,
-                                       options);
-    }
-
-    return map_normal_overwrite(walker,
-                                curr_split,
-                                pageop,
-                                phys_begin,
-                                virt_begin,
-                                offset_in,
-                                size,
-                                options);
-}
-
-enum alloc_and_map_result {
-    ALLOC_AND_MAP_DONE,
-
-    ALLOC_AND_MAP_ALLOC_PAGE_FAIL,
-    ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL,
-
-    ALLOC_AND_MAP_CONTINUE,
-    ALLOC_AND_MAP_RESTART
-};
-
-__optimize(3) static enum alloc_and_map_result
-alloc_and_map_normal_no_overwrite(
-    struct pt_walker *const walker,
-    uint64_t *const offset_in,
-    const uint64_t size,
-    const struct pgmap_options *const options,
-    const struct pgmap_alloc_options *const alloc_options)
-{
-    struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-
-        .should_ref = !options->is_in_early,
-    };
-
-    enum pt_walker_result ptwalker_result =
-        ptwalker_fill_in_to(walker,
-                            /*level=*/1,
-                            iterate_options.should_ref,
-                            options->alloc_pgtable_cb_info,
-                            options->free_pgtable_cb_info);
-
-    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-        return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-    }
-
-    const uint64_t pte_flags = options->pte_flags;
-    const pgmap_alloc_page_t alloc_a_page = alloc_options->alloc_page;
-
-    void *const alloc_page_cb_info = alloc_options->alloc_page_cb_info;
-    uint64_t offset = *offset_in;
-
-    do {
-        pte_t *const table = walker->tables[0];
-        pte_t *const start = &table[walker->indices[0]];
-
-        pte_t *pte = start;
-        const pte_t *const end = &table[PGT_PTE_COUNT(1)];
-
-        do {
-            const uint64_t page = alloc_a_page(alloc_page_cb_info);
-            if (__builtin_expect(page == INVALID_PHYS, 0)) {
-                return ALLOC_AND_MAP_ALLOC_PAGE_FAIL;
-            }
-
-            const pte_t new_pte_value =
-                phys_create_pte(page) | PTE_LEAF_FLAGS | pte_flags;
-
-            pte_write(pte, new_pte_value);
-
-            pte++;
-            offset += PAGE_SIZE;
-
-            if (pte == end) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                if (offset == size) {
-                    *offset_in = offset;
-                    return ALLOC_AND_MAP_DONE;
-                }
-
-                // Only fill in if we can't use largepages at the parent level
-                const bool should_fill_in =
-                    (options->supports_largepage_at_level_mask & 1ull << 2)
-                        == 0;
-
-                iterate_options.alloc_level = should_fill_in;
-                iterate_options.alloc_parents = should_fill_in;
-
-                walker->indices[0] = PGT_PTE_COUNT(1) - 1;
-                ptwalker_result =
-                    ptwalker_next_with_options(walker,
-                                                walker->level,
-                                                &iterate_options);
-
-                if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0))
-                {
-                    return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-                }
-
-                // Exit if the level above is at index 0, which may mean that a
-                // large page can be placed at the higher level.
-
-                if (!should_fill_in) {
-                    *offset_in = offset;
-                    return ALLOC_AND_MAP_RESTART;
-                }
-
-                break;
-            } else if (offset == size) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                walker->indices[0] = pte - table;
-                *offset_in = offset;
-
-                return ALLOC_AND_MAP_DONE;
-            }
-        } while (true);
-    } while (true);
-}
-
-__optimize(3) static enum alloc_and_map_result
-alloc_and_map_normal_overwrite(
-    struct pt_walker *const walker,
-    struct current_split_info *const curr_split,
-    struct pageop *const pageop,
+__optimize(3) static inline uint64_t
+get_leaf_pte_count_until_next_large(
+    const struct range addr_range,
+    const uint64_t addr,
     const uint64_t virt_begin,
-    uint64_t *const offset_in,
-    const uint64_t size,
-    const struct pgmap_options *const options,
-    const struct pgmap_alloc_options *const alloc_options)
-{
-    struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-
-        .should_ref = !options->is_in_early,
-    };
-
-    const uint64_t pte_flags = options->pte_flags;
-    const pgmap_alloc_page_t alloc_a_page = alloc_options->alloc_page;
-
-    uint64_t offset = *offset_in;
-    do {
-        enum pt_walker_result ptwalker_result =
-            ptwalker_fill_in_to(walker,
-                                /*level=*/1,
-                                iterate_options.should_ref,
-                                options->alloc_pgtable_cb_info,
-                                options->free_pgtable_cb_info);
-
-        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-            return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-        }
-
-        void *const alloc_page_cb_info = alloc_options->alloc_page_cb_info;
-        do {
-            const uint64_t page = alloc_a_page(alloc_page_cb_info);
-            if (__builtin_expect(page == INVALID_PHYS, 0)) {
-                return ALLOC_AND_MAP_ALLOC_PAGE_FAIL;
-            }
-
-            const pte_t new_pte_value =
-                phys_create_pte(page) | PTE_LEAF_FLAGS | pte_flags;
-
-            const enum override_result override_result =
-                override_pte(walker,
-                             curr_split,
-                             pageop,
-                             /*phys_begin=*/0,
-                             virt_begin,
-                             &offset,
-                             size,
-                             /*level=*/1,
-                             new_pte_value,
-                             options,
-                             /*is_alloc_mapping=*/true);
-
-            switch (override_result) {
-                case OVERRIDE_OK:
-                    break;
-                case OVERRIDE_DONE:
-                    return ALLOC_AND_MAP_DONE;
-            }
-
-            // Only fill in if we can't use largepages at the parent-level
-            const bool should_fill_in =
-                (options->supports_largepage_at_level_mask & 1ull << 2) == 0;
-
-            ptwalker_result =
-                ptwalker_next_with_options(walker,
-                                           walker->level,
-                                           &iterate_options);
-
-            if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-                return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-            }
-
-            offset += PAGE_SIZE;
-            if (offset == size) {
-                *offset_in = offset;
-                return ALLOC_AND_MAP_DONE;
-            }
-
-            if (walker->indices[0] == 0) {
-                // Exit if the level above is at index 0, which may mean
-                // that a large page can be placed at the higher level.
-
-                if (!should_fill_in) {
-                    *offset_in = offset;
-                    return ALLOC_AND_MAP_RESTART;
-                }
-
-                break;
-            }
-        } while (true);
-    } while (true);
-}
-
-__optimize(3) static enum alloc_and_map_result
-alloc_and_map_normal(struct pt_walker *const walker,
-                     struct current_split_info *const curr_split,
-                     struct pageop *const pageop,
-                     const uint64_t virt_begin,
-                     uint64_t *const offset_in,
-                     const uint64_t size,
-                     const struct pgmap_options *const options,
-                     const struct pgmap_alloc_options *const alloc_options)
-{
-    uint64_t offset = *offset_in;
-    if (__builtin_expect(offset >= size, 0)) {
-        return ALLOC_AND_MAP_DONE;
-    }
-
-    if (!options->is_overwrite) {
-        return alloc_and_map_normal_no_overwrite(walker,
-                                                 offset_in,
-                                                 size,
-                                                 options,
-                                                 alloc_options);
-    }
-
-    return alloc_and_map_normal_overwrite(walker,
-                                          curr_split,
-                                          pageop,
-                                          virt_begin,
-                                          offset_in,
-                                          size,
-                                          options,
-                                          alloc_options);
-}
-
-__optimize(3) static enum map_result
-map_large_at_top_level_overwrite(struct pt_walker *const walker,
-                                 struct current_split_info *const curr_split,
-                                 struct pageop *const pageop,
-                                 const uint64_t phys_begin,
-                                 const uint64_t virt_begin,
-                                 uint64_t *const offset_in,
-                                 const uint64_t size,
-                                 const struct pgmap_options *const options)
-{
-    const pgt_level_t level = walker->top_level;
-    const struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = !options->is_in_early,
-    };
-
-    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
-    const pgt_level_t top_level = pgt_get_top_level();
-
-    uint64_t offset = *offset_in;
-    do {
-        const pte_t new_pte_value =
-            phys_create_pte(phys_begin + offset) | pte_flags;
-
-        const enum override_result override_result =
-            override_pte(walker,
-                         curr_split,
-                         pageop,
-                         phys_begin,
-                         virt_begin,
-                         offset_in,
-                         size,
-                         walker->level,
-                         new_pte_value,
-                         options,
-                         /*is_alloc_mapping=*/false);
-
-        switch (override_result) {
-            case OVERRIDE_OK:
-                break;
-            case OVERRIDE_DONE:
-                return MAP_DONE;
-        }
-
-        const uint64_t page_size = PAGE_SIZE_AT_LEVEL(walker->level);
-        const enum pt_walker_result ptwalker_result =
-            ptwalker_next_with_options(walker, walker->level, &iterate_options);
-
-        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-            panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
-        }
-
-        offset += page_size;
-        if (offset == size) {
-            *offset_in = offset;
-            return MAP_DONE;
-        }
-    } while (walker->level == top_level);
-
-    *offset_in = offset;
-    return MAP_CONTINUE;
-}
-
-__optimize(3) static enum map_result
-map_large_at_top_level_no_overwrite(struct pt_walker *const walker,
-                                    const uint64_t phys_begin,
-                                    uint64_t *const offset_in,
-                                    const uint64_t size,
-                                    const struct pgmap_options *const options)
-{
-    const pgt_level_t level = walker->top_level;
-
-    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t phys_end = phys_begin + size;
-
-    uint64_t offset = *offset_in;
-    uint64_t phys_addr = phys_begin + offset;
-
-    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
-
-    pte_t *const table = walker->tables[level - 1];
-    pte_t *pte = &table[walker->indices[level - 1]];
-
-    do {
-        pte_write(pte, phys_create_pte(phys_addr) | pte_flags);
-        phys_addr += largepage_size;
-
-        if (phys_addr == phys_end) {
-            break;
-        }
-
-        pte++;
-    } while (phys_addr + largepage_size <= phys_end);
-
-    walker->indices[level - 1] = pte - table;
-    *offset_in = phys_addr - phys_begin;
-
-    return MAP_CONTINUE;
-}
-
-__optimize(3) static enum map_result
-map_large_at_level_overwrite(struct pt_walker *const walker,
-                             struct current_split_info *const curr_split,
-                             struct pageop *const pageop,
-                             const uint64_t phys_begin,
-                             const uint64_t virt_begin,
-                             uint64_t *const offset_in,
-                             const uint64_t size,
-                             const pgt_level_t level,
-                             const struct pgmap_options *const options)
-{
-    const bool should_ref = !options->is_in_early;
-    enum pt_walker_result ptwalker_result =
-        ptwalker_fill_in_to(walker,
-                            level,
-                            should_ref,
-                            options->alloc_pgtable_cb_info,
-                            options->free_pgtable_cb_info);
-
-    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-    panic:
-        panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
-    }
-
-    const struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = should_ref,
-    };
-
-    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
-
-    uint64_t offset = *offset_in;
-    do {
-        const pte_t new_pte_value =
-            phys_create_pte(phys_begin + offset) | pte_flags;
-
-        const enum override_result override_result =
-            override_pte(walker,
-                         curr_split,
-                         pageop,
-                         phys_begin,
-                         virt_begin,
-                         offset_in,
-                         size,
-                         level,
-                         new_pte_value,
-                         options,
-                         /*is_alloc_mapping=*/false);
-
-        switch (override_result) {
-            case OVERRIDE_OK:
-                break;
-            case OVERRIDE_DONE:
-                return MAP_DONE;
-        }
-
-        ptwalker_result =
-            ptwalker_next_with_options(walker, level, &iterate_options);
-
-        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-            goto panic;
-        }
-
-        offset += largepage_size;
-        if (offset == size) {
-            *offset_in = offset;
-            return MAP_DONE;
-        }
-
-        if (walker->indices[walker->level - 1] == 0) {
-            // Exit if the level above is at index 0, which may mean that a
-            // large page can be placed at the higher level.
-
-            if (walker->indices[walker->level] == 0) {
-                *offset_in = offset;
-                return MAP_RESTART;
-            }
-
-            break;
-        }
-    } while (offset + largepage_size <= size);
-
-    *offset_in = offset;
-    return MAP_CONTINUE;
-}
-
-__optimize(3) static enum alloc_and_map_result
-alloc_and_map_large_overwrite(
-    struct pt_walker *const walker,
-    struct current_split_info *const curr_split,
-    struct pageop *const pageop,
-    const uint64_t virt_begin,
-    uint64_t *const offset_in,
-    const uint64_t size,
+    const bool check_virt,
     const pgt_level_t level,
-    const struct pgmap_options *const options,
-    const struct pgmap_alloc_options *const alloc_options)
+    const uint64_t supports_largepage_at_level_mask)
 {
-    const bool should_ref = !options->is_in_early;
-    enum pt_walker_result ptwalker_result =
-        ptwalker_fill_in_to(walker,
-                            level,
-                            should_ref,
-                            options->alloc_pgtable_cb_info,
-                            options->free_pgtable_cb_info);
+    struct largepage_level_info *next_level_info = NULL;
+    if (level != 1) {
+        struct largepage_level_info *const info =
+            &largepage_level_info_list[level - 1];
 
-    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-        return ALLOC_AND_MAP_ALLOC_PAGE_FAIL;
+        if (info == carr_back(largepage_level_info_list)) {
+        last_large_level:
+            // Return the highest possible number, which is 64-bit max
+            // divided by this level's page size, as we multiply the return
+            // value from this function with the page size later.
+
+            return UINT64_MAX;
+        }
+
+        carr_foreach_from_iter(largepage_level_info_list, jter, info + 1) {
+            if (jter->is_supported
+                && supports_largepage_at_level_mask & 1ull << jter->level)
+            {
+                next_level_info = jter;
+                break;
+            }
+        }
+
+        if (next_level_info == NULL) {
+            goto last_large_level;
+        }
+    } else {
+        next_level_info = &largepage_level_info_list[LARGEPAGE_LEVELS[0] - 1];
+
+        bool next_level_info_valid = false;
+        carr_foreach_from_iter(largepage_level_info_list, jter, next_level_info)
+        {
+            if (jter->is_supported
+                && supports_largepage_at_level_mask & 1ull << jter->level)
+            {
+                next_level_info = jter;
+                next_level_info_valid = true;
+
+                break;
+            }
+        }
+
+        if (!next_level_info_valid) {
+            goto last_large_level;
+        }
     }
 
-    const struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
+    const uint64_t largepage_size = next_level_info->size;
+    uint64_t largepage_addr = align_up_assert(addr, largepage_size);
 
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = should_ref,
-    };
+    if (largepage_addr + largepage_size > range_get_end_assert(addr_range)) {
+        return UINT64_MAX;
+    }
 
-    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
+    if (check_virt) {
+        const uint64_t virt_addr = virt_begin + (addr - addr_range.front);
+        const uint64_t largepage_virt_addr =
+            virt_addr + amount_to_boundary(addr, largepage_size);
 
-    const pgmap_alloc_large_page_t alloc_a_large_page =
-        alloc_options->alloc_large_page;
-    void *const alloc_large_page_cb_info =
-        alloc_options->alloc_large_page_cb_info;
-
-    uint64_t offset = *offset_in;
-    do {
-        const uint64_t page =
-            alloc_a_large_page(level, alloc_large_page_cb_info);
-
-        if (__builtin_expect(page == INVALID_PHYS, 0)) {
-            return false;
+        if (!has_align(largepage_virt_addr, largepage_size)) {
+            return UINT64_MAX;
         }
+    }
 
-        const pte_t new_pte_value = phys_create_pte(page) | pte_flags;
-        const enum override_result override_result =
-            override_pte(walker,
-                         curr_split,
-                         pageop,
-                         /*phys_begin=*/0,
-                         virt_begin,
-                         offset_in,
-                         size,
-                         level,
-                         new_pte_value,
-                         options,
-                         /*is_alloc_mapping=*/false);
-
-        switch (override_result) {
-            case OVERRIDE_OK:
-                break;
-            case OVERRIDE_DONE:
-                return ALLOC_AND_MAP_DONE;
-        }
-
-        ptwalker_result =
-            ptwalker_next_with_options(walker, level, &iterate_options);
-
-        if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-            return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-        }
-
-        offset += largepage_size;
-        if (offset == size) {
-            *offset_in = offset;
-            return ALLOC_AND_MAP_DONE;
-        }
-
-        if (walker->indices[walker->level - 1] == 0) {
-            // Exit if the level above is at index 0, which may mean that a
-            // large page can be placed at the higher level.
-
-            if (walker->indices[walker->level] == 0) {
-                *offset_in = offset;
-                return ALLOC_AND_MAP_RESTART;
-            }
-
-            break;
-        }
-    } while (offset + largepage_size <= size);
-
-    *offset_in = offset;
-    return ALLOC_AND_MAP_CONTINUE;
+    return (largepage_addr - addr) / PAGE_SIZE;
 }
 
-__optimize(3) static enum map_result
-map_large_at_level_no_overwrite(struct pt_walker *const walker,
-                                const uint64_t phys_begin,
-                                uint64_t *const offset_in,
-                                const uint64_t size,
-                                const pgt_level_t level,
-                                const struct pgmap_options *const options)
+__optimize(3) static pgt_level_t
+find_highest_possible_level(struct pt_walker *const walker,
+                            const uint64_t supports_largepage_at_level_mask,
+                            const struct range addr_range,
+                            const uint64_t offset)
 {
-    const bool should_ref = !options->is_in_early;
-    enum pt_walker_result ptwalker_result =
-        ptwalker_fill_in_to(walker,
-                            level,
-                            should_ref,
-                            options->alloc_pgtable_cb_info,
-                            options->free_pgtable_cb_info);
-
-    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-    panic:
-        panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
+    if (supports_largepage_at_level_mask == 0) {
+        return 1;
     }
 
-    const struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
+    // Find the largest page-size we can use.
+    uint16_t highest_possible_level = 0;
+    for (pgt_level_t level = 1; level <= walker->top_level; level++) {
+        if (walker->indices[level - 1] != 0) {
+            // If we don't have a zero at this level, but had one at all
+            // the preceding levels, then this present level is the
+            // highest largepage level.
 
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = should_ref,
-    };
+            highest_possible_level = level;
+            break;
+        }
+    }
 
-    const uint64_t phys_end = phys_begin + size;
-    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
-    const uint64_t supports_largepage_at_level_mask =
-        options->supports_largepage_at_level_mask;
+    if (highest_possible_level == 1) {
+        return highest_possible_level;
+    }
 
-    uint64_t offset = *offset_in;
-    uint64_t phys_addr = phys_begin + offset;
+    bool okay = false;
+    struct largepage_level_info *const highest_large =
+        &largepage_level_info_list[highest_possible_level - 1];
+
+    carr_foreach_rev_from_iter(largepage_level_info_list, iter, highest_large) {
+        const pgt_level_t level = iter->level;
+        if (level == 1) {
+            break;
+        }
+
+        if (!iter->is_supported ||
+            (supports_largepage_at_level_mask & 1ull << level) == 0)
+        {
+            continue;
+        }
+
+        const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
+        if (!has_align(addr_range.front + offset, largepage_size)
+            || offset + largepage_size > addr_range.size)
+        {
+            continue;
+        }
+
+        okay = true;
+        highest_possible_level = level;
+
+        break;
+    }
+
+    if (!okay) {
+        return 1;
+    }
+
+    return highest_possible_level;
+}
+
+__optimize(3) static inline uint64_t
+write_ptes_at_level(
+    struct pt_walker *const walker,
+    pgt_level_t level,
+    uint64_t orig_pte_flags,
+    uint64_t phys_addr,
+    uint64_t write_leaf_pte_count,
+    const struct ptwalker_iterate_options *const iterate_options,
+    uint64_t *const leaf_ptes_remaining_out)
+{
+    const uint64_t level_page_size = PAGE_SIZE_AT_LEVEL(level);
+    const uint64_t leaf_pte_count_per_single_pte = level_page_size / PAGE_SIZE;
+
+    uint64_t pte_flags = orig_pte_flags;
+    if (level > 1) {
+        pte_flags |= PTE_LARGE_FLAGS(level);
+    } else if (level == 1) {
+        pte_flags |= PTE_LEAF_FLAGS;
+    } else {
+        verify_not_reached();
+    }
+
+    uint64_t leaf_ptes_remaining = *leaf_ptes_remaining_out;
+    uint64_t write_pte_count =
+        write_leaf_pte_count / leaf_pte_count_per_single_pte;
 
     do {
+        enum pt_walker_result result =
+            ptwalker_fill_in_to(walker,
+                                level,
+                                iterate_options->should_ref,
+                                iterate_options->alloc_pgtable_cb_info,
+                                iterate_options->free_pgtable_cb_info);
+
+        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+            return UINT64_MAX;
+        }
+
         pte_t *const table = walker->tables[level - 1];
         pte_t *const start = &table[walker->indices[level - 1]];
 
         pte_t *pte = start;
-        const pte_t *const end = &table[PGT_PTE_COUNT(level)];
 
-        do {
-            const pte_t new_pte_value = phys_create_pte(phys_addr) | pte_flags;
+        const pte_t *const table_end = &table[PGT_PTE_COUNT(level)];
+        const pte_t *const end = min(pte + write_pte_count, table_end);
 
-            pte_write(pte, new_pte_value);
-            phys_addr += largepage_size;
-
-            if (phys_addr == phys_end) {
-                if (should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       (pte - start) + 1);
-                }
-
-                walker->indices[level - 1] = pte - table;
-                *offset_in = phys_addr - phys_begin;
-
-                return MAP_DONE;
-            }
-
-            pte++;
-            if (pte == end) {
-                if (should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                // Only fill in if we can't use largepages at the parent-level
-                const bool should_fill_in =
-                    (supports_largepage_at_level_mask & 1ull << level) == 0;
-
-                walker->indices[level - 1] = PGT_PTE_COUNT(level) - 1;
-                ptwalker_result =
-                    ptwalker_next_with_options(walker, level, &iterate_options);
-
-                if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-                    goto panic;
-                }
-
-                // Exit if the level above is at index 0, which may mean that a
-                // large page can be placed at the higher level.
-
-                if (!should_fill_in) {
-                    *offset_in = phys_addr - phys_begin;
-                    return MAP_RESTART;
-                }
-
-                break;
-            }
-
-            if (phys_addr + largepage_size > phys_end) {
-                if (should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                walker->indices[level - 1] = pte - table;
-                *offset_in = phys_addr - phys_begin;
-
-                return MAP_CONTINUE;
-            }
-        } while (true);
-    } while (true);
-}
-
-__optimize(3) static enum alloc_and_map_result
-alloc_and_map_large_no_overwrite(
-    struct pt_walker *const walker,
-    uint64_t *const offset_in,
-    const uint64_t size,
-    const pgt_level_t level,
-    const struct pgmap_options *const options,
-    const struct pgmap_alloc_options *const alloc_options)
-{
-    struct ptwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = options->alloc_pgtable_cb_info,
-        .free_pgtable_cb_info = options->free_pgtable_cb_info,
-
-        .alloc_parents = false,
-        .alloc_level = false,
-        .should_ref = !options->is_in_early,
-    };
-
-    enum pt_walker_result ptwalker_result =
-        ptwalker_fill_in_to(walker,
-                            level,
-                            iterate_options.should_ref,
-                            options->alloc_pgtable_cb_info,
-                            options->free_pgtable_cb_info);
-
-    if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-        return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-    }
-
-    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t pte_flags = options->pte_flags | PTE_LARGE_FLAGS(level);
-
-    const pgmap_alloc_large_page_t alloc_a_large_page =
-        alloc_options->alloc_large_page;
-    void *const alloc_large_page_cb_info =
-        alloc_options->alloc_large_page_cb_info;
-
-    uint64_t offset = *offset_in;
-    do {
-        pte_t *const table = walker->tables[level - 1];
-        pte_t *const start = &table[walker->indices[level - 1]];
-
-        pte_t *pte = start;
-        const pte_t *const end = &table[PGT_PTE_COUNT(level)];
-
-        do {
-            const uint64_t page =
-                alloc_a_large_page(level, alloc_large_page_cb_info);
-
-            if (__builtin_expect(page == INVALID_PHYS, 0)) {
-                return ALLOC_AND_MAP_ALLOC_PAGE_FAIL;
-            }
-
-            const pte_t new_pte_value = phys_create_pte(page) | pte_flags;
-            pte_write(pte, new_pte_value);
-
-            if (offset == size) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       (pte - start) + 1);
-                }
-
-                walker->indices[level - 1] = pte - table;
-                *offset_in = offset;
-
-                return ALLOC_AND_MAP_DONE;
-            }
-
-            pte++;
-            if (pte == end) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                // Only fill in if we can't use largepages at the parent-level
-                const bool should_fill_in =
-                    (options->supports_largepage_at_level_mask & 1ull << level)
-                        == 0;
-
-                iterate_options.alloc_parents = should_fill_in;
-                iterate_options.alloc_level = should_fill_in;
-
-                walker->indices[level - 1] = PGT_PTE_COUNT(level) - 1;
-                ptwalker_result =
-                    ptwalker_next_with_options(walker, level, &iterate_options);
-
-                if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-                    return ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL;
-                }
-
-                // Exit if the level above is at index 0, which may mean that a
-                // large page can be placed at the higher level.
-
-                if (!should_fill_in) {
-                    *offset_in = offset;
-                    return ALLOC_AND_MAP_RESTART;
-                }
-
-                break;
-            }
-
-            offset += largepage_size;
-            if (offset + largepage_size > size) {
-                if (iterate_options.should_ref) {
-                    refcount_increment(&virt_to_table(table)->table.refcount,
-                                       pte - start);
-                }
-
-                walker->indices[level - 1] = pte - table;
-                *offset_in = offset;
-
-                return ALLOC_AND_MAP_CONTINUE;
-            }
-        } while (true);
-    } while (true);
-}
-
-__optimize(3) static enum map_result
-map_large_at_level(struct pt_walker *const walker,
-                   struct current_split_info *const curr_split,
-                   struct pageop *const pageop,
-                   const uint64_t phys_begin,
-                   const uint64_t virt_begin,
-                   uint64_t *const offset_in,
-                   const uint64_t size,
-                   const pgt_level_t level,
-                   const struct pgmap_options *const options)
-{
-    if (__builtin_expect(level != pgt_get_top_level(), 1)) {
-        if (__builtin_expect(!options->is_overwrite, 1)) {
-            return map_large_at_level_no_overwrite(walker,
-                                                   phys_begin,
-                                                   offset_in,
-                                                   size,
-                                                   level,
-                                                   options);
+        for (; pte != end; pte++) {
+            pte_write(pte, phys_create_pte(phys_addr) | pte_flags);
+            phys_addr += level_page_size;
         }
 
-        return map_large_at_level_overwrite(walker,
-                                            curr_split,
-                                            pageop,
-                                            phys_begin,
-                                            virt_begin,
-                                            offset_in,
-                                            size,
-                                            level,
-                                            options);
+        const uint64_t count = (uint64_t)(pte - start);
+        if (iterate_options->should_ref) {
+            refcount_increment(&virt_to_table(table)->table.refcount, count);
+        }
+
+        walker->indices[level - 1] += count - 1;
+        result = ptwalker_next_with_options(walker, level, iterate_options);
+
+        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+            return UINT64_MAX;
+        }
+
+        const uint64_t ptes_written =
+            check_mul_assert(leaf_pte_count_per_single_pte, count);
+
+        leaf_ptes_remaining -= ptes_written;
+        write_pte_count -= count;
+    } while (write_pte_count != 0);
+
+    *leaf_ptes_remaining_out = leaf_ptes_remaining;
+    return phys_addr;
+}
+
+__optimize(3) static inline uint64_t
+write_ptes_down_from_level(
+    struct pt_walker *const walker,
+    pgt_level_t level,
+    const uint64_t pte_flags,
+    uint64_t phys_addr,
+    uint64_t leaf_ptes_remaining,
+    const uint64_t supports_largepage_at_level_mask,
+    const struct ptwalker_iterate_options *const iterate_options)
+{
+    phys_addr =
+        write_ptes_at_level(walker,
+                            level,
+                            pte_flags,
+                            phys_addr,
+                            leaf_ptes_remaining,
+                            iterate_options,
+                            &leaf_ptes_remaining);
+
+    if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
+        return false;
     }
 
-    if (!options->is_overwrite) {
-        return map_large_at_top_level_no_overwrite(walker,
-                                                   phys_begin,
-                                                   offset_in,
-                                                   size,
-                                                   options);
+    if (leaf_ptes_remaining == 0) {
+        return phys_addr;
     }
 
-    return map_large_at_top_level_overwrite(walker,
-                                            curr_split,
-                                            pageop,
-                                            phys_begin,
-                                            virt_begin,
-                                            offset_in,
-                                            size,
-                                            options);
+    const uint64_t size_remaining =
+        check_mul_assert(PAGE_SIZE, leaf_ptes_remaining);
+
+    do {
+        while (true) {
+            level--;
+            if (level == 1) {
+                break;
+            }
+
+            if (!largepage_level_info_list[level - 1].is_supported ||
+                (supports_largepage_at_level_mask & 1ull << level) == 0)
+            {
+                continue;
+            }
+
+            if (size_remaining < PAGE_SIZE_AT_LEVEL(level)) {
+                continue;
+            }
+
+            break;
+        }
+
+        phys_addr =
+            write_ptes_at_level(walker,
+                                level,
+                                pte_flags,
+                                phys_addr,
+                                leaf_ptes_remaining,
+                                iterate_options,
+                                &leaf_ptes_remaining);
+
+        if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
+            break;
+        }
+    } while (leaf_ptes_remaining != 0);
+
+    return phys_addr;
 }
 
 static bool
@@ -1314,101 +532,119 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                     const uint64_t virt_begin,
                     const struct pgmap_options *const options)
 {
-    uint64_t offset = 0;
     const uint64_t supports_largepage_at_level_mask =
         options->supports_largepage_at_level_mask;
 
+    pgt_level_t level =
+        find_highest_possible_level(walker,
+                                    supports_largepage_at_level_mask,
+                                    phys_range,
+                                    /*offset=*/0);
+
+    uint64_t phys_addr = phys_range.front;
+    uint64_t total_remaining_leaf_pte = phys_range.size / PAGE_SIZE;
+
+    const struct ptwalker_iterate_options iterate_options = {
+        .alloc_pgtable_cb_info = NULL,
+        .free_pgtable_cb_info = NULL,
+
+        .alloc_parents = false,
+        .alloc_level = false,
+        .should_ref = !options->is_in_early,
+    };
+
+    uint64_t leaf_pte_remaining_until_next_large =
+        get_leaf_pte_count_until_next_large(phys_range,
+                                            phys_addr,
+                                            virt_begin,
+                                            /*check_virt=*/true,
+                                            level,
+                                            supports_largepage_at_level_mask);
+
+    if (total_remaining_leaf_pte <= leaf_pte_remaining_until_next_large) {
+        phys_addr =
+            write_ptes_at_level(walker,
+                                level,
+                                options->pte_flags,
+                                phys_addr,
+                                total_remaining_leaf_pte,
+                                &iterate_options,
+                                &total_remaining_leaf_pte);
+
+        if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
+            return false;
+        }
+
+        if (total_remaining_leaf_pte == 0) {
+            return true;
+        }
+    } else {
+        phys_addr =
+            write_ptes_at_level(walker,
+                                level,
+                                options->pte_flags,
+                                phys_addr,
+                                leaf_pte_remaining_until_next_large,
+                                &iterate_options,
+                                &total_remaining_leaf_pte);
+
+        if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
+            return false;
+        }
+    }
+
     do {
-    start:
-        if (supports_largepage_at_level_mask != 0) {
-            // Find the largest page-size we can use.
-            uint16_t highest_largepage_level = 0;
-            for (pgt_level_t level = 1; level <= walker->top_level; level++) {
-                if (walker->indices[level - 1] != 0) {
-                    // If we don't have a zero at this level, but had one at all
-                    // the preceding levels, then this present level is the
-                    // highest largepage level.
+        level =
+            find_highest_possible_level(walker,
+                                        supports_largepage_at_level_mask,
+                                        phys_range,
+                                        (phys_addr - phys_range.front));
 
-                    highest_largepage_level = level;
-                    break;
-                }
-            }
+        leaf_pte_remaining_until_next_large =
+            get_leaf_pte_count_until_next_large(
+                phys_range,
+                phys_addr,
+                virt_begin,
+                /*check_virt=*/true,
+                level,
+                supports_largepage_at_level_mask);
 
-            if (highest_largepage_level > 1) {
-                for (int16_t index = countof(LARGEPAGE_LEVELS) - 1;
-                     index >= 0;
-                     index--)
-                {
-                    const pgt_level_t level = LARGEPAGE_LEVELS[index];
-                    if (level > highest_largepage_level) {
-                        continue;
-                    }
-
-                    if ((supports_largepage_at_level_mask & 1ull << level) == 0)
-                    {
-                        continue;
-                    }
-
-                    const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-                    if (!has_align(phys_range.front + offset, largepage_size)
-                        || offset + largepage_size > phys_range.size)
-                    {
-                        continue;
-                    }
-
-                    const enum map_result result =
-                        map_large_at_level(walker,
-                                           curr_split,
-                                           pageop,
-                                           phys_range.front,
-                                           virt_begin,
-                                           &offset,
-                                           phys_range.size,
-                                           level,
-                                           options);
-
-                    switch (result) {
-                        case MAP_DONE:
-                            finish_split_info(walker,
-                                              curr_split,
-                                              pageop,
-                                              virt_begin + offset,
-                                              options);
-                            return true;
-                        case MAP_CONTINUE:
-                            break;
-                        case MAP_RESTART:
-                            goto start;
-                    }
-                }
-            }
+        if (total_remaining_leaf_pte <= leaf_pte_remaining_until_next_large) {
+            break;
         }
 
-        const enum map_result result =
-            map_normal(walker,
-                       curr_split,
-                       pageop,
-                       phys_range.front,
-                       virt_begin,
-                       &offset,
-                       phys_range.size,
-                       options);
+        phys_addr =
+            write_ptes_at_level(walker,
+                                level,
+                                options->pte_flags,
+                                phys_addr,
+                                leaf_pte_remaining_until_next_large,
+                                &iterate_options,
+                                &total_remaining_leaf_pte);
 
-        switch (result) {
-            case MAP_DONE:
-                finish_split_info(walker,
-                                  curr_split,
-                                  pageop,
-                                  virt_begin + offset,
-                                  options);
-                return true;
-            case MAP_CONTINUE:
-            case MAP_RESTART:
-                break;
+        if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
+            return false;
         }
-    } while (offset < phys_range.size);
+    } while (true);
 
-    finish_split_info(walker, curr_split, pageop, virt_begin + offset, options);
+    phys_addr =
+        write_ptes_down_from_level(walker,
+                                   level,
+                                   options->pte_flags,
+                                   phys_addr,
+                                   total_remaining_leaf_pte,
+                                   supports_largepage_at_level_mask,
+                                   &iterate_options);
+
+    if (__builtin_expect(phys_addr == UINT64_MAX, 0)) {
+        return false;
+    }
+
+    finish_split_info(walker,
+                      curr_split,
+                      pageop,
+                      virt_begin + (phys_addr - phys_range.front),
+                      options);
     return true;
 }
 
@@ -1442,9 +678,9 @@ pgmap_at(struct pagemap *const pagemap,
         return false;
     }
 
-    if (__builtin_expect(!range_has_align(virt_range, PAGE_SIZE), 0)) {
+    if (__builtin_expect(!has_align(virt_addr, PAGE_SIZE), 0)) {
         printk(LOGLEVEL_WARN,
-               "mm: pgmap_at(): virt-range isn't aligned to PAGE_SIZE\n");
+               "mm: pgmap_at(): virt-addr isn't aligned to PAGE_SIZE\n");
         return false;
     }
 
@@ -1546,6 +782,171 @@ pgmap_at(struct pagemap *const pagemap,
     return result;
 }
 
+__optimize(3) static inline enum pgmap_alloc_result
+alloc_ptes_at_level(
+    struct pt_walker *const walker,
+    pgt_level_t level,
+    uint64_t pte_flags,
+    const uint64_t write_leaf_pte_count,
+    const struct pgmap_alloc_options *const alloc_options,
+    const struct ptwalker_iterate_options *const iterate_options,
+    uint64_t *const leaf_ptes_remaining_out)
+{
+    const uint64_t leaf_pte_count_per_single_pte =
+        PAGE_SIZE_AT_LEVEL(level) / PAGE_SIZE;
+
+    if (level > 1) {
+        pte_flags |= PTE_LARGE_FLAGS(level);
+    } else if (level == 1) {
+        pte_flags |= PTE_LEAF_FLAGS;
+    } else {
+        verify_not_reached();
+    }
+
+    const pgmap_alloc_page_t alloc_a_page = alloc_options->alloc_page;
+    void *const alloc_page_cb_info = alloc_options->alloc_page_cb_info;
+
+    const pgmap_alloc_large_page_t alloc_a_large_page =
+        alloc_options->alloc_large_page;
+    void *const alloc_large_page_cb_info =
+        alloc_options->alloc_large_page_cb_info;
+
+    uint64_t leaf_ptes_remaining = *leaf_ptes_remaining_out;
+    uint64_t write_pte_count =
+        write_leaf_pte_count / leaf_pte_count_per_single_pte;
+
+    do {
+        enum pt_walker_result result =
+            ptwalker_fill_in_to(walker,
+                                level,
+                                iterate_options->should_ref,
+                                iterate_options->alloc_pgtable_cb_info,
+                                iterate_options->free_pgtable_cb_info);
+
+        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+            return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
+        }
+
+        pte_t *const table = walker->tables[level - 1];
+        pte_t *const start = &table[walker->indices[level - 1]];
+
+        pte_t *pte = start;
+
+        const pte_t *const table_end = &table[PGT_PTE_COUNT(level)];
+        const pte_t *const end = min(pte + write_pte_count, table_end);
+
+        if (level > 1) {
+            for (; pte != end; pte++) {
+                const uint64_t phys =
+                    alloc_a_large_page(level, alloc_large_page_cb_info);
+
+                if (phys == INVALID_PHYS) {
+                    return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
+                }
+
+                pte_write(pte, phys_create_pte(phys) | pte_flags);
+            }
+        } else {
+            for (; pte != end; pte++) {
+                const uint64_t phys = alloc_a_page(alloc_page_cb_info);
+                if (__builtin_expect(phys == INVALID_PHYS, 0)) {
+                    return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
+                }
+
+                pte_write(pte, phys_create_pte(phys) | pte_flags);
+            }
+        }
+
+        const uint16_t count = pte - start;
+        if (iterate_options->should_ref) {
+            refcount_increment(&virt_to_table(table)->table.refcount, count);
+        }
+
+        walker->indices[level - 1] += count - 1;
+        result = ptwalker_next_with_options(walker, level, iterate_options);
+
+        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+            return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
+        }
+
+        const uint64_t ptes_written =
+            check_mul_assert(leaf_pte_count_per_single_pte, count);
+
+        leaf_ptes_remaining -= ptes_written;
+        write_pte_count -= count;
+    } while (write_pte_count != 0);
+
+    *leaf_ptes_remaining_out = leaf_ptes_remaining;
+    return E_PGMAP_ALLOC_OK;
+}
+
+__optimize(3) static inline bool
+alloc_ptes_down_from_level(
+    struct pt_walker *const walker,
+    pgt_level_t level,
+    const uint64_t pte_flags,
+    uint64_t leaf_ptes_remaining,
+    const uint64_t supports_largepage_at_level_mask,
+    const struct pgmap_alloc_options *const alloc_options,
+    const struct ptwalker_iterate_options *const iterate_options)
+{
+    enum pgmap_alloc_result result =
+        alloc_ptes_at_level(walker,
+                            level,
+                            pte_flags,
+                            leaf_ptes_remaining,
+                            alloc_options,
+                            iterate_options,
+                            &leaf_ptes_remaining);
+
+    if (result != E_PGMAP_ALLOC_OK) {
+        return result;
+    }
+
+    if (leaf_ptes_remaining == 0) {
+        return E_PGMAP_ALLOC_OK;
+    }
+
+    const uint64_t size_remaining =
+        check_mul_assert(PAGE_SIZE, leaf_ptes_remaining);
+
+    do {
+        while (true) {
+            level--;
+            if (level == 1) {
+                break;
+            }
+
+            if (!largepage_level_info_list[level - 1].is_supported ||
+                (supports_largepage_at_level_mask & 1ull << level) == 0)
+            {
+                continue;
+            }
+
+            if (size_remaining < PAGE_SIZE_AT_LEVEL(level)) {
+                continue;
+            }
+
+            break;
+        }
+
+        result =
+            alloc_ptes_at_level(walker,
+                                level,
+                                pte_flags,
+                                leaf_ptes_remaining,
+                                alloc_options,
+                                iterate_options,
+                                &leaf_ptes_remaining);
+
+        if (result != E_PGMAP_ALLOC_OK) {
+            return result;
+        }
+    } while (leaf_ptes_remaining != 0);
+
+    return E_PGMAP_ALLOC_OK;
+}
+
 static enum pgmap_alloc_result
 pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                           struct current_split_info *const curr_split,
@@ -1554,121 +955,78 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
                           const struct pgmap_options *const options,
                           const struct pgmap_alloc_options *const alloc_options)
 {
-    uint64_t offset = 0;
     const uint64_t supports_largepage_at_level_mask =
         options->supports_largepage_at_level_mask;
 
+    const struct ptwalker_iterate_options iterate_options = {
+        .alloc_pgtable_cb_info = NULL,
+        .free_pgtable_cb_info = NULL,
+
+        .alloc_parents = false,
+        .alloc_level = false,
+        .should_ref = !options->is_in_early,
+    };
+
+    uint64_t total_remaining_leaf_pte = virt_range.size / PAGE_SIZE;
+    uint64_t virt_addr = virt_range.front;
+
+    pgt_level_t highest_possible_level = 1;
     do {
-    start:
-        // Find the largest page-size we can use.
-        uint16_t highest_largepage_level = 0;
-        for (pgt_level_t level = 1; level <= walker->top_level; level++) {
-            if (walker->indices[level - 1] != 0) {
-                // If we don't have a zero at this level, but had one at all the
-                // preceding levels, then this present level is the highest
-                // largepage level.
+        highest_possible_level =
+            find_highest_possible_level(walker,
+                                        supports_largepage_at_level_mask,
+                                        virt_range,
+                                        (virt_addr - virt_range.front));
 
-                highest_largepage_level = level;
-                break;
-            }
+        const uint64_t leaf_pte_count_until_next_large =
+            get_leaf_pte_count_until_next_large(
+                virt_range,
+                virt_addr,
+                /*virt_begin=*/0,
+                /*check_virt=*/false,
+                highest_possible_level,
+                supports_largepage_at_level_mask);
+
+        if (total_remaining_leaf_pte <= leaf_pte_count_until_next_large) {
+            break;
         }
 
-        if (highest_largepage_level > 1) {
-            for (int16_t index = countof(LARGEPAGE_LEVELS) - 1;
-                 index >= 0;
-                 index--)
-            {
-                // Get index of level - 1 -> level - 2
-                const pgt_level_t level = LARGEPAGE_LEVELS[index];
-                if (level > highest_largepage_level) {
-                    continue;
-                }
+        const uint64_t old_total_remaining_leaf_pte = total_remaining_leaf_pte;
+        const enum pgmap_alloc_result result =
+            alloc_ptes_at_level(walker,
+                                highest_possible_level,
+                                options->pte_flags,
+                                leaf_pte_count_until_next_large,
+                                alloc_options,
+                                &iterate_options,
+                                &total_remaining_leaf_pte);
 
-                if ((supports_largepage_at_level_mask & 1ull << level) == 0) {
-                    continue;
-                }
-
-                const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-                if (!has_align(virt_range.front + offset, largepage_size)
-                    || offset + largepage_size > virt_range.size)
-                {
-                    continue;
-                }
-
-                enum alloc_and_map_result result = ALLOC_AND_MAP_CONTINUE;
-                if (options->is_overwrite) {
-                    result =
-                        alloc_and_map_large_overwrite(walker,
-                                                      curr_split,
-                                                      pageop,
-                                                      virt_range.front,
-                                                      &offset,
-                                                      virt_range.size,
-                                                      level,
-                                                      options,
-                                                      alloc_options);
-                } else {
-                    result =
-                        alloc_and_map_large_no_overwrite(walker,
-                                                         &offset,
-                                                         virt_range.size,
-                                                         level,
-                                                         options,
-                                                         alloc_options);
-                }
-
-                switch (result) {
-                    case ALLOC_AND_MAP_DONE:
-                        finish_split_info(walker,
-                                          curr_split,
-                                          pageop,
-                                          virt_range.front + offset,
-                                          options);
-                        return E_PGMAP_ALLOC_OK;
-                    case ALLOC_AND_MAP_ALLOC_PAGE_FAIL:
-                        return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
-                    case ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL:
-                        return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
-                    case ALLOC_AND_MAP_CONTINUE:
-                        break;
-                    case ALLOC_AND_MAP_RESTART:
-                        goto start;
-                }
-            }
+        if (result != E_PGMAP_ALLOC_OK) {
+            return result;
         }
 
-        const enum alloc_and_map_result result =
-            alloc_and_map_normal(walker,
-                                 curr_split,
-                                 pageop,
-                                 virt_range.front,
-                                 &offset,
-                                 virt_range.size,
-                                 options,
-                                 alloc_options);
+        virt_addr +=
+            (old_total_remaining_leaf_pte - total_remaining_leaf_pte)
+            * PAGE_SIZE;
+    } while (true);
 
-        switch (result) {
-            case ALLOC_AND_MAP_ALLOC_PAGE_FAIL:
-                return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
-            case ALLOC_AND_MAP_ALLOC_PGTABLE_FAIL:
-                return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
-            case ALLOC_AND_MAP_DONE:
-                finish_split_info(walker,
-                                  curr_split,
-                                  pageop,
-                                  virt_range.front + offset,
-                                  options);
-                return E_PGMAP_ALLOC_OK;
-            case ALLOC_AND_MAP_CONTINUE:
-            case ALLOC_AND_MAP_RESTART:
-                continue;
-        }
-    } while (false);
+    const enum pgmap_alloc_result result =
+        alloc_ptes_down_from_level(walker,
+                                   highest_possible_level,
+                                   options->pte_flags,
+                                   total_remaining_leaf_pte,
+                                   supports_largepage_at_level_mask,
+                                   alloc_options,
+                                   &iterate_options);
+
+    if (result != E_PGMAP_ALLOC_OK) {
+        return result;
+    }
 
     finish_split_info(walker,
                       curr_split,
                       pageop,
-                      virt_range.front + offset,
+                      range_get_end_assert(virt_range),
                       options);
 
     return E_PGMAP_ALLOC_OK;

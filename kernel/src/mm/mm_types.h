@@ -81,6 +81,9 @@ struct page;
 typedef uint8_t pgt_level_t;
 typedef uint16_t pgt_index_t;
 
+#define PGT_LEVEL_FMT "%" PRIu8
+#define PGT_INDEX_FMT "%" PRIu16
+
 pgt_level_t pgt_get_top_level();
 uint64_t sign_extend_virt_addr(uint64_t virt);
 
