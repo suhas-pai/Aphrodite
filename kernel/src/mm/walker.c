@@ -364,6 +364,8 @@ ptwalker_next_with_options(struct pt_walker *const walker,
 
         if (!pte_is_present(entry)) {
             reset_levels_lower_than(walker, level);
+            walker->level = level;
+
             return E_PT_WALKER_OK;
         }
 
