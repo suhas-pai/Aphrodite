@@ -97,25 +97,40 @@
 #define h_var(token) VAR_CONCAT(VAR_CONCAT_3(__, token, __), __LINE__)
 #define countof(carr) (sizeof(carr) / sizeof((carr)[0]))
 
+#define carr_back(arr) ((arr) + (countof(arr) - 1))
 #define carr_end(arr) ((arr) + countof(arr))
-#define carr_rbegin(arr) ((arr) + (countof(arr) - 1))
+#define carr_rbegin(arr) carr_back(arr)
 #define carr_rend(arr) ((arr) - 1)
+#define carr_indexof(arr, iter) ((iter) - (arr))
 
 #define carr_foreach(arr, name) \
     const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
     for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
 
+#define carr_foreach_from_iter(arr, name, iter) \
+    const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
+    for (typeof(&(arr)[0]) name = (iter); name != h_var(end); name++)
+
 #define carr_foreach_mut(arr, name) \
     typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
     for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
 
+#define carr_foreach_mut_for_iter(arr, name, iter) \
+    typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
+    for (typeof(&(arr)[0]) name = (iter); name != h_var(end); name++)
+
 #define carr_foreach_rev(arr, name) \
-    const typeof(&(arr)[0]) h_var(end) = carr_rend(arr); \
-    for (typeof(&(arr)[0]) name = carr_rbegin(arr); name != h_var(end); name--)
+    for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
+
+#define carr_foreach_rev_from_iter(arr, name, iter) \
+    for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
 
 #define carr_foreach_mut_rev(arr, name) \
-    typeof(&(arr)[0]) h_var(end) = carr_rend(arr); \
-    for (typeof(&(arr)[0]) name = carr_rbegin(arr); name != h_var(end); name--)
+    for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
+
+#define carr_foreach_mut_rev_from_iter(arr, name, iter) \
+    for (typeof(&(arr)[0]) name = (iter); name != (arr); name--)
+
 
 #define swap(a, b) ({ \
     const __auto_type __swaptmp = (b); \
