@@ -173,13 +173,15 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     #endif /* defined(AARCH64_USE_16K_PAGES) */
 
     asm volatile ("dsb sy; isb" ::: "memory");
-#else
+#elif defined(__riscv64)
     const uint64_t value =
         (SATP_MODE_39_BIT_PAGING + PAGING_MODE) << SATP_PHYS_MODE_SHIFT |
         (virt_to_phys(pagemap->root) >> PML1_SHIFT);
 
     csr_write(satp, value);
     asm volatile ("sfence.vma" ::: "memory");
+#else
+    verify_not_reached();
 #endif /* defined(__x86_64__) */
 
     spin_release_restore_irq(&pagemap->cpu_lock, flag);
