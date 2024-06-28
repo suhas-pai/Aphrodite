@@ -17,7 +17,7 @@ static int compare(struct node *const ours, struct node *const theirs) {
     return (int64_t)ours->number - theirs->number;
 }
 
-static int identify(struct node *const theirs, const void *const key) {
+static int identify(struct node *const theirs, void *const key) {
     return (int64_t)key - (int64_t)theirs->number;
 }
 
