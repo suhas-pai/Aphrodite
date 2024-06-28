@@ -56,10 +56,10 @@ void kmalloc_init() {
 
 __optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
 void *kmalloc(const uint32_t size) {
-    kmalloc_check_slabs();
     assert_msg(kmalloc_initialized(),
                "mm: kmalloc() called before kmalloc_init()");
 
+    kmalloc_check_slabs();
     if (__builtin_expect(size == 0, 0)) {
         printk(LOGLEVEL_WARN, "mm: kmalloc() got size=0\n");
         return NULL;
