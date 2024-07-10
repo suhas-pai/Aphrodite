@@ -6,13 +6,15 @@ OUTPUT_ARCH(aarch64)
 ENTRY(_start)
 
 /* Define the program headers we want so the bootloader gives us the right */
-/* MMU permissions */
+/* MMU permissions; this also allows us to exert more control over the linking */
+/* process. */
 PHDRS
 {
-    text     PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
-    rodata   PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
-    data     PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
-    dynamic  PT_DYNAMIC FLAGS((1 << 1) | (1 << 2)) ; /* Dynamic PHDR for relocations */
+    headers PT_PHDR PHDRS;
+    text    PT_LOAD FILEHDR PHDRS;
+    rodata  PT_LOAD;
+    data    PT_LOAD;
+    dynamic PT_DYNAMIC;
 }
 
 SECTIONS
@@ -21,7 +23,9 @@ SECTIONS
     /* and because that is what the Limine spec mandates. */
     /* Any address in this region will do, but often 0xffffffff80000000 is chosen as */
     /* that is the beginning of the region. */
-    . = 0xffffffff80000000;
+    /* Additionally, leave space for the ELF headers by adding SIZEOF_HEADERS to the */
+    /* base load address. */
+    . = 0xffffffff80000000 + SIZEOF_HEADERS;
 
     .text : {
         *(.text .text.*)
@@ -57,12 +61,6 @@ SECTIONS
         KEEP(*(.requests_start_marker))
         KEEP(*(.requests))
         KEEP(*(.requests_end_marker))
-    } :data
-
-    /* Global offset table section, explicitly created because it may cause issues */
-    /* if left as an orphaned section. */
-    .got : {
-        *(.got .got.*)
     } :data
 
     /* Dynamic section for relocations, both in its own PHDR and inside data PHDR */
