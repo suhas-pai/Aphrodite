@@ -201,5 +201,5 @@ pagemap_virt_get_phys(const struct pagemap *const pagemap, const uint64_t virt)
     const uint64_t offset =
         virt & mask_for_n_bits(PAGE_SHIFTS[walker.level - 1]);
 
-    return check_add_assert(phys, offset);
+    return phys + offset;
 }

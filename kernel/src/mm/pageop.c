@@ -52,7 +52,7 @@ pageop_flush_pte_in_current_range(struct pageop *const pageop,
 
     while (true) {
         pte_t *const walker_pte =
-            walker.tables[walker.level - 1] + walker.indices[walker.level - 1];
+            &walker.tables[walker.level - 1][walker.indices[walker.level - 1]];
 
         const pte_t entry = pte_read(walker_pte);
         struct page *const page = pte_to_page(entry);
