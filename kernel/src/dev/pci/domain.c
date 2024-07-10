@@ -213,8 +213,7 @@ pci_domain_write_64(const struct pci_domain *const domain,
     switch (domain->kind) {
     #if defined(__x86_64__)
         case PCI_DOMAIN_LEGACY:
-            pci_legacy_domain_write(loc, offset, value, sizeof(uint64_t));
-            return;
+            verify_not_reached();
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
