@@ -78,9 +78,11 @@ range_align_in(const struct range range,
                struct range *const result_out)
 {
     uint64_t front = 0;
-    if (!align_up(range.front, boundary, &front)
-        || (front - range.front) >= range.size)
-    {
+    if (!align_up(range.front, boundary, &front)) {
+        return false;
+    }
+
+    if ((front - range.front) >= range.size) {
         return false;
     }
 
@@ -137,11 +139,12 @@ range_round_up_subrange(const struct range range,
         return false;
     }
 
-    if (result.front - range.front >= range.size) {
+    const uint64_t diff = result.front - range.front;
+    if (diff >= range.size) {
         return false;
     }
 
-    result.size = range.size - (result.front - range.front);
+    result.size = range.size - diff;
     *result_out = result;
 
     return true;

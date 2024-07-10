@@ -9,8 +9,7 @@
 #include "tlb.h"
 
 __optimize(3) static void tlb_flush_range(const struct range range) {
-    const uint64_t end = range_get_end_assert(range);
-    for (uint64_t addr = range.front; addr < end; addr += PAGE_SIZE) {
+    range_iterate(range, addr, PAGE_SIZE) {
         invlpg(addr);
     }
 }

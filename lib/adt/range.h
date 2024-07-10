@@ -32,7 +32,7 @@ struct range {
 #define rangeof_field(type, field) \
     RANGE_INIT(offsetof(type, field), sizeof_field(type, field))
 
-#define range_iterate(range, incr, iter) \
+#define range_iterate(range, iter, incr) \
     for (uint64_t iter = range.front; \
          (iter - range.front) < range.size; \
          iter += (incr))
