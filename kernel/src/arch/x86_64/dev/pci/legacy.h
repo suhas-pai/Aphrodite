@@ -13,7 +13,7 @@ pci_legacy_domain_read(const struct pci_location *loc,
                        uint32_t offset,
                        uint8_t access_size);
 
-bool
+void
 pci_legacy_domain_write(const struct pci_location *loc,
                         uint32_t offset,
                         uint32_t value,

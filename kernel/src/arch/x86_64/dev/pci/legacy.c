@@ -45,7 +45,7 @@ pci_legacy_domain_read(const struct pci_location *const loc,
     verify_not_reached();
 }
 
-__optimize(3) bool
+__optimize(3) void
 pci_legacy_domain_write(const struct pci_location *const loc,
                         const uint32_t offset,
                         const uint32_t value,
@@ -57,16 +57,16 @@ pci_legacy_domain_write(const struct pci_location *const loc,
             assert(value <= UINT8_MAX);
             pio_write8(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
 
-            return true;
+            return;
         case sizeof(uint16_t):
             assert(value <= UINT16_MAX);
             pio_write16(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
 
-            return true;
+            return;
         case sizeof(uint32_t):
             pio_write32(PIO_PORT_PCI_CONFIG_DATA + (offset & 0b11), value);
-            return true;
+            return;
     }
 
-    return false;
+    verify_not_reached();
 }
