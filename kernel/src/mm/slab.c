@@ -65,11 +65,11 @@ get_free_ptr_from_index(struct page *const page,
                         struct slab_allocator *const alloc,
                         const uint32_t index)
 {
-    if (index == UINT32_MAX) {
-        return NULL;
+    if (index != UINT32_MAX) {
+        return page_to_virt(page) + get_free_obj_byte_index(alloc, index);
     }
 
-    return page_to_virt(page) + get_free_obj_byte_index(alloc, index);
+    return NULL;
 }
 
 __optimize(3) static inline struct free_slab_object *

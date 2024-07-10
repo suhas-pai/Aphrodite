@@ -5,7 +5,6 @@
 
 #include "lib/align.h"
 #include "lib/bits.h"
-#include "lib/math.h"
 #include "lib/memory.h"
 #include "lib/util.h"
 
@@ -359,7 +358,7 @@ bool bitmap_at(const struct bitmap *const bitmap, uint32_t index) {
     const void *const ptr = begin + bits_to_bytes_noround(index);
 
     index %= sizeof_bits(uint8_t);
-    return *(const uint8_t *)ptr & (1 << index);
+    return *(const uint8_t *)ptr & 1 << index;
 }
 
 bool

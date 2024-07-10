@@ -173,10 +173,10 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
         }
 
         uint64_t virt_addr = 0;
-        if (memmap->kind == MM_MEMMAP_KIND_KERNEL_AND_MODULES) {
-            virt_addr = KERNEL_BASE;
-        } else {
+        if (memmap->kind != MM_MEMMAP_KIND_KERNEL_AND_MODULES) {
             virt_addr = (uint64_t)phys_to_virt(memmap->range.front);
+        } else {
+            virt_addr = KERNEL_BASE;
         }
 
         mm_early_refcount_alloced_map(virt_addr, memmap->range.size);
