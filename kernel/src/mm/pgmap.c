@@ -91,10 +91,8 @@ finish_split_info(struct pt_walker *const walker,
 
     const uint64_t walker_virt_addr = ptwalker_get_virt_addr(walker);
     if (walker_virt_addr >= virt_end) {
-        if (curr_split->phys_range.front != 0) {
-            if (options->free_pages) {
-                deref_page(phys_to_page(curr_split->phys_range.front), pageop);
-            }
+        if (options->free_pages) {
+            deref_page(phys_to_page(curr_split->phys_range.front), pageop);
         }
 
         return;
@@ -258,17 +256,17 @@ get_leaf_pte_count_until_next_large(
         struct largepage_level_info *const info =
             &largepage_level_info_list[level - 1];
 
-        if (info == carr_back(largepage_level_info_list)) {
-            return UINT64_MAX;
-        }
-
         carr_foreach_from_iter(largepage_level_info_list, jter, info + 1) {
-            if (jter->is_supported
-                && supports_largepage_at_level_mask & 1ull << jter->level)
-            {
-                next_level_info = jter;
-                break;
+            if (!jter->is_supported) {
+                continue;
             }
+
+            if ((supports_largepage_at_level_mask & 1ull << jter->level) == 0) {
+                continue;
+            }
+
+            next_level_info = jter;
+            break;
         }
 
         if (next_level_info == NULL) {
@@ -280,14 +278,18 @@ get_leaf_pte_count_until_next_large(
         bool next_level_info_valid = false;
         carr_foreach_from_iter(largepage_level_info_list, jter, next_level_info)
         {
-            if (jter->is_supported
-                && supports_largepage_at_level_mask & 1ull << jter->level)
-            {
-                next_level_info = jter;
-                next_level_info_valid = true;
-
-                break;
+            if (!jter->is_supported) {
+                continue;
             }
+
+            if ((supports_largepage_at_level_mask & 1ull << jter->level) == 0) {
+                continue;
+            }
+
+            next_level_info = jter;
+            next_level_info_valid = true;
+
+            break;
         }
 
         if (!next_level_info_valid) {
@@ -298,7 +300,7 @@ get_leaf_pte_count_until_next_large(
     const uint64_t largepage_size = next_level_info->size;
     uint64_t largepage_addr = align_up_assert(addr, largepage_size);
 
-    if (largepage_addr + largepage_size > range_get_end_assert(addr_range)) {
+    if (!range_has_end(addr_range, largepage_addr + largepage_size)) {
         return UINT64_MAX;
     }
 
@@ -310,9 +312,14 @@ get_leaf_pte_count_until_next_large(
         if (!has_align(largepage_virt_addr, largepage_size)) {
             return UINT64_MAX;
         }
+
+        uint64_t largepage_end = 0;
+        if (!check_add(largepage_virt_addr, largepage_size, &largepage_end)) {
+            return UINT64_MAX;
+        }
     }
 
-    return (largepage_addr - addr) / PAGE_SIZE;
+    return PAGE_COUNT(largepage_addr - addr);
 }
 
 __optimize(3) static pgt_level_t
@@ -321,10 +328,6 @@ find_highest_possible_level(struct pt_walker *const walker,
                             const struct range addr_range,
                             const uint64_t offset)
 {
-    if (supports_largepage_at_level_mask == 0) {
-        return 1;
-    }
-
     // Find the largest page-size we can use.
     uint16_t highest_possible_level = 0;
     for (pgt_level_t level = 1; level <= walker->top_level; level++) {
@@ -352,9 +355,11 @@ find_highest_possible_level(struct pt_walker *const walker,
             break;
         }
 
-        if (!iter->is_supported ||
-            (supports_largepage_at_level_mask & 1ull << level) == 0)
-        {
+        if (!iter->is_supported) {
+            continue;
+        }
+
+        if ((supports_largepage_at_level_mask & 1ull << level) == 0) {
             continue;
         }
 
@@ -389,7 +394,7 @@ write_ptes_at_level(
     uint64_t *const leaf_ptes_remaining_out)
 {
     const uint64_t level_page_size = PAGE_SIZE_AT_LEVEL(level);
-    const uint64_t leaf_pte_count_per_single_pte = level_page_size / PAGE_SIZE;
+    const uint64_t leaf_pte_count_per_single_pte = PAGE_COUNT(level_page_size);
 
     uint64_t pte_flags = orig_pte_flags;
     if (level > 1) {
@@ -478,7 +483,7 @@ write_ptes_down_from_level(
     }
 
     const uint64_t size_remaining =
-        check_mul_assert(PAGE_SIZE, leaf_ptes_remaining);
+        check_mul_assert(leaf_ptes_remaining, PAGE_SIZE);
 
     do {
         while (true) {
@@ -487,9 +492,11 @@ write_ptes_down_from_level(
                 break;
             }
 
-            if (!largepage_level_info_list[level - 1].is_supported ||
-                (supports_largepage_at_level_mask & 1ull << level) == 0)
-            {
+            if (!largepage_level_info_list[level - 1].is_supported) {
+                continue;
+            }
+
+            if ((supports_largepage_at_level_mask & 1ull << level) == 0) {
                 continue;
             }
 
@@ -529,7 +536,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
         options->supports_largepage_at_level_mask;
 
     uint64_t phys_addr = phys_range.front;
-    uint64_t total_remaining_leaf_pte = phys_range.size / PAGE_SIZE;
+    uint64_t total_remaining_leaf_pte = PAGE_COUNT(phys_range.size);
 
     const struct ptwalker_iterate_options iterate_options = {
         .alloc_pgtable_cb_info = NULL,
@@ -741,7 +748,7 @@ alloc_ptes_at_level(
     uint64_t *const leaf_ptes_remaining_out)
 {
     const uint64_t leaf_pte_count_per_single_pte =
-        PAGE_SIZE_AT_LEVEL(level) / PAGE_SIZE;
+        PAGE_COUNT(PAGE_SIZE_AT_LEVEL(level));
 
     if (level > 1) {
         pte_flags |= PTE_LARGE_FLAGS(level);
@@ -854,7 +861,7 @@ alloc_ptes_down_from_level(
     }
 
     const uint64_t size_remaining =
-        check_mul_assert(PAGE_SIZE, leaf_ptes_remaining);
+        check_mul_assert(leaf_ptes_remaining, PAGE_SIZE);
 
     do {
         while (true) {
@@ -863,9 +870,11 @@ alloc_ptes_down_from_level(
                 break;
             }
 
-            if (!largepage_level_info_list[level - 1].is_supported ||
-                (supports_largepage_at_level_mask & 1ull << level) == 0)
-            {
+            if (!largepage_level_info_list[level - 1].is_supported) {
+                continue;
+            }
+
+            if ((supports_largepage_at_level_mask & 1ull << level) == 0) {
                 continue;
             }
 
@@ -913,7 +922,7 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
         .should_ref = !options->is_in_early,
     };
 
-    uint64_t total_remaining_leaf_pte = virt_range.size / PAGE_SIZE;
+    uint64_t total_remaining_leaf_pte = PAGE_COUNT(virt_range.size);
     uint64_t virt_addr = virt_range.front;
 
     pgt_level_t highest_possible_level = 1;
@@ -1141,8 +1150,8 @@ pgunmap_at(struct pagemap *const pagemap,
         }
     }
 
-    // We're pointing inside a large page
-    struct current_split_info curr_split;
+    // Split a large page if we're pointing within one.
+    struct current_split_info curr_split = CURRENT_SPLIT_INFO_INIT();
     if (!split_initial_large_page_if_necessary(&walker,
                                                &pageop,
                                                &curr_split,
@@ -1211,7 +1220,7 @@ pgunmap_at(struct pagemap *const pagemap,
             const uint64_t pte_phys = pte_to_phys(entry);
             if (pte_is_dirty(entry)) {
                 set_pages_dirty(phys_to_page(pte_phys),
-                                PAGE_SIZE_AT_LEVEL(walker.level) / PAGE_SIZE);
+                                PAGE_COUNT(PAGE_SIZE_AT_LEVEL(walker.level)));
             }
 
             ptwalker_deref_from_level(&walker, walker.level, &pageop);

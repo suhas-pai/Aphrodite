@@ -242,7 +242,7 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
     if (total_size > PAGE_SIZE) {
         command.readwrite.prp2 = out + PAGE_SIZE;
         if (total_size > (PAGE_SIZE * 2)) {
-            const uint32_t prp_count = (total_size / PAGE_SIZE) - 1;
+            const uint32_t prp_count = PAGE_COUNT(total_size) - 1;
             uint64_t *const prp_list =
                 &namespace->io_queue.phys_region_page_list[
                     namespace->io_queue.phys_region_pages_count *

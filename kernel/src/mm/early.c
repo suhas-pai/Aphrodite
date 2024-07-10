@@ -308,6 +308,9 @@ __optimize(3) void mm_early_init() {
                 // Because we're claiming this kind of memmap later, they are
                 // still represented in the structpage table.
 
+                // Avoid adding these pages for now. We have to switch to using
+                // our own stack before these pages can be used.
+
                 //structpage_page_count += PAGE_COUNT(memmap->range.size);
                 break;
             case MM_MEMMAP_KIND_KERNEL_AND_MODULES:
@@ -867,7 +870,7 @@ __optimize(3) static inline void setup_zone_section_list() {
                number,
                RANGE_FMT_ARGS(section->range),
                RANGE_FMT_ARGS(
-                RANGE_INIT(section->pfn, section->range.size >> PAGE_SHIFT)),
+                RANGE_INIT(section->pfn, PAGE_COUNT(section->range.size))),
                section->zone->name);
 
         list_add(&section->zone->section_list, &section->zone_list);

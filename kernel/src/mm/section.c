@@ -50,7 +50,7 @@ __optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
     struct page_section *const end = begin + mm_get_section_count();
 
     for (struct page_section *iter = begin; iter != end; iter++) {
-        struct range pfn_range = RANGE_INIT(pfn, iter->range.front / PAGE_SIZE);
+        struct range pfn_range = RANGE_INIT(pfn, PAGE_COUNT(iter->range.front));
         if (range_has_loc(pfn_range, pfn)) {
             return iter;
         }
@@ -65,7 +65,7 @@ __optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
 
     for (const struct page_section *iter = begin; iter != end; iter++) {
         if (range_has_loc(iter->range, phys)) {
-            return iter->pfn + ((phys - iter->range.front) >> PAGE_SHIFT);
+            return iter->pfn + (PAGE_COUNT(phys - iter->range.front));
         }
     }
 
@@ -88,7 +88,7 @@ __optimize(3) uint64_t pfn_to_phys_manual(const uint64_t pfn) {
 
     for (const struct page_section *iter = begin; iter != end; iter++) {
         const struct range pfn_range =
-            RANGE_INIT(iter->pfn, iter->range.size >> PAGE_SHIFT);
+            RANGE_INIT(iter->pfn, PAGE_COUNT(iter->range.size >> PAGE_SHIFT));
 
         if (range_has_loc(pfn_range, pfn)) {
             const uint64_t index = range_index_for_loc(pfn_range, pfn);

@@ -15,7 +15,7 @@
 #define LARGEPAGE_SIZE(index) (1ull << LARGEPAGE_SHIFTS[index])
 #define INVALID_PHYS (uint64_t)-1
 
-#define PAGE_COUNT(size) (((uint64_t)(size) / PAGE_SIZE))
+#define PAGE_COUNT(size) ((size) >> PAGE_SHIFT)
 
 #define SECTION_SHIFT (sizeof_bits(uint32_t) - sizeof_bits(uint8_t))
 #define SECTION_MASK 0xFF
@@ -76,7 +76,8 @@ struct page;
                        "page_to_virt(): %p is outside page range", \
                        h_var(page)); \
             phys_to_virt(page_to_phys(h_var(page))); \
-        }))
+        }) \
+    )
 
 typedef uint8_t pgt_level_t;
 typedef uint16_t pgt_index_t;

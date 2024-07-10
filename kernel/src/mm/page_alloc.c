@@ -256,7 +256,7 @@ get_from_freelist_order_at_align(struct page_section *const section,
     }
 
     const uint64_t index =
-        (align_up_assert(phys, 1ull << align) - phys) >> PAGE_SHIFT;
+        PAGE_COUNT(align_up_assert(phys, 1ull << align) - phys);
 
     if (!index_in_bounds(index, size)) {
         return NULL;
@@ -967,15 +967,16 @@ early_free_pages_from_section(struct page *const page,
     list_init(&page->freelist_head.freelist);
     list_add(&freelist->page_list, &page->freelist_head.freelist);
 
+    const uint64_t count = 1ull << order;
     if (order != 0) {
-        struct page *const back = page + (1ull << order) - 1;
+        struct page *const back = page + (count - 1);
 
         back->state = PAGE_STATE_FREE_LIST_TAIL;
         back->freelist_tail.head = page;
     }
 
-    section->zone->total_free += 1ull << order;
-    section->total_free += 1ull << order;
+    section->zone->total_free += count;
+    section->total_free += count;
 
     freelist->count++;
 }
@@ -1069,7 +1070,7 @@ __optimize(3) void free_amount_of_pages(struct page *page, uint64_t amount) {
     free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
 }
 
-void free_large_page(struct page *head) {
+void free_large_page(struct page *const head) {
     assert(page_get_state(head) == PAGE_STATE_LARGE_HEAD);
 
     struct page_section *const section = page_to_section(head);
