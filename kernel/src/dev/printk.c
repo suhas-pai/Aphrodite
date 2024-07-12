@@ -4,10 +4,9 @@
  */
 
 #include <stdatomic.h>
-
 #include "asm/irqs.h"
 
-#include "cpu/info.h"
+#include "cpu/cpu_info.h"
 #include "cpu/spinlock.h"
 
 #include "lib/parse_printf.h"
