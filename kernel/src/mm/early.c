@@ -28,6 +28,17 @@ struct freepages_info {
     uint64_t total_page_count;
 } __page_aligned;
 
+static inline void
+freepages_info_init(struct freepages_info *const info,
+                    const uint64_t page_count)
+{
+    list_init(&info->list);
+    list_init(&info->asc_list);
+
+    info->avail_page_count = page_count;
+    info->total_page_count = page_count;
+}
+
 _Static_assert(sizeof(struct freepages_info) <= PAGE_SIZE,
                "freepages_info struct must be small enough to store on a "
                "single page");
@@ -77,17 +88,12 @@ __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
 #endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
 
     struct freepages_info *const info = phys_to_virt(phys_range.front);
-
-    list_init(&info->list);
-    list_init(&info->asc_list);
-
     const uint64_t page_count = PAGE_COUNT(memmap->range.size);
+
+    freepages_info_init(info, page_count);
 
     g_total_free_pages += page_count;
     g_total_free_pages_remaining += page_count;
-
-    info->avail_page_count = page_count;
-    info->total_page_count = page_count;
 
     struct freepages_info *prev =
         list_tail(&g_freepage_list, struct freepages_info, list);
@@ -250,12 +256,7 @@ __optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
 
         if (new_info_count != 0) {
             struct freepages_info *const new_info = phys_to_virt(new_info_phys);
-
-            new_info->avail_page_count = new_info_count;
-            new_info->total_page_count = new_info_count;
-
-            list_init(&new_info->list);
-            list_init(&new_info->asc_list);
+            freepages_info_init(new_info, /*page_count=*/new_info_count);
 
             list_add(&prev->list, &new_info->list);
             add_to_asc_list(new_info);
