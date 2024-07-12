@@ -28,13 +28,20 @@ uint64_t pfn_to_phys_manual(uint64_t pfn);
 
 struct page;
 
+#define verify_page_pointer(p) ({ \
+    __auto_type __verp = (uint64_t)(p); \
+    __verp >= PAGE_OFFSET && __verp < PAGE_END \
+    && ((__verp - PAGE_OFFSET) % sizeof(struct page)) == 0; \
+})
+
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))
 #define pfn_to_page(pfn) ({ \
     __auto_type h_var(page) = \
         PAGE_OFFSET + check_mul_assert(SIZEOF_STRUCTPAGE, (pfn)); \
-    assert_msg((uint64_t)h_var(page) >= PAGE_OFFSET && \
-               (uint64_t)h_var(page) < PAGE_END, \
-               "pfn_to_page(): pfn reaches outside range of page range"); \
+    assert_msg(verify_page_pointer(h_var(page)), \
+               "pfn_to_page(): pfn %" PRIu64 " reaches outside range of page " \
+               "range", \
+               pfn); \
     (struct page *)h_var(page); \
 })
 
@@ -42,15 +49,15 @@ struct page;
     _Generic((p), \
         const struct page *: ({ \
             const uint64_t h_var(page) = (uint64_t)(p); \
-            assert_msg(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END, \
-                       "page_to_pfn(): page %p is outside page range", \
+            assert_msg(verify_page_pointer(h_var(page)), \
+                       "page_to_pfn(): page %p is invalid", \
                        p); \
             check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
         }), \
         struct page *: ({ \
             const uint64_t h_var(page) = (uint64_t)(p); \
-            assert_msg(h_var(page) >= PAGE_OFFSET && h_var(page) < PAGE_END, \
-                       "page_to_pfn(): page %p is outside page range", \
+            assert_msg(verify_page_pointer(h_var(page)), \
+                       "page_to_pfn(): page %p is invalid", \
                        p); \
             check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
         }) \
@@ -63,17 +70,15 @@ struct page;
     _Generic((p), \
         const struct page *: ({ \
             __auto_type h_var(page) = (p); \
-            assert_msg((uint64_t)h_var(page) >= PAGE_OFFSET \
-                       && (uint64_t)h_var(page) < PAGE_END, \
-                       "page_to_virt(): %p is outside page range", \
+            assert_msg(verify_page_pointer(h_var(page)), \
+                       "page_to_virt(): page %p is invalid", \
                        h_var(page)); \
             phys_to_virt(page_to_phys(h_var(page))); \
         }), \
         struct page *: ({ \
             __auto_type h_var(page) = (p); \
-            assert_msg((uint64_t)h_var(page) >= PAGE_OFFSET \
-                       && (uint64_t)h_var(page) < PAGE_END, \
-                       "page_to_virt(): %p is outside page range", \
+            assert_msg(verify_page_pointer(h_var(page)), \
+                       "page_to_virt(): page %p is invalid", \
                        h_var(page)); \
             phys_to_virt(page_to_phys(h_var(page))); \
         }) \
