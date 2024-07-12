@@ -82,7 +82,6 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                              __PCI_ENTITY_PRIVL_BUS_MASTER
                              | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
-    const bool flag = disable_irqs_if_enabled();
     if (!pci_entity_enable_msi(pci_entity)) {
         isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
         pci_entity_disable_privls(pci_entity);
@@ -91,6 +90,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
+    const bool flag = disable_irqs_if_enabled();
     pci_entity_bind_msi_to_vector(pci_entity,
                                   this_cpu(),
                                   isr_vector,
