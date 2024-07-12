@@ -357,7 +357,7 @@ __optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
     spin_acquire_preempt_disable(&entity->lock);
     const uint16_t old_command =
-    pci_read(entity, struct pci_spec_entity_info_base, command);
+        pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
         rm_mask(old_command, __PCI_ENTITY_PRIVL_MASK)
         | __PCI_DEVCMDREG_PIN_INTR_DISABLE;

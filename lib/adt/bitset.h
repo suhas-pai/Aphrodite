@@ -29,8 +29,7 @@
         rm_mask((name)[(index) / sizeof_bits(uint64_t)], \
                 1ull << ((index) % sizeof_bits(uint64_t)))
 
-#define bitset_find_set(bitset, length, invert) \
-    ({ \
+#define bitset_find_set(bitset, length, invert) ({ \
         __auto_type h_var(bit_set) = (bitset); \
         __auto_type h_var(len) = (uint64_t)(length); \
         __auto_type h_var(should_invert) = (invert); \
@@ -69,8 +68,7 @@
         h_var(result); \
     })
 
-#define bitset_find_unset(bitset, length, invert) \
-    ({ \
+#define bitset_find_unset(bitset, length, invert) ({ \
         __auto_type h_var(bit_set) = (bitset); \
         __auto_type h_var(len) = (uint64_t)(length); \
         __auto_type h_var(should_invert) = (invert); \
