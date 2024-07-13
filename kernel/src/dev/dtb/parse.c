@@ -1509,14 +1509,18 @@ parse_node_children(const void *const dtb,
 
 __optimize(3) static inline
 bool node_has_gic_compat(const struct devicetree_node *const node) {
+    const struct devicetree_prop_compat *const compat_prop =
+        (const struct devicetree_prop_compat *)(uint64_t)
+            devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
+
     carr_foreach(gicv2_compat_sv_list, iter) {
-        if (devicetree_node_has_compat_sv(node, *iter)) {
+        if (devicetree_prop_compat_has_sv(compat_prop, *iter)) {
             return true;
         }
     }
 
     carr_foreach(gicv3_compat_sv_list, iter) {
-        if (devicetree_node_has_compat_sv(node, *iter)) {
+        if (devicetree_prop_compat_has_sv(compat_prop, *iter)) {
             return true;
         }
     }
@@ -1604,9 +1608,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         }
     }
 
-    array_foreach(&later_info.intr_node_list,
-                  const struct intr_node_info,
-                  iter)
+    array_foreach(&later_info.intr_node_list, const struct intr_node_info, iter)
     {
         struct devicetree_node *const node = iter->node;
         struct devicetree_node *const parent = node->parent;
