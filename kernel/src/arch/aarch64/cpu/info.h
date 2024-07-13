@@ -19,10 +19,9 @@ struct cpu_info {
     uint64_t spur_intr_count;
     uint64_t mpidr;
 
-    uint32_t gic_iface_no;
-    uint32_t processor_number;
-
+    uint32_t processor_id;
     uint64_t affinity;
+
     struct thread *idle_thread;
 
     uint16_t spe_overflow_interrupt;
@@ -39,4 +38,4 @@ struct cpu_info {
 };
 
 extern struct list g_cpu_list;
-struct cpu_info *cpu_mut_for_gic_iface_no(uint32_t intr_number);
+struct cpu_info *cpu_mut_for_id(uint32_t intr_number);

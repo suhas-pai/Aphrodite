@@ -216,7 +216,7 @@ fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
 
     preempt_disable();
     entry->flags =
-        this_cpu()->processor_number
+        this_cpu()->processor_id
             << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
         | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
 

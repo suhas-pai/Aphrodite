@@ -223,7 +223,7 @@ __optimize(3) void handle_interrupt(struct thread_context *const context) {
                irq,
                cpu_id);
 
-        cpu_mut_for_gic_iface_no(cpu_id)->spur_intr_count++;
+        cpu_mut_for_id(cpu_id)->spur_intr_count++;
         gic_cpu_eoi(cpu_id, irq);
 
         return;

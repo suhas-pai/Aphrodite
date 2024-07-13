@@ -244,7 +244,7 @@ static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
     preempt_disable();
 
-    const uint8_t intr_number = this_cpu()->gic_iface_no;
+    const uint8_t intr_number = this_cpu()->processor_id;
     for (uint16_t irq = GIC_SPI_INTERRUPT_START;
          irq < g_dist.interrupt_lines_count;
          irq++)
@@ -620,7 +620,7 @@ __optimize(3)
 void gicdv2_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint32_t info =
         GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD
-        | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->gic_iface_no)
+        | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->processor_id)
         | int_no;
 
     atomic_store_explicit(&g_regs->software_generated_interrupts[0],

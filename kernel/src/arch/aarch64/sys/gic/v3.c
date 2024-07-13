@@ -451,7 +451,7 @@ void gic_redist_init_on_this_cpu() {
                 | prop_phys
                 | (GIC_REDIST_IDBITS - 1));
 
-    this_cpu_mut()->processor_number =
+    this_cpu_mut()->processor_id =
         (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
             >> GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
 

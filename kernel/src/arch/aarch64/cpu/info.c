@@ -23,8 +23,7 @@ __hidden struct cpu_info g_base_cpu_info = {
     .spur_intr_count = 0,
     .mpidr = 0,
 
-    .gic_iface_no = 0,
-    .processor_number = 0,
+    .processor_id = 0,
 
     .spe_overflow_interrupt = 0,
     .affinity = 0,
@@ -1434,11 +1433,10 @@ __optimize(3) bool cpu_in_bad_state() {
     return this_cpu()->in_exception;
 }
 
-__optimize(3)
-struct cpu_info *cpu_mut_for_gic_iface_no(const uint32_t iface_no) {
+__optimize(3) struct cpu_info *cpu_mut_for_id(const uint32_t id) {
     struct cpu_info *iter = NULL;
     list_foreach(iter, &g_cpu_list, cpu_list) {
-        if (iter->gic_iface_no == iface_no) {
+        if (iter->processor_id == id) {
             return iter;
         }
     }
