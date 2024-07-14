@@ -1,7 +1,5 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
-
-override IMAGE_NAME := template
 export IN_QEMU := 0
 
 # Convenience macro to reliably declare user overridable variables.
@@ -17,6 +15,8 @@ endef
 # Target architecture to build for. Default to x86_64.
 override DEFAULT_KARCH := x86_64
 $(eval $(call DEFAULT_VAR,KARCH,$(DEFAULT_KARCH)))
+
+override IMAGE_NAME := template-$(KARCH)
 
 override DEFAULT_MEM := 4G
 $(eval $(call DEFAULT_VAR,MEM,$(DEFAULT_MEM)))
@@ -230,7 +230,7 @@ endif
 
 .PHONY: clean
 clean:
-	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
+	rm -rf iso_root *.iso *.hdd
 	$(MAKE) -C kernel clean
 
 .PHONY: distclean
