@@ -30,10 +30,7 @@ __optimize(3) struct string string_alloc(const struct string_view sv) {
 }
 
 __optimize(3) struct string string_copy(const struct string string) {
-    const struct string result = {
-        .gbuffer = gbuffer_copy(string.gbuffer)
-    };
-
+    const struct string result = { .gbuffer = gbuffer_copy(string.gbuffer) };
     return result;
 }
 
@@ -135,7 +132,7 @@ __optimize(3) char string_front(const struct string string) {
         return ((uint8_t *)string.gbuffer.begin)[0];
     }
 
-    return '\0';
+    verify_not_reached();
 }
 
 __optimize(3) char string_back(const struct string string) {
@@ -144,7 +141,7 @@ __optimize(3) char string_back(const struct string string) {
         return ((uint8_t *)string.gbuffer.begin)[length - 1];
     }
 
-    return '\0';
+    verify_not_reached();
 }
 
 __optimize(3) uint32_t string_length(const struct string string) {
