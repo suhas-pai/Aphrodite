@@ -88,7 +88,11 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
         return false;
     }
 
-    memcpy(new_alloc, gb->begin, gbuffer_used_size(*gb));
+    const uint32_t used_size = gbuffer_used_size(*gb);
+    if (used_size != 0) {
+        memcpy(new_alloc, gb->begin, used_size);
+    }
+
     if (gb->is_alloc) {
         free(gb->begin);
     } else {
@@ -145,10 +149,8 @@ __optimize(3) uint32_t
 gbuffer_increment_ptr(struct growable_buffer *const gbuffer,
                       const uint32_t amount)
 {
-    const uint32_t delta = min(gbuffer_free_space(*gbuffer), amount);
-    gbuffer->index = delta;
-
-    return delta;
+    gbuffer->index = min(gbuffer_free_space(*gbuffer), amount);
+    return gbuffer->index;
 }
 
 __optimize(3) uint32_t
@@ -260,7 +262,7 @@ __optimize(3) void gbuffer_destroy(struct growable_buffer *const gb) {
     if (gb->is_alloc) {
         free(gb->begin);
     } else {
-        // Even if just a stack buffer, clear out memory for safety
+        // Even if just a stack buffer, clear out memory for data security.
         bzero(gb->begin, gb->capacity);
     }
 
