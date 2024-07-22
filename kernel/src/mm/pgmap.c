@@ -1186,8 +1186,8 @@ pgunmap_at(struct pagemap *const pagemap,
         }
 
         if (level < walker.level) {
-            // Here, we're exclusively dealing with large pages that must be
-            // split.
+            // Here, we're exclusively dealing with large pages that may need to
+            // be split.
 
             if (dont_split_large_pages) {
                 pageop_finish(&pageop);

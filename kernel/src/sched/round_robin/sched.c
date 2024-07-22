@@ -8,7 +8,6 @@
 #include "asm/irqs.h"
 #include "asm/pause.h"
 
-#include "dev/printk.h"
 #include "mm/kmalloc.h"
 
 #include "sched/alarm.h"

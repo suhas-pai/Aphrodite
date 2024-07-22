@@ -414,8 +414,8 @@ bitmap_has(const struct bitmap *const bitmap,
     if (has_align((uint64_t)ptr, bits_to_bytes_noround(bit_amt))) {            \
         do {                                                                   \
             const uint8_t word_count =                                         \
-                bits_to_bytes_noround(count) /                                 \
-                sizeof(TYPE_FOR_BIT_AMT(bit_amt));                             \
+                bits_to_bytes_noround(count)                                   \
+                / sizeof(TYPE_FOR_BIT_AMT(bit_amt));                           \
                                                                                \
             if (word_count != 0) {                                             \
                 if (!VAR_CONCAT_3(membuf, bit_amt, _is_all)(                   \
@@ -427,8 +427,8 @@ bitmap_has(const struct bitmap *const bitmap,
                 }                                                              \
                                                                                \
                 count -=                                                       \
-                    bytes_to_bits(sizeof(TYPE_FOR_BIT_AMT(bit_amt)) *          \
-                                  word_count);                                 \
+                    bytes_to_bits(sizeof(TYPE_FOR_BIT_AMT(bit_amt))            \
+                                  * word_count);                               \
                                                                                \
                 if (count == 0) {                                              \
                     return true;                                               \

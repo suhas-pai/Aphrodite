@@ -342,6 +342,7 @@ pci_entity_enable_privls(struct pci_entity_info *const entity,
                          const uint16_t privls)
 {
     spin_acquire_preempt_disable(&entity->lock);
+
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
@@ -349,13 +350,13 @@ pci_entity_enable_privls(struct pci_entity_info *const entity,
         ^ __PCI_DEVCMDREG_PIN_INTR_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
-
     spin_release_preempt_enable(&entity->lock);
 }
 
 __optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
     spin_acquire_preempt_disable(&entity->lock);
+
     const uint16_t old_command =
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =

@@ -23,11 +23,7 @@ nvme_read(struct storage_device *const device,
     struct nvme_namespace *const namespace =
         container_of(device, struct nvme_namespace, device);
 
-    if (nvme_namespace_rwlba(namespace,
-                             lba_range,
-                             /*write=*/false,
-                             phys))
-    {
+    if (nvme_namespace_rwlba(namespace, lba_range, /*write=*/false, phys)) {
         return lba_range.size;
     }
 
@@ -42,11 +38,7 @@ nvme_write(struct storage_device *const device,
     struct nvme_namespace *const namespace =
         container_of(device, struct nvme_namespace, device);
 
-    if (nvme_namespace_rwlba(namespace,
-                             lba_range,
-                             /*write=*/true,
-                             phys))
-    {
+    if (nvme_namespace_rwlba(namespace, lba_range, /*write=*/true, phys)) {
         return lba_range.size;
     }
 
@@ -240,19 +232,20 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
 
     struct nvme_command command = NVME_IO_CMD(namespace, write, out, lba_range);
     if (total_size > PAGE_SIZE) {
-        command.readwrite.prp2 = out + PAGE_SIZE;
-        if (total_size > (PAGE_SIZE * 2)) {
-            const uint32_t prp_count = PAGE_COUNT(total_size) - 1;
+        const uint32_t prp_count = PAGE_COUNT(total_size) - 1;
+        if (prp_count != 0) {
             uint64_t *const prp_list =
                 &namespace->io_queue.phys_region_page_list[
-                    namespace->io_queue.phys_region_pages_count *
-                    command.readwrite.cid];
+                    namespace->io_queue.phys_region_pages_count
+                    * command.readwrite.cid];
 
             for (uint32_t i = 0; i != prp_count; i++) {
                 prp_list[i] = command.readwrite.prp2 + (PAGE_SIZE * i);
             }
 
             command.readwrite.prp2 = virt_to_phys(prp_list);
+        } else {
+            command.readwrite.prp2 = out + PAGE_SIZE;
         }
     }
 
@@ -260,12 +253,13 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
 }
 
 void nvme_namespace_destroy(struct nvme_namespace *const namespace) {
-    const int flag = spin_acquire_save_irq(&namespace->controller->lock);
+    struct nvme_controller *const controller = namespace->controller;
+    const int flag = spin_acquire_save_irq(&controller->lock);
 
     nvme_queue_destroy(&namespace->io_queue);
     list_deinit(&namespace->list);
 
-    spin_release_restore_irq(&namespace->controller->lock, flag);
+    spin_release_restore_irq(&controller->lock, flag);
 
     namespace->controller = NULL;
     namespace->nsid = 0;

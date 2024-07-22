@@ -157,10 +157,10 @@ _memcmp_uint64_t(const void *left,
                     return (int)(left_ch_2 - right_ch_2);
                 }
 
-                len -= (sizeof(uint64_t) * 2);
-                left += (sizeof(uint64_t) * 2);
-                right += (sizeof(uint64_t) * 2);
-            } while (len >= (2 * sizeof(uint64_t)));
+                len -= sizeof(uint64_t) * 2;
+                left += sizeof(uint64_t) * 2;
+                right += sizeof(uint64_t) * 2;
+            } while (len >= sizeof(uint64_t) * 2);
 
             if (len < sizeof(uint64_t)) {
                 *left_out = left;
@@ -231,7 +231,7 @@ _memcpy_uint64_t(void *dst,
 {
     if (n >= sizeof(uint64_t)) {
     #if defined(__aarch64__)
-        if (n >= (2 * sizeof(uint64_t))) {
+        if (n >= sizeof(uint64_t) * 2) {
             do {
                 uint64_t left_ch = 0;
                 uint64_t right_ch = 0;
@@ -244,11 +244,11 @@ _memcpy_uint64_t(void *dst,
                 asm volatile ("stp %0, %1, [%2]"
                               :: "r"(left_ch), "r"(right_ch), "r"(dst));
 
-                dst += (sizeof(uint64_t) * 2);
-                src += (sizeof(uint64_t) * 2);
+                dst += sizeof(uint64_t) * 2;
+                src += sizeof(uint64_t) * 2;
 
-                n -= (sizeof(uint64_t) * 2);
-            } while (n >= (sizeof(uint64_t) * 2));
+                n -= sizeof(uint64_t) * 2;
+            } while (n >= sizeof(uint64_t) * 2);
 
             if (n < sizeof(uint64_t)) {
                 *dst_out = dst;
@@ -387,11 +387,11 @@ _memcpy_bw_uint64_t(void *const dst,
                             :: "r"(left_ch), "r"(right_ch),
                                 "r"((uint64_t *)(dst + off)));
 
-            if (off < (sizeof(uint64_t) * 2)) {
+            if (off < sizeof(uint64_t) * 2) {
                 break;
             }
 
-            off -= (sizeof(uint64_t) * 2);
+            off -= sizeof(uint64_t) * 2;
         } while (true);
 
         if (off < sizeof(uint64_t)) {
@@ -510,27 +510,20 @@ __optimize(3) void *memset(void *dst, const int val, unsigned long n) {
             | (uint64_t)val;
 
     #if defined(__aarch64__)
-        while (n >= (sizeof(uint64_t) * 2)) {
+        while (n >= sizeof(uint64_t) * 2) {
             asm volatile ("stp %0, %0, [%1]" :: "r"(value64), "r"(dst));
 
-            dst += (sizeof(uint64_t) * 2);
-            n -= (sizeof(uint64_t) * 2);
+            dst += sizeof(uint64_t) * 2;
+            n -= sizeof(uint64_t) * 2;
         }
-
-        while (n >= sizeof(uint64_t))
-    #else
-        do
     #endif /* defined(__aarch64__) */
-        {
+
+        while (n >= sizeof(uint64_t)) {
             *(uint64_t *)dst = value64;
 
             dst += sizeof(uint64_t);
             n -= sizeof(uint64_t);
-    #if defined(__aarch64__)
         }
-    #else
-        } while (n >= sizeof(uint64_t));
-    #endif /* defined(__aarch64__) */
 
         while (n >= sizeof(uint32_t)) {
             *(uint32_t *)dst = value64;
@@ -578,13 +571,13 @@ __optimize(3) void bzero(void *dst, unsigned long n) {
         return;
     }
 #elif defined(__aarch64__)
-    if (n >= (sizeof(uint64_t) * 2)) {
+    if (n >= sizeof(uint64_t) * 2) {
         do {
             asm volatile ("stp xzr, xzr, [%0]" :: "r"(dst));
 
-            dst += (sizeof(uint64_t) * 2);
+            dst += sizeof(uint64_t) * 2;
             n -= sizeof(uint64_t) * 2;
-        } while (n >= (sizeof(uint64_t) * 2));
+        } while (n >= sizeof(uint64_t) * 2);
 
         if (n == 0) {
             return;

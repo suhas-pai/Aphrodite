@@ -545,11 +545,11 @@ unsigned_to_string_view(uint64_t number,
             buffer[i - 2] = '0';
             switch (base) {
                 case NUMERIC_BASE_2:
-                    buffer[i - 1] = (options.capitalize_prefix) ? 'B' : 'b';
+                    buffer[i - 1] = options.capitalize_prefix ? 'B' : 'b';
                     break;
                 case NUMERIC_BASE_8:
                     if (!options.use_0_octal_prefix) {
-                        buffer[i - 1] = (options.capitalize_prefix) ? 'O' : 'o';
+                        buffer[i - 1] = options.capitalize_prefix ? 'O' : 'o';
                     } else {
                         i += 1;
                     }
@@ -558,10 +558,10 @@ unsigned_to_string_view(uint64_t number,
                 case NUMERIC_BASE_10:
                     break;
                 case NUMERIC_BASE_16:
-                    buffer[i - 1] = (options.capitalize_prefix) ? 'X' : 'x';
+                    buffer[i - 1] = options.capitalize_prefix ? 'X' : 'x';
                     break;
                 case NUMERIC_BASE_36:
-                    buffer[i - 1] = (options.capitalize_prefix) ? 'A' : 'a';
+                    buffer[i - 1] = options.capitalize_prefix ? 'A' : 'a';
                     break;
             }
 
@@ -577,7 +577,7 @@ unsigned_to_string_view(uint64_t number,
     do {                                                                       \
         if (number < 0) {                                                      \
             const char *const h_var(chars) =                                   \
-                (options.capitalize) ?                                         \
+                options.capitalize ?                                           \
                     get_alphanumeric_upper_string() :                          \
                     get_alphanumeric_lower_string();                           \
                                                                                \
@@ -636,11 +636,11 @@ signed_to_string_view(int64_t number,
             buffer[i - 2] = '0';
             switch (base) {
                 case NUMERIC_BASE_2:
-                    buffer[i - 1] = (options.capitalize_prefix) ? 'B' : 'b';
+                    buffer[i - 1] = options.capitalize_prefix ? 'B' : 'b';
                     break;
                 case NUMERIC_BASE_8:
                     if (!options.use_0_octal_prefix) {
-                        buffer[i - 1] = (options.capitalize_prefix) ? 'O' : 'o';
+                        buffer[i - 1] = options.capitalize_prefix ? 'O' : 'o';
                     } else {
                         i += 1;
                     }
@@ -649,10 +649,10 @@ signed_to_string_view(int64_t number,
                 case NUMERIC_BASE_10:
                     break;
                 case NUMERIC_BASE_16:
-                    buffer[i - 1] = (options.capitalize_prefix) ? 'X' : 'x';
+                    buffer[i - 1] = options.capitalize_prefix ? 'X' : 'x';
                     break;
                 case NUMERIC_BASE_36:
-                    buffer[i - 1] = (options.capitalize_prefix) ? 'A' : 'a';
+                    buffer[i - 1] = options.capitalize_prefix ? 'A' : 'a';
                     break;
             }
 
