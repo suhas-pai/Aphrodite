@@ -504,7 +504,7 @@ bitmap_set_range(struct bitmap *const bitmap,
     const uint64_t memset_byte_count = bits_to_bytes_noround(bits_left);
     if (memset_byte_count != 0) {
         if (value) {
-            memset_all_ones(ptr, memset_byte_count);
+            memset_ones(ptr, memset_byte_count);
         } else {
             bzero(ptr, memset_byte_count);
         }
@@ -522,8 +522,7 @@ bitmap_set_range(struct bitmap *const bitmap,
 __optimize(3)
 void bitmap_set_all(struct bitmap *const bitmap, const bool value) {
     if (value) {
-        const uint64_t capacity = bitmap->gbuffer.capacity;
-        memset_all_ones(bitmap->gbuffer.begin, capacity);
+        memset_ones(bitmap->gbuffer.begin, bitmap->gbuffer.capacity);
     } else {
         bzero(bitmap->gbuffer.begin, bitmap->gbuffer.capacity);
     }

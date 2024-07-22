@@ -72,7 +72,7 @@ __optimize(3) char *strchr(const char *const str, const int ch) {
     #define REP_MIN 128
 #endif /* defined(__x86_64__) */
 
-__optimize(3) void *memset_all_ones(void *dst, unsigned long n) {
+__optimize(3) void *memset_ones(void *dst, unsigned long n) {
     void *ret = dst;
 
 #if defined(__x86_64__)

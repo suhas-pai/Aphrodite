@@ -35,4 +35,4 @@
     #include <string.h>
 #endif /* defined(BUILD_TEST) */
 
-void *memset_all_ones(void *dst, unsigned long n);
+void *memset_ones(void *dst, unsigned long n);
