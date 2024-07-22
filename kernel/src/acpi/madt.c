@@ -506,8 +506,6 @@ void madt_init(const struct acpi_madt *const madt) {
                        "madt: found gicv3 redistributor:\n"
                        "\tdiscovery range: " RANGE_FMT "\n",
                        RANGE_FMT_ARGS(gicv3_redist_discovery_range));
-
-                continue;
             #else
                 printk(LOGLEVEL_WARN,
                        "madt: found gicv3 redistributor entry. ignoring\n");
@@ -534,8 +532,6 @@ void madt_init(const struct acpi_madt *const madt) {
                        "\tphysical base address: %p\n",
                        its->id,
                        (void *)its->phys_base_address);
-
-                continue;
             #else
                 printk(LOGLEVEL_WARN,
                        "madt: found gicv3 its entry. ignoring\n");
