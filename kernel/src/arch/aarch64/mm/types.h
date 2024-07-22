@@ -108,17 +108,6 @@ struct largepage_level_info {
 extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
 
 #if defined(AARCH64_USE_16K_PAGES)
-    #define PAGE_SIZE_AT_LEVEL(level) \
-        ({\
-            const uint64_t __sizes__[] = { \
-                PAGE_SIZE, \
-                PAGE_SIZE_32MIB, \
-                PAGE_SIZE_64GIB, \
-                PAGE_SIZE_128TIB, \
-                PAGE_SIZE_128TIB * PGT_PTE_COUNT(4) \
-            }; \
-        __sizes__[level - 1];\
-        })
     #define PAGE_SIZE_AT_LEVEL(level) ({ \
         __auto_type __pagesizelevelresult__ = (uint64_t)0; \
         switch (level) { \
