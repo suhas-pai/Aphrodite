@@ -27,10 +27,6 @@ __optimize(3) static inline void list_init(struct list *const head) {
     head->next = head;
 }
 
-__optimize(3) static inline void slist_(struct slist *const list) {
-    list->next = list;
-}
-
 __optimize(3) static inline void
 list_add_common(struct list *const elem,
                 struct list *const prev,
