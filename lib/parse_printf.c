@@ -779,7 +779,7 @@ parse_printf(const char *const fmt,
                 curr_spec.leftpad_zeros
                 && is_int_specifier(curr_spec.spec)
                 && curr_spec.precision == -1
-                && !curr_spec.left_justify; // Zeros are never left-justified
+                && !curr_spec.left_justify; // Never left-justify with zeros.
 
             if (pad_with_zeros) {
                 // We're always resetting padded_zero_count if it was set before
