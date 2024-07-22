@@ -31,7 +31,7 @@ __optimize(3)
 uint8_t weekday_to_decimal_monday_one(const enum weekday weekday) {
     const uint8_t result =
         (weekday != WEEKDAY_SUNDAY) ?
-            (uint8_t)weekday : 7; // Wrap WEEKDAY_SUNDAY from 0 to 7
+            (uint8_t)weekday : WEEKDAY_COUNT; // Wrap WEEKDAY_SUNDAY from 0 to 7
 
     return result;
 }
@@ -74,7 +74,7 @@ get_week_count_at_day(const enum weekday weekday,
             ((weekday != WEEKDAY_SUNDAY) ? (WEEKDAY_COUNT + 1) : 1) :
             WEEKDAY_COUNT);
 
-    return (days_since_jan_1 - (unsigned)weekday + delta) / 7;
+    return (days_since_jan_1 - (unsigned)weekday + delta) / WEEKDAY_COUNT;
 }
 
 __optimize(3) int month_to_tm_mon(const enum month month) {
@@ -155,7 +155,7 @@ __optimize(3) enum weekday weekday_prev(const enum weekday weekday) {
 }
 
 __optimize(3) enum weekday weekday_next(const enum weekday weekday) {
-    return get_to_within_size((uint64_t)weekday + 1, WEEKDAY_COUNT);
+    return (weekday + 1) % WEEKDAY_COUNT;
 }
 
 __optimize(3) struct string_view weekday_to_sv(const enum weekday day) {
@@ -458,7 +458,7 @@ day_of_month_to_weekday(uint64_t year,
 
     return (enum weekday)(
         (year + (year / 4) - (year / 100) + (year / 400) +
-         (uint64_t)"bed=pen+mad."[(uint64_t)month - 1] + day) % 7
+         (uint64_t)"bed=pen+mad."[(uint64_t)month - 1] + day) % WEEKDAY_COUNT
     );
 }
 
@@ -511,9 +511,9 @@ iso_8601_get_week_number(const enum weekday weekday,
     assert(weekday_valid(weekday));
     assert(month_valid(month));
 
-    enum weekday jan_1_weekday = (weekday - (days_since_jan_1 % 7));
+    enum weekday jan_1_weekday = (weekday - (days_since_jan_1 % WEEKDAY_COUNT));
     if (jan_1_weekday < 0) {
-        jan_1_weekday += 7;
+        jan_1_weekday += WEEKDAY_COUNT;
     }
 
     // Get week number, Monday as the first day of week.
@@ -548,10 +548,6 @@ iso_8601_get_week_number(const enum weekday weekday,
             // week number.
 
             const enum weekday dec_31_weekday = weekday_prev(weekday);
-
-            // The count of days preceding december 31 is that year's day count
-            // minus one for december 31.
-
             const uint64_t days_preceding_dec_31 =
                 year_get_day_count(year - 1) - 1;
 
