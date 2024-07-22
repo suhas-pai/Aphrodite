@@ -4,8 +4,6 @@
  */
 
 #include "acpi/api.h"
-#include "cpu/info.h"
-#include "mm/mmio.h"
 
 #if defined(__x86_64__)
     #include "apic/ioapic.h"
@@ -22,6 +20,9 @@
     #include "sys/gic/v2.h"
     #include "sys/gic/v3.h"
 #elif defined(__riscv64)
+    #include "cpu/info.h"
+    #include "mm/mmio.h"
+
     #include "sys/aplic.h"
     #include "sys/imsic.h"
 #endif /* defined(__aarch64__) */
@@ -493,8 +494,8 @@ void madt_init(const struct acpi_madt *const madt) {
                         &gicv3_redist_discovery_range))
                 {
                     printk(LOGLEVEL_INFO,
-                           "madt: found gicv3 redistributor with overflowing "
-                           "range:\n"
+                           "madt: found gicv3 redistributor: (with overflowing "
+                           "range)\n"
                            "\tdiscovery range: " RANGE_FMT "\n",
                            RANGE_FMT_ARGS(gicv3_redist_discovery_range));
 
