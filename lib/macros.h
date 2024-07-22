@@ -129,8 +129,7 @@
     for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_mut_rev_from_iter(arr, name, iter) \
-    for (typeof(&(arr)[0]) name = (iter); name != (arr); name--)
-
+    for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
 
 #define swap(a, b) ({ \
     const __auto_type __swaptmp = (b); \
