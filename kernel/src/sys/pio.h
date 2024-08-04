@@ -8,7 +8,7 @@
 
 #if defined(__x86_64__)
     typedef uint16_t port_t;
-#elif defined(__aarch64__) || defined(__riscv64)
+#elif defined(__aarch64__) || defined(__riscv64) || defined(__loongarch64)
     typedef volatile void *port_t;
 #endif /* defined(__x86_64__) || defined(__aarch64__) */
 

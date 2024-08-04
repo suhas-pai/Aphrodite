@@ -98,9 +98,9 @@ bool pte_level_can_have_large(pgt_level_t level);
 bool pte_is_large(pte_t pte);
 bool pte_is_dirty(pte_t pte);
 
-#define pte_to_pfn(pte) phys_to_pfn(pte_to_phys(pte))
-#define pte_to_virt(pte) phys_to_virt(pte_to_phys(pte))
-#define pte_to_page(pte) pfn_to_page(pte_to_pfn(pte))
+#define pte_to_pfn(pte, level) phys_to_pfn(pte_to_phys(pte, level))
+#define pte_to_virt(pte, level) phys_to_virt(pte_to_phys(pte, level))
+#define pte_to_page(pte, level) pfn_to_page(pte_to_pfn(pte, level))
 
 void *phys_to_virt(uint64_t phys);
 uint64_t virt_to_phys(volatile const void *phys);

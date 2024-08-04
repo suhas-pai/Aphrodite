@@ -34,7 +34,7 @@ pageop_flush_pte_in_current_range(struct pageop *const pageop,
                                   const pgt_level_t level,
                                   const bool should_free_pages)
 {
-    const uint64_t pte_phys = pte_to_phys(pte);
+    const uint64_t pte_phys = pte_to_phys(pte, level);
     struct page *const pte_page = phys_to_page(pte_phys);
 
     if (page_get_state(pte_page) != PAGE_STATE_TABLE) {
@@ -55,7 +55,7 @@ pageop_flush_pte_in_current_range(struct pageop *const pageop,
             &walker.tables[walker.level - 1][walker.indices[walker.level - 1]];
 
         const pte_t entry = pte_read(walker_pte);
-        struct page *const page = pte_to_page(entry);
+        struct page *const page = pte_to_page(entry, walker.level);
 
         if (pte_is_large(entry)) {
             if (ref_down(&page->largehead.refcount) && should_free_pages) {

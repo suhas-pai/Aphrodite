@@ -387,12 +387,12 @@ __optimize(3) static inline void init_table_page(struct page *const page) {
 
 __optimize(3) void
 mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
-#if defined(__aarch64__)
+#if PAGEMAP_HAS_SPLIT_ROOT
     init_table_page(virt_to_page(kernel_process.pagemap.lower_root));
     init_table_page(virt_to_page(kernel_process.pagemap.higher_root));
 #else
     init_table_page(virt_to_page(kernel_process.pagemap.root));
-#endif
+#endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
     struct pt_walker walker;
     ptwalker_create(&walker,
@@ -544,7 +544,7 @@ mm_early_identity_map_phys(const uint64_t root_phys,
 {
     assert_msg(!g_mapped_early_identity,
                "mm: mm_early_identity_map_phys() only supports identity "
-               "mapping early a single page!");
+               "mapping early a single page");
 
     struct pt_walker walker;
     ptwalker_create_from_root_phys(&walker,

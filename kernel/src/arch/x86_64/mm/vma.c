@@ -55,7 +55,8 @@ arch_make_mapping(struct pagemap *const pagemap,
         get_cpu_capabilities()->supports_1gib_pages;
 
     const struct pgmap_options options = {
-        .pte_flags = flags_from_info(pagemap, prot, cachekind),
+        .leaf_pte_flags = flags_from_info(pagemap, prot, cachekind),
+        .large_pte_flags = options.leaf_pte_flags,
 
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,

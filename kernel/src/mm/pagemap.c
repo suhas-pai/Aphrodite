@@ -12,37 +12,37 @@
     #include "asm/ttbr.h"
 #elif defined(__riscv64)
     #include "asm/satp.h"
-    #include "sched/process.h"
+#elif defined(__loongarch64)
+    #include "asm/csr.h"
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
 #include "mm/walker.h"
+#include "sched/process.h"
 
 #include "pgmap.h"
 
 __optimize(3) struct pagemap pagemap_empty() {
     struct pagemap result = {
-    #if defined(__aarch64__)
+    #if PAGEMAP_HAS_SPLIT_ROOT
         .lower_root = NULL,
         .higher_root = NULL,
     #else
         .root = NULL,
-    #endif /* defined(__aarch64__) */
+    #endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
         .addrspace = ADDRSPACE_INIT(result.addrspace),
         .addrspace_lock = SPINLOCK_INIT(),
 
         .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
         .cpu_lock = SPINLOCK_INIT(),
-
-        .refcount = REFCOUNT_CREATE_MAX()
     };
 
     refcount_init(&result.refcount);
     return result;
 }
 
-#if defined(__aarch64__)
+#if PAGEMAP_HAS_SPLIT_ROOT
     __optimize(3) struct pagemap
     pagemap_create(pte_t *const lower_root, pte_t *const higher_root) {
         struct pagemap result = {
@@ -75,7 +75,7 @@ __optimize(3) struct pagemap pagemap_empty() {
         refcount_init(&result.refcount);
         return result;
     }
-#endif /* defined(__aarch64__) */
+#endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
 bool
 pagemap_find_space_and_add_vma(struct pagemap *const pagemap,
@@ -149,12 +149,12 @@ pagemap_add_vma(struct pagemap *const pagemap,
 }
 
 void switch_to_pagemap(struct pagemap *const pagemap) {
-#if defined(__aarch64__)
+#if PAGEMAP_HAS_SPLIT_ROOT
     assert(pagemap->lower_root != NULL);
     assert(pagemap->higher_root != NULL);
 #else
     assert(pagemap->root != NULL);
-#endif /* defined(__aarch64__) */
+#endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
     const int flag = spin_acquire_save_irq(&pagemap->cpu_lock);
 
@@ -180,6 +180,9 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 
     csr_write(satp, value);
     asm volatile ("sfence.vma" ::: "memory");
+#elif defined(__loongarch64)
+    csr_write(pgdl, virt_to_phys(pagemap->lower_root));
+    csr_write(pgdh, virt_to_phys(pagemap->higher_root));
 #else
     verify_not_reached();
 #endif /* defined(__x86_64__) */

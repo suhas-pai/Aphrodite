@@ -7,7 +7,8 @@
 #include "pagemap.h"
 
 struct pgmap_options {
-    uint64_t pte_flags;
+    uint64_t leaf_pte_flags;
+    uint64_t large_pte_flags;
 
     void *alloc_pgtable_cb_info;
     void *free_pgtable_cb_info;

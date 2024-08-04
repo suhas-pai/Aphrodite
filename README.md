@@ -54,6 +54,8 @@ This project can also be built using the host GCC toolchain on x86_64 when targe
 The `KARCH` make variable determines the target architecture to build the kernel and image for. The `all` target (the default one) builds the kernel for the given architecture, and a bootable `.iso` image containing it. The `all-hdd` target builds a flat hard disk/USB image instead.
 
 The system currently supports the `x86_64`, `aarch64` (`arm64`), and `riscv64` architectures.
+
+`loongarch64` is being worked on, and isn't currently functional.
 `x86_64` is the most feature complete, while `aarch64` and `riscv64` are catching up
 
 Several variables are available to configure launching in QEMU:

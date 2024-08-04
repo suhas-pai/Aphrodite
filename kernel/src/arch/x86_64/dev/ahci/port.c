@@ -342,7 +342,7 @@ __optimize(3) static void print_serr_diag(const uint32_t serr) {
 __optimize(3) static void
 handle_error(struct ahci_hba_port *const port, const uint32_t interrupt_status)
 {
-    if (interrupt_status & AHCI_HBA_PORT_IS_RESET_REQ_FLAGS) {
+    if (interrupt_status & __AHCI_HBA_PORT_IS_RESET_REQ_FLAGS) {
         port->state = AHCI_HBA_PORT_STATE_NEEDS_RESET;
     }
 }
@@ -352,7 +352,7 @@ void enable_port_interrupts(volatile struct ahci_spec_hba_port *const port) {
     mmio_write(&port->interrupt_enable,
                __AHCI_HBA_IE_DEV_TO_HOST_FIS
                | __AHCI_HBA_IE_PORT_CHANGE
-               | AHCI_HBA_PORT_IE_ERROR_FLAGS);
+               | __AHCI_HBA_PORT_IE_ERROR_FLAGS);
 }
 
 __optimize(3) static uint32_t
@@ -367,7 +367,7 @@ handle_irq_for_port(struct ahci_hba_port *const port,
 
     // Write to interrupt-status to clear bits.
     mmio_write(&spec->interrupt_status, interrupt_status);
-    if (interrupt_status & AHCI_HBA_PORT_IS_ERROR_FLAGS) {
+    if (interrupt_status & __AHCI_HBA_PORT_IS_ERROR_FLAGS) {
         port->error.serr = mmio_read(&spec->sata_error);
         port->error.interrupt_status = interrupt_status;
 
@@ -440,7 +440,7 @@ ahci_port_handle_irq(const uint64_t vector,
 
         const uint32_t interrupt_status = port_interrupt_status[i];
         const bool result =
-            (interrupt_status & AHCI_HBA_PORT_IS_ERROR_FLAGS) == 0;
+            (interrupt_status & __AHCI_HBA_PORT_IS_ERROR_FLAGS) == 0;
 
         const struct await_result await_result = AWAIT_RESULT_BOOL(result);
         for_each_lsb_one_bit(finished_cmdhdrs[i], /*start_index=*/0, iter) {

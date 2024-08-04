@@ -32,7 +32,9 @@ alloc_region(const uint64_t virt_addr,
              const uint64_t pte_flags)
 {
     const struct pgmap_options options = {
-        .pte_flags = pte_flags,
+        .leaf_pte_flags = pte_flags,
+        .large_pte_flags = options.leaf_pte_flags,
+
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,
 
@@ -98,7 +100,8 @@ map_into_kernel_pagemap(const struct range phys_range,
                "permissions");
 
     const struct pgmap_options options = {
-        .pte_flags = __PTE_GLOBAL | pte_flags,
+        .leaf_pte_flags = __PTE_GLOBAL | pte_flags,
+        .large_pte_flags = options.leaf_pte_flags,
 
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,

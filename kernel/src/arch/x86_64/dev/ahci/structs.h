@@ -80,7 +80,7 @@ enum ahci_hba_port_interrupt_status_flags {
     __AHCI_HBA_IS_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
 
-#define AHCI_HBA_PORT_IS_RESET_REQ_FLAGS \
+#define __AHCI_HBA_PORT_IS_RESET_REQ_FLAGS \
     (__AHCI_HBA_IS_OVERFLOW_STATUS \
      | __AHCI_HBA_IS_INTERFACE_FATAL_ERR_STATUS \
      | __AHCI_HBA_IS_HOST_BUS_DATA_ERR_STATUS \
@@ -88,7 +88,7 @@ enum ahci_hba_port_interrupt_status_flags {
      | __AHCI_HBA_IS_TASK_FILE_ERR_STATUS \
      | __AHCI_HBA_IS_UNKNOWN_FIS)
 
-#define AHCI_HBA_PORT_IS_ERROR_FLAGS \
+#define __AHCI_HBA_PORT_IS_ERROR_FLAGS \
     (__AHCI_HBA_IS_UNKNOWN_FIS \
      | __AHCI_HBA_IS_PORT_CHANGE \
      | __AHCI_HBA_IS_DEV_MECH_PRESENCE \
@@ -121,7 +121,7 @@ enum ahci_hba_port_interrupt_enable_flags {
     __AHCI_HBA_IE_COLD_PORT_DETECT_STATUS = 1ull << 31,
 };
 
-#define AHCI_HBA_PORT_IE_ERROR_FLAGS \
+#define __AHCI_HBA_PORT_IE_ERROR_FLAGS \
     (__AHCI_HBA_IE_UNKNOWN_FIS \
      | __AHCI_HBA_IE_PORT_CHANGE \
      | __AHCI_HBA_IE_DEV_MECH_PRESENCE \

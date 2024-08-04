@@ -50,7 +50,8 @@ split_large_page(struct pt_walker *const walker,
 
     curr_split->virt_addr = ptwalker_get_virt_addr(walker);
     curr_split->phys_range =
-        RANGE_INIT(pte_to_phys(entry), PAGE_SIZE_AT_LEVEL(walker->level));
+        RANGE_INIT(pte_to_phys(entry, level),
+                   PAGE_SIZE_AT_LEVEL(walker->level));
 
     if (!options->is_in_early) {
         pageop_flush_pte_in_current_range(pageop,
@@ -195,8 +196,10 @@ override_pte(struct pt_walker *const walker,
 
     uint64_t phys_addr = phys_begin + *offset_in;
     if (!is_alloc_mapping
-        && pte_to_phys(entry) == phys_addr
-        && pte_flags_equal(entry, walker->level, options->pte_flags))
+        && pte_to_phys(entry, level) == phys_addr
+        && (pte_is_large(entry) ?
+                pte_flags_equal(entry, walker->level, options->large_pte_flags)
+                : pte_flags_equal(entry, walker->level, options->leaf_pte_flags)))
     {
         *offset_in += PAGE_SIZE_AT_LEVEL(walker->level);
         if (*offset_in >= size) {
@@ -387,7 +390,8 @@ __optimize(3) static inline uint64_t
 write_ptes_at_level(
     struct pt_walker *const walker,
     pgt_level_t level,
-    uint64_t orig_pte_flags,
+    const uint64_t leaf_pte_flags,
+    const uint64_t large_pte_flags,
     uint64_t phys_addr,
     uint64_t write_leaf_pte_count,
     const struct ptwalker_iterate_options *const iterate_options,
@@ -396,11 +400,11 @@ write_ptes_at_level(
     const uint64_t level_page_size = PAGE_SIZE_AT_LEVEL(level);
     const uint64_t leaf_pte_count_per_single_pte = PAGE_COUNT(level_page_size);
 
-    uint64_t pte_flags = orig_pte_flags;
+    uint64_t pte_flags = 0;
     if (level > 1) {
-        pte_flags |= PTE_LARGE_FLAGS(level);
+        pte_flags = large_pte_flags | PTE_LARGE_FLAGS(level);
     } else if (level == 1) {
-        pte_flags |= PTE_LEAF_FLAGS;
+        pte_flags = leaf_pte_flags | PTE_LEAF_FLAGS;
     } else {
         verify_not_reached();
     }
@@ -459,7 +463,8 @@ __optimize(3) static inline uint64_t
 write_ptes_down_from_level(
     struct pt_walker *const walker,
     pgt_level_t level,
-    const uint64_t pte_flags,
+    const uint64_t leaf_pte_flags,
+    const uint64_t large_pte_flags,
     uint64_t phys_addr,
     uint64_t leaf_ptes_remaining,
     const uint64_t supports_largepage_at_level_mask,
@@ -468,7 +473,8 @@ write_ptes_down_from_level(
     phys_addr =
         write_ptes_at_level(walker,
                             level,
-                            pte_flags,
+                            leaf_pte_flags,
+                            large_pte_flags,
                             phys_addr,
                             leaf_ptes_remaining,
                             iterate_options,
@@ -510,7 +516,8 @@ write_ptes_down_from_level(
         phys_addr =
             write_ptes_at_level(walker,
                                 level,
-                                pte_flags,
+                                leaf_pte_flags,
+                                large_pte_flags,
                                 phys_addr,
                                 leaf_ptes_remaining,
                                 iterate_options,
@@ -571,7 +578,8 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
         phys_addr =
             write_ptes_at_level(walker,
                                 level,
-                                options->pte_flags,
+                                options->leaf_pte_flags,
+                                options->large_pte_flags,
                                 phys_addr,
                                 leaf_pte_count_until_next_large,
                                 &iterate_options,
@@ -585,7 +593,8 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
     phys_addr =
         write_ptes_down_from_level(walker,
                                    level,
-                                   options->pte_flags,
+                                   options->leaf_pte_flags,
+                                   options->large_pte_flags,
                                    phys_addr,
                                    total_remaining_leaf_pte,
                                    supports_largepage_at_level_mask,
@@ -676,8 +685,9 @@ pgmap_at(struct pagemap *const pagemap,
 
             const pte_t entry = pte_read(pte);
             if (phys_range.front >= offset
-                && pte_to_phys(entry) == (phys_range.front - offset)
-                && pte_flags_equal(entry, walker.level, options->pte_flags))
+                && pte_to_phys(entry, walker.level) ==
+                    (phys_range.front - offset)
+                && pte_flags_equal(entry, walker.level, options->leaf_pte_flags))
             {
                 offset =
                     walker_virt_addr + PAGE_SIZE_AT_LEVEL(walker.level)
@@ -741,7 +751,8 @@ __optimize(3) static inline enum pgmap_alloc_result
 alloc_ptes_at_level(
     struct pt_walker *const walker,
     pgt_level_t level,
-    uint64_t pte_flags,
+    const uint64_t leaf_pte_flags,
+    const uint64_t large_pte_flags,
     const uint64_t write_leaf_pte_count,
     const struct pgmap_alloc_options *const alloc_options,
     const struct ptwalker_iterate_options *const iterate_options,
@@ -750,10 +761,11 @@ alloc_ptes_at_level(
     const uint64_t leaf_pte_count_per_single_pte =
         PAGE_COUNT(PAGE_SIZE_AT_LEVEL(level));
 
+    uint64_t pte_flags = 0;
     if (level > 1) {
-        pte_flags |= PTE_LARGE_FLAGS(level);
+        pte_flags = large_pte_flags | PTE_LARGE_FLAGS(level);
     } else if (level == 1) {
-        pte_flags |= PTE_LEAF_FLAGS;
+        pte_flags = leaf_pte_flags | PTE_LEAF_FLAGS;
     } else {
         verify_not_reached();
     }
@@ -837,7 +849,8 @@ __optimize(3) static inline bool
 alloc_ptes_down_from_level(
     struct pt_walker *const walker,
     pgt_level_t level,
-    const uint64_t pte_flags,
+    const uint64_t leaf_pte_flags,
+    const uint64_t large_pte_flags,
     uint64_t leaf_ptes_remaining,
     const uint64_t supports_largepage_at_level_mask,
     const struct pgmap_alloc_options *const alloc_options,
@@ -846,7 +859,8 @@ alloc_ptes_down_from_level(
     enum pgmap_alloc_result result =
         alloc_ptes_at_level(walker,
                             level,
-                            pte_flags,
+                            leaf_pte_flags,
+                            large_pte_flags,
                             leaf_ptes_remaining,
                             alloc_options,
                             iterate_options,
@@ -888,7 +902,8 @@ alloc_ptes_down_from_level(
         result =
             alloc_ptes_at_level(walker,
                                 level,
-                                pte_flags,
+                                leaf_pte_flags,
+                                large_pte_flags,
                                 leaf_ptes_remaining,
                                 alloc_options,
                                 iterate_options,
@@ -950,7 +965,8 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
         const enum pgmap_alloc_result result =
             alloc_ptes_at_level(walker,
                                 highest_possible_level,
-                                options->pte_flags,
+                                options->leaf_pte_flags,
+                                options->large_pte_flags,
                                 leaf_pte_count_until_next_large,
                                 alloc_options,
                                 &iterate_options,
@@ -968,7 +984,8 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
     const enum pgmap_alloc_result result =
         alloc_ptes_down_from_level(walker,
                                    highest_possible_level,
-                                   options->pte_flags,
+                                   options->leaf_pte_flags,
+                                   options->large_pte_flags,
                                    total_remaining_leaf_pte,
                                    supports_largepage_at_level_mask,
                                    alloc_options,
@@ -1217,13 +1234,13 @@ pgunmap_at(struct pagemap *const pagemap,
 
             pte_write(pte, /*value=*/0);
 
-            const uint64_t pte_phys = pte_to_phys(entry);
+            const uint64_t pte_phys = pte_to_phys(entry, level);
             if (pte_is_dirty(entry)) {
                 set_pages_dirty(phys_to_page(pte_phys),
-                                PAGE_COUNT(PAGE_SIZE_AT_LEVEL(walker.level)));
+                                PAGE_COUNT(PAGE_SIZE_AT_LEVEL(level)));
             }
 
-            ptwalker_deref_from_level(&walker, walker.level, &pageop);
+            ptwalker_deref_from_level(&walker, level, &pageop);
 
             const uint64_t map_size = remaining;
             const bool map_result =

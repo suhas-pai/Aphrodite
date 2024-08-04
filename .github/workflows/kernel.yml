@@ -11,7 +11,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        arch: ["x86_64","aarch64","riscv64"]
+        arch: ["x86_64","aarch64","riscv64","loongarch64"]
     steps:
     - name: Install Dependencies
       run: |
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: ["x86_64","aarch64","riscv64"]
+        arch: ["x86_64","aarch64","riscv64","loongarch64"]
     steps:
     - run: |
        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"

@@ -19,10 +19,15 @@ void smp_init() {
     #define field mpidr
 #elif defined(__riscv64)
     #define field hartid
+#elif defined(__loongarch64)
+    #define field
+#else
+    #error "Unkonwn architecture"
 #endif
 
 #define bsp_field VAR_CONCAT(bsp_, field)
 
+#if !defined(__loongarch64)
     struct limine_smp_info **const cpu_list = smp_resp->cpus;
     const uint64_t cpu_count = smp_resp->cpu_count;
 
@@ -31,4 +36,5 @@ void smp_init() {
             cpu_add(cpu_list[i]);
         }
     }
+#endif /* !defined(__loongarch64) */
 }

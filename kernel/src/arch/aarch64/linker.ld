@@ -1,6 +1,5 @@
 /* Tell the linker that we want an aarch64 ELF64 output file */
 OUTPUT_FORMAT(elf64-littleaarch64)
-OUTPUT_ARCH(aarch64)
 
 /* We want the symbol _start to be our entry point */
 ENTRY(_start)

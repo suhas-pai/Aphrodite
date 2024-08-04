@@ -35,11 +35,11 @@ __optimize(3) struct string_view sv_drop_front(const struct string_view sv) {
     return SV_EMPTY();
 }
 
-__optimize(3) char *sv_get_begin_mut(const struct string_view sv) {
+__optimize(3) char *sv_begin_mut(const struct string_view sv) {
     return (char *)(uint64_t)sv.begin;
 }
 
-__optimize(3) const char *sv_get_end(const struct string_view sv) {
+__optimize(3) const char *sv_end(const struct string_view sv) {
     return sv.begin + sv.length;
 }
 

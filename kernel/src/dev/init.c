@@ -7,7 +7,7 @@
     #include "dev/uart/com1.h"
 #elif defined(__aarch64__)
     #include "dev/uart/pl011.h"
-#elif defined(__riscv64)
+#elif defined(__riscv64) || defined(__loongarch64)
     #include "dev/uart/8250.h"
 #endif /* defined(__x86_64__) */
 
@@ -59,6 +59,12 @@ void serial_init() {
     #endif /* !defined(AARCH64_USE_16K_PAGES) */
 #elif defined(__riscv64)
     uart8250_init((port_t)0x10000000,
+                  /*baudrate=*/115200,
+                  /*in_freq=*/0,
+                  /*reg_width=*/sizeof(uint8_t),
+                  /*reg_shift=*/0);
+#elif defined(__loongarch64)
+    uart8250_init((port_t)0x1fe001e0,
                   /*baudrate=*/115200,
                   /*in_freq=*/0,
                   /*reg_width=*/sizeof(uint8_t),

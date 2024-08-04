@@ -139,6 +139,14 @@ run-hdd-riscv64: QEMU_RUN = 1
 run-hdd-riscv64: ovmf $(IMAGE_NAME).hdd
 	qemu-system-riscv64 -M $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1 -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
+.PHONY: run-loongarch64
+run-loongarch64: ovmf $(IMAGE_NAME).iso
+	qemu-system-loongarch64 -M virt -cpu la464 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -bios ovmf-loongarch64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+
+.PHONY: run-hdd-loongarch64
+run-hdd-loongarch64: ovmf $(IMAGE_NAME).hdd
+	qemu-system-loongarch64 -M virt -cpu la464 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -bios ovmf-loongarch64/OVMF.fd -hda $(IMAGE_NAME).hdd
+
 .PHONY: run-bios
 run-bios: QEMU_RUN = 1
 run-bios: $(IMAGE_NAME).iso
@@ -164,9 +172,13 @@ ovmf-riscv64:
 	mkdir -p ovmf-riscv64
 	cd ovmf-riscv64 && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT_CODE.fd && dd if=/dev/zero of=OVMF.fd bs=1 count=0 seek=33554432
 
+ovmf-loongarch64:
+	mkdir -p ovmf-loongarch64
+	cd ovmf-loongarch64 && curl -o OVMF.fd https://raw.githubusercontent.com/limine-bootloader/firmware/trunk/loongarch64/QEMU_EFI.fd
+
 limine/limine:
 	rm -rf limine
-	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
+	git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
 	$(MAKE) -C limine
 
 .PHONY: kernel
@@ -178,7 +190,7 @@ $(IMAGE_NAME).iso: limine/limine kernel
 	mkdir -p iso_root/boot
 	cp -v kernel/bin-$(KARCH)/kernel iso_root/boot/
 	mkdir -p iso_root/boot/limine
-	cp -v limine.cfg iso_root/boot/limine/
+	cp -v limine.conf iso_root/boot/limine/
 	mkdir -p iso_root/EFI/BOOT
 ifeq ($(KARCH),x86_64)
 	cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
@@ -204,6 +216,13 @@ else ifeq ($(KARCH),riscv64)
 		--efi-boot boot/limine/limine-uefi-cd.bin \
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
+else ifeq ($(KARCH),loongarch64)
+	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
+	cp -v limine/BOOTLOONGARCH64.EFI iso_root/EFI/BOOT/
+	xorriso -as mkisofs \
+		--efi-boot boot/limine/limine-uefi-cd.bin \
+		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		iso_root -o $(IMAGE_NAME).iso
 endif
 	rm -rf iso_root
 
@@ -217,7 +236,7 @@ endif
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT ::/boot ::/boot/limine
 	mcopy -i $(IMAGE_NAME).hdd@@1M kernel/bin-$(KARCH)/kernel ::/boot
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine.cfg ::/boot/limine
+	mcopy -i $(IMAGE_NAME).hdd@@1M limine.conf ::/boot/limine
 ifeq ($(KARCH),x86_64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/limine-bios.sys ::/boot/limine
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
@@ -226,6 +245,8 @@ else ifeq ($(KARCH),aarch64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTAA64.EFI ::/EFI/BOOT
 else ifeq ($(KARCH),riscv64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTRISCV64.EFI ::/EFI/BOOT
+else ifeq ($(KARCH),loongarch64)
+	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTLOONGARCH64.EFI ::/EFI/BOOT
 endif
 
 .PHONY: clean

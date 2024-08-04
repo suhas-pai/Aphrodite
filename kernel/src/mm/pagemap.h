@@ -8,8 +8,14 @@
 #include "lib/refcount.h"
 #include "vma.h"
 
+#if defined(__aarch64__) || defined(__loongarch64)
+    #define PAGEMAP_HAS_SPLIT_ROOT 1
+#else
+    #define PAGEMAP_HAS_SPLIT_ROOT 0
+#endif
+
 struct pagemap {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__loongarch64)
     pte_t *lower_root;
     pte_t *higher_root;
 #else
@@ -27,11 +33,11 @@ struct pagemap {
 
 struct pagemap pagemap_empty();
 
-#if defined(__aarch64__)
+#if PAGEMAP_HAS_SPLIT_ROOT
     struct pagemap pagemap_create(pte_t *lower_root, pte_t *higher_root);
 #else
     struct pagemap pagemap_create(pte_t *root);
-#endif
+#endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
 bool
 pagemap_find_space_and_add_vma(struct pagemap *pagemap,

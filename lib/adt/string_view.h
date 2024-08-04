@@ -43,10 +43,7 @@ static inline struct string_view sv_create(const char *const str) {
 
 __optimize(3) static inline struct string_view
 sv_create_nocheck(const char *const c_str, const uint32_t length) {
-    return (struct string_view){
-        .begin = c_str,
-        .length = length
-    };
+    return (struct string_view){ .begin = c_str, .length = length };
 }
 
 __optimize(3) static inline struct string_view
@@ -70,19 +67,16 @@ sv_create_upto_length(const char *const c_str, const uint32_t length) {
 struct string_view
 sv_substring_length(struct string_view sv, uint32_t index, uint32_t length);
 
-struct string_view
-sv_substring_from(struct string_view sv, uint32_t index);
-
-struct string_view
-sv_substring_upto(struct string_view sv, uint32_t index);
+struct string_view sv_substring_from(struct string_view sv, uint32_t index);
+struct string_view sv_substring_upto(struct string_view sv, uint32_t index);
 
 struct string_view sv_drop_front(struct string_view sv);
 
 bool sv_has_index(struct string_view sv, uint32_t index);
 bool sv_has_index_range(struct string_view sv, struct range range);
 
-char *sv_get_begin_mut(struct string_view sv);
-const char *sv_get_end(struct string_view sv);
+char *sv_begin_mut(struct string_view sv);
+const char *sv_end(struct string_view sv);
 
 bool sv_compare_c_str(struct string_view sv, const char *c_str);
 int sv_compare(struct string_view sv, struct string_view sv2);

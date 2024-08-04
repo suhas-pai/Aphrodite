@@ -49,6 +49,8 @@ COMMON_KCFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
 
 ifeq ($(KARCH), riscv64)
 	override COMMON_KCFLAGS += -D__riscv64
+else ifeq ($(KARCH), loongarch64)
+	override COMMON_KCFLAGS += -D__loongarch64
 endif
 
 ifneq ($(KARCH), x86_64)
@@ -193,6 +195,17 @@ else ifeq ($(KARCH),riscv64)
 	override KLDFLAGS += \
 		-m elf64lriscv \
 		--no-relax
+else ifeq ($(KARCH),loongarch64)
+    ifeq ($(KCC_IS_CLANG),yes)
+        override KCC += \
+            -target loongarch64-none
+    endif
+    override KCFLAGS += \
+        -march=loongarch64 \
+        -mabi=lp64s
+    override KLDFLAGS += \
+        -m elf64loongarch \
+        --no-relax
 else
 	$(error Architecture $(KARCH) not supported)
 endif

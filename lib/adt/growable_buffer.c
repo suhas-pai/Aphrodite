@@ -8,7 +8,11 @@
 
 #include "growable_buffer.h"
 
+#define GBUFFER_MAX_CAP (UINT32_MAX >> 1)
+
 __optimize(3) struct growable_buffer gbuffer_alloc(const uint32_t capacity) {
+    assert(capacity <= GBUFFER_MAX_CAP);
+
     uint32_t size = 0;
     const struct growable_buffer gbuffer = {
         .begin = malloc_size(capacity, &size),
@@ -32,13 +36,15 @@ gbuffer_alloc_copy(void *const data, const uint32_t size) {
 __optimize(3)
 struct growable_buffer gbuffer_copy(const struct growable_buffer gbuffer) {
     struct growable_buffer result = GBUFFER_INIT();
-    if (gbuffer_used_size(gbuffer) == 0) {
+    const uint32_t used_size = gbuffer_used_size(gbuffer);
+
+    if (used_size == 0) {
         return result;
     }
 
-    result = gbuffer_alloc(gbuffer_used_size(gbuffer));
+    result = gbuffer_alloc(used_size);
     if (result.begin != NULL) {
-        memcpy(result.begin, gbuffer.begin, gbuffer_used_size(gbuffer));
+        memcpy(result.begin, gbuffer.begin, used_size);
         result.index = gbuffer.index;
     }
 

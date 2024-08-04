@@ -10,6 +10,7 @@
 
 struct growable_buffer {
     void *begin;
+
     uint32_t index : 31;
     uint32_t capacity : 31;
 

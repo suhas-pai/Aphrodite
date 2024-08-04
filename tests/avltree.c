@@ -13,12 +13,16 @@ struct node {
     uint32_t number;
 };
 
-static int compare(struct node *const ours, struct node *const theirs) {
-    return (int64_t)ours->number - theirs->number;
+static int compare(struct avlnode *const ours, struct avlnode *const theirs) {
+    struct node *const our_node = container_of(ours, struct node, info);
+    struct node *const their_node = container_of(theirs, struct node, info);
+
+    return (int64_t)our_node->number - their_node->number;
 }
 
-static int identify(struct node *const theirs, void *const key) {
-    return (int64_t)key - (int64_t)theirs->number;
+static int identify(struct avlnode *const theirs, void *const key) {
+    struct node *const their_node = container_of(theirs, struct node, info);
+    return (int64_t)key - (int64_t)their_node->number;
 }
 
 static void insert_node(struct avltree *const tree, const uint32_t number) {
@@ -28,7 +32,7 @@ static void insert_node(struct avltree *const tree, const uint32_t number) {
     const bool result =
         avltree_insert(tree,
                        (struct avlnode *)avl_node,
-                       (avlnode_compare_t)compare,
+                       compare,
                        /*update=*/NULL,
                        /*added_node=*/NULL);
 
@@ -73,8 +77,7 @@ void test_avltree() {
     insert_node(&tree, 71);
 
     print_tree(&tree);
-    const avlnode_compare_key_t compare_identity =
-        (avlnode_compare_key_t)identify;
+    const avlnode_compare_key_t compare_identity = identify;
 
     free(avltree_delete(&tree, (void *)53, compare_identity, NULL));
     free(avltree_delete(&tree, (void *)11, compare_identity, NULL));

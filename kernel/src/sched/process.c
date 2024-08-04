@@ -7,7 +7,7 @@
 
 __hidden struct process kernel_process = {
     .pagemap = (struct pagemap){
-    #if defined(__aarch64__)
+    #if PAGEMAP_HAS_SPLIT_ROOT
         .lower_root = NULL, // setup later
         .higher_root = NULL, // setup later
     #else

@@ -61,7 +61,7 @@ ptwalker_early_alloc_pgtable_cb(struct pt_walker *const walker,
 
 static inline uint64_t
 get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
-#if defined(__aarch64__)
+#if PAGEMAP_HAS_SPLIT_ROOT
     uint64_t root_phys = 0;
     if (virt_addr & 1ull << 63) {
         root_phys = virt_to_phys(pagemap->higher_root);
@@ -71,7 +71,7 @@ get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
 #else
     (void)virt_addr;
     const uint64_t root_phys = virt_to_phys(pagemap->root);
-#endif /* defined(__x86_64__) */
+#endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
     return root_phys;
 }
@@ -154,7 +154,7 @@ ptwalker_create_from_root_phys(struct pt_walker *const walker,
                 if (!pte_level_can_have_large(parent_level)
                     || !pte_is_large(entry))
                 {
-                    table = pte_to_virt(entry);
+                    table = pte_to_virt(entry, level);
                     walker->level = level;
                 } else {
                     walker->level = parent_level;
@@ -232,7 +232,7 @@ setup_levels_lower_than(struct pt_walker *const walker,
     pte_t entry = first_entry;
 
     while (true) {
-        pte_t *const table = pte_to_virt(entry);
+        pte_t *const table = pte_to_virt(entry, level);
 
         walker->tables[level - 1] = table;
         walker->indices[level - 1] = 0;
@@ -654,7 +654,7 @@ uint64_t ptwalker_get_phys_addr(const struct pt_walker *const walker) {
         return INVALID_PHYS;
     }
 
-    return pte_to_phys(pte);
+    return pte_to_phys(pte, walker->level);
 }
 
 __optimize(3)

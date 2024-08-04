@@ -90,10 +90,10 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
             } else if (mods.pad_zeros) {                                       \
                 __pad_ch__ = '0';                                              \
             }                                                                  \
-            char *__sv_begin__ = sv_get_begin_mut(sv);                         \
+            char *__sv_begin__ = sv_begin_mut(sv);                             \
             const char __sv_length__ = sv.length;                              \
             if (__sv_length__ < expected_len) {                                \
-                const char *const __sv_end__ = sv_get_end(sv);                 \
+                const char *const __sv_end__ = sv_end(sv);                     \
                 for (uint8_t __i__ = __sv_length__;                            \
                      __i__ != expected_len;                                    \
                      __i__++)                                                  \

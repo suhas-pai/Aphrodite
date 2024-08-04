@@ -36,7 +36,11 @@
 #define PML4(phys) (((phys) >> PML4_SHIFT) & PML4_MASK)
 #define PML5(phys) (((phys) >> PML5_SHIFT) & PML5_MASK)
 
-#define pte_to_phys(pte) (((pte) & PTE_PHYS_MASK) << 2)
+#define pte_to_phys(pte, level) ({ \
+    (void)(level); \
+    ((pte) & PTE_PHYS_MASK) << 2; \
+})
+
 #define phys_create_pte(phys) ((pte_t)(phys) >> 2)
 
 typedef uint64_t pte_t;
