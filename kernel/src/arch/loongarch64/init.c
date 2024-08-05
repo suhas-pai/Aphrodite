@@ -10,7 +10,7 @@
 #include "mm/early.h"
 #include "mm/init.h"
 
-#define QEMU_SERIAL_PHYS 0x10000000
+#define QEMU_SERIAL_PHYS 0x1fe001e0
 
 __optimize(3) void arch_early_init() {
     cpu_init();
