@@ -230,8 +230,7 @@ __optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
         const uint64_t old_info_count = info->avail_page_count;
 
         info->avail_page_count = PAGE_COUNT(free_page - virt_to_phys(info));
-        info->total_page_count =
-            info->avail_page_count + PAGE_COUNT(alloc_amount);
+        info->total_page_count = info->avail_page_count + alloc_amount;
 
         if (info->avail_page_count != 0) {
             struct freepages_info *const info_prev =
