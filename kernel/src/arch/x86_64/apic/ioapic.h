@@ -71,19 +71,19 @@ ioapic_write(const struct ioapic_info *ioapic,
 void
 ioapic_redirect_irq(uint8_t lapic_id, uint8_t irq, uint8_t vector, bool masked);
 
-__optimize(3)
+__debug_optimize(3)
 static inline uint8_t ioapic_id_reg_get_arbid(const uint32_t version) {
     // Bits [24:27] of the id register holds the id
     return (version >> 24) & 0b1111;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline uint8_t ioapic_version_reg_get_version(const uint32_t version) {
     // Bits [0:8] of the version register holds the version
     return (uint8_t)version;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 uint32_t ioapic_version_reg_get_max_redirect_count(const uint32_t version) {
     // Bits [16:23] of the version register holds the max-redirect count, minus
     // one.
@@ -91,7 +91,7 @@ uint32_t ioapic_version_reg_get_max_redirect_count(const uint32_t version) {
     return (uint8_t)(version >> 16) + 1;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline uint32_t ioapic_redirect_table_get_reg_for_n(const uint8_t n) {
     return (uint32_t)(IOAPIC_REG_REDIRECTION_TABLE_BASE + (n * 2));
 }

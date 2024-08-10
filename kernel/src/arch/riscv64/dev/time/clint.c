@@ -27,7 +27,7 @@ struct clint_mtime {
 
 static struct clint_mtime *g_clint_mtime = NULL;
 
-__optimize(3) struct clock *system_clock_get() {
+__debug_optimize(3) struct clock *system_clock_get() {
     return &g_clint_mtime->clock;
 }
 

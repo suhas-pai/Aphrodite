@@ -22,7 +22,7 @@
 
 #include "pgmap.h"
 
-__optimize(3) struct pagemap pagemap_empty() {
+__debug_optimize(3) struct pagemap pagemap_empty() {
     struct pagemap result = {
     #if PAGEMAP_HAS_SPLIT_ROOT
         .lower_root = NULL,
@@ -43,7 +43,7 @@ __optimize(3) struct pagemap pagemap_empty() {
 }
 
 #if PAGEMAP_HAS_SPLIT_ROOT
-    __optimize(3) struct pagemap
+    __debug_optimize(3) struct pagemap
     pagemap_create(pte_t *const lower_root, pte_t *const higher_root) {
         struct pagemap result = {
             .lower_root = lower_root,
@@ -61,7 +61,7 @@ __optimize(3) struct pagemap pagemap_empty() {
         return result;
     }
 #else
-    __optimize(3) struct pagemap pagemap_create(pte_t *const root) {
+    __debug_optimize(3) struct pagemap pagemap_create(pte_t *const root) {
         struct pagemap result = {
             .root = root,
             .addrspace = ADDRSPACE_INIT(result.addrspace),
@@ -190,7 +190,7 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     spin_release_restore_irq(&pagemap->cpu_lock, flag);
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 pagemap_virt_get_phys(const struct pagemap *const pagemap, const uint64_t virt)
 {
     struct pt_walker walker;

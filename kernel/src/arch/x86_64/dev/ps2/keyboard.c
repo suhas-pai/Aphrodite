@@ -63,7 +63,7 @@ static struct ps2_keyboard_state g_kbd_state = {
     .in_e0 = false
 };
 
-__optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
+__debug_optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
     if (g_kbd_state.shift != 0) {
         return ps2_key_to_char_shift[scan_code];
     }
@@ -193,9 +193,7 @@ ps2_keyboard_interrupt(const uint64_t intr_no,
     }
 
     if (g_kbd_state.cmd != 0) {
-        if (g_kbd_state.shift != 0
-            || g_kbd_state.ctrl != 0
-            || g_kbd_state.alt)
+        if (g_kbd_state.shift != 0 || g_kbd_state.ctrl != 0 || g_kbd_state.alt)
         {
             string_append_sv(&string, SV_STATIC("-"));
         }

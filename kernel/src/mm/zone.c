@@ -5,6 +5,7 @@
 
 #include "zone.h"
 
-__optimize(3) struct page_zone *page_to_zone(const struct page *const page) {
+__debug_optimize(3)
+struct page_zone *page_to_zone(const struct page *const page) {
     return page_to_section(page)->zone;
 }

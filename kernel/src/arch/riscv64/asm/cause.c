@@ -6,7 +6,7 @@
 #include "lib/assert.h"
 #include "cause.h"
 
-__optimize(3) struct string_view
+__debug_optimize(3) struct string_view
 cause_exception_kind_get_sv(const enum cause_exception_kind kind) {
     switch (kind) {
         case CAUSE_EXCEPTION_NONE:

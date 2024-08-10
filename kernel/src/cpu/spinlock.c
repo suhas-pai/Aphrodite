@@ -15,7 +15,7 @@
 
 #include "spinlock.h"
 
-__optimize(3) void spin_acquire(struct spinlock *const lock) {
+__debug_optimize(3) void spin_acquire(struct spinlock *const lock) {
     const uint32_t ticket = atomic_fetch_add(&lock->back, 1);
     while (true) {
         if (atomic_load(&lock->front) == ticket) {
@@ -30,7 +30,7 @@ __optimize(3) void spin_acquire(struct spinlock *const lock) {
     }
 }
 
-__optimize(3) void spin_release(struct spinlock *const lock) {
+__debug_optimize(3) void spin_release(struct spinlock *const lock) {
     atomic_fetch_add(&lock->front, 1);
 
 #if defined(DEBUG_LOCKS)
@@ -38,7 +38,7 @@ __optimize(3) void spin_release(struct spinlock *const lock) {
 #endif /* defined(DEBUG_LOCKS) */
 }
 
-__optimize(3) bool spin_try_acquire(struct spinlock *const lock) {
+__debug_optimize(3) bool spin_try_acquire(struct spinlock *const lock) {
     uint32_t ticket = atomic_load(&lock->back);
     const uint32_t front = atomic_load(&lock->front);
 
@@ -49,7 +49,7 @@ __optimize(3) bool spin_try_acquire(struct spinlock *const lock) {
     return false;
 }
 
-__optimize(3) int spin_acquire_save_irq(struct spinlock *const lock) {
+__debug_optimize(3) int spin_acquire_save_irq(struct spinlock *const lock) {
     const bool irqs_enabled = are_interrupts_enabled();
     if (irqs_enabled) {
         disable_interrupts();
@@ -64,7 +64,7 @@ void spin_acquire_preempt_disable(struct spinlock *const lock) {
     spin_acquire(lock);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void spin_release_restore_irq(struct spinlock *const lock, const int flag) {
     spin_release(lock);
     if (flag != 0) {
@@ -77,7 +77,7 @@ void spin_release_preempt_enable(struct spinlock *const lock) {
     preempt_enable();
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 spin_try_acquire_save_irq(struct spinlock *const lock, int *const flag_out) {
     const bool irqs_enabled = disable_irqs_if_enabled();
     if (!spin_try_acquire(lock)) {
@@ -89,7 +89,7 @@ spin_try_acquire_save_irq(struct spinlock *const lock, int *const flag_out) {
     return true;
 }
 
-__optimize(3) void spinlock_deinit(struct spinlock *const lock) {
+__debug_optimize(3) void spinlock_deinit(struct spinlock *const lock) {
 #if defined(DEBUG_LOCKS)
     assert(lock->front == lock->back);
 #endif /* defined(DEBUG_LOCKS) */

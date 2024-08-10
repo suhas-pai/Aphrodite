@@ -6,21 +6,21 @@
 #include "asm/irqs.h"
 #include "event.h"
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 lock_events(struct event *const *const events, const uint32_t event_count) {
     for (uint32_t i = 0; i != event_count; i++) {
         spin_acquire(&events[i]->lock);
     }
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 unlock_events(struct event *const *const events, const uint32_t event_count) {
     for (uint32_t i = 0; i != event_count; i++) {
         spin_release(&events[i]->lock);
     }
 }
 
-__optimize(3) static inline int64_t
+__debug_optimize(3) static inline int64_t
 find_pending(struct event *const *const events, const uint32_t event_count) {
     for (uint32_t i = 0; i != event_count; i++) {
         if (events[i]->pending != 0) {
@@ -32,7 +32,7 @@ find_pending(struct event *const *const events, const uint32_t event_count) {
     return -1;
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 add_listeners_to_events(struct event *const *const events,
                         const uint32_t event_count,
                         struct thread *const thread)
@@ -45,7 +45,7 @@ add_listeners_to_events(struct event *const *const events,
     }
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 remove_thread_from_listeners(struct event *const event,
                              struct thread *const thread)
 {
@@ -105,7 +105,7 @@ events_await(struct event *const *const events,
     return index;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
     const int flag = spin_acquire_save_irq(&event->lock);
     if (!array_empty(event->listeners)) {

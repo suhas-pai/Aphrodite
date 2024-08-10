@@ -44,7 +44,7 @@ COMMON_KCFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
 				 -Wshadow -Wstrict-overflow=5 -Wundef -Wnull-dereference \
 				 -funsigned-char -Wformat=2 -Isrc/arch/$(KARCH) -DBUILD_KERNEL \
 				 -Wno-address-of-packed-member -fno-omit-frame-pointer \
-				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_ROUND_ROBIN \
+				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
 				 -fsanitize=undefined
 
 ifeq ($(KARCH), riscv64)
@@ -103,7 +103,7 @@ $(eval $(call DEFAULT_VAR,KLDFLAGS,$(DEFAULT_KLDFLAGS)))
 override KCFLAGS += \
 	-Wall \
 	-Wextra \
-	-std=gnu11 \
+	-std=gnu17 \
 	-ffreestanding \
 	-fno-stack-protector \
 	-fno-stack-check \

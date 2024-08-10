@@ -6,7 +6,8 @@
 #include "lib/macros.h"
 #include "mbr.h"
 
-__optimize(3) bool verify_mbr_header(const struct mbr_header *const header) {
+__debug_optimize(3)
+bool verify_mbr_header(const struct mbr_header *const header) {
     if (header->magic != 0) {
         return header->magic == MBR_HEADER_MAGIC;
     }
@@ -14,6 +15,6 @@ __optimize(3) bool verify_mbr_header(const struct mbr_header *const header) {
     return true;
 }
 
-__optimize(3) bool verify_mbr_entry(const struct mbr_entry *const entry) {
+__debug_optimize(3) bool verify_mbr_entry(const struct mbr_entry *const entry) {
     return entry->os_type != 0;
 }

@@ -37,11 +37,11 @@ static struct acpi_info g_info = {
 #endif /* defined(__x86_64__) */
 };
 
-__optimize(3) static inline bool has_xsdt() {
+__debug_optimize(3) static inline bool has_xsdt() {
     return g_info.rsdp->revision >= 2 && g_info.rsdp->v2.xsdt_addr != 0;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
     if (has_xsdt()) {
         uint64_t *const data = (uint64_t *)(uint64_t)g_info.rsdt->ptrs;
@@ -74,7 +74,7 @@ static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
     printk(LOGLEVEL_INFO,
            "acpi: found sdt \"" SV_FMT "\"\n",
@@ -130,7 +130,7 @@ void acpi_parse_tables() {
     acpi_recurse(acpi_init_each_sdt);
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void acpi_print_each_sdt(const struct acpi_sdt *const sdt) {
     printk(LOGLEVEL_INFO,
            "acpi: found sdt \"" SV_FMT "\"\n",
@@ -190,7 +190,7 @@ void acpi_init(void) {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     if (get_acpi_info()->rsdp == NULL) {
         return NULL;
@@ -237,10 +237,10 @@ const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     return NULL;
 }
 
-__optimize(3) const struct acpi_info *get_acpi_info() {
+__debug_optimize(3) const struct acpi_info *get_acpi_info() {
     return &g_info;
 }
 
-__optimize(3) struct acpi_info *get_acpi_info_mut() {
+__debug_optimize(3) struct acpi_info *get_acpi_info_mut() {
     return &g_info;
 }

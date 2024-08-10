@@ -33,7 +33,7 @@ pci_bus_create(struct pci_domain *const domain,
     return bus;
 }
 
-__optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
+__debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
     const int flag = spin_acquire_save_irq(&g_root_bus_list_lock);
     const bool result = array_append(&g_root_bus_list, &bus);
 
@@ -41,7 +41,7 @@ __optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
     return result;
 }
 
-__optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
+__debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     const int flag = spin_acquire_save_irq(&g_root_bus_list_lock);
     if (!list_empty(&bus->entity_list)) {
         return false;
@@ -65,12 +65,12 @@ __optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     return false;
 }
 
-__optimize(3)
+__debug_optimize(3)
 const struct array *pci_get_root_bus_list_locked(int *const flag_out) {
     *flag_out = spin_acquire_save_irq(&g_root_bus_list_lock);
     return &g_root_bus_list;
 }
 
-__optimize(3) void pci_release_root_bus_list_lock(const int flag) {
+__debug_optimize(3) void pci_release_root_bus_list_lock(const int flag) {
     spin_release_restore_irq(&g_root_bus_list_lock, flag);
 }

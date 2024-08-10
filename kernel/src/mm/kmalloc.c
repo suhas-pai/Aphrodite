@@ -11,7 +11,7 @@
 static struct slab_allocator kmalloc_slabs[19] = {0};
 static bool kmalloc_is_initialized = false;
 
-__optimize(3) bool kmalloc_initialized() {
+__debug_optimize(3) bool kmalloc_initialized() {
     return kmalloc_is_initialized;
 }
 
@@ -54,7 +54,7 @@ void kmalloc_init() {
     kmalloc_is_initialized = true;
 }
 
-__optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
+__debug_optimize(3) __malloclike __malloc_dealloc(kfree, 1) __alloc_size(1)
 void *kmalloc(const uint32_t size) {
     assert_msg(kmalloc_initialized(),
                "mm: kmalloc() called before kmalloc_init()");
@@ -82,7 +82,7 @@ void *kmalloc(const uint32_t size) {
     return slab_alloc(allocator);
 }
 
-__optimize(3) __malloclike __malloc_dealloc(kfree, 1)
+__debug_optimize(3) __malloclike __malloc_dealloc(kfree, 1)
 void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
     kmalloc_check_slabs();
     assert_msg(kmalloc_initialized(),
@@ -118,7 +118,7 @@ void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
     return NULL;
 }
 
-__optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
+__debug_optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
     assert_msg(kmalloc_is_initialized,
                "mm: krealloc() called before kmalloc_init()");
 
@@ -155,7 +155,7 @@ __optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
     return ret;
 }
 
-__optimize(3) void kfree(void *const buffer) {
+__debug_optimize(3) void kfree(void *const buffer) {
     kmalloc_check_slabs();
     assert_msg(kmalloc_is_initialized,
                "mm: kfree() called before kmalloc_init()");

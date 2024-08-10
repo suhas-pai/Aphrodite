@@ -41,10 +41,10 @@ struct storage_cache;
 
 uint64_t
 storage_device_read(struct storage_device *device,
-                    void *buf,
-                    struct range range);
+                    struct range range,
+                    void *buf);
 
 uint64_t
 storage_device_write(struct storage_device *device,
-                     const void *buf,
-                     struct range range);
+                     struct range range,
+                     const void *buf);

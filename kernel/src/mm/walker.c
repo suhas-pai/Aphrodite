@@ -14,7 +14,7 @@
 #include "page_alloc.h"
 #include "walker.h"
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,
                           const pgt_level_t level,
                           void *const cb_info)
@@ -31,7 +31,7 @@ ptwalker_alloc_pgtable_cb(struct pt_walker *const walker,
     return INVALID_PHYS;
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 ptwalker_free_pgtable_cb(struct pt_walker *const walker,
                          struct page *const page,
                          void *const cb_info)
@@ -42,7 +42,7 @@ ptwalker_free_pgtable_cb(struct pt_walker *const walker,
     list_add(&pageop->delayed_free, &page->table.delayed_free_list);
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 ptwalker_early_alloc_pgtable_cb(struct pt_walker *const walker,
                                 const pgt_level_t level,
                                 void *const cb_info)
@@ -56,7 +56,7 @@ ptwalker_early_alloc_pgtable_cb(struct pt_walker *const walker,
         return phys;
     }
 
-    panic("mm: failed to setup page-structs, ran out of memory\n");
+    panic("mm: failed to allocate page, ran out of memory\n");
 }
 
 static inline uint64_t
@@ -76,14 +76,14 @@ get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
     return root_phys;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 ptwalker_default(struct pt_walker *const walker, const uint64_t virt_addr) {
     return ptwalker_default_for_pagemap(walker,
                                         &this_cpu()->process->pagemap,
                                         virt_addr);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 ptwalker_default_for_pagemap(struct pt_walker *const walker,
                              const struct pagemap *const pagemap,
                              const uint64_t virt_addr)
@@ -95,7 +95,7 @@ ptwalker_default_for_pagemap(struct pt_walker *const walker,
                                        ptwalker_free_pgtable_cb);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 ptwalker_create(struct pt_walker *const walker,
                 const uint64_t virt_addr,
                 const ptwalker_alloc_pgtable_t alloc_pgtable,
@@ -108,7 +108,7 @@ ptwalker_create(struct pt_walker *const walker,
                                        free_pgtable);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 ptwalker_create_for_pagemap(struct pt_walker *const walker,
                             const struct pagemap *const pagemap,
                             const uint64_t virt_addr,
@@ -152,7 +152,7 @@ ptwalker_create_from_root_phys(struct pt_walker *const walker,
             const pte_t entry = pte_read(&prev_table[index]);
             if (pte_is_present(entry)) {
                 if (!pte_level_can_have_large(parent_level)
-                    || !pte_is_large(entry))
+                 || !pte_is_large(entry))
                 {
                     table = pte_to_virt(entry, level);
                     walker->level = level;
@@ -207,12 +207,12 @@ static const struct ptwalker_iterate_options default_options = {
     .should_ref = true,
 };
 
-__optimize(3)
+__debug_optimize(3)
 enum pt_walker_result ptwalker_next(struct pt_walker *const walker) {
     return ptwalker_next_with_options(walker, walker->level, &default_options);
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 reset_levels_lower_than(struct pt_walker *const walker, pgt_level_t level) {
     for (level--; level >= 1; level--) {
         walker->tables[level - 1] = NULL;
@@ -220,7 +220,7 @@ reset_levels_lower_than(struct pt_walker *const walker, pgt_level_t level) {
     }
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 setup_levels_lower_than(struct pt_walker *const walker,
                         const pgt_level_t parent_level,
                         pte_t *const first_pte,
@@ -241,7 +241,7 @@ setup_levels_lower_than(struct pt_walker *const walker,
         entry = pte_read(pte);
 
         if (!pte_is_present(entry)
-            || (pte_level_can_have_large(level) && pte_is_large(entry)))
+         || (pte_level_can_have_large(level) && pte_is_large(entry)))
         {
             walker->level = level;
             break;
@@ -255,7 +255,7 @@ setup_levels_lower_than(struct pt_walker *const walker,
     }
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 ptwalker_drop_lowest(struct pt_walker *const walker,
                      void *const free_pgtable_cb_info)
 {
@@ -265,7 +265,7 @@ ptwalker_drop_lowest(struct pt_walker *const walker,
     ptwalker_deref_from_level(walker, walker->level + 1, free_pgtable_cb_info);
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 alloc_table_at_pte(struct pt_walker *const walker,
                    pte_t *const pte_in_parent,
                    const pgt_level_t level,
@@ -284,7 +284,7 @@ alloc_table_at_pte(struct pt_walker *const walker,
     return true;
 }
 
-__optimize(3) static enum pt_walker_result
+__debug_optimize(3) static enum pt_walker_result
 alloc_levels_down_to(struct pt_walker *const walker,
                      const pgt_level_t parent_level,
                      const pgt_level_t last_level,
@@ -338,7 +338,7 @@ alloc_levels_down_to(struct pt_walker *const walker,
     return E_PT_WALKER_OK;
 }
 
-__optimize(3) enum pt_walker_result
+__debug_optimize(3) enum pt_walker_result
 ptwalker_next_with_options(struct pt_walker *const walker,
                            pgt_level_t level,
                            const struct ptwalker_iterate_options *const options)
@@ -446,7 +446,7 @@ ptwalker_next_with_options(struct pt_walker *const walker,
                                 options->free_pgtable_cb_info);
 }
 
-__optimize(3)
+__debug_optimize(3)
 enum pt_walker_result ptwalker_prev(struct pt_walker *const walker) {
     return ptwalker_prev_with_options(walker, walker->level, &default_options);
 }
@@ -590,7 +590,7 @@ ptwalker_fill_in_to(struct pt_walker *const walker,
                                 free_pgtable_cb_info);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 ptwalker_deref_from_level(struct pt_walker *const walker,
                           pgt_level_t level,
                           void *const free_pgtable_cb_info)
@@ -621,7 +621,7 @@ ptwalker_deref_from_level(struct pt_walker *const walker,
     walker->level = level;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     uint64_t result = 0;
     for (pgt_level_t level = walker->level; level <= walker->top_level; level++)
@@ -633,18 +633,21 @@ uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
     return sign_extend_virt_addr(result);
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t ptwalker_get_phys_addr(const struct pt_walker *const walker) {
+    if (__builtin_expect(walker->level < 1, 0)) {
+        return INVALID_PHYS;
+    }
+
     if (__builtin_expect(
-            walker->level < 1 ||
-            (walker->level > 1 && !pte_level_can_have_large(walker->level)), 0))
+            walker->level > 1 && !pte_level_can_have_large(walker->level), 0))
     {
         return INVALID_PHYS;
     }
 
     const pte_t pte =
-        pte_read(walker->tables[walker->level - 1] +
-                 walker->indices[walker->level - 1]);
+        pte_read(walker->tables[walker->level - 1]
+                 + walker->indices[walker->level - 1]);
 
     if (!pte_is_present(pte)) {
         return INVALID_PHYS;
@@ -657,7 +660,7 @@ uint64_t ptwalker_get_phys_addr(const struct pt_walker *const walker) {
     return pte_to_phys(pte, walker->level);
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool ptwalker_points_to_largepage(const struct pt_walker *const walker) {
     const int16_t level = walker->level;
     if (level <= 1 || !pte_level_can_have_large(level)) {

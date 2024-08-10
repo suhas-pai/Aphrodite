@@ -6,35 +6,35 @@
 #include "bits.h"
 #include "util.h"
 
-__optimize(3)
+__debug_optimize(3)
 uint8_t find_lsb_one_bit(const uint64_t number, const uint8_t start_index) {
     return count_lsb_zero_bits(number, start_index) + start_index;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint8_t find_lsb_zero_bit(const uint64_t number, const uint8_t start_index) {
     // Invert the number so we count the lsb 1's to get the lsb zero index
     return count_lsb_one_bits(number, start_index) + start_index;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint8_t find_msb_zero_bit(const uint64_t number, const uint8_t start_index) {
     return count_msb_zero_bits(number, start_index) + start_index;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint8_t find_msb_one_bit(const uint64_t number, const uint8_t start_index) {
     return count_msb_one_bits(number, start_index) + start_index;
 }
 
-__optimize(3) struct range
+__debug_optimize(3) struct range
 get_range_of_lsb_one_bits(const uint64_t number,
                           const uint64_t start_index,
                           const uint64_t end_index)
 {
     const uint8_t first_bit_index = find_lsb_one_bit(number, start_index);
     if (!index_in_bounds(first_bit_index, sizeof(number))
-        || !index_in_bounds(first_bit_index, end_index))
+     || !index_in_bounds(first_bit_index, end_index))
     {
         return RANGE_EMPTY();
     }
@@ -55,7 +55,7 @@ get_range_of_lsb_one_bits(const uint64_t number,
     return result;
 }
 
-__optimize(3) struct range
+__debug_optimize(3) struct range
 get_range_of_lsb_zero_bits(const uint64_t number,
                            const uint64_t start_index,
                            const uint64_t end_index)
@@ -66,7 +66,7 @@ get_range_of_lsb_zero_bits(const uint64_t number,
     return get_range_of_lsb_one_bits(~number, start_index, end_index);
 }
 
-__optimize(3) struct range
+__debug_optimize(3) struct range
 get_next_range_of_lsb_zero_bits(const uint64_t number,
                                 const struct range prev,
                                 const uint64_t end_index)
@@ -79,7 +79,7 @@ get_next_range_of_lsb_zero_bits(const uint64_t number,
     return get_range_of_lsb_zero_bits(number, prev_end, end_index);
 }
 
-__optimize(3) struct range
+__debug_optimize(3) struct range
 get_next_range_of_lsb_one_bits(const uint64_t number,
                                const struct range prev,
                                const uint64_t end_index)

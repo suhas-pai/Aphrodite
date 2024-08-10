@@ -22,7 +22,7 @@ void isr_init() {
 
 }
 
-__optimize(3) isr_vector_t isr_alloc_vector() {
+__debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_save_irq(&g_lock);
     if (g_funcs[0] == NULL) {
         spin_release_restore_irq(&g_lock, flag);
@@ -38,7 +38,7 @@ __optimize(3) isr_vector_t isr_alloc_vector() {
     return ISR_INVALID_VECTOR;
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     (void)device;
     (void)msi_index;
@@ -55,7 +55,7 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     return (isr_vector_t)result;
 }
 
-__optimize(3) void isr_free_vector(const isr_vector_t vector) {
+__debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     const int flag = spin_acquire_save_irq(&g_lock);
 
     assert(vector < 2);
@@ -64,7 +64,7 @@ __optimize(3) void isr_free_vector(const isr_vector_t vector) {
     spin_release_restore_irq(&g_lock, flag);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_free_msi_vector(struct device *const device,
                     const isr_vector_t vector,
                     const uint16_t msi_index)
@@ -114,7 +114,7 @@ isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
     (void)masked;
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
     (void)cpu;
@@ -123,7 +123,7 @@ isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
     verify_not_reached();
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msix_address(const struct cpu_info *const cpu,
                      const isr_vector_t vector)
 {
@@ -133,6 +133,6 @@ isr_get_msix_address(const struct cpu_info *const cpu,
     verify_not_reached();
 }
 
-__optimize(3) enum isr_msi_support isr_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     return ISR_MSI_SUPPORT_NONE;
 }

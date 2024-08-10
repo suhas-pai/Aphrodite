@@ -12,7 +12,7 @@
 static struct slab_allocator phalloc_slabs[14] = {0};
 static bool phalloc_is_initialized = false;
 
-__optimize(3) bool phalloc_initialized() {
+__debug_optimize(3) bool phalloc_initialized() {
     return phalloc_is_initialized;
 }
 
@@ -42,7 +42,7 @@ void phalloc_init() {
     phalloc_is_initialized = true;
 }
 
-__optimize(3) uint64_t phalloc(const uint32_t size) {
+__debug_optimize(3) uint64_t phalloc(const uint32_t size) {
     assert_msg(phalloc_is_initialized,
                "mm: phalloc() called before phalloc_init()");
 
@@ -75,7 +75,7 @@ __optimize(3) uint64_t phalloc(const uint32_t size) {
     return page_to_phys(page) + offset;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t phalloc_size(const uint32_t size, uint32_t *const size_out) {
     assert_msg(phalloc_is_initialized,
                "mm: phalloc() called before phalloc_init()");
@@ -110,7 +110,7 @@ uint64_t phalloc_size(const uint32_t size, uint32_t *const size_out) {
     return page_to_phys(page) + offset;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t phrealloc(const uint64_t buffer, const uint32_t size) {
     assert_msg(phalloc_is_initialized,
                "mm: phrealloc() called before phalloc_init()");
@@ -148,6 +148,6 @@ uint64_t phrealloc(const uint64_t buffer, const uint32_t size) {
     return ret;
 }
 
-__optimize(3) void phalloc_free(const uint64_t phys) {
+__debug_optimize(3) void phalloc_free(const uint64_t phys) {
     slab_free(phys_to_virt(phys));
 }

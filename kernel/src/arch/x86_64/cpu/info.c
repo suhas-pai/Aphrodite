@@ -22,11 +22,11 @@ static struct cpu_info g_base_cpu_info = {
     .spur_intr_count = 0
 };
 
-__optimize(3) const struct cpu_info *base_cpu() {
+__debug_optimize(3) const struct cpu_info *base_cpu() {
     return &g_base_cpu_info;
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu_add(): failed to alloc cpu");
@@ -44,6 +44,6 @@ struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     return cpu;
 }
 
-__optimize(3) bool cpu_in_bad_state() {
+__debug_optimize(3) bool cpu_in_bad_state() {
     return this_cpu()->in_exception;
 }

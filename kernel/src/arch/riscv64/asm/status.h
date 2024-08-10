@@ -39,11 +39,3 @@ enum sstatus_flags {
     __SSTATUS_ALLOW_EXEC_ON_EXEC_ONLY_PAGES = 1ull << 19,
     __SSTATUS_FS_OR_XS_IS_DIRTY = 1ull << 31
 };
-
-__optimize(3) static inline uint64_t read_sstatus() {
-    return csr_read(sstatus);
-}
-
-__optimize(3) static inline uint64_t write_sstatus(const uint64_t value) {
-    return csr_write(sstatus, value);
-}

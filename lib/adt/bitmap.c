@@ -26,11 +26,12 @@ struct bitmap bitmap_open(void *const buffer, const uint32_t byte_count) {
     };
 }
 
-__optimize(3) uint32_t bitmap_capacity(const struct bitmap *const bitmap) {
+__debug_optimize(3)
+uint32_t bitmap_capacity(const struct bitmap *const bitmap) {
     return bytes_to_bits(bitmap->gbuffer.capacity);
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 find_mult_unset(struct bitmap *const bitmap,
                 const uint64_t count,
                 uint64_t start_index,
@@ -140,7 +141,7 @@ find_mult_unset(struct bitmap *const bitmap,
     return BITMAP_INVALID;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 find_mult_set(struct bitmap *const bitmap,
               const uint64_t count,
               uint64_t start_index,
@@ -249,7 +250,7 @@ find_mult_set(struct bitmap *const bitmap,
     return BITMAP_INVALID;
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 find_single_unset(struct bitmap *const bitmap,
                   uint64_t start_index,
                   const bool set)
@@ -289,7 +290,7 @@ find_single_unset(struct bitmap *const bitmap,
     return BITMAP_INVALID;
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 find_single_set(struct bitmap *const bitmap,
                 uint64_t start_index,
                 const bool unset)
@@ -330,7 +331,7 @@ find_single_set(struct bitmap *const bitmap,
     return BITMAP_INVALID;
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 bitmap_find(struct bitmap *const bitmap,
             const uint64_t count,
             const uint64_t start_idx,
@@ -352,7 +353,7 @@ bitmap_find(struct bitmap *const bitmap,
     return find_single_unset(bitmap, start_idx, invert);
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool bitmap_at(const struct bitmap *const bitmap, uint32_t index) {
     const void *const begin = bitmap->gbuffer.begin;
     const void *const ptr = begin + bits_to_bytes_noround(index);
@@ -454,7 +455,7 @@ bitmap_has(const struct bitmap *const bitmap,
     return (last_byte_bits == last_byte_expected);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void bitmap_set(struct bitmap *const bitmap, uint32_t index, const bool value) {
     void *const begin = bitmap->gbuffer.begin;
     void *ptr = begin + bits_to_bytes_noround(index);
@@ -463,7 +464,7 @@ void bitmap_set(struct bitmap *const bitmap, uint32_t index, const bool value) {
     set_bits_for_mask((uint8_t *)ptr, 1ull << index, value);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 bitmap_set_range(struct bitmap *const bitmap,
                  const struct range range,
                  const bool value)
@@ -519,7 +520,7 @@ bitmap_set_range(struct bitmap *const bitmap,
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 void bitmap_set_all(struct bitmap *const bitmap, const bool value) {
     if (value) {
         memset_ones(bitmap->gbuffer.begin, bitmap->gbuffer.capacity);

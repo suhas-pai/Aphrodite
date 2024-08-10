@@ -1290,77 +1290,77 @@ enum id_aa64dfr1_el1_flags {
     __ID_AA64DFR1_EL1_ABL_CMPS = 0xffull << __ID_AA64DFR1_EL1_ABL_CMPS_SHIFT,
 };
 
-__optimize(3) static inline uint64_t read_id_aa64isar0_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64isar0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64isar0_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64isar1_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64isar1_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64isar1_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64isar2_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64isar2_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64isar2_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64pfr0_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64pfr0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64pfr0_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64pfr1_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64pfr1_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64pfr1_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64pfr2_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64pfr2_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64pfr2_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64mmfr0_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64mmfr0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64mmfr0_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64mmfr1_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64mmfr1_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64mmfr1_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64mmfr2_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64mmfr2_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64mmfr2_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64mmfr3_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64mmfr3_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64mmfr3_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64mmfr4_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64mmfr4_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64mmfr4_el1" : "=r"(result));
 
@@ -1369,14 +1369,14 @@ __optimize(3) static inline uint64_t read_id_aa64mmfr4_el1() {
 
 // FIXME: clang doesn't yet recognize these registers
 #if 0
-__optimize(3) static inline uint64_t read_id_aa64smfr0_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64smfr0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64smfr0_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64zfr0_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64zfr0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64zfr0_el1" : "=r"(result));
 
@@ -1384,21 +1384,21 @@ __optimize(3) static inline uint64_t read_id_aa64zfr0_el1() {
 }
 #endif
 
-__optimize(3) static inline uint64_t read_id_aa64dfr0_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64dfr0_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64dfr0_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_id_aa64dfr1_el1() {
+__debug_optimize(3) static inline uint64_t read_id_aa64dfr1_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, id_aa64dfr1_el1" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) static inline uint64_t read_mpidr_el1() {
+__debug_optimize(3) static inline uint64_t read_mpidr_el1() {
     uint64_t result = 0;
     asm volatile ("mrs %0, mpidr_el1" : "=r"(result));
 

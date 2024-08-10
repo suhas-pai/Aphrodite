@@ -18,7 +18,7 @@ enum syscon_method {
     SYSCON_METHOD_REBOOT
 };
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 const char *syscon_method_get_string(const enum syscon_method method) {
     switch (method) {
         case SYSCON_METHOD_POWEROFF:
@@ -52,7 +52,7 @@ static struct syscon_method_info g_method_info[] = {
 
 #define SYSCON_MMIO_SIZE 0x1000
 
-__optimize(3) void syscon_poweroff() {
+__debug_optimize(3) void syscon_poweroff() {
     const struct syscon_method_info *const meth_info =
         &g_method_info[SYSCON_METHOD_POWEROFF];
 
@@ -65,7 +65,7 @@ __optimize(3) void syscon_poweroff() {
                meth_info->value);
 }
 
-__optimize(3) void syscon_reboot() {
+__debug_optimize(3) void syscon_reboot() {
     const struct syscon_method_info *const meth_info =
         &g_method_info[SYSCON_METHOD_REBOOT];
 
@@ -257,14 +257,14 @@ init_method_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 syscon_init_poweroff_dtb(const struct devicetree *const tree,
                          const struct devicetree_node *const node)
 {
     return init_method_from_dtb(tree, node, SYSCON_METHOD_POWEROFF);
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 syscon_init_reboot_dtb(const struct devicetree *const tree,
                        const struct devicetree_node *const node)
 {

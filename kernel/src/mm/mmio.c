@@ -24,7 +24,8 @@ enum prot_fail {
     PROT_FAIL_PROT_USER
 };
 
-__optimize(3) static inline enum prot_fail verify_prot(const prot_t prot) {
+__debug_optimize(3)
+static inline enum prot_fail verify_prot(const prot_t prot) {
     if (__builtin_expect(prot == PROT_NONE, 0)) {
         return PROT_FAIL_PROT_NONE;
     }
@@ -40,7 +41,7 @@ __optimize(3) static inline enum prot_fail verify_prot(const prot_t prot) {
     return PROT_FAIL_NONE;
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 find_virt_addr(const struct range phys_range,
                const struct range in_range,
                struct mmio_region *const mmio)
@@ -229,7 +230,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct range mmio_region_get_range(const struct mmio_region *const region) {
     return RANGE_INIT((uint64_t)region->base, region->size);
 }

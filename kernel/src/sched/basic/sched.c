@@ -23,7 +23,7 @@ void sched_process_algo_info_init(struct process *const process) {
 }
 
 void sched_thread_algo_info_init(struct thread *const thread) {
-    thread->sched_info.timeslice = SCHED_ROUND_ROBIN_DEF_TIMESLICE_US;
+    thread->sched_info.timeslice = SCHED_BASIC_DEF_TIMESLICE_US;
     thread->sched_info.awaiting = false;
     thread->sched_info.enqueued = true;
 
@@ -34,11 +34,11 @@ void sched_algo_init() {
 
 }
 
-__optimize(3) void sched_algo_post_init() {
+__debug_optimize(3) void sched_algo_post_init() {
     list_add(&g_run_queue, &current_thread()->sched_info.list);
 }
 
-__optimize(3) void sched_enqueue_thread(struct thread *const thread) {
+__debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     list_radd(&g_run_queue, &thread->sched_info.list);
@@ -49,7 +49,7 @@ __optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     spin_release_restore_irq(&g_run_queue_lock, flag);
 }
 
-__optimize(3) void sched_dequeue_thread(struct thread *const thread) {
+__debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     assert(thread != thread->cpu->idle_thread);
@@ -61,14 +61,14 @@ __optimize(3) void sched_dequeue_thread(struct thread *const thread) {
     spin_release_restore_irq(&g_run_queue_lock, flag);
 }
 
-__optimize(3) bool thread_enqueued(const struct thread *const thread) {
+__debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
     return atomic_load_explicit(&thread->sched_info.enqueued,
                                 memory_order_relaxed);
 }
 
 extern void sched_set_current_thread(struct thread *thread);
 
-__optimize(3)
+__debug_optimize(3)
 static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
     struct thread *next = NULL;
@@ -91,7 +91,7 @@ static struct thread *get_next_thread(struct thread *const prev) {
     return result;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static void update_alarm_list(struct thread *const current_thread) {
     int flag = 0;
 

@@ -13,7 +13,7 @@
 #include "lib/align.h"
 #include "addrspace.h"
 
-__optimize(3)
+__debug_optimize(3)
 struct addrspace_node *addrspace_node_prev(struct addrspace_node *const node) {
     assert(node->list.prev != NULL);
     if (node->list.prev == &node->addrspace->list) {
@@ -23,7 +23,7 @@ struct addrspace_node *addrspace_node_prev(struct addrspace_node *const node) {
     return container_of(node->list.prev, struct addrspace_node, list);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct addrspace_node *addrspace_node_next(struct addrspace_node *const node) {
     if (node->list.prev == &node->addrspace->list) {
         return NULL;
@@ -73,7 +73,7 @@ traverse_tree(const struct address_space *const addrspace,
             range_create_end(prev_end, node->range.front);
 
         if (range_has(hole_range, aligned_range)
-            && range_has(in_range, aligned_range))
+         && range_has(in_range, aligned_range))
         {
             *prev_out = prev;
             *result_out = aligned_front;
@@ -111,7 +111,7 @@ traverse_tree(const struct address_space *const addrspace,
                     range_get_end_assert(rightmost->range);
 
                 if (aligned_result >= range_get_end_assert(in_range)
-                    || !align_up(aligned_result, align, &aligned_result))
+                 || !align_up(aligned_result, align, &aligned_result))
                 {
                     *result_out = ADDRSPACE_INVALID_ADDR;
                     return TRAVERSAL_DONE;
@@ -176,7 +176,7 @@ find_from_start(const struct address_space *const addrspace,
         // area available.
 
         if (node->avlnode.left != NULL
-            && range_is_loc_above(in_range, node->range.front))
+         && range_is_loc_above(in_range, node->range.front))
         {
             struct addrspace_node *const left =
                 addrspace_node_of(node->avlnode.left);
@@ -207,7 +207,7 @@ find_from_start(const struct address_space *const addrspace,
     }
 }
 
-__optimize(3) static void avltree_update(struct avlnode *const avlnode) {
+__debug_optimize(3) static void avltree_update(struct avlnode *const avlnode) {
     struct addrspace_node *const node = addrspace_node_of(avlnode);
     struct addrspace_node *const prev = addrspace_node_prev(node);
 
@@ -234,7 +234,7 @@ __optimize(3) static void avltree_update(struct avlnode *const avlnode) {
     node->largest_free_to_prev = largest_free_to_prev;
 }
 
-__optimize(3) int
+__debug_optimize(3) int
 avltree_compare(struct avlnode *const our_node,
                 struct avlnode *const their_node)
 {
@@ -290,7 +290,7 @@ addrspace_find_space_and_add_node(struct address_space *const addrspace,
     return addr;
 }
 
-__optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
+__debug_optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
     struct addrspace_node *const node = addrspace_node_of(avlnode);
     struct avlnode *const parent = avlnode->parent;
 
@@ -310,7 +310,7 @@ __optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
     }
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 addrspace_add_node(struct address_space *const addrspace,
                    struct addrspace_node *const node)
 {
@@ -322,7 +322,8 @@ addrspace_add_node(struct address_space *const addrspace,
                        /*added_node=*/add_node_cb);
 }
 
-__optimize(3) void addrspace_remove_node(struct addrspace_node *const node) {
+__debug_optimize(3)
+void addrspace_remove_node(struct addrspace_node *const node) {
     avltree_delete_node(&node->addrspace->avltree,
                         &node->avlnode,
                         avltree_update);
@@ -331,7 +332,7 @@ __optimize(3) void addrspace_remove_node(struct addrspace_node *const node) {
 }
 
 #if defined(BUILD_KERNEL)
-__optimize(3)
+__debug_optimize(3)
 void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
     (void)cb_info;
     if (avlnode == NULL) {
@@ -348,13 +349,14 @@ void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
 #endif /* defined(BUILD_KERNEL) */
 
 #if defined(BUILD_KERNEL)
-    __optimize(3)
+    __debug_optimize(3)
     void avlnode_print_sv_cb(const struct string_view sv, void *const cb_info) {
         (void)cb_info;
         printk(LOGLEVEL_INFO, SV_FMT, SV_FMT_ARGS(sv));
     }
 
-    __optimize(3) void addrspace_print(struct address_space *const addrspace) {
+    __debug_optimize(3)
+    void addrspace_print(struct address_space *const addrspace) {
         avltree_print(&addrspace->avltree,
                       avlnode_print_node_cb,
                       avlnode_print_sv_cb,

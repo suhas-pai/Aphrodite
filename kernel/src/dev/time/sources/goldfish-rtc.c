@@ -34,11 +34,12 @@ struct goldfish_rtc_info {
 
 static struct goldfish_rtc_info *g_goldfish_clock = NULL;
 
-__optimize(3) struct clock *rtc_clock_get() {
+__debug_optimize(3) struct clock *rtc_clock_get() {
     return &g_goldfish_clock->clock;
 }
 
-__optimize(3) static sec_t goldfish_rtc_read(const struct clock *const clock) {
+__debug_optimize(3)
+static sec_t goldfish_rtc_read(const struct clock *const clock) {
     const struct goldfish_rtc_info *const info =
         container_of(clock, struct goldfish_rtc_info, clock);
 

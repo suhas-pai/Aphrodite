@@ -6,7 +6,8 @@
 #include "lib/adt/string_view.h"
 #include "gpt.h"
 
-__optimize(3) bool verify_gpt_header(const struct gpt_header *const header) {
+__debug_optimize(3)
+bool verify_gpt_header(const struct gpt_header *const header) {
     if (!sv_equals_c_str(GPT_HEADER_MAGIC_SV, header->signature)) {
         return false;
     }
@@ -27,11 +28,15 @@ __optimize(3) bool verify_gpt_header(const struct gpt_header *const header) {
         return false;
     }
 
+    if (header->revision != GPT_HEADER_REVISION) {
+        return false;
+    }
+
     return true;
 }
 
-__optimize(3) bool gpt_entry_mount_ok(const struct gpt_entry *const entry) {
-    if (entry->end < entry->start) {
+__debug_optimize(3) bool gpt_entry_mount_ok(const struct gpt_entry *const entry) {
+    if (entry->last < entry->start) {
         return false;
     }
 

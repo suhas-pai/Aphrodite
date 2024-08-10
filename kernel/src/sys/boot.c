@@ -111,43 +111,43 @@ static const void *dtb = NULL;
 
 static int64_t boot_time = 0;
 
-__optimize(3) const struct mm_memmap *mm_get_memmap_list() {
+__debug_optimize(3) const struct mm_memmap *mm_get_memmap_list() {
     return mm_memmap_list;
 }
 
-__optimize(3) struct page_section *mm_get_page_section_list() {
+__debug_optimize(3) struct page_section *mm_get_page_section_list() {
     return mm_page_section_list;
 }
 
-__optimize(3) uint8_t mm_get_memmap_count() {
+__debug_optimize(3) uint8_t mm_get_memmap_count() {
     return mm_memmap_count;
 }
 
-__optimize(3) uint8_t mm_get_section_count() {
+__debug_optimize(3) uint8_t mm_get_section_count() {
     return mm_page_section_count;
 }
 
-__optimize(3) const struct limine_framebuffer_response *boot_get_fb() {
+__debug_optimize(3) const struct limine_framebuffer_response *boot_get_fb() {
     return &framebuffer_resp;
 }
 
-__optimize(3) const struct limine_smp_response *boot_get_smp() {
+__debug_optimize(3) const struct limine_smp_response *boot_get_smp() {
     return smp_response;
 }
 
-__optimize(3) const void *boot_get_rsdp() {
+__debug_optimize(3) const void *boot_get_rsdp() {
     return rsdp;
 }
 
-__optimize(3) const void *boot_get_dtb() {
+__debug_optimize(3) const void *boot_get_dtb() {
     return dtb;
 }
 
-__optimize(3) int64_t boot_get_time() {
+__debug_optimize(3) int64_t boot_get_time() {
     return boot_time;
 }
 
-__optimize(3) uint64_t mm_get_full_section_mask() {
+__debug_optimize(3) uint64_t mm_get_full_section_mask() {
     return mask_for_n_bits(mm_page_section_count);
 }
 
@@ -289,7 +289,7 @@ void boot_post_early_init() {
     printk_strftime(LOGLEVEL_INFO, "%c\n", &tm);
 }
 
-__optimize(3) void boot_merge_usable_memmaps() {
+__debug_optimize(3) void boot_merge_usable_memmaps() {
     for (uint64_t index = 1; index != mm_page_section_count; index++) {
         struct page_section *const memmap = &mm_page_section_list[index];
         do {
@@ -317,14 +317,14 @@ __optimize(3) void boot_merge_usable_memmaps() {
     }
 }
 
-__optimize(3) void boot_remove_section(struct page_section *const section) {
+__debug_optimize(3) void boot_remove_section(struct page_section *const section) {
     const uint64_t length =
         distance(section + 1, &mm_page_section_list[mm_page_section_count]);
 
     memmove(section, section + 1, length);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct page_section *boot_add_section_at(struct page_section *const section) {
     assert(mm_page_section_count < MM_MAX_SECTION_COUNT);
 
@@ -337,7 +337,7 @@ struct page_section *boot_add_section_at(struct page_section *const section) {
     return section;
 }
 
-__optimize(3) void boot_recalculate_pfns() {
+__debug_optimize(3) void boot_recalculate_pfns() {
     struct page_section *section = mm_page_section_list;
     const struct page_section *const end =
         &mm_page_section_list[mm_page_section_count];

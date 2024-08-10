@@ -26,7 +26,7 @@ __hidden struct cpu_info g_base_cpu_info = {
 struct list g_cpu_list = LIST_INIT(g_cpu_list);
 static bool g_base_cpu_init = false;
 
-__optimize(3) const struct cpu_info *base_cpu() {
+__debug_optimize(3) const struct cpu_info *base_cpu() {
     assert(g_base_cpu_init);
     return &g_base_cpu_info;
 }
@@ -43,12 +43,12 @@ void cpu_init() {
     list_add(&g_cpu_list, &g_base_cpu_info.cpu_list);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     (void)info;
     verify_not_reached();
 }
 
-__optimize(3) bool cpu_in_bad_state() {
+__debug_optimize(3) bool cpu_in_bad_state() {
     return this_cpu()->in_exception;
 }

@@ -25,13 +25,13 @@
         __attribute__((format(printf, last_arg_idx, list_idx)))
 #endif /* !defined(__printf_format) */
 
-#if !defined(__optimize)
+#if !defined(__debug_optimize)
     #if __has_attribute(optimize) && defined(DEBUG) && !defined(RELEASE)
-        #define __optimize(n) __attribute__((optimize(n)))
+        #define __debug_optimize(n) __attribute__((optimize(n)))
     #else
-        #define __optimize(n)
+        #define __debug_optimize(n)
     #endif /* __has_attribute(optimize) */
-#endif /* !defined(__optimize) */
+#endif /* !defined(__debug_optimize) */
 
 #if !defined(__aligned)
     #if __has_attribute(aligned)

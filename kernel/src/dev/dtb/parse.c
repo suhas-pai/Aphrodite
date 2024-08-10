@@ -12,7 +12,7 @@
 #include "gic_compat.h"
 #include "parse.h"
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_array_prop(const struct fdt_property *const fdt_prop,
                  const int prop_length,
                  const fdt32_t **const data_out,
@@ -28,7 +28,7 @@ parse_array_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_cell_pair(const fdt32_t **const iter_ptr,
                 const fdt32_t *const end,
                 const int cell_count,
@@ -63,7 +63,7 @@ parse_cell_pair(const fdt32_t **const iter_ptr,
     return false;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_cell_pair_and_flags(const fdt32_t **const iter_ptr,
                           const fdt32_t *const end,
                           const int cell_count,
@@ -233,14 +233,14 @@ parse_ranges_prop(const void *const dtb,
     return true;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 struct string_view get_prop_data_sv(const struct fdt_property *const fdt_prop) {
     return
         sv_create_length((const char *)fdt_prop->data,
                          strnlen(fdt_prop->data, fdt_prop->len));
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_model_prop(const struct fdt_property *const fdt_prop,
                  struct string_view *const manufacturer_out,
                  struct string_view *const model_out)
@@ -258,7 +258,7 @@ parse_model_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_status_prop(const struct fdt_property *const fdt_prop,
                   enum devicetree_prop_status_kind *const kind_out)
 {
@@ -310,7 +310,7 @@ parse_status_prop(const struct fdt_property *const fdt_prop,
     return false;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_integer_prop(const struct fdt_property *const fdt_prop,
                    const int prop_length,
                    uint32_t *const int_out)
@@ -323,7 +323,7 @@ parse_integer_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_integer_list_prop(const struct fdt_property *const fdt_prop,
                         const int prop_length,
                         struct array *const array)
@@ -352,7 +352,7 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_range_prop(const struct fdt_property *const fdt_prop,
                  const int prop_length,
                  struct range *const range_out)
@@ -369,7 +369,7 @@ parse_range_prop(const struct fdt_property *const fdt_prop,
     return true;
 }
 
-__optimize(3) static inline int
+__debug_optimize(3) static inline int
 fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
     const fdt32_t *c;
     uint32_t val;
@@ -389,7 +389,7 @@ fdt_cells(const void *const fdt, const int nodeoffset, const char *const name) {
     return (int)val;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 parse_intr_info(const fdt32_t *const data,
                 const fdt32_t *const data_end,
                 const uint32_t parent_intr_cells,
@@ -682,7 +682,7 @@ struct parse_later_info {
         .addr_size_cells_prop.size_cells = 0 \
     })
 
-__optimize(3) static
+__debug_optimize(3) static
 void parse_later_info_destroy(struct parse_later_info *const later_info) {
     array_destroy(&later_info->intr_map_list);
     array_destroy(&later_info->intr_node_list);
@@ -907,7 +907,7 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_PHANDLE:
             if (sv_equals(name, SV_STATIC("phandle"))
-                || sv_equals(name, SV_STATIC("linux,phandle")))
+             || sv_equals(name, SV_STATIC("linux,phandle")))
             {
                 uint32_t phandle = 0;
                 if (!parse_integer_prop(fdt_prop, prop_len, &phandle)) {
@@ -1507,7 +1507,7 @@ parse_node_children(const void *const dtb,
     return true;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 bool node_has_gic_compat(const struct devicetree_node *const node) {
     const struct devicetree_prop_compat *const compat_prop =
         (const struct devicetree_prop_compat *)(uint64_t)

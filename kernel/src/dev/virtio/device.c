@@ -40,7 +40,8 @@ virtio_device_shmem_region_unmap(
     return;
 }
 
-__optimize(3) void virtio_device_destroy(struct virtio_device *const device) {
+__debug_optimize(3)
+void virtio_device_destroy(struct virtio_device *const device) {
     array_foreach(&device->shmem_regions,
                   struct virtio_device_shmem_region,
                   shmem)

@@ -141,11 +141,11 @@ run-hdd-riscv64: ovmf $(IMAGE_NAME).hdd
 
 .PHONY: run-loongarch64
 run-loongarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-loongarch64 -M virt -cpu la464 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -bios ovmf-loongarch64/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-loongarch64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-loongarch64/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-hdd-loongarch64
 run-hdd-loongarch64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-loongarch64 -M virt -cpu la464 -device ramfb -device qemu-xhci -device usb-kbd -m 2G -bios ovmf-loongarch64/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-loongarch64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-loongarch64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
 
 .PHONY: run-bios
 run-bios: QEMU_RUN = 1

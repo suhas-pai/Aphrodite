@@ -14,14 +14,14 @@
 #include "entity.h"
 #include "structs.h"
 
-__optimize(3) uint16_t
+__debug_optimize(3) uint16_t
 pci_entity_get_requester_id(const struct pci_entity_info *const entity) {
     return (uint16_t)entity->loc.bus << 8
            | (uint16_t)entity->loc.slot << 3
            | entity->loc.function;
 }
 
-__optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
+__debug_optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
@@ -67,7 +67,7 @@ __optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
@@ -256,7 +256,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
 }
 
 #if ISR_SUPPORTS_MSI
-    __optimize(3) static void
+    __debug_optimize(3) static void
     toggle_msi_vector_mask(const struct pci_entity_info *const entity,
                            const isr_vector_t vector,
                            const bool masked)
@@ -280,7 +280,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         }
     }
 
-    __optimize(3) static void
+    __debug_optimize(3) static void
     toggle_msix_vector_mask(const struct pci_entity_info *const entity,
                             const isr_vector_t vector,
                             const bool masked)
@@ -337,7 +337,7 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_entity_enable_privls(struct pci_entity_info *const entity,
                          const uint16_t privls)
 {
@@ -353,7 +353,7 @@ pci_entity_enable_privls(struct pci_entity_info *const entity,
     spin_release_preempt_enable(&entity->lock);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
     spin_acquire_preempt_disable(&entity->lock);
 
@@ -367,7 +367,7 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
     spin_release_preempt_enable(&entity->lock);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void pci_entity_info_destroy(struct pci_entity_info *const entity) {
     spinlock_deinit(&entity->lock);
     spin_acquire_preempt_disable(&entity->bus->lock);

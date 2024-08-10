@@ -13,7 +13,7 @@
 
 #define QEMU_SERIAL_PHYS 0x10000000
 
-__optimize(3) void arch_early_init() {
+__debug_optimize(3) void arch_early_init() {
     cpu_init();
     disable_interrupts();
 
@@ -24,10 +24,10 @@ __optimize(3) void arch_early_init() {
     mm_early_identity_map_phys(root_phys, QEMU_SERIAL_PHYS, pte_flags);
 }
 
-__optimize(3) void arch_post_mm_init() {
+__debug_optimize(3) void arch_post_mm_init() {
     mm_remove_early_identity_map();
 }
 
-__optimize(3) void arch_init() {
+__debug_optimize(3) void arch_init() {
     mm_arch_init();
 }

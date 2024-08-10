@@ -33,18 +33,18 @@ sched_thread_init(struct thread *const thread,
     sched_thread_algo_info_init(thread);
 }
 
-__optimize(3) bool preemption_enabled() {
+__debug_optimize(3) bool preemption_enabled() {
     return current_thread()->preemption_disabled == 0;
 }
 
-__optimize(3) void preempt_disable() {
+__debug_optimize(3) void preempt_disable() {
     struct thread *const thread = current_thread();
     atomic_fetch_add_explicit(&thread->preemption_disabled,
                               1,
                               memory_order_relaxed);
 }
 
-__optimize(3) void preempt_enable() {
+__debug_optimize(3) void preempt_enable() {
     struct thread *const thread = current_thread();
     const uint16_t old =
         atomic_fetch_sub_explicit(&thread->preemption_disabled,

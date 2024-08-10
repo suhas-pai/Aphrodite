@@ -15,18 +15,18 @@
 #include "sched/process.h"
 #include "sys/boot.h"
 
-__optimize(3) static uint64_t alloc_page(void *const info) {
+__debug_optimize(3) static uint64_t alloc_page(void *const info) {
     (void)info;
     return early_alloc_page();
 }
 
-__optimize(3)
+__debug_optimize(3)
 static uint64_t alloc_large_page(const pgt_level_t level, void *const cb_info) {
     (void)cb_info;
     return early_alloc_large_page(level);
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 alloc_region(const uint64_t virt_addr,
              const uint64_t map_size,
              const uint64_t pte_flags,
@@ -174,7 +174,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
         const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
         if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
-            || memmap->kind == MM_MEMMAP_KIND_RESERVED)
+         || memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }
@@ -223,9 +223,9 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
     assert_msg(
         addrspace_add_node(&kernel_process.pagemap.addrspace,
                            &null_area->node)
-        && addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node)
-        && addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node)
-        && addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
+     && addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node)
+     && addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node)
+     && addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),
         "mm: failed to setup kernel-pagemap");
 }
 

@@ -13,21 +13,22 @@
 #define HAVE_SUNOS_EXT 1
 #define HAVE_VMS_EXT 1
 
-__optimize(3) uint8_t hour12_to_24hour(const uint8_t hour, const bool is_pm) {
+__debug_optimize(3)
+uint8_t hour12_to_24hour(const uint8_t hour, const bool is_pm) {
     // Use modulo to wrap hour 12 to hour 0
     return is_pm ? ((hour % 12) + 12) : (hour % 12);
 }
 
-__optimize(3) uint8_t hour24_to_12hour(const uint8_t hour) {
+__debug_optimize(3) uint8_t hour24_to_12hour(const uint8_t hour) {
     const uint8_t result = (hour % 12);
     return result != 0 ? result : 12;
 }
 
-__optimize(3) bool hour24_is_pm(const uint8_t hour) {
+__debug_optimize(3) bool hour24_is_pm(const uint8_t hour) {
     return hour >= 12;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint8_t weekday_to_decimal_monday_one(const enum weekday weekday) {
     const uint8_t result =
         (weekday != WEEKDAY_SUNDAY) ?
@@ -36,7 +37,7 @@ uint8_t weekday_to_decimal_monday_one(const enum weekday weekday) {
     return result;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint8_t month_get_day_count(const enum month month, const bool in_leap_year) {
     switch (month) {
         case MONTH_INVALID:
@@ -61,7 +62,7 @@ uint8_t month_get_day_count(const enum month month, const bool in_leap_year) {
     verify_not_reached();
 }
 
-__optimize(3) uint8_t
+__debug_optimize(3) uint8_t
 get_week_count_at_day(const enum weekday weekday,
                       const uint16_t days_since_jan_1,
                       const bool is_monday_first)
@@ -77,7 +78,7 @@ get_week_count_at_day(const enum weekday weekday,
     return (days_since_jan_1 - (unsigned)weekday + delta) / WEEKDAY_COUNT;
 }
 
-__optimize(3) int month_to_tm_mon(const enum month month) {
+__debug_optimize(3) int month_to_tm_mon(const enum month month) {
     // Subtract one as tm_mon is actually "months since january", being
     // zero-indexed and having the range [0, 11]. Instead, we have [1, 12].
 
@@ -85,30 +86,30 @@ __optimize(3) int month_to_tm_mon(const enum month month) {
     return (int)(month - 1);
 }
 
-__optimize(3) enum month tm_mon_to_month(const int tm_mon) {
+__debug_optimize(3) enum month tm_mon_to_month(const int tm_mon) {
     // Add one as tm_mon is actually "months since january", being zero-indexed
     // and having the range [0, 11]. Instead, we need [1, 12].
 
     return (enum month)(tm_mon + 1);
 }
 
-__optimize(3) bool year_is_leap_year(const uint64_t year) {
+__debug_optimize(3) bool year_is_leap_year(const uint64_t year) {
     // Year has to be divisible by 4 (first two lsb bits are zero) and either
     // the year is not divisible by 100 or the year is divisible by 400.
 
     return (year & 0b11) == 0 && ((year % 100) != 0 || ((year % 400) == 0));
 }
 
-__optimize(3) uint16_t year_get_day_count(const uint64_t year) {
+__debug_optimize(3) uint16_t year_get_day_count(const uint64_t year) {
     return MIN_DAYS_IN_YEAR + (year_is_leap_year(year) ? 1 : 0);
 }
 
-__optimize(3) int year_to_tm_year(const uint64_t year) {
+__debug_optimize(3) int year_to_tm_year(const uint64_t year) {
     assert(year <= INT_MAX);
     return (int)year - 1900;
 }
 
-__optimize(3) struct tm tm_from_stamp(const timestamp_t timestamp) {
+__debug_optimize(3) struct tm tm_from_stamp(const timestamp_t timestamp) {
     const int seconds_of_day = (int)seconds_mod_days(timestamp);
     const int minutes_of_day = seconds_to_minutes(seconds_of_day);
     const int hour_of_day = minutes_to_hours(minutes_of_day);
@@ -146,19 +147,19 @@ __optimize(3) struct tm tm_from_stamp(const timestamp_t timestamp) {
     };
 }
 
-__optimize(3) uint64_t tm_year_to_year(const int tm_year) {
+__debug_optimize(3) uint64_t tm_year_to_year(const int tm_year) {
     return check_add_assert((uint64_t)tm_year, 1900);
 }
 
-__optimize(3) enum weekday weekday_prev(const enum weekday weekday) {
+__debug_optimize(3) enum weekday weekday_prev(const enum weekday weekday) {
     return (weekday != WEEKDAY_SUNDAY) ? weekday - 1 : WEEKDAY_SATURDAY;
 }
 
-__optimize(3) enum weekday weekday_next(const enum weekday weekday) {
+__debug_optimize(3) enum weekday weekday_next(const enum weekday weekday) {
     return (weekday + 1) % WEEKDAY_COUNT;
 }
 
-__optimize(3) struct string_view weekday_to_sv(const enum weekday day) {
+__debug_optimize(3) struct string_view weekday_to_sv(const enum weekday day) {
     switch (day) {
 #define WEEKDAY_CASE(name)                                                     \
     case VAR_CONCAT(WEEKDAY_, name):                                           \
@@ -180,7 +181,7 @@ __optimize(3) struct string_view weekday_to_sv(const enum weekday day) {
     verify_not_reached();
 }
 
-__optimize(3) struct string_view weekday_to_sv_upper(const enum weekday day) {
+__debug_optimize(3) struct string_view weekday_to_sv_upper(const enum weekday day) {
     switch (day) {
 #define WEEKDAY_CASE(name)                                                     \
     case VAR_CONCAT(WEEKDAY_, name):                                           \
@@ -202,7 +203,7 @@ __optimize(3) struct string_view weekday_to_sv_upper(const enum weekday day) {
     verify_not_reached();
 }
 
-__optimize(3) struct string_view month_to_sv(const enum month month) {
+__debug_optimize(3) struct string_view month_to_sv(const enum month month) {
     switch (month) {
 #define MONTH_CASE(name)                                                       \
     case VAR_CONCAT(MONTH_, name):                                             \
@@ -229,7 +230,7 @@ __optimize(3) struct string_view month_to_sv(const enum month month) {
     verify_not_reached();
 }
 
-__optimize(3) struct string_view month_to_sv_upper(const enum month month) {
+__debug_optimize(3) struct string_view month_to_sv_upper(const enum month month) {
     switch (month) {
 #define MONTH_CASE(name)                                                       \
     case VAR_CONCAT(MONTH_, name):                                             \
@@ -256,7 +257,7 @@ __optimize(3) struct string_view month_to_sv_upper(const enum month month) {
     verify_not_reached();
 }
 
-__optimize(3) struct string_view weekday_to_sv_abbrev(const enum weekday day) {
+__debug_optimize(3) struct string_view weekday_to_sv_abbrev(const enum weekday day) {
     switch (day) {
 #define WEEKDAY_CASE(name)                                                     \
     case VAR_CONCAT(WEEKDAY_, name):                                           \
@@ -278,7 +279,7 @@ __optimize(3) struct string_view weekday_to_sv_abbrev(const enum weekday day) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct string_view weekday_to_sv_abbrev_upper(const enum weekday day) {
     switch (day) {
 #define WEEKDAY_CASE(name)                                                     \
@@ -301,7 +302,7 @@ struct string_view weekday_to_sv_abbrev_upper(const enum weekday day) {
     verify_not_reached();
 }
 
-__optimize(3) struct string_view month_to_sv_abbrev(const enum month month) {
+__debug_optimize(3) struct string_view month_to_sv_abbrev(const enum month month) {
     switch (month) {
 #define MONTH_CASE(name)                                                       \
     case VAR_CONCAT(MONTH_, name):                                             \
@@ -328,7 +329,7 @@ __optimize(3) struct string_view month_to_sv_abbrev(const enum month month) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct string_view month_to_sv_abbrev_upper(const enum month month) {
     switch (month) {
 #define MONTH_CASE(name)                                                       \
@@ -356,8 +357,8 @@ struct string_view month_to_sv_abbrev_upper(const enum month month) {
     verify_not_reached();
 }
 
-__optimize(3) enum weekday sv_to_weekday(const struct string_view sv) {
-#define RETURN_IF_EQUAL(name)                                                 \
+__debug_optimize(3) enum weekday sv_to_weekday(const struct string_view sv) {
+#define RETURN_IF_EQUAL(name)                                                  \
     do {                                                                       \
         if (sv_equals(sv, VAR_CONCAT(SV_, name))) {                            \
             return VAR_CONCAT(WEEKDAY_, name);                                 \
@@ -376,8 +377,8 @@ __optimize(3) enum weekday sv_to_weekday(const struct string_view sv) {
     return WEEKDAY_INVALID;
 }
 
-__optimize(3) enum month sv_to_month(const struct string_view sv) {
-#define RETURN_IF_EQUAL(name)                                                 \
+__debug_optimize(3) enum month sv_to_month(const struct string_view sv) {
+#define RETURN_IF_EQUAL(name)                                                  \
     do {                                                                       \
         if (sv_equals(sv, VAR_CONCAT(SV_, name))) {                            \
             return VAR_CONCAT(MONTH_, name);                                   \
@@ -401,8 +402,9 @@ __optimize(3) enum month sv_to_month(const struct string_view sv) {
     return MONTH_INVALID;
 }
 
-__optimize(3) enum weekday sv_abbrev_to_weekday(const struct string_view sv) {
-#define RETURN_IF_EQUAL(name)                                                 \
+__debug_optimize(3)
+enum weekday sv_abbrev_to_weekday(const struct string_view sv) {
+#define RETURN_IF_EQUAL(name)                                                  \
     do {                                                                       \
         if (sv_equals(sv, VAR_CONCAT_3(SV_, name, _ABBREV))) {                 \
             return VAR_CONCAT(WEEKDAY_, name);                                 \
@@ -421,8 +423,8 @@ __optimize(3) enum weekday sv_abbrev_to_weekday(const struct string_view sv) {
     return WEEKDAY_INVALID;
 }
 
-__optimize(3) enum month sv_abbrev_to_month(const struct string_view sv) {
-#define RETURN_IF_EQUAL(name)                                                 \
+__debug_optimize(3) enum month sv_abbrev_to_month(const struct string_view sv) {
+#define RETURN_IF_EQUAL(name)                                                  \
     do {                                                                       \
         if (sv_equals(sv, VAR_CONCAT_3(SV_, name, _ABBREV))) {                 \
             return VAR_CONCAT(MONTH_, name);                                   \
@@ -446,7 +448,7 @@ __optimize(3) enum month sv_abbrev_to_month(const struct string_view sv) {
     return MONTH_INVALID;
 }
 
-__optimize(3) enum weekday
+__debug_optimize(3) enum weekday
 day_of_month_to_weekday(uint64_t year,
                         const enum month month,
                         const uint8_t day)
@@ -462,7 +464,7 @@ day_of_month_to_weekday(uint64_t year,
     );
 }
 
-__optimize(3) uint16_t
+__debug_optimize(3) uint16_t
 day_of_month_to_day_of_year(const uint8_t day_in_month,
                             const enum month month,
                             const bool in_leap_year)
@@ -501,7 +503,7 @@ day_of_month_to_day_of_year(const uint8_t day_in_month,
     return days_preceding_month + day_in_month;
 }
 
-__optimize(3) uint8_t
+__debug_optimize(3) uint8_t
 iso_8601_get_week_number(const enum weekday weekday,
                          const enum month month,
                          const uint64_t year,

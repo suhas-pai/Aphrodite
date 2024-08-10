@@ -26,14 +26,14 @@ struct free_slab_object {
         .footer = FREE_SLAB_FOOTER, \
     })
 
-__optimize(3)
+__debug_optimize(3)
 static inline void zero_free_object(struct free_slab_object *const object) {
     object->header = 0;
     object->next = 0;
     object->footer = 0;
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 verify_free_object(const struct free_slab_object *const object,
                    const struct slab_allocator *const alloc)
 {
@@ -53,14 +53,14 @@ _Static_assert(sizeof(struct free_slab_object) <= SLAB_ALIGNMENT,
 
 #define MIN_OBJ_PER_SLAB 1
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 get_free_obj_byte_index(struct slab_allocator *const alloc,
                         const uint32_t index)
 {
     return check_mul_assert(index, alloc->object_size);
 }
 
-__optimize(3) static inline struct free_slab_object *
+__debug_optimize(3) static inline struct free_slab_object *
 get_free_ptr_from_index(struct page *const page,
                         struct slab_allocator *const alloc,
                         const uint32_t index)
@@ -72,7 +72,7 @@ get_free_ptr_from_index(struct page *const page,
     return NULL;
 }
 
-__optimize(3) static inline struct free_slab_object *
+__debug_optimize(3) static inline struct free_slab_object *
 get_free_object(struct page *const page, struct slab_allocator *const alloc) {
     struct free_slab_object *const result =
         get_free_ptr_from_index(page, alloc, page->slab.head.first_free_index);
@@ -127,7 +127,7 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
     // We also make this the required minimum alignment.
 
     if (!align_up(object_size, SLAB_ALIGNMENT, &object_size)
-        || object_size > UINT32_MAX)
+     || object_size > UINT32_MAX)
     {
         return false;
     }
@@ -288,7 +288,8 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
     return head;
 }
 
-__optimize(3) static inline struct page *slab_head_of(const void *const mem) {
+__debug_optimize(3)
+static inline struct page *slab_head_of(const void *const mem) {
     struct page *const page = virt_to_page(mem);
     if (page_get_state(page) == PAGE_STATE_SLAB_HEAD) {
         return page;
@@ -297,7 +298,7 @@ __optimize(3) static inline struct page *slab_head_of(const void *const mem) {
     return page->slab.tail.head;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 index_of_free_object(struct page *const head,
                      struct slab_allocator *const alloc,
                      struct free_slab_object *const free_object)
@@ -354,7 +355,7 @@ void slab_free(void *const mem) {
     }
 }
 
-__optimize(3) uint32_t slab_object_size(void *const mem) {
+__debug_optimize(3) uint32_t slab_object_size(void *const mem) {
     if (__builtin_expect(mem == NULL, 0)) {
         panic("slab_object_size(): Got mem=NULL");
     }

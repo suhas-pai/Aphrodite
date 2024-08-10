@@ -6,14 +6,14 @@
 #pragma once
 #include "lib/macros.h"
 
-__optimize(3) static inline void dsbisht() {
+__debug_optimize(3) static inline void dsbisht() {
     asm volatile("dsb ishst");
 }
 
-__optimize(3) static inline void dsb() {
+__debug_optimize(3) static inline void dsb() {
     asm volatile("dsb sy");
 }
 
-__optimize(3) static inline void isb() {
+__debug_optimize(3) static inline void isb() {
     asm volatile("isb");
 }

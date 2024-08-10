@@ -397,7 +397,7 @@ bool gicv2_init_from_info(const uint64_t phys_base_address) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 volatile uint64_t *gicdv2_get_msi_address(const isr_vector_t vector) {
     struct gic_v2_msi_info *iter = NULL;
     list_foreach(iter, &g_msi_info_list, list) {
@@ -415,7 +415,7 @@ volatile uint64_t *gicdv2_get_msi_address(const isr_vector_t vector) {
     return NULL;
 }
 
-__optimize(3) enum isr_msi_support gicdv2_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support gicdv2_get_msi_support() {
     return !list_empty(&g_msi_info_list)
             ? ISR_MSI_SUPPORT_MSI : ISR_MSI_SUPPORT_NONE;
 }
@@ -500,7 +500,7 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
                "gicd: failed to append msi-frame to list");
 }
 
-__optimize(3) isr_vector_t gicdv2_alloc_msi_vector() {
+__debug_optimize(3) isr_vector_t gicdv2_alloc_msi_vector() {
     struct gic_v2_msi_info *iter = NULL;
     list_foreach(iter, &g_msi_info_list, list) {
         const uint16_t end = iter->spi_base + iter->spi_count;
@@ -523,7 +523,7 @@ void gicdv2_free_msi_vector(const isr_vector_t vector) {
     g_irq_info_list[vector].alloced_in_msi = true;
 }
 
-__optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
+__debug_optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
                "gicdv2_mask_irq() called on invalid interrupt");
 
@@ -533,7 +533,7 @@ __optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
     mmio_write(&g_regs->interrupt_clear_enable[index], 1ull << bit_index);
 }
 
-__optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
+__debug_optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
                "gicdv2_unmask_irq() called on invalid interrupt");
 
@@ -543,7 +543,7 @@ __optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
     mmio_write(&g_regs->interrupt_set_enable[index], 1ull << bit_index);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
                "gicdv2_set_irq_affinity() called on invalid interrupt");
@@ -563,7 +563,7 @@ void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
                           memory_order_relaxed);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 gicdv2_set_irq_trigger_mode(const irq_number_t irq,
                             const enum irq_trigger_mode mode)
 {
@@ -596,7 +596,7 @@ gicdv2_set_irq_trigger_mode(const irq_number_t irq,
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicdv2_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
                "gicdv2_set_irq_priority() called on invalid interrupt");
@@ -616,7 +616,7 @@ void gicdv2_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
                           memory_order_relaxed);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicdv2_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint32_t info =
         GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD
@@ -628,13 +628,14 @@ void gicdv2_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
                           memory_order_relaxed);
 }
 
-__optimize(3) void gicdv2_send_sipi(const uint8_t int_no) {
+__debug_optimize(3) void gicdv2_send_sipi(const uint8_t int_no) {
     atomic_store_explicit(&g_regs->software_generated_interrupts[0],
                           GICD_V2_SGI_TARGET_LIST_FILTER_ONLY_SELF_IPI | int_no,
                           memory_order_relaxed);
 }
 
-__optimize(3) irq_number_t gicv2_cpu_get_irq_number(uint8_t *const cpu_id_out) {
+__debug_optimize(3)
+irq_number_t gicv2_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     const uint64_t ack =
         atomic_load_explicit(&g_cpu->interrupt_acknowledge,
                              memory_order_relaxed);
@@ -643,11 +644,11 @@ __optimize(3) irq_number_t gicv2_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     return ack & __GIC_CPU_EOI_IRQ_ID;
 }
 
-__optimize(3) uint32_t gicv2_cpu_get_irq_priority() {
+__debug_optimize(3) uint32_t gicv2_cpu_get_irq_priority() {
     return atomic_load_explicit(&g_cpu->running_polarity, memory_order_relaxed);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicv2_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     const uint32_t value =
         (uint32_t)cpu_id << GIC_CPU_EOI_CPU_ID_SHIFT | irq_number;

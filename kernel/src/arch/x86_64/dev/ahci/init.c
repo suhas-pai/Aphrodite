@@ -25,7 +25,7 @@
 #define MAX_ATTEMPTS 100
 static isr_vector_t g_hba_vector = 0;
 
-__optimize(3) static
+__debug_optimize(3) static
 bool ahci_hba_probe_port(volatile struct ahci_spec_hba_port *const port) {
     const uint32_t sata_status = mmio_read(&port->sata_status);
     const enum ahci_hba_port_ipm ipm =

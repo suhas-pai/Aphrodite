@@ -43,7 +43,7 @@ struct plic_registers {
 static volatile struct plic_registers *g_regs = NULL;
 static struct mmio_region *g_mmio = NULL;
 
-__optimize(3)
+__debug_optimize(3)
 static inline bool plic_irq_kind_is_valid(const enum plic_irq_kind kind) {
     switch (kind) {
         case PLIC_IRQ_SOFTWARE_USER:
@@ -64,7 +64,7 @@ static inline bool plic_irq_kind_is_valid(const enum plic_irq_kind kind) {
     return false;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 const char *plic_irq_kind_get_string(const enum plic_irq_kind kind) {
     switch (kind) {
         case PLIC_IRQ_SOFTWARE_USER:

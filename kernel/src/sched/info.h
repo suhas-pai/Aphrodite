@@ -5,11 +5,11 @@
 
 #pragma once
 
-#if defined(SCHED_ROUND_ROBIN)
-    #include "round_robin/sched.h"
+#if defined(SCHED_BASIC)
+    #include "basic/sched.h"
 #else
     #error "scheduler not set"
-#endif /* defined(SCHED_ROUND_ROBIN) */
+#endif /* defined(SCHED_BASIC) */
 
 struct process;
 struct thread;

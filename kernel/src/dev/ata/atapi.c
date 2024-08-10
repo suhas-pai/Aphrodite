@@ -5,7 +5,8 @@
 
 #include "atapi.h"
 
-__optimize(3) const char *atapi_sense_to_cstr(const enum atapi_sense sense) {
+__debug_optimize(3)
+const char *atapi_sense_to_cstr(const enum atapi_sense sense) {
     switch (sense) {
         case ATAPI_SENSE_NONE:
             return "none";

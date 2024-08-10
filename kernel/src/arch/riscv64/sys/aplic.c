@@ -82,6 +82,7 @@ struct aplic_registers {
     uint32_t generate_msi;
     uint32_t target[1023];
 
+    // Unused because we have an imsic
     uint32_t idc;
 };
 
@@ -110,6 +111,8 @@ init_with_regs(volatile struct aplic_registers *const regs,
         imsic_region_for_hartid(this_cpu()->hart_id);
 
     preempt_enable();
+
+    // DIrect mode must be supported by aplic
     assert(mmio_read(&regs->domain_config) & __APLIC_DOMAIN_CFG_DIRECT_MODE);
 
     mmio_write(&regs->domain_config,
@@ -150,7 +153,7 @@ aplic_init(struct aplic *const aplic,
     return aplic;
 }
 
-__optimize(3) struct aplic *aplic_for_privl(const enum riscv64_privl privl) {
+__debug_optimize(3) struct aplic *aplic_for_privl(const enum riscv64_privl privl) {
     switch (privl) {
         case RISCV64_PRIVL_MACHINE:
             return g_machine_aplic;
@@ -161,7 +164,7 @@ __optimize(3) struct aplic *aplic_for_privl(const enum riscv64_privl privl) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool aplic_enable_irq(const enum riscv64_privl privl, const uint16_t irq) {
     struct aplic *const aplic = aplic_for_privl(privl);
     const uint32_t irq_end = aplic->gsi_base + aplic->source_count;
@@ -174,7 +177,7 @@ bool aplic_enable_irq(const enum riscv64_privl privl, const uint16_t irq) {
     return false;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool aplic_disable_irq(const enum riscv64_privl privl, const uint16_t irq) {
     struct aplic *const aplic = aplic_for_privl(privl);
     const uint32_t irq_end = aplic->gsi_base + aplic->source_count;
@@ -209,7 +212,7 @@ aplic_set_target_msi(const enum riscv64_privl privl,
     return true;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 aplic_set_msi_address(const enum riscv64_privl privl, const uint64_t address) {
     struct aplic *const aplic = aplic_for_privl(privl);
 

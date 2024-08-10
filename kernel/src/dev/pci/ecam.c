@@ -21,7 +21,7 @@ static struct spinlock g_ecam_domain_lock = SPINLOCK_INIT();
 
 static uint32_t g_ecam_entity_count = 0;
 
-__optimize(3)
+__debug_optimize(3)
 static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
     return bus_range.size << 20;
 }
@@ -81,7 +81,7 @@ pci_add_ecam_domain(const struct range bus_range,
     return ecam_domain;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
     const int flag = spin_acquire_save_irq(&g_ecam_domain_lock);
 
@@ -97,7 +97,7 @@ bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
     return true;
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
                                const struct pci_location *const loc)
 {
@@ -107,7 +107,7 @@ pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
         | (uint64_t)loc->function << 12;
 }
 
-__optimize(3) uint8_t
+__debug_optimize(3) uint8_t
 pci_ecam_read_8(const struct pci_ecam_domain *const domain,
                 const struct pci_location *const loc,
                 const uint16_t off)
@@ -120,7 +120,7 @@ pci_ecam_read_8(const struct pci_ecam_domain *const domain,
     return mmio_read_8(domain->mmio->base + offset);
 }
 
-__optimize(3) uint16_t
+__debug_optimize(3) uint16_t
 pci_ecam_read_16(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
@@ -133,7 +133,7 @@ pci_ecam_read_16(const struct pci_ecam_domain *const domain,
     return mmio_read_16(domain->mmio->base + offset);
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 pci_ecam_read_32(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
@@ -146,7 +146,7 @@ pci_ecam_read_32(const struct pci_ecam_domain *const domain,
     return mmio_read_32(domain->mmio->base + offset);
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 pci_ecam_read_64(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
@@ -159,7 +159,7 @@ pci_ecam_read_64(const struct pci_ecam_domain *const domain,
     return mmio_read_64(domain->mmio->base + offset);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_ecam_write_8(const struct pci_ecam_domain *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off,
@@ -173,7 +173,7 @@ pci_ecam_write_8(const struct pci_ecam_domain *const domain,
     mmio_write_8(domain->mmio->base + offset, value);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_ecam_write_16(const struct pci_ecam_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
@@ -187,7 +187,7 @@ pci_ecam_write_16(const struct pci_ecam_domain *const domain,
     mmio_write_16(domain->mmio->base + offset, value);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_ecam_write_32(const struct pci_ecam_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
@@ -201,7 +201,7 @@ pci_ecam_write_32(const struct pci_ecam_domain *const domain,
     mmio_write_32(domain->mmio->base + offset, value);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_ecam_write_64(const struct pci_ecam_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
@@ -232,7 +232,7 @@ enum pci_ecam_dtb_child_addr_flags {
     __PCI_ECAM_DTB_CHILD_ADDR_IS_PREFETCH_MEM = 1 << 30
 };
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 resource_kind_from_kind(const uint32_t flags,
                         enum pci_bus_resource_kind *const kind_out)
 {

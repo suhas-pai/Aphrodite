@@ -51,12 +51,12 @@ struct hpet_addrspace {
 static struct mmio_region *hpet_mmio = NULL;
 static volatile struct hpet_addrspace *addrspace = NULL;
 
-__optimize(3) fsec_t hpet_get_femto() {
+__debug_optimize(3) fsec_t hpet_get_femto() {
     assert_msg(addrspace != NULL, "hpet: hpet_get_femto() called before init");
     return mmio_read(&addrspace->main_counter_value);
 }
 
-__optimize(3) usec_t hpet_read() {
+__debug_optimize(3) usec_t hpet_read() {
     return femto_to_micro(hpet_get_femto());
 }
 

@@ -6,7 +6,7 @@
 #include "align.h"
 #include "overflow.h"
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t align_down(const uint64_t number, const uint64_t boundary) {
     assert(boundary != 0);
 
@@ -14,14 +14,14 @@ uint64_t align_down(const uint64_t number, const uint64_t boundary) {
     return number & mask;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 align_up(const uint64_t number,
          const uint64_t boundary,
          uint64_t *const result_out)
 {
     uint64_t result = 0;
     if (__builtin_expect(boundary == 0, 0)
-        || !check_add(number, boundary - 1, &result))
+     || !check_add(number, boundary - 1, &result))
     {
         return false;
     }

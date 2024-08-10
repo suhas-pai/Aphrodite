@@ -42,7 +42,6 @@ struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
         (((cpu->mpidr >> 32) & 0xFF) << 24) | (cpu->mpidr & 0xFFFFFF);
 
     cpu->processor_id = info->processor_id;
-
     cpu->spe_overflow_interrupt = 0;
     cpu->affinity = 0;
 

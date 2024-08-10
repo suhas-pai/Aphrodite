@@ -49,7 +49,7 @@ static struct imsic *g_supervisor_imsic = NULL;
 static struct array g_supervisor_region_list =
     ARRAY_INIT(sizeof(struct imsic_region));
 
-__optimize(3) struct imsic *imsic_for_privl(const enum riscv64_privl privl) {
+__debug_optimize(3) struct imsic *imsic_for_privl(const enum riscv64_privl privl) {
     switch (privl) {
         case RISCV64_PRIVL_MACHINE:
             return g_machine_imsic;
@@ -96,7 +96,7 @@ imsic_init_from_acpi(const enum riscv64_privl privl,
     imsic_init(privl, guest_index_bits, intr_id_count);
 }
 
-__optimize(3) static enum riscv64_privl
+__debug_optimize(3) static enum riscv64_privl
 find_privl_for_imsic(struct imsic *const imsic, const uint32_t phandle) {
     struct aplic *aplic = aplic_for_privl(RISCV64_PRIVL_MACHINE);
     if (aplic->msi_parent == phandle) {
@@ -292,7 +292,7 @@ void imsic_enable(const enum riscv64_privl privl) {
     verify_not_reached();
 }
 
-__optimize(3) volatile void *
+__debug_optimize(3) volatile void *
 imsic_add_region(const uint64_t hart_id, const struct range range) {
     struct mmio_region *const mmio =
         vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
@@ -311,7 +311,8 @@ imsic_add_region(const uint64_t hart_id, const struct range range) {
     return mmio->base;
 }
 
-__optimize(3) volatile void *imsic_region_for_hartid(const uint64_t hart_id) {
+__debug_optimize(3)
+volatile void *imsic_region_for_hartid(const uint64_t hart_id) {
     array_foreach(&g_supervisor_region_list, struct imsic_region, region) {
         if (region->hart_id == hart_id) {
             return region->mmio->base;
@@ -321,7 +322,7 @@ __optimize(3) volatile void *imsic_region_for_hartid(const uint64_t hart_id) {
     return NULL;
 }
 
-__optimize(3) uint8_t imsic_alloc_msg(const enum riscv64_privl privl) {
+__debug_optimize(3) uint8_t imsic_alloc_msg(const enum riscv64_privl privl) {
     struct imsic *const imsic = imsic_for_privl(privl);
 
     const int flag = spin_acquire_save_irq(&imsic->lock);
@@ -339,7 +340,7 @@ __optimize(3) uint8_t imsic_alloc_msg(const enum riscv64_privl privl) {
     return msg;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void imsic_free_msg(const enum riscv64_privl privl, const uint8_t msg) {
     assert(index_in_bounds(msg, IMSIC_MSG_COUNT));
 
@@ -353,7 +354,7 @@ void imsic_free_msg(const enum riscv64_privl privl, const uint8_t msg) {
     spin_release_restore_irq(&imsic->lock, flag);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 imsic_set_msg_handler(const enum riscv64_privl privl,
                       const uint8_t msg,
                       const isr_func_t func)
@@ -365,7 +366,7 @@ imsic_set_msg_handler(const enum riscv64_privl privl,
     spin_release_restore_irq(&imsic->lock, flag);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void imsic_enable_msg(const enum riscv64_privl privl, const uint16_t message) {
     const uint16_t bit_offset = message % sizeof_bits(uint32_t);
     const uint64_t offset = EI_BASE + (message / sizeof_bits(uint32_t));
@@ -388,7 +389,7 @@ void imsic_enable_msg(const enum riscv64_privl privl, const uint16_t message) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void imsic_disable_msg(const enum riscv64_privl privl, const uint16_t message) {
     const uint16_t bit_offset = message % sizeof_bits(uint32_t);
     const uint64_t offset = EI_BASE + (message / sizeof_bits(uint32_t));
@@ -409,7 +410,7 @@ void imsic_disable_msg(const enum riscv64_privl privl, const uint16_t message) {
     verify_not_reached();
 }
 
-__optimize(3) uint32_t imsic_pop(const enum riscv64_privl privl) {
+__debug_optimize(3) uint32_t imsic_pop(const enum riscv64_privl privl) {
     switch (privl) {
         case RISCV64_PRIVL_MACHINE:
             return csr_read_and_zero(mtopei) >> 16;
@@ -420,7 +421,7 @@ __optimize(3) uint32_t imsic_pop(const enum riscv64_privl privl) {
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 imsic_handle(const enum riscv64_privl privl,
              struct thread_context *const context)
 {
@@ -444,7 +445,7 @@ imsic_handle(const enum riscv64_privl privl,
     return;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void imsic_trigger(const enum riscv64_privl privl, const uint16_t message) {
     const uint16_t bit_offset = message % sizeof_bits(uint64_t);
     const uint64_t offset = EP_BASE + 2 * (message / sizeof_bits(uint64_t));
@@ -465,7 +466,7 @@ void imsic_trigger(const enum riscv64_privl privl, const uint16_t message) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void imsic_clear(const enum riscv64_privl privl, const uint16_t message) {
     const uint16_t bit_offset = message % sizeof_bits(uint64_t);
     const uint64_t offset = EP_BASE + 2 * (message / sizeof_bits(uint64_t));

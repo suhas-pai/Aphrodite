@@ -17,7 +17,7 @@
 #include "zone.h"
 
 // Caller is required to set section->min_order
-__optimize(3) static void
+__debug_optimize(3) static void
 add_to_freelist_order(struct page_section *const section,
                       const uint8_t freelist_order,
                       struct page *const page)
@@ -45,7 +45,7 @@ add_to_freelist_order(struct page_section *const section,
 }
 
 // Add pages from the tail pages of a higher order into a lower order
-__optimize(3) static void
+__debug_optimize(3) static void
 add_to_freelist_order_from_higher(struct page_section *const section,
                                   const uint8_t freelist_order,
                                   struct page *const page)
@@ -69,7 +69,7 @@ add_to_freelist_order_from_higher(struct page_section *const section,
     freelist->count++;
 }
 
-__optimize(3) struct page *
+__debug_optimize(3) struct page *
 take_off_freelist_to_add_later(struct page_section *const section,
                                const uint8_t freelist_order,
                                struct page *const page)
@@ -114,7 +114,7 @@ take_off_freelist_to_add_later(struct page_section *const section,
     return page;
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 take_off_freelist_order(struct page_section *const section,
                         const uint8_t freelist_order,
                         struct page *const page,
@@ -141,7 +141,7 @@ take_off_freelist_order(struct page_section *const section,
     return take_off_freelist_to_add_later(section, freelist_order, page);
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 get_from_freelist_order(struct page_section *const section,
                         const uint8_t order,
                         const uint8_t page_remove_order)
@@ -157,7 +157,7 @@ get_from_freelist_order(struct page_section *const section,
     return take_off_freelist_order(section, order, page, page_remove_order);
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 free_range_of_pages(struct page *page,
                     struct page_section *const section,
                     const uint64_t amount,
@@ -206,7 +206,7 @@ free_range_of_pages(struct page *page,
     } while (true);
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 free_extra_pages_if_from_higher_order(struct page *const page,
                                       struct page_section *const section,
                                       uint8_t higher_order,
@@ -233,7 +233,7 @@ free_extra_pages_if_from_higher_order(struct page *const page,
     }
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 get_from_freelist_order_at_align(struct page_section *const section,
                                  const uint8_t order,
                                  const uint8_t req_order,
@@ -291,7 +291,7 @@ get_from_freelist_order_at_align(struct page_section *const section,
 // Setup pages that just came off the freelist. This setup needs to be as quick
 // as possible because this is done under the section's lock.
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 setup_pages_off_freelist(struct page *const page,
                          const uint8_t order,
                          const enum page_state state)
@@ -380,7 +380,7 @@ place_head_range_of_free_pages_lower(struct page *page,
     free_range_of_pages(page + (1ull << order), section, avail, (uint8_t)order);
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 get_large_from_freelist_order(struct page_section *const section,
                               const uint8_t freelist_order,
                               const uint8_t large_order)
@@ -467,7 +467,7 @@ get_large_from_freelist_order(struct page_section *const section,
     return page;
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 try_alloc_pages_from_zone(struct page_zone *const zone,
                           const uint8_t order,
                           const enum page_state state)
@@ -536,7 +536,7 @@ done:
     return page;
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
                                    const uint8_t order,
                                    const uint8_t align,
@@ -609,7 +609,7 @@ done:
     return page;
 }
 
-__optimize(3) struct page *
+__debug_optimize(3) struct page *
 setup_alloced_page(struct page *const page,
                    const enum page_state state,
                    const uint64_t alloc_flags,
@@ -826,7 +826,7 @@ alloc_pages_from_zone_at_align(struct page_zone *zone,
     return NULL;
 }
 
-__optimize(3) static struct page *
+__debug_optimize(3) static struct page *
 try_alloc_large_page_from_zone(struct page_zone *const zone,
                                const struct largepage_level_info *const info)
 {
@@ -954,7 +954,7 @@ alloc_large_page_from_zone(struct page_zone *zone,
     return NULL;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 early_free_pages_from_section(struct page *const page,
                               struct page_section *const section,
                               const uint8_t order)
@@ -981,7 +981,7 @@ early_free_pages_from_section(struct page *const page,
     freelist->count++;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 find_nearby_free_pages(struct page *const page,
                        uint64_t amount,
                        struct page **const page_out,
@@ -1007,7 +1007,7 @@ find_nearby_free_pages(struct page *const page,
             // higher order.
 
             if (__builtin_expect(order < MAX_ORDER - 1, 1)
-                && (1ull << order) + extra >= (1ull << (order + 1)))
+             && (1ull << order) + extra >= (1ull << (order + 1)))
             {
                 take_off_freelist_to_add_later(section, order, free_head);
 
@@ -1063,7 +1063,8 @@ find_nearby_free_pages(struct page *const page,
     return merged_range;
 }
 
-__optimize(3) void free_amount_of_pages(struct page *page, uint64_t amount) {
+__debug_optimize(3)
+void free_amount_of_pages(struct page *page, uint64_t amount) {
     assert(amount != 0);
 
     find_nearby_free_pages(page, amount, &page, &amount);
@@ -1129,7 +1130,7 @@ void free_pages(struct page *page, const uint8_t order) {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct page *deref_page(struct page *page, struct pageop *const pageop) {
     if (ref_down(&page->used.refcount)) {
         list_add(&pageop->delayed_free, &page->used.delayed_free_list);
@@ -1163,11 +1164,11 @@ deref_large_page(struct page *const page,
     return NULL;
 }
 
-__optimize(3) struct page *alloc_table() {
+__debug_optimize(3) struct page *alloc_table() {
     return alloc_page(PAGE_STATE_TABLE, __ALLOC_ZERO);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct page *alloc_user_stack(struct process *const proc, const uint8_t order) {
     struct page *const page =
         alloc_pages(PAGE_STATE_USER_STACK, __ALLOC_ZERO, order);

@@ -22,7 +22,7 @@ static uint32_t g_func_to_cmd[] = {
     [PSCI_FUNC_MIGRATE_INFO_UP_CPU] = 0xC4000007,
 };
 
-__optimize(3)
+__debug_optimize(3)
 static inline const char *func_to_string(const enum psci_function func) {
     switch (func) {
         case PSCI_FUNC_VERSION:
@@ -209,14 +209,14 @@ void psci_init_from_acpi(const bool use_hvc) {
     printk(LOGLEVEL_INFO, "psci: successfully initialized from acpi\n");
 }
 
-__optimize(3) enum psci_return_value psci_reboot() {
+__debug_optimize(3) enum psci_return_value psci_reboot() {
     return psci_invoke_function(PSCI_FUNC_SYSTEM_RESET,
                                 /*arg1=*/0,
                                 /*arg2=*/0,
                                 /*arg3=*/0);
 }
 
-__optimize(3) enum psci_return_value psci_shutdown() {
+__debug_optimize(3) enum psci_return_value psci_shutdown() {
     return psci_invoke_function(PSCI_FUNC_SYSTEM_OFF,
                                 /*arg1=*/0,
                                 /*arg2=*/0,

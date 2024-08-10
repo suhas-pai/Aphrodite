@@ -153,7 +153,7 @@ static const uint16_t ctype_array[128] = {
     __CNTRL
 };
 
-__optimize(3) static inline bool is_ascii(const C_TYPE c) {
+__debug_optimize(3) static inline bool is_ascii(const C_TYPE c) {
 #if defined(BUILD_KERNEL)
     (void)c;
     return true;
@@ -162,7 +162,7 @@ __optimize(3) static inline bool is_ascii(const C_TYPE c) {
 #endif
 }
 
-__optimize(3) int isalnum(const C_TYPE c) {
+__debug_optimize(3) int isalnum(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -171,7 +171,7 @@ __optimize(3) int isalnum(const C_TYPE c) {
     return (ctype_array[(int)c] & mask) ? 1 : 0;
 }
 
-__optimize(3) int isalpha(const C_TYPE c) {
+__debug_optimize(3) int isalpha(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -179,7 +179,7 @@ __optimize(3) int isalpha(const C_TYPE c) {
     return (ctype_array[(int)c] & (__ALPHA_LOWER | __ALPHA_UPPER)) ? 1 : 0;
 }
 
-__optimize(3) int iscntrl(const C_TYPE c) {
+__debug_optimize(3) int iscntrl(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -187,7 +187,7 @@ __optimize(3) int iscntrl(const C_TYPE c) {
     return (ctype_array[(int)c] & __CNTRL) ? 1 : 0;
 }
 
-__optimize(3) int isdigit(const C_TYPE c) {
+__debug_optimize(3) int isdigit(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -195,7 +195,7 @@ __optimize(3) int isdigit(const C_TYPE c) {
     return (ctype_array[(int)c] & __DIGIT) ? 1 : 0;
 }
 
-__optimize(3) int isgraph(const C_TYPE c) {
+__debug_optimize(3) int isgraph(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -203,7 +203,7 @@ __optimize(3) int isgraph(const C_TYPE c) {
     return (ctype_array[(int)c] & __GRAPH) ? 1 : 0;
 }
 
-__optimize(3) int islower(const C_TYPE c) {
+__debug_optimize(3) int islower(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -211,7 +211,7 @@ __optimize(3) int islower(const C_TYPE c) {
     return (ctype_array[(int)c] & __ALPHA_LOWER) ? 1 : 0;
 }
 
-__optimize(3) int isprint(const C_TYPE c) {
+__debug_optimize(3) int isprint(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -219,7 +219,7 @@ __optimize(3) int isprint(const C_TYPE c) {
     return (ctype_array[(int)c] & __PRINT) ? 1 : 0;
 }
 
-__optimize(3) int ispunct(const C_TYPE c) {
+__debug_optimize(3) int ispunct(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -227,7 +227,7 @@ __optimize(3) int ispunct(const C_TYPE c) {
     return (ctype_array[(int)c] & __PUNCT) ? 1 : 0;
 }
 
-__optimize(3) int isspace(const C_TYPE c) {
+__debug_optimize(3) int isspace(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -235,7 +235,7 @@ __optimize(3) int isspace(const C_TYPE c) {
     return (ctype_array[(int)c] & __SPACE) ? 1 : 0;
 }
 
-__optimize(3) int isupper(const C_TYPE c) {
+__debug_optimize(3) int isupper(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -243,7 +243,7 @@ __optimize(3) int isupper(const C_TYPE c) {
     return (ctype_array[(int)c] & __ALPHA_UPPER) ? 1 : 0;
 }
 
-__optimize(3) int isxdigit(const C_TYPE c) {
+__debug_optimize(3) int isxdigit(const C_TYPE c) {
     if (__builtin_expect(!is_ascii(c), 0)) {
         return 0;
     }
@@ -251,7 +251,7 @@ __optimize(3) int isxdigit(const C_TYPE c) {
     return (ctype_array[(int)c] & __HEX_DIGIT) ? 1 : 0;
 }
 
-__optimize(3) int tolower(const C_TYPE c) {
+__debug_optimize(3) int tolower(const C_TYPE c) {
     if (!isupper(c)) {
         return c;
     }
@@ -260,7 +260,7 @@ __optimize(3) int tolower(const C_TYPE c) {
     return c + 32;
 }
 
-__optimize(3) int toupper(const C_TYPE c) {
+__debug_optimize(3) int toupper(const C_TYPE c) {
     if (!islower(c)) {
         return c;
     }

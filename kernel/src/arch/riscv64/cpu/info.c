@@ -32,16 +32,16 @@ struct cpus_info g_cpus_info = {
     .timebase_frequency = 0
 };
 
-__optimize(3) void cpu_init() {
+__debug_optimize(3) void cpu_init() {
     this_cpu_mut()->hart_id = boot_get_smp()->bsp_hartid;
     list_add(&g_cpu_list, &this_cpu_mut()->cpu_list);
 }
 
-__optimize(3) const struct cpu_info *base_cpu() {
+__debug_optimize(3) const struct cpu_info *base_cpu() {
     return &g_base_cpu_info;
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc cpu info");
@@ -63,11 +63,11 @@ struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     return cpu;
 }
 
-__optimize(3) bool cpu_in_bad_state() {
+__debug_optimize(3) bool cpu_in_bad_state() {
     return this_cpu()->in_exception;
 }
 
-__optimize(3) struct cpu_info *cpu_for_hartid(const uint16_t hart_id) {
+__debug_optimize(3) struct cpu_info *cpu_for_hartid(const uint16_t hart_id) {
     struct cpu_info *iter = NULL;
     list_foreach(iter, &g_cpu_list, cpu_list) {
         if (iter->hart_id == hart_id) {
@@ -78,6 +78,6 @@ __optimize(3) struct cpu_info *cpu_for_hartid(const uint16_t hart_id) {
     return NULL;
 }
 
-__optimize(3) const struct cpus_info *get_cpus_info() {
+__debug_optimize(3) const struct cpus_info *get_cpus_info() {
     return &g_cpus_info;
 }

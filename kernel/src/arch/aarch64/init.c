@@ -15,7 +15,7 @@
 
 #define QEMU_SERIAL_PHYS 0x9000000
 
-__optimize(3) void arch_early_init() {
+__debug_optimize(3) void arch_early_init() {
 #if !defined(AARCH64_USE_16K_PAGES)
     const struct acpi_spcr *const spcr =
         (const struct acpi_spcr *)acpi_lookup_sdt("SPCR");
@@ -37,13 +37,13 @@ __optimize(3) void arch_early_init() {
 #endif /* !defined(AARCH64_USE_16K_PAGES) */
 }
 
-__optimize(3) void arch_post_mm_init() {
+__debug_optimize(3) void arch_post_mm_init() {
 #if !defined(AARCH64_USE_16K_PAGES)
     mm_remove_early_identity_map();
 #endif /* !defined(AARCH64_USE_16K_PAGES) */
 }
 
-__optimize(3) void arch_init() {
+__debug_optimize(3) void arch_init() {
     cpu_init();
     mm_arch_init();
 

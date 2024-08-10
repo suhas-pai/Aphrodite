@@ -24,7 +24,7 @@ volatile struct lapic_registers *lapic_regs = NULL;
 
 static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
 
-__optimize(3) static inline uint32_t
+__debug_optimize(3) static inline uint32_t
 create_timer_register(const enum lapic_timer_mode timer_mode,
                       const uint8_t vector,
                       const bool masked)
@@ -93,23 +93,23 @@ static void calibrate_timer() {
     enable_irqs_if_flag(flag);
 }
 
-__optimize(3) uint32_t x2apic_read(const enum x2apic_reg reg) {
+__debug_optimize(3) uint32_t x2apic_read(const enum x2apic_reg reg) {
     return msr_read(IA32_MSR_X2APIC_BASE + reg);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void x2apic_write(const enum x2apic_reg reg, const uint64_t value) {
     msr_write(IA32_MSR_X2APIC_BASE + reg, value);
 }
 
-__optimize(3) void adjust_lint_extint_value(uint64_t *const value_in) {
+__debug_optimize(3) void adjust_lint_extint_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_EXTINT << 8;
     const uint64_t remove_mask = 0b111 << 8 | 1 << 12 | 1 << 14 | 1 << 16;
 
     *value_in = rm_mask(*value_in, remove_mask) | add_mask;
 }
 
-__optimize(3) void adjust_lint_nmi_value(uint64_t *const value_in) {
+__debug_optimize(3) void adjust_lint_nmi_value(uint64_t *const value_in) {
     const uint64_t add_mask = APIC_LVT_DELIVERY_MODE_NMI << 8;
     *value_in = rm_mask(*value_in, 0b111 << 8 | 1 << 15) | add_mask;
 }
@@ -158,7 +158,7 @@ void lapic_enable() {
     printk(LOGLEVEL_INFO, "apic: lapic enabled\n");
 }
 
-__optimize(3) void lapic_eoi() {
+__debug_optimize(3) void lapic_eoi() {
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_EOI, 0);
     } else if (__builtin_expect(lapic_regs != NULL, 1)) {
@@ -166,7 +166,7 @@ __optimize(3) void lapic_eoi() {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 void lapic_send_ipi(const uint32_t lapic_id, const uint32_t vector) {
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_ICR, (uint64_t)lapic_id << 32 | vector);
@@ -176,7 +176,7 @@ void lapic_send_ipi(const uint32_t lapic_id, const uint32_t vector) {
     }
 }
 
-__optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
+__debug_optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_SELF_IPI, vector);
     } else {
@@ -188,7 +188,7 @@ __optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     }
 }
 
-__optimize(3) void lapic_timer_stop() {
+__debug_optimize(3) void lapic_timer_stop() {
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, 0);
         x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER,
@@ -204,7 +204,7 @@ __optimize(3) void lapic_timer_stop() {
     }
 }
 
-__optimize(3) usec_t lapic_timer_remaining() {
+__debug_optimize(3) usec_t lapic_timer_remaining() {
     preempt_disable();
     const uint64_t lapic_timer_freq_in_microseconds =
         this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
@@ -219,7 +219,7 @@ __optimize(3) usec_t lapic_timer_remaining() {
            / lapic_timer_freq_in_microseconds;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
     // LAPIC-Timer Frequency is in Hz, which is cycles per second, while we need
     // cycles per microseconds

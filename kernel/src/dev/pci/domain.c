@@ -15,7 +15,7 @@
 static struct array g_domain_list = ARRAY_INIT(sizeof(struct pci_domain *));
 static struct spinlock g_domain_lock = SPINLOCK_INIT();
 
-__optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
+__debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
     const int flag = spin_acquire_save_irq(&g_domain_lock);
     const bool result = array_append(&g_domain_list, &domain);
 
@@ -23,7 +23,7 @@ __optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
     return result;
 }
 
-__optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
+__debug_optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
     uint32_t index = 0;
     const int flag = spin_acquire_save_irq(&g_domain_lock);
 
@@ -42,17 +42,17 @@ __optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
     return false;
 }
 
-__optimize(3)
+__debug_optimize(3)
 const struct array *pci_get_domain_list_locked(int *const flag_out) {
     *flag_out = spin_acquire_save_irq(&g_domain_lock);
     return &g_domain_list;
 }
 
-__optimize(3) void pci_release_domain_list_lock(const int flag) {
+__debug_optimize(3) void pci_release_domain_list_lock(const int flag) {
     spin_release_restore_irq(&g_domain_lock, flag);
 }
 
-__optimize(3) uint8_t
+__debug_optimize(3) uint8_t
 pci_domain_read_8(const struct pci_domain *const domain,
                   const struct pci_location *const loc,
                   const uint16_t offset)
@@ -72,7 +72,7 @@ pci_domain_read_8(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) uint16_t
+__debug_optimize(3) uint16_t
 pci_domain_read_16(const struct pci_domain *const domain,
                    const struct pci_location *const loc,
                    const uint16_t offset)
@@ -92,7 +92,7 @@ pci_domain_read_16(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 pci_domain_read_32(const struct pci_domain *const domain,
                    const struct pci_location *const loc,
                    const uint16_t offset)
@@ -112,7 +112,7 @@ pci_domain_read_32(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 pci_domain_read_64(const struct pci_domain *const domain,
                    const struct pci_location *const loc,
                    const uint16_t offset)
@@ -132,7 +132,7 @@ pci_domain_read_64(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_domain_write_8(const struct pci_domain *const domain,
                    const struct pci_location *const loc,
                    const uint16_t offset,
@@ -156,7 +156,7 @@ pci_domain_write_8(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_domain_write_16(const struct pci_domain *const domain,
                     const struct pci_location *const loc,
                     const uint16_t offset,
@@ -180,7 +180,7 @@ pci_domain_write_16(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_domain_write_32(const struct pci_domain *const domain,
                     const struct pci_location *const loc,
                     const uint16_t offset,
@@ -204,7 +204,7 @@ pci_domain_write_32(const struct pci_domain *const domain,
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_domain_write_64(const struct pci_domain *const domain,
                     const struct pci_location *const loc,
                     const uint16_t offset,

@@ -9,7 +9,7 @@
 #include "convert.h"
 #include "ctype.h"
 
-__optimize(3) enum str_to_num_result
+__debug_optimize(3) enum str_to_num_result
 convert_cstr_to_64int(const char *string,
                       const struct str_to_num_options options,
                       const bool is_signed,
@@ -190,7 +190,7 @@ convert_cstr_to_64int(const char *string,
         found_digit = true;
         if (__builtin_expect(
                 !check_mul(*result_out, base, result_out)
-                || !check_add(*result_out, digit, result_out), 0))
+             || !check_add(*result_out, digit, result_out), 0))
         {
             return E_STR_TO_NUM_OVERFLOW;
         }
@@ -217,7 +217,7 @@ convert_cstr_to_64int(const char *string,
     return E_STR_TO_NUM_OK;
 }
 
-__optimize(3) enum str_to_num_result
+__debug_optimize(3) enum str_to_num_result
 convert_sv_to_64int(struct string_view sv,
                     const struct str_to_num_options options,
                     const bool is_signed,
@@ -397,7 +397,7 @@ convert_sv_to_64int(struct string_view sv,
         found_digit = true;
         if (__builtin_expect(
                 !check_mul(*result_out, base, result_out)
-                || !check_add(*result_out, digit, result_out), 0))
+             || !check_add(*result_out, digit, result_out), 0))
         {
             return E_STR_TO_NUM_OVERFLOW;
         }
@@ -511,7 +511,7 @@ sv_to_signed(const struct string_view sv,
         }                                                                      \
     } while (false)
 
-__optimize(3) struct string_view
+__debug_optimize(3) struct string_view
 unsigned_to_string_view(uint64_t number,
                         const enum numeric_base base,
                         char buffer[static const MAX_CONVERT_CAP],
@@ -602,7 +602,7 @@ unsigned_to_string_view(uint64_t number,
         }                                                                      \
     } while (false)
 
-__optimize(3) struct string_view
+__debug_optimize(3) struct string_view
 signed_to_string_view(int64_t number,
                       const enum numeric_base base,
                       char buffer[static const MAX_CONVERT_CAP],

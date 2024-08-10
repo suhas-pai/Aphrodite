@@ -76,7 +76,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                     const uint64_t virt_addr,
                     const struct pgmap_options *options);
 
-__optimize(3) static void
+__debug_optimize(3) static void
 finish_split_info(struct pt_walker *const walker,
                   struct current_split_info *const curr_split,
                   struct pageop *const pageop,
@@ -196,10 +196,10 @@ override_pte(struct pt_walker *const walker,
 
     uint64_t phys_addr = phys_begin + *offset_in;
     if (!is_alloc_mapping
-        && pte_to_phys(entry, level) == phys_addr
-        && (pte_is_large(entry) ?
-                pte_flags_equal(entry, walker->level, options->large_pte_flags)
-                : pte_flags_equal(entry, walker->level, options->leaf_pte_flags)))
+     && pte_to_phys(entry, level) == phys_addr
+     && (pte_is_large(entry) ?
+            pte_flags_equal(entry, walker->level, options->large_pte_flags)
+            : pte_flags_equal(entry, walker->level, options->leaf_pte_flags)))
     {
         *offset_in += PAGE_SIZE_AT_LEVEL(walker->level);
         if (*offset_in >= size) {
@@ -238,14 +238,15 @@ override_pte(struct pt_walker *const walker,
     return OVERRIDE_OK;
 }
 
-__optimize(3) static inline struct page *virt_to_table(const void *const ptr) {
+__debug_optimize(3)
+static inline struct page *virt_to_table(const void *const ptr) {
     struct page *const page = virt_to_page(ptr);
     assert(page_get_state(page) == PAGE_STATE_TABLE);
 
     return page;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 get_leaf_pte_count_until_next_large(
     const struct range addr_range,
     const uint64_t addr,
@@ -325,7 +326,7 @@ get_leaf_pte_count_until_next_large(
     return PAGE_COUNT(largepage_addr - addr);
 }
 
-__optimize(3) static pgt_level_t
+__debug_optimize(3) static pgt_level_t
 find_highest_possible_level(struct pt_walker *const walker,
                             const uint64_t supports_largepage_at_level_mask,
                             const struct range addr_range,
@@ -368,7 +369,7 @@ find_highest_possible_level(struct pt_walker *const walker,
 
         const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
         if (!has_align(addr_range.front + offset, largepage_size)
-            || offset + largepage_size > addr_range.size)
+         || offset + largepage_size > addr_range.size)
         {
             continue;
         }
@@ -386,7 +387,7 @@ find_highest_possible_level(struct pt_walker *const walker,
     return highest_possible_level;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 write_ptes_at_level(
     struct pt_walker *const walker,
     pgt_level_t level,
@@ -459,7 +460,7 @@ write_ptes_at_level(
     return phys_addr;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 write_ptes_down_from_level(
     struct pt_walker *const walker,
     pgt_level_t level,
@@ -685,9 +686,8 @@ pgmap_at(struct pagemap *const pagemap,
 
             const pte_t entry = pte_read(pte);
             if (phys_range.front >= offset
-                && pte_to_phys(entry, walker.level) ==
-                    (phys_range.front - offset)
-                && pte_flags_equal(entry, walker.level, options->leaf_pte_flags))
+             && pte_to_phys(entry, walker.level) == (phys_range.front - offset)
+             && pte_flags_equal(entry, walker.level, options->leaf_pte_flags))
             {
                 offset =
                     walker_virt_addr + PAGE_SIZE_AT_LEVEL(walker.level)
@@ -747,7 +747,7 @@ pgmap_at(struct pagemap *const pagemap,
     return result;
 }
 
-__optimize(3) static inline enum pgmap_alloc_result
+__debug_optimize(3) static inline enum pgmap_alloc_result
 alloc_ptes_at_level(
     struct pt_walker *const walker,
     pgt_level_t level,
@@ -845,7 +845,7 @@ alloc_ptes_at_level(
     return E_PGMAP_ALLOC_OK;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 alloc_ptes_down_from_level(
     struct pt_walker *const walker,
     pgt_level_t level,

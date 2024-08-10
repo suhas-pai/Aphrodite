@@ -9,7 +9,7 @@
 #include "string.h"
 
 #if !defined(BUILD_TEST) && !defined(BUILD_KERNEL)
-__optimize(3) size_t strlen(const char *str) {
+__debug_optimize(3) size_t strlen(const char *str) {
     size_t result = 0;
 
     const char *iter = str;
@@ -18,7 +18,7 @@ __optimize(3) size_t strlen(const char *str) {
     return result;
 }
 
-__optimize(3) size_t strnlen(const char *const str, const size_t limit) {
+__debug_optimize(3) size_t strnlen(const char *const str, const size_t limit) {
     size_t result = 0;
 
     const char *iter = str;
@@ -28,7 +28,7 @@ __optimize(3) size_t strnlen(const char *const str, const size_t limit) {
     return result;
 }
 
-__optimize(3) int strcmp(const char *const str1, const char *const str2) {
+__debug_optimize(3) int strcmp(const char *const str1, const char *const str2) {
     const char *iter = str1;
     const char *jter = str2;
 
@@ -38,7 +38,7 @@ __optimize(3) int strcmp(const char *const str1, const char *const str2) {
     return ch - jch;
 }
 
-__optimize(3)
+__debug_optimize(3)
 int strncmp(const char *str1, const char *const str2, const size_t length) {
     const char *iter = str1;
     const char *jter = str2;
@@ -53,7 +53,7 @@ int strncmp(const char *str1, const char *const str2, const size_t length) {
     return ch - jch;
 }
 
-__optimize(3) char *strchr(const char *const str, const int ch) {
+__debug_optimize(3) char *strchr(const char *const str, const int ch) {
     c_string_foreach (str, iter) {
         if (*iter == ch) {
         #pragma GCC diagnostic push
@@ -72,7 +72,7 @@ __optimize(3) char *strchr(const char *const str, const int ch) {
     #define REP_MIN 128
 #endif /* defined(__x86_64__) */
 
-__optimize(3) void *memset_ones(void *dst, unsigned long n) {
+__debug_optimize(3) void *memset_ones(void *dst, unsigned long n) {
     void *ret = dst;
 
 #if defined(__x86_64__)

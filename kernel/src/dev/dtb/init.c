@@ -128,6 +128,6 @@ void dtb_init() {
     printk(LOGLEVEL_INFO, "dtb: finished initializing\n");
 }
 
-__optimize(3) struct devicetree *dtb_get_tree() {
+__debug_optimize(3) struct devicetree *dtb_get_tree() {
     return &g_device_tree;
 }

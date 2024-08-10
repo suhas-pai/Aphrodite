@@ -8,7 +8,7 @@
 #include "lib/overflow.h"
 #include "lib/util.h"
 
-__optimize(3) bool
+__debug_optimize(3) bool
 range_create_and_verify(const uint64_t base,
                         const uint64_t size,
                         struct range *const out)
@@ -22,24 +22,24 @@ range_create_and_verify(const uint64_t base,
     return true;
 }
 
-__optimize(3) struct range range_create_upto(const uint64_t size) {
+__debug_optimize(3) struct range range_create_upto(const uint64_t size) {
     return RANGE_INIT(0, size);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct range range_create_end(const uint64_t front, const uint64_t end) {
     assert(front <= end);
     return RANGE_INIT(front, (end - front));
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 range_multiply(const struct range range,
                const uint64_t mult,
                struct range *const result_out)
 {
     struct range result = RANGE_EMPTY();
     if (!check_mul(range.front, mult, &result.front)
-        || !check_mul(range.size, mult, &result.size))
+     || !check_mul(range.size, mult, &result.size))
     {
         return false;
     }
@@ -48,31 +48,31 @@ range_multiply(const struct range range,
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct range range_divide(const struct range range, const uint64_t div) {
     assert(div != 0);
     return RANGE_INIT(range.front / div, range.size / div);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct range range_divide_out(const struct range range, const uint64_t div) {
     assert(div != 0);
     return RANGE_INIT(range.front / div, div_round_up(range.size, div));
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct range range_from_index(const struct range range, const uint64_t index) {
     assert(range_has_index(range, index));
     return RANGE_INIT(range.front + index, range.size - index);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct range range_from_loc(const struct range range, const uint64_t loc) {
     assert(range_has_loc(range, loc));
     return RANGE_INIT(loc, range.size - (loc - range.front));
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 range_align_in(const struct range range,
                const uint64_t boundary,
                struct range *const result_out)
@@ -95,7 +95,7 @@ range_align_in(const struct range range,
     return true;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 range_align_out(const struct range range,
                 const uint64_t boundary,
                 struct range *const result_out)
@@ -109,7 +109,7 @@ range_align_out(const struct range range,
     return true;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 range_round_up(const struct range range,
                const uint64_t mult,
                struct range *const result_out)
@@ -118,7 +118,7 @@ range_round_up(const struct range range,
     uint64_t size = 0;
 
     if (!round_up(range.front, mult, &front)
-        || !round_up(range.size, mult, &size))
+     || !round_up(range.size, mult, &size))
     {
         return false;
     }
@@ -129,7 +129,7 @@ range_round_up(const struct range range,
     return true;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 range_round_up_subrange(const struct range range,
                         const uint64_t mult,
                         struct range *const result_out)
@@ -150,66 +150,68 @@ range_round_up_subrange(const struct range range,
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_has_index(const struct range range, const uint64_t index) {
     return index_in_bounds(index, range.size);
 }
 
-__optimize(3) bool range_has_loc(const struct range range, const uint64_t loc) {
+__debug_optimize(3)
+bool range_has_loc(const struct range range, const uint64_t loc) {
     return loc >= range.front && (loc - range.front) < range.size;
 }
 
-__optimize(3) bool range_has_end(const struct range range, const uint64_t end) {
+__debug_optimize(3)
+bool range_has_end(const struct range range, const uint64_t end) {
     return end > range.front && (end - range.front) <= range.size;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_get_end(const struct range range, uint64_t *const end_out) {
     return check_add(range.front, range.size, end_out);
 }
 
-__optimize(3) bool range_overflows(const struct range range) {
+__debug_optimize(3) bool range_overflows(const struct range range) {
     uint64_t result = 0;
     return !check_add(range.front, range.size, &result);
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_above(const struct range range, const struct range above) {
     return range_is_loc_above(range, above.front);
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_below(const struct range range, const struct range below) {
     return range_is_loc_below(range, below.front);
 }
 
-__optimize(3) bool range_empty(const struct range range) {
+__debug_optimize(3) bool range_empty(const struct range range) {
     return range.size == 0;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_is_loc_above(const struct range range, const uint64_t loc) {
     return loc >= range.front && (loc - range.front) >= range.size;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_is_loc_below(const struct range range, const uint64_t loc) {
     return loc < range.front;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_has_align(const struct range range, const uint64_t align) {
     return has_align(range.front, align) && has_align(range.size, align);
 }
 
-__optimize(3) uint64_t range_get_end_assert(const struct range range) {
+__debug_optimize(3) uint64_t range_get_end_assert(const struct range range) {
     uint64_t result = 0;
     assert(range_get_end(range, &result));
 
     return result;
 }
 
-__optimize(3) struct range
+__debug_optimize(3) struct range
 subrange_from_index(const struct range range, const uint64_t index) {
     assert(range_has_index(range, index));
     const struct range result = {
@@ -220,7 +222,7 @@ subrange_from_index(const struct range range, const uint64_t index) {
     return result;
 }
 
-__optimize(3) struct range
+__debug_optimize(3) struct range
 subrange_to_full(const struct range range, const struct range index) {
     assert(range_has_index_range(range, index));
     const struct range result = {
@@ -231,19 +233,19 @@ subrange_to_full(const struct range range, const struct range index) {
     return result;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t range_loc_for_index(const struct range range, const uint64_t index) {
     assert(range_has_index(range, index));
     return range.front + index;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t range_index_for_loc(const struct range range, const uint64_t loc) {
     assert(range_has_loc(range, loc));
     return loc - range.front;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_has(const struct range range, const struct range other) {
     if (!range_has_loc(range, other.front)) {
         return false;
@@ -257,7 +259,7 @@ bool range_has(const struct range range, const struct range other) {
     return range.size - index >= other.size;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_has_index_range(struct range range, struct range other) {
     if (!range_has_index(range, other.front)) {
         return false;
@@ -266,8 +268,8 @@ bool range_has_index_range(struct range range, struct range other) {
     return range.size - other.front >= other.size;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool range_overlaps(const struct range range, const struct range other) {
     return range_has_loc(range, other.front)
-           || range_has_loc(other, range.front);
+        || range_has_loc(other, range.front);
 }

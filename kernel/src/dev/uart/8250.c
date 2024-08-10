@@ -57,7 +57,7 @@ struct uart8250_info {
 static struct uart8250_info early_infos[8] = {};
 static uint16_t early_info_count = 0;
 
-__optimize(3) static inline uint32_t
+__debug_optimize(3) static inline uint32_t
 get_reg(const port_t uart8250_base,
         struct uart8250_info *const info,
         const uint32_t num)
@@ -75,7 +75,7 @@ get_reg(const port_t uart8250_base,
     verify_not_reached();
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 set_reg(const port_t uart8250_base,
         struct uart8250_info *const info,
         const uint32_t num,
@@ -99,7 +99,7 @@ set_reg(const port_t uart8250_base,
 
 #define MAX_ATTEMPTS 10
 
-__optimize(3) static void
+__debug_optimize(3) static void
 uart8250_putc(const port_t base,
               struct uart8250_info *const info,
               const char ch)
@@ -112,7 +112,7 @@ uart8250_putc(const port_t base,
     }
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 uart8250_send_char(struct terminal *const term,
                    const char ch,
                    const uint32_t amount)
@@ -127,7 +127,7 @@ uart8250_send_char(struct terminal *const term,
     spin_release_restore_irq(&info->lock, flag);
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 uart8250_send_sv(struct terminal *const term, const struct string_view sv) {
     struct uart8250_info *const info = (struct uart8250_info *)term;
     const int flag = spin_acquire_save_irq(&info->lock);

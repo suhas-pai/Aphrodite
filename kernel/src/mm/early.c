@@ -57,7 +57,8 @@ static struct list g_asc_freelist = LIST_INIT(g_asc_freelist);
 static uint64_t g_total_free_pages = 0;
 static uint64_t g_total_free_pages_remaining = 0;
 
-__optimize(3) static void add_to_asc_list(struct freepages_info *const info) {
+__debug_optimize(3)
+static void add_to_asc_list(struct freepages_info *const info) {
     struct freepages_info *iter = NULL;
     struct freepages_info *prev =
         container_of(&g_asc_freelist, struct freepages_info, asc_list);
@@ -73,7 +74,8 @@ __optimize(3) static void add_to_asc_list(struct freepages_info *const info) {
     list_add(&prev->asc_list, &info->asc_list);
 }
 
-__optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
+__debug_optimize(3)
+static void claim_pages(const struct mm_memmap *const memmap) {
 #if defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES)
     struct range phys_range = memmap->range;
     if (!range_align_in(phys_range, PAGE_SIZE, &phys_range)) {
@@ -156,7 +158,7 @@ __optimize(3) static void claim_pages(const struct mm_memmap *const memmap) {
     add_to_asc_list(info);
 }
 
-__optimize(3) uint64_t early_alloc_page() {
+__debug_optimize(3) uint64_t early_alloc_page() {
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");
         return INVALID_PHYS;
@@ -183,7 +185,7 @@ __optimize(3) uint64_t early_alloc_page() {
     return free_page;
 }
 
-__optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
+__debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");
         return INVALID_PHYS;
@@ -287,7 +289,7 @@ __optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
 __hidden uint64_t KERNEL_BASE = 0;
 __hidden uint64_t structpage_page_count = 0;
 
-__optimize(3) void mm_early_init() {
+__debug_optimize(3) void mm_early_init() {
     const uint64_t memmap_count = mm_get_memmap_count();
     for (uint64_t index = 0; index != memmap_count; index++) {
         const struct mm_memmap *const memmap = &mm_get_memmap_list()[index];
@@ -320,7 +322,7 @@ __optimize(3) void mm_early_init() {
     }
 }
 
-__optimize(3) void mm_init() {
+__debug_optimize(3) void mm_init() {
     printk(LOGLEVEL_INFO, "mm: hhdm at %p\n", (void *)HHDM_OFFSET);
     printk(LOGLEVEL_INFO, "mm: kernel at %p\n", (void *)KERNEL_BASE);
 
@@ -379,12 +381,12 @@ __optimize(3) void mm_init() {
            SIZE_UNIT_FMT_ARGS_ABBREV(g_total_free_pages * PAGE_SIZE));
 }
 
-__optimize(3) static inline void init_table_page(struct page *const page) {
+__debug_optimize(3) static inline void init_table_page(struct page *const page) {
     list_init(&page->table.delayed_free_list);
     refcount_init(&page->table.refcount);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
 #if PAGEMAP_HAS_SPLIT_ROOT
     init_table_page(virt_to_page(kernel_process.pagemap.lower_root));
@@ -536,7 +538,7 @@ static pgt_level_t g_mapped_early_top_level = 0;
 static uint64_t g_mapped_early_phys = 0;
 static uint64_t g_mapped_early_root_phys = 0;
 
-__optimize(3) void
+__debug_optimize(3) void
 mm_early_identity_map_phys(const uint64_t root_phys,
                            const uint64_t phys,
                            const uint64_t pte_flags)
@@ -572,7 +574,7 @@ mm_early_identity_map_phys(const uint64_t root_phys,
     g_mapped_early_identity = true;
 }
 
-__optimize(3) void mm_remove_early_identity_map() {
+__debug_optimize(3) void mm_remove_early_identity_map() {
     if (!g_mapped_early_identity) {
         return;
     }
@@ -600,7 +602,7 @@ __optimize(3) void mm_remove_early_identity_map() {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 static void mark_crucial_pages(const struct page_section *const memmap) {
     struct freepages_info *iter = NULL;
     list_foreach(iter, &g_asc_freelist, asc_list) {
@@ -683,7 +685,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
     }
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 set_section_for_pages(const struct page_section *const memmap,
                       const page_section_t section)
 {
@@ -717,7 +719,7 @@ set_section_for_pages(const struct page_section *const memmap,
     }
 }
 
-__optimize(3) static uint64_t free_all_pages() {
+__debug_optimize(3) static uint64_t free_all_pages() {
     struct freepages_info *iter = NULL;
     struct freepages_info *tmp = NULL;
 
@@ -800,7 +802,7 @@ __optimize(3) static uint64_t free_all_pages() {
 
 extern struct page_section *boot_add_section_at(struct page_section *section);
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 split_section_at_boundary(struct page_section *const section,
                           struct page_zone *const zone,
                           const uint64_t boundary)
@@ -817,7 +819,7 @@ split_section_at_boundary(struct page_section *const section,
     page_section_init(new_section, zone, new_section_range, new_section_pfn);
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 uint64_t find_boundary_for_section_split(struct page_section *const section) {
     struct page_zone *const zone = section->zone;
 
@@ -836,7 +838,7 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
     return align_up_assert(search_front, PAGE_SIZE);
 }
 
-__optimize(3) static inline void split_sections_for_zones() {
+__debug_optimize(3) static inline void split_sections_for_zones() {
     struct page_section *const section_list = mm_get_page_section_list();
     for (uint8_t i = 0; i != mm_get_section_count(); i++) {
         struct page_section *const section = section_list + i;
@@ -858,7 +860,7 @@ __optimize(3) static inline void split_sections_for_zones() {
     }
 }
 
-__optimize(3) static inline void setup_zone_section_list() {
+__debug_optimize(3) static inline void setup_zone_section_list() {
     struct page_section *const begin = mm_get_page_section_list();
     const struct page_section *const end = begin + mm_get_section_count();
 

@@ -6,7 +6,7 @@
 #include "lib/macros.h"
 #include "freq.h"
 
-__optimize(3)
+__debug_optimize(3)
 struct string_view freq_units_to_sv(const enum freq_unit_kind kind) {
     switch (kind) {
     #define UNIT_KIND_CASE(name)                                               \
@@ -27,7 +27,7 @@ struct string_view freq_units_to_sv(const enum freq_unit_kind kind) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct string_view freq_units_to_sv_abbrev(const enum freq_unit_kind kind) {
     switch (kind) {
     #define UNIT_KIND_CASE(name)                                               \
@@ -48,7 +48,7 @@ struct string_view freq_units_to_sv_abbrev(const enum freq_unit_kind kind) {
     verify_not_reached();
 }
 
-__optimize(3) enum freq_unit_kind freq_to_units(uint64_t size) {
+__debug_optimize(3) enum freq_unit_kind freq_to_units(uint64_t size) {
     enum freq_unit_kind kind = FREQ_UNIT_KIND_HZ;
     while (size >= khz(1)) {
         size /= khz(1);

@@ -148,7 +148,8 @@ nvme_queue_create(struct nvme_queue *const queue,
     return true;
 }
 
-__optimize(3) uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
+__debug_optimize(3)
+uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
     const int flag = spin_acquire_save_irq(&queue->lock);
     const uint16_t result = queue->cmd_identifier;
 
@@ -161,7 +162,7 @@ __optimize(3) uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
     return result;
 }
 
-__optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
+__debug_optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     if (queue->phys_region_page_list != NULL) {
         phalloc_free(virt_to_phys(queue->phys_region_page_list));
 

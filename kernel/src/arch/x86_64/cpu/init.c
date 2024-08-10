@@ -436,11 +436,11 @@ static void init_cpuid_features() {
            xsave_get_compacted_size());
 }
 
-__optimize(3) const struct cpu_capabilities *get_cpu_capabilities() {
+__debug_optimize(3) const struct cpu_capabilities *get_cpu_capabilities() {
     return &g_cpu_capabilities;
 }
 
-__optimize(3) void cpu_early_init() {
+__debug_optimize(3) void cpu_early_init() {
     write_gsbase_early((uint64_t)&kernel_main_thread);
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)&kernel_main_thread);
 

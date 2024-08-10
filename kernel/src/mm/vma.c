@@ -8,7 +8,7 @@
 #include "kmalloc.h"
 #include "pagemap.h"
 
-__optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
+__debug_optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_prev(&vma->node);
     if (node == NULL) {
         return NULL;
@@ -17,7 +17,7 @@ __optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
     return container_of(node, struct vm_area, node);
 }
 
-__optimize(3) struct vm_area *vma_next(struct vm_area *const vma) {
+__debug_optimize(3) struct vm_area *vma_next(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_next(&vma->node);
     if (node == NULL) {
         return NULL;
@@ -48,22 +48,24 @@ vma_alloc(struct pagemap *const pagemap,
 struct vm_area *
 vma_create(struct pagemap *const pagemap,
            const struct range in_range,
-           const uint64_t phys,
-           const uint64_t size,
+           struct range phys_range,
            const uint64_t align,
            const prot_t prot,
            const enum vma_cachekind cachekind)
 {
-    assert(has_align(phys, PAGE_SIZE));
-
-    const struct range range = range_create_upto(size);
-    struct vm_area *const vma = vma_alloc(pagemap, range, prot, cachekind);
+    assert(range_has_align(phys_range, PAGE_SIZE));
+    struct vm_area *const vma = vma_alloc(pagemap, phys_range, prot, cachekind);
 
     if (vma == NULL) {
         return NULL;
     }
 
-    if (!pagemap_find_space_and_add_vma(pagemap, vma, in_range, phys, align)) {
+    if (!pagemap_find_space_and_add_vma(pagemap,
+                                        vma,
+                                        in_range,
+                                        phys_range.front,
+                                        align))
+    {
         kfree(vma);
         return NULL;
     }
@@ -91,6 +93,6 @@ vma_create_at(struct pagemap *const pagemap,
     return vma;
 }
 
-__optimize(3) struct pagemap *vma_pagemap(struct vm_area *const vma) {
+__debug_optimize(3) struct pagemap *vma_pagemap(struct vm_area *const vma) {
     return container_of(vma->node.addrspace, struct pagemap, addrspace);
 }

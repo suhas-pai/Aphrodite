@@ -18,7 +18,7 @@ void arch_post_mm_init() {
 
 }
 
-__optimize(3) void arch_init() {
+__debug_optimize(3) void arch_init() {
     gdt_load();
     idt_init();
     cpu_init();

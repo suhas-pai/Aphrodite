@@ -291,7 +291,7 @@ disable_msi_intr(struct gic_its_info *const its,
     return true;
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 gic_its_alloc_msi_vector(struct gic_its_info *const its,
                          struct device *const device,
                          const uint16_t msi_index)
@@ -331,7 +331,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     return vector;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 gic_its_free_msi_vector(struct gic_its_info *const its,
                         struct device *const device,
                         const isr_vector_t vector,
@@ -345,7 +345,7 @@ gic_its_free_msi_vector(struct gic_its_info *const its,
     spin_release_restore_irq(&its->bitset_lock, flag);
 }
 
-__optimize(3)
+__debug_optimize(3)
 volatile uint64_t *gic_its_get_msi_address(struct gic_its_info *const its) {
     volatile struct gic_its_registers *const regs =
         (volatile struct gic_its_registers *)its->phys_addr;
@@ -563,7 +563,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
     return info;
 }
 
-__optimize(3) struct list *gic_its_get_list() {
+__debug_optimize(3) struct list *gic_its_get_list() {
     return &g_list;
 }
 

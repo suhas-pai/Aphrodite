@@ -6,7 +6,7 @@
 #include "node.h"
 #define DEVICETREE_PROP_MAP_BUCKET_COUNT 6
 
-__optimize(3) void
+__debug_optimize(3) void
 devicetree_node_init_fields(struct devicetree_node *const node,
                             struct devicetree_node *const parent,
                             const struct string_view name,
@@ -24,7 +24,7 @@ devicetree_node_init_fields(struct devicetree_node *const node,
     node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 devicetree_prop_other_get_u32(const struct devicetree_prop_other *const prop,
                               uint32_t *const result_out)
 {
@@ -58,13 +58,13 @@ devicetree_prop_other_get_u32_list(
     return true;
 }
 
-__optimize(3) struct string_view
+__debug_optimize(3) struct string_view
 devicetree_prop_other_get_sv(const struct devicetree_prop_other *const prop) {
     const char *const ptr = (const char *)prop->data;
     return sv_create_length(ptr, strnlen(ptr, prop->data_length));
 }
 
-__optimize(3) const struct devicetree_prop *
+__debug_optimize(3) const struct devicetree_prop *
 devicetree_node_get_prop(const struct devicetree_node *const node,
                          const enum devicetree_prop_kind kind)
 {
@@ -78,7 +78,7 @@ devicetree_node_get_prop(const struct devicetree_node *const node,
     return NULL;
 }
 
-__optimize(3) const struct devicetree_prop_other *
+__debug_optimize(3) const struct devicetree_prop_other *
 devicetree_node_get_other_prop(const struct devicetree_node *const node,
                                const struct string_view name)
 {
@@ -95,7 +95,7 @@ devicetree_node_get_other_prop(const struct devicetree_node *const node,
     return NULL;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 devicetree_node_has_compat_sv(const struct devicetree_node *const node,
                               const struct string_view sv)
 {
@@ -110,7 +110,7 @@ devicetree_node_has_compat_sv(const struct devicetree_node *const node,
     return false;
 }
 
-__optimize(3) static bool
+__debug_optimize(3) static bool
 fdt_stringlist_contains_sv(const char *strlist,
                            uint32_t listlen,
                            const struct string_view sv)
@@ -132,7 +132,7 @@ fdt_stringlist_contains_sv(const char *strlist,
     return false;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 devicetree_prop_compat_has_sv(const struct devicetree_prop_compat *const prop,
                               const struct string_view sv)
 {

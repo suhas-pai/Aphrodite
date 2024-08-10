@@ -180,12 +180,12 @@ typedef uint32_t xsave_feat_mask_t;
 #define __XSAVE_FEAT_MASK(feat) (1ull << (feat))
 #define XSAVE_FEATURE_MASK_FMT PRIx32
 
-__optimize(3)
+__debug_optimize(3)
 static inline void xsave_feat_disable(const enum xsave_feature feat) {
     msr_write(IA32_MSR_XFD, msr_read(IA32_MSR_XFD) | __XSAVE_FEAT_MASK(feat));
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void xsave_feat_enable(const enum xsave_feature feat) {
     msr_write(IA32_MSR_XFD,
               rm_mask(msr_read(IA32_MSR_XFD), __XSAVE_FEAT_MASK(feat)));
@@ -197,7 +197,7 @@ bool xsave_feat_has_aligned_offset(enum xsave_feature feat);
 int16_t xsave_feat_get_offset(uint64_t xcmo_bv, const enum xsave_feature feat);
 uint16_t xsave_get_compacted_size();
 
-__optimize(3)
+__debug_optimize(3)
 static inline const char *xsave_feat_get_string(const enum xsave_feature feat) {
     switch (feat) {
         case XSAVE_FEAT_X87:
@@ -243,30 +243,32 @@ static inline const char *xsave_feat_get_string(const enum xsave_feature feat) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void xsave_set_supervisor_features(const uint32_t features) {
     msr_write(IA32_MSR_XSS, msr_read(IA32_MSR_XSS) | features);
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void xsave_set_user_features(const uint32_t features) {
     const uint64_t xcr = read_xcr(XCR_XSTATE_FEATURES_ENABLED);
     write_xcr(XCR_XSTATE_FEATURES_ENABLED, xcr | features);
 }
 
-__optimize(3) static inline void xsave_user_into(void *const buffer) {
+__debug_optimize(3) static inline void xsave_user_into(void *const buffer) {
     asm volatile ("xsave (%0)" :: "a"(buffer));
 }
 
-__optimize(3) static inline void xsave_supervisor_into(void *const buffer) {
+__debug_optimize(3)
+static inline void xsave_supervisor_into(void *const buffer) {
     asm volatile ("xsaves (%0)" :: "a"(buffer));
 }
 
-__optimize(3) static inline void xrstor_user_from(const void *const buffer) {
+__debug_optimize(3)
+static inline void xrstor_user_from(const void *const buffer) {
     asm volatile ("xrstor (%0)" :: "a"(buffer));
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void xrstor_supervisor_from(const void *const buffer) {
     asm volatile ("xrstors (%0)" :: "a"(buffer));
 }

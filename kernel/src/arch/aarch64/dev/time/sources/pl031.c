@@ -92,7 +92,7 @@ init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-__optimize(3) sec_t pl031_get_wallclock() {
+__debug_optimize(3) sec_t pl031_get_wallclock() {
     assert_msg(g_mmio != NULL, "pl031_get_wallclock(): pl031 device not found");
     return mmio_read(&g_header->data);
 }

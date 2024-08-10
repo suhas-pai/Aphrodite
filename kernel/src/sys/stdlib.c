@@ -15,7 +15,7 @@
 #include "lib/macros.h"
 #include "lib/string.h"
 
-__optimize(3) size_t strlen(const char *const str) {
+__debug_optimize(3) size_t strlen(const char *const str) {
     size_t result = 0;
 
     const char *iter = str;
@@ -24,7 +24,7 @@ __optimize(3) size_t strlen(const char *const str) {
     return result;
 }
 
-__optimize(3) size_t strnlen(const char *const str, const size_t limit) {
+__debug_optimize(3) size_t strnlen(const char *const str, const size_t limit) {
     size_t result = 0;
 
     const char *iter = str;
@@ -37,7 +37,7 @@ __optimize(3) size_t strnlen(const char *const str, const size_t limit) {
     return result;
 }
 
-__optimize(3) int strcmp(const char *const str1, const char *const str2) {
+__debug_optimize(3) int strcmp(const char *const str1, const char *const str2) {
     const char *iter = str1;
     const char *jter = str2;
 
@@ -47,7 +47,7 @@ __optimize(3) int strcmp(const char *const str1, const char *const str2) {
     return ch - jch;
 }
 
-__optimize(3)
+__debug_optimize(3)
 int strncmp(const char *str1, const char *const str2, const size_t length) {
     const char *iter = str1;
     const char *jter = str2;
@@ -62,7 +62,7 @@ int strncmp(const char *str1, const char *const str2, const size_t length) {
     return 0;
 }
 
-__optimize(3) char *strchr(const char *const str, const int ch) {
+__debug_optimize(3) char *strchr(const char *const str, const int ch) {
     c_string_foreach (str, iter) {
         if (*iter == ch) {
         #pragma GCC diagnostic push
@@ -75,7 +75,7 @@ __optimize(3) char *strchr(const char *const str, const int ch) {
     return NULL;
 }
 
-__optimize(3) char *strrchr(const char *const str, const int ch) {
+__debug_optimize(3) char *strrchr(const char *const str, const int ch) {
     char *result = NULL;
     c_string_foreach (str, iter) {
         if (*iter == ch) {
@@ -91,7 +91,7 @@ __optimize(3) char *strrchr(const char *const str, const int ch) {
 
 // TODO: Fix
 #define DECL_MEM_CMP_FUNC(type)                                                \
-    __optimize(3) static inline int                                            \
+    __debug_optimize(3) static inline int                                            \
     VAR_CONCAT(_memcmp_, type)(const void *left,                               \
                                const void *right,                              \
                                size_t len,                                     \
@@ -121,7 +121,7 @@ __optimize(3) char *strrchr(const char *const str, const int ch) {
         return 0;                                                              \
     }
 
-__optimize(3) static inline int
+__debug_optimize(3) static inline int
 _memcmp_uint64_t(const void *left,
                  const void *right,
                  size_t len,
@@ -198,7 +198,7 @@ DECL_MEM_CMP_FUNC(uint16_t)
 DECL_MEM_CMP_FUNC(uint32_t)
 
 #define DECL_MEM_COPY_FUNC(type) \
-    __optimize(3) static inline unsigned long \
+    __debug_optimize(3) static inline unsigned long \
     VAR_CONCAT(_memcpy_, type)(void *dst,                  \
                                const void *src,            \
                                unsigned long n,            \
@@ -222,7 +222,7 @@ DECL_MEM_CMP_FUNC(uint32_t)
         return n;                                                              \
     }
 
-__optimize(3) static inline unsigned long
+__debug_optimize(3) static inline unsigned long
 _memcpy_uint64_t(void *dst,
                  const void *src,
                  unsigned long n,
@@ -279,7 +279,7 @@ DECL_MEM_COPY_FUNC(uint8_t)
 DECL_MEM_COPY_FUNC(uint16_t)
 DECL_MEM_COPY_FUNC(uint32_t)
 
-__optimize(3) int memcmp(const void *left, const void *right, size_t len) {
+__debug_optimize(3) int memcmp(const void *left, const void *right, size_t len) {
     int res = _memcmp_uint64_t(left, right, len, &left, &right, &len);
     if (res != 0) {
         return res;
@@ -303,7 +303,7 @@ __optimize(3) int memcmp(const void *left, const void *right, size_t len) {
     #define REP_MOVSB_MIN 16
 #endif /* defined(__x86_64__) */
 
-__optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
+__debug_optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
     void *ret = dst;
 #if defined(__x86_64__)
     if (n >= REP_MOVSB_MIN) {
@@ -339,7 +339,7 @@ __optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
 }
 
 #define DECL_MEM_COPY_BACK_FUNC(type) \
-    __optimize(3) static inline unsigned long  \
+    __debug_optimize(3) static inline unsigned long  \
     VAR_CONCAT(_memcpy_bw_, type)(void *const dst, \
                                   const void *const src, \
                                   const unsigned long n) \
@@ -361,7 +361,7 @@ __optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
         return n;                                                              \
     }
 
-__optimize(3) static inline unsigned long
+__debug_optimize(3) static inline unsigned long
 _memcpy_bw_uint64_t(void *const dst,
                     const void *const src,
                     const unsigned long n)
@@ -417,7 +417,7 @@ DECL_MEM_COPY_BACK_FUNC(uint8_t)
 DECL_MEM_COPY_BACK_FUNC(uint16_t)
 DECL_MEM_COPY_BACK_FUNC(uint32_t)
 
-__optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
+__debug_optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     void *ret = dst;
     if (src > dst) {
     #if defined(__x86_64__)
@@ -485,7 +485,7 @@ __optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     #define REP_MIN 48
 #endif /* defined(__x86_64__) */
 
-__optimize(3) void *memset(void *dst, const int val, unsigned long n) {
+__debug_optimize(3) void *memset(void *dst, const int val, unsigned long n) {
     void *ret = dst;
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
@@ -548,7 +548,7 @@ __optimize(3) void *memset(void *dst, const int val, unsigned long n) {
     return ret;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void *memchr(const void *const ptr, const int ch, const size_t count) {
     const uint8_t *const end = ptr + count;
     for (const uint8_t *iter = (const uint8_t *)ptr; iter != end; iter++) {
@@ -560,7 +560,7 @@ void *memchr(const void *const ptr, const int ch, const size_t count) {
     return NULL;
 }
 
-__optimize(3) void bzero(void *dst, unsigned long n) {
+__debug_optimize(3) void bzero(void *dst, unsigned long n) {
 #if defined(__x86_64__)
     if (n >= REP_MIN) {
         asm volatile ("cld\n"

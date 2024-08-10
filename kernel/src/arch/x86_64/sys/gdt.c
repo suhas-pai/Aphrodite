@@ -174,11 +174,11 @@ static struct gdt_register g_gdt_reg = {
     .gdt = &g_gdt
 };
 
-__optimize(3) uint16_t gdt_get_kernel_code_segment() {
+__debug_optimize(3) uint16_t gdt_get_kernel_code_segment() {
     return KERNEL_CODE_64_INDEX * sizeof(struct gdt_descriptor);
 }
 
-__optimize(3) uint16_t gdt_get_user_data_segment() {
+__debug_optimize(3) uint16_t gdt_get_user_data_segment() {
     return USER_DATA_64_INDEX * sizeof(struct gdt_descriptor);
 }
 

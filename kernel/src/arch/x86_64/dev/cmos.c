@@ -9,7 +9,7 @@
 #include "cmos.h"
 #include "pio.h"
 
-__optimize(3)
+__debug_optimize(3)
 static inline void select_cmos_register(const enum cmos_register reg) {
     pio_write8(PIO_PORT_CMOS_REGISTER_SELECT, rm_mask(reg, 1 << 7));
 
@@ -23,7 +23,7 @@ static inline void select_cmos_register(const enum cmos_register reg) {
     cpu_pause();
 }
 
-__optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
+__debug_optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
     const bool flag = disable_irqs_if_enabled();
 
     // Note: We have to select the cmos register every time as reading/writing
@@ -36,7 +36,7 @@ __optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
     return result;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void cmos_write(const enum cmos_register reg, const uint8_t data) {
     const bool flag = disable_irqs_if_enabled();
 

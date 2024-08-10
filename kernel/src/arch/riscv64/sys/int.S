@@ -133,7 +133,5 @@ isr_interrupt_entry:
     ld t5, 248(sp)
     ld t6, 256(sp)
 
-    sc.d zero, zero, 0(sp)
     ld sp, 16(sp)
-
     sret

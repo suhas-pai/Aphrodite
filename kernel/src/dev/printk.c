@@ -14,12 +14,12 @@
 
 static struct terminal *_Atomic g_first_term = NULL;
 
-__optimize(3) void printk_add_terminal(struct terminal *const term) {
+__debug_optimize(3) void printk_add_terminal(struct terminal *const term) {
     atomic_store(&term->next, g_first_term);
     atomic_store(&g_first_term, term);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void printk(const enum log_level loglevel, const char *const string, ...) {
     va_list list;
     (void)loglevel;
@@ -30,7 +30,7 @@ void printk(const enum log_level loglevel, const char *const string, ...) {
 }
 
 // FIXME: Allocate a formatted-string over this approach
-__optimize(3) static uint32_t
+__debug_optimize(3) static uint32_t
 write_char(struct printf_spec_info *const spec_info,
            void *const cb_info,
            const char ch,
@@ -51,7 +51,7 @@ write_char(struct printf_spec_info *const spec_info,
     return amount;
 }
 
-__optimize(3) static uint32_t
+__debug_optimize(3) static uint32_t
 write_sv(struct printf_spec_info *const spec_info,
          void *const cb_info,
          const struct string_view sv,
@@ -71,11 +71,12 @@ write_sv(struct printf_spec_info *const spec_info,
     return sv.length;
 }
 
-__optimize(3) void putk(const enum log_level level, const char *const string) {
+__debug_optimize(3)
+void putk(const enum log_level level, const char *const string) {
     putk_sv(level, sv_create_length(string, strlen(string)));
 }
 
-__optimize(3)
+__debug_optimize(3)
 void putk_sv(const enum log_level level, const struct string_view sv) {
     (void)level;
     for (struct terminal *term = atomic_load(&g_first_term);
@@ -86,7 +87,7 @@ void putk_sv(const enum log_level level, const struct string_view sv) {
     }
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 vprintk(const enum log_level loglevel, const char *const string, va_list list) {
     (void)loglevel;
     static struct spinlock lock = SPINLOCK_INIT();

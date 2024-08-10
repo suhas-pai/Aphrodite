@@ -10,7 +10,7 @@ struct va_list_struct {
     va_list list;
 };
 
-__optimize(3) static bool
+__debug_optimize(3) static bool
 parse_flags(struct printf_spec_info *const curr_spec,
             const char *iter,
             const char **const iter_out)
@@ -47,7 +47,7 @@ done:
     return true;
 }
 
-__optimize(3) static inline int
+__debug_optimize(3) static inline int
 read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
     int result = 0;
     c_string_foreach(c_str, iter) {
@@ -59,7 +59,7 @@ read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
 
         if (__builtin_expect(
                 !check_mul(result, 10, &result)
-                || !check_add(result, digit, &result), 0))
+             || !check_add(result, digit, &result), 0))
         {
             *iter_out = iter;
             return -1;
@@ -69,7 +69,7 @@ read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
     return result;
 }
 
-__optimize(3) static bool
+__debug_optimize(3) static bool
 parse_width(struct printf_spec_info *const curr_spec,
             struct va_list_struct *const list_struct,
             const char *iter,
@@ -98,7 +98,7 @@ parse_width(struct printf_spec_info *const curr_spec,
     return true;
 }
 
-__optimize(3) static bool
+__debug_optimize(3) static bool
 parse_precision(struct printf_spec_info *const curr_spec,
                 const char *iter,
                 struct va_list_struct *const list_struct,
@@ -140,7 +140,7 @@ parse_precision(struct printf_spec_info *const curr_spec,
     return true;
 }
 
-__optimize(3) static bool
+__debug_optimize(3) static bool
 parse_length(struct printf_spec_info *const curr_spec,
              const char *iter,
              const char **const iter_out,
@@ -266,7 +266,7 @@ enum handle_spec_result {
     E_HANDLE_SPEC_CONTINUE
 };
 
-__optimize(3) static enum handle_spec_result
+__debug_optimize(3) static enum handle_spec_result
 handle_spec(struct printf_spec_info *const curr_spec,
             char *const buffer,
             uint64_t number,
@@ -478,7 +478,7 @@ handle_spec(struct printf_spec_info *const curr_spec,
     return E_HANDLE_SPEC_OK;
 }
 
-__optimize(3) static inline bool is_int_specifier(const char spec) {
+__debug_optimize(3) static inline bool is_int_specifier(const char spec) {
     switch (spec) {
         case 'b':
         case 'B':
@@ -494,7 +494,7 @@ __optimize(3) static inline bool is_int_specifier(const char spec) {
     return false;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 write_prefix_for_spec(struct printf_spec_info *const info,
                       const printf_write_char_callback_t write_ch_cb,
                       void *const ch_cb_info,
@@ -528,7 +528,7 @@ write_prefix_for_spec(struct printf_spec_info *const info,
     return out;
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 pad_with_lead_zeros(struct printf_spec_info *const info,
                     struct string_view *const parsed,
                     const uint64_t zero_count,
@@ -580,7 +580,7 @@ pad_with_lead_zeros(struct printf_spec_info *const info,
     return out;
 }
 
-__optimize(3) static inline uint64_t
+__debug_optimize(3) static inline uint64_t
 call_cb(struct printf_spec_info *const info,
         const struct string_view sv,
         const printf_write_char_callback_t write_char_cb,
@@ -602,7 +602,7 @@ call_cb(struct printf_spec_info *const info,
     return write_sv_cb(info, sv_cb_info, sv, cont_out);
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 parse_printf(const char *const fmt,
              const printf_write_char_callback_t write_char_cb,
              void *const write_char_cb_info,
@@ -777,9 +777,9 @@ parse_printf(const char *const fmt,
         if (parsed_length < curr_spec.width) {
             const bool pad_with_zeros =
                 curr_spec.leftpad_zeros
-                && is_int_specifier(curr_spec.spec)
-                && curr_spec.precision == -1
-                && !curr_spec.left_justify; // Never left-justify with zeros.
+             && is_int_specifier(curr_spec.spec)
+             && curr_spec.precision == -1
+             && !curr_spec.left_justify; // Never left-justify with zeros.
 
             if (pad_with_zeros) {
                 // We're always resetting padded_zero_count if it was set before

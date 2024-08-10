@@ -40,39 +40,39 @@ struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
     },
 };
 
-__optimize(3) pgt_level_t pgt_get_top_level() {
+__debug_optimize(3) pgt_level_t pgt_get_top_level() {
     return 4;
 }
 
-__optimize(3) uint64_t sign_extend_virt_addr(const uint64_t virt) {
+__debug_optimize(3) uint64_t sign_extend_virt_addr(const uint64_t virt) {
     return sign_extend_from_index(virt, PML4_SHIFT + 8);
 }
 
-__optimize(3) bool pte_is_present(const pte_t pte) {
+__debug_optimize(3) bool pte_is_present(const pte_t pte) {
     return pte & __PTE_VALID;
 }
 
-__optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
+__debug_optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
     return level == 2 || level == 3;
 }
 
-__optimize(3) bool pte_is_large(const pte_t pte) {
+__debug_optimize(3) bool pte_is_large(const pte_t pte) {
     return pte & __PTE_LARGE;
 }
 
-__optimize(3) bool pte_is_dirty(const pte_t pte) {
+__debug_optimize(3) bool pte_is_dirty(const pte_t pte) {
     return pte & __PTE_DIRTY;
 }
 
-__optimize(3) pte_t pte_read(const pte_t *const pte) {
+__debug_optimize(3) pte_t pte_read(const pte_t *const pte) {
     return *(volatile const pte_t *)pte;
 }
 
-__optimize(3) void pte_write(pte_t *const pte, const pte_t value) {
+__debug_optimize(3) void pte_write(pte_t *const pte, const pte_t value) {
     *(volatile pte_t *)pte = value;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 pte_flags_equal(const pte_t pte, const pgt_level_t level, const uint64_t flags)
 {
     const uint64_t global_mask =

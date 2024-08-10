@@ -26,7 +26,7 @@ void isr_init() {
 
 }
 
-__optimize(3) isr_vector_t isr_alloc_vector() {
+__debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_save_irq(&g_lock);
     const uint64_t result =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
@@ -39,7 +39,7 @@ __optimize(3) isr_vector_t isr_alloc_vector() {
     return (isr_vector_t)result;
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     (void)device;
     (void)msi_index;
@@ -47,7 +47,7 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     return imsic_alloc_msg(RISCV64_PRIVL_SUPERVISOR);
 }
 
-__optimize(3) void isr_free_vector(const isr_vector_t vector) {
+__debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     const int flag = spin_acquire_save_irq(&g_lock);
 
     bitset_unset(g_bitset, vector);
@@ -56,7 +56,7 @@ __optimize(3) void isr_free_vector(const isr_vector_t vector) {
     spin_release_restore_irq(&g_lock, flag);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_free_msi_vector(struct device *const device,
                     const isr_vector_t vector,
                     const uint16_t msi_index)
@@ -67,11 +67,11 @@ isr_free_msi_vector(struct device *const device,
     imsic_free_msg(RISCV64_PRIVL_SUPERVISOR, vector);
 }
 
-__optimize(3) void isr_mask_irq(const isr_vector_t irq) {
+__debug_optimize(3) void isr_mask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
-__optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
+__debug_optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
@@ -87,7 +87,7 @@ void isr_eoi(const uint64_t int_no) {
 extern
 void handle_exception(const uint64_t vector, struct thread_context *frame);
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
 {
     const isr_vector_t code = cause & __SCAUSE_CODE;
@@ -177,14 +177,14 @@ isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
     (void)masked;
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
     (void)vector;
     return cpu->imsic_phys;
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msix_address(const struct cpu_info *const cpu,
                      const isr_vector_t vector)
 {
@@ -192,6 +192,6 @@ isr_get_msix_address(const struct cpu_info *const cpu,
     return cpu->imsic_phys;
 }
 
-__optimize(3) enum isr_msi_support isr_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     return ISR_MSI_SUPPORT_MSIX;
 }

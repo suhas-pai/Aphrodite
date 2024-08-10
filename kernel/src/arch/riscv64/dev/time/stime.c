@@ -10,14 +10,14 @@
 #include "lib/time.h"
 #include "sched/thread.h"
 
-__optimize(3) usec_t stime_get() {
+__debug_optimize(3) usec_t stime_get() {
     const usec_t ticks_per_micro =
         get_cpus_info()->timebase_frequency / MICRO_IN_SECONDS;
 
     return csr_read(time) / ticks_per_micro;
 }
 
-__optimize(3) void stimer_oneshot(const usec_t interval) {
+__debug_optimize(3) void stimer_oneshot(const usec_t interval) {
     csr_clear(sie, __INTR_SUPERVISOR_TIMER);
     const usec_t ticks_per_micro =
         get_cpus_info()->timebase_frequency / MICRO_IN_SECONDS;
@@ -34,7 +34,7 @@ __optimize(3) void stimer_oneshot(const usec_t interval) {
     csr_set(sie, __INTR_SUPERVISOR_TIMER);
 }
 
-__optimize(3) void stimer_stop() {
+__debug_optimize(3) void stimer_stop() {
     csr_clear(sie, __INTR_SUPERVISOR_TIMER);
     csr_write(stimecmp, 0);
 }

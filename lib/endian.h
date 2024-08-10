@@ -14,18 +14,18 @@ typedef uint16_t be16_t;
 typedef uint32_t be32_t;
 typedef uint64_t be64_t;
 
-__optimize(3) static inline uint16_t swap_endian_16(const uint16_t num) {
+__debug_optimize(3) static inline uint16_t swap_endian_16(const uint16_t num) {
     return (num << 8) | (num >> 8);
 }
 
-__optimize(3) static inline uint32_t swap_endian_32(const uint32_t num) {
+__debug_optimize(3) static inline uint32_t swap_endian_32(const uint32_t num) {
     return ((num & 0xFF) << 24)
            | ((num & 0xFF00) << 8)
            | ((num & 0xFF0000) >> 8)
            | ((num & 0xFF000000) >> 24);
 }
 
-__optimize(3) static inline be64_t swap_endian_64(const uint64_t num) {
+__debug_optimize(3) static inline be64_t swap_endian_64(const uint64_t num) {
     return ((num & 0xFFULL) << 56)
            | ((num & 0xFF00ULL) << 40)
            | ((num & 0xFF0000ULL) << 24)
@@ -36,27 +36,27 @@ __optimize(3) static inline be64_t swap_endian_64(const uint64_t num) {
            | ((num & 0xFF00000000000000ULL) >> 56);
 }
 
-__optimize(3) static inline be16_t le16_to_be(const le16_t le) {
+__debug_optimize(3) static inline be16_t le16_to_be(const le16_t le) {
     return swap_endian_16(le);
 }
 
-__optimize(3) static inline be32_t le32_to_be(const le32_t le) {
+__debug_optimize(3) static inline be32_t le32_to_be(const le32_t le) {
     return swap_endian_32(le);
 }
 
-__optimize(3) static inline be64_t le64_to_be(const le64_t le) {
+__debug_optimize(3) static inline be64_t le64_to_be(const le64_t le) {
     return swap_endian_64(le);
 }
 
-__optimize(3) static inline le16_t be16_to_le(const be16_t be) {
+__debug_optimize(3) static inline le16_t be16_to_le(const be16_t be) {
     return swap_endian_16(be);
 }
 
-__optimize(3) static inline le32_t be32_to_le(const be32_t be) {
+__debug_optimize(3) static inline le32_t be32_to_le(const be32_t be) {
     return swap_endian_32(be);
 }
 
-__optimize(3) static inline le64_t be64_to_le(const be64_t be) {
+__debug_optimize(3) static inline le64_t be64_to_le(const be64_t be) {
     return swap_endian_64(be);
 }
 
@@ -73,99 +73,99 @@ __optimize(3) static inline le64_t be64_to_le(const be64_t be) {
         uint64_t: be64_to_le(num))
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    __optimize(3) static inline uint16_t le16_to_cpu(const le16_t le) {
+    __debug_optimize(3) static inline uint16_t le16_to_cpu(const le16_t le) {
         return le;
     }
 
-    __optimize(3) static inline uint32_t le32_to_cpu(const le32_t le) {
+    __debug_optimize(3) static inline uint32_t le32_to_cpu(const le32_t le) {
         return le;
     }
 
-    __optimize(3) static inline uint64_t le64_to_cpu(const le64_t le) {
+    __debug_optimize(3) static inline uint64_t le64_to_cpu(const le64_t le) {
         return le;
     }
 
-    __optimize(3) static inline uint16_t be16_to_cpu(const be16_t be) {
+    __debug_optimize(3) static inline uint16_t be16_to_cpu(const be16_t be) {
         return be16_to_le(be);
     }
 
-    __optimize(3) static inline uint32_t be32_to_cpu(const be32_t be) {
+    __debug_optimize(3) static inline uint32_t be32_to_cpu(const be32_t be) {
         return be32_to_le(be);
     }
 
-    __optimize(3) static inline uint64_t be64_to_cpu(const be64_t be) {
+    __debug_optimize(3) static inline uint64_t be64_to_cpu(const be64_t be) {
         return be64_to_le(be);
     }
 
-    __optimize(3) static inline le16_t cpu16_to_le(const uint16_t num) {
+    __debug_optimize(3) static inline le16_t cpu16_to_le(const uint16_t num) {
         return num;
     }
 
-    __optimize(3) static inline le32_t cpu32_to_le(const uint32_t num) {
+    __debug_optimize(3) static inline le32_t cpu32_to_le(const uint32_t num) {
         return num;
     }
 
-    __optimize(3) static inline le64_t cpu64_to_le(const uint64_t num) {
+    __debug_optimize(3) static inline le64_t cpu64_to_le(const uint64_t num) {
         return num;
     }
 
-    __optimize(3) static inline be16_t cpu16_to_be(const uint16_t num) {
+    __debug_optimize(3) static inline be16_t cpu16_to_be(const uint16_t num) {
         return be16_to_le(num);
     }
 
-    __optimize(3) static inline be32_t cpu32_to_be(const uint32_t num) {
+    __debug_optimize(3) static inline be32_t cpu32_to_be(const uint32_t num) {
         return be32_to_le(num);
     }
 
-    __optimize(3) static inline be64_t cpu64_to_be(const uint64_t num) {
+    __debug_optimize(3) static inline be64_t cpu64_to_be(const uint64_t num) {
         return be64_to_le(num);
     }
 #else
-    __optimize(3) static inline uint16_t be16_to_cpu(const be16_t be) {
+    __debug_optimize(3) static inline uint16_t be16_to_cpu(const be16_t be) {
         return be;
     }
 
-    __optimize(3) static inline uint32_t be32_to_cpu(const be32_t be) {
+    __debug_optimize(3) static inline uint32_t be32_to_cpu(const be32_t be) {
         return be;
     }
 
-    __optimize(3) static inline uint64_t be64_to_cpu(const be64_t be) {
+    __debug_optimize(3) static inline uint64_t be64_to_cpu(const be64_t be) {
         return be;
     }
 
-    __optimize(3) static inline uint16_t le16_to_cpu(const le16_t le) {
+    __debug_optimize(3) static inline uint16_t le16_to_cpu(const le16_t le) {
         return le16_to_be(le);
     }
 
-    __optimize(3) static inline uint32_t le32_to_cpu(const le32_t le) {
+    __debug_optimize(3) static inline uint32_t le32_to_cpu(const le32_t le) {
         return le32_to_be(le);
     }
 
-    __optimize(3) static inline uint64_t le64_to_cpu(const le64_t le) {
+    __debug_optimize(3) static inline uint64_t le64_to_cpu(const le64_t le) {
         return le64_to_be(le);
     }
 
-    __optimize(3) static inline le16_t cpu16_to_le(const uint16_t num) {
+    __debug_optimize(3) static inline le16_t cpu16_to_le(const uint16_t num) {
         return be16_to_le(num);
     }
 
-    __optimize(3) static inline le32_t cpu32_to_le(const uint32_t num) {
+    __debug_optimize(3) static inline le32_t cpu32_to_le(const uint32_t num) {
         return be32_to_le(num);
     }
 
-    __optimize(3) static inline le64_t cpu64_to_le(const uint64_t num) {
+    __debug_optimize(3) static inline le64_t cpu64_to_le(const uint64_t num) {
         return be64_to_le(num);
     }
 
-    __optimize(3) static inline be16_t cpu16_to_be(const uint16_t num) {
+    __debug_optimize(3) static inline be16_t cpu16_to_be(const uint16_t num) {
         return num;
     }
 
-    __optimize(3) static inline be32_t cpu32_to_be(const uint32_t num) {
+    __debug_optimize(3) static inline be32_t cpu32_to_be(const uint32_t num) {
         return num;
     }
 
-    __optimize(3) static inline be64_t cpu64_to_be(const uint64_t num) {
+    __debug_optimize(3) static inline be64_t cpu64_to_be(const uint64_t num) {
         return num;
     }
 #endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */

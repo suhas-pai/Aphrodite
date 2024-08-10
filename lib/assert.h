@@ -14,7 +14,7 @@
     #define assert_msg(cond, msg, ...) \
         if (__builtin_expect(!(cond), 0)) panic(msg "\n", ##__VA_ARGS__)
     #define assert_no_msg(cond) \
-        if (__builtin_expect(!(cond), 0)) panic("panic\n")
+        if (__builtin_expect(!(cond), 0)) panic("assertion failed\n")
 
     #if defined(DEBUG)
         #define verify_not_reached() panic("verify_not_reached()\n")

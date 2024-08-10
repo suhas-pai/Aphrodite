@@ -19,7 +19,7 @@ void sched_process_arch_info_init(struct process *const process) {
     (void)process;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 sched_thread_arch_info_init(struct thread *const thread,
                             const void *const entry)
 {

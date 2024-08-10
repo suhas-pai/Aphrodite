@@ -78,12 +78,12 @@ static void setup_from_dtb(const uint32_t hartid) {
 extern void isr_interrupt_entry();
 extern void sched_set_current_thread(struct thread *thread);
 
-__optimize(3) void cpu_early_init() {
+__debug_optimize(3) void cpu_early_init() {
     sched_set_current_thread(&kernel_main_thread);
     csr_write(stvec, (uint64_t)&isr_interrupt_entry);
 }
 
-__optimize(3) void cpu_init_from_dtb() {
+__debug_optimize(3) void cpu_init_from_dtb() {
     const struct limine_smp_response *const smp_resp = boot_get_smp();
     setup_from_dtb(smp_resp->bsp_hartid);
 }

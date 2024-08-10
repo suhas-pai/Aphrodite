@@ -57,7 +57,7 @@ bool pci_map_bar(struct pci_entity_bar_info *const bar) {
     return true;
 }
 
-__optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
+__debug_optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
     if (!bar->is_mmio) {
         printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on non-mmio bar\n");
         return false;
@@ -75,13 +75,13 @@ __optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
     return true;
 }
 
-__optimize(3) volatile void *
+__debug_optimize(3) volatile void *
 pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
     return bar->mmio->base + bar->index_in_mmio;
 }
 
 #if !defined(__x86_64__)
-    __optimize(3) static inline volatile void *
+    __debug_optimize(3) static inline volatile void *
     find_ptr_in_bus_resource(struct pci_entity_info *const entity,
                              const uint32_t offset)
     {
@@ -102,7 +102,7 @@ pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
     }
 #endif /* !defined(__x86_64__) */
 
-__optimize(3) uint8_t
+__debug_optimize(3) uint8_t
 pci_bar_read_u8(struct pci_entity_info *const entity,
                 struct pci_entity_bar_info *const bar,
                 const uint32_t offset)
@@ -130,7 +130,7 @@ pci_bar_read_u8(struct pci_entity_info *const entity,
 #endif /* !defined(__x86_64__) */
 }
 
-__optimize(3) uint16_t
+__debug_optimize(3) uint16_t
 pci_bar_read_u16(struct pci_entity_info *const entity,
                  struct pci_entity_bar_info *const bar,
                  const uint32_t offset)
@@ -158,7 +158,7 @@ pci_bar_read_u16(struct pci_entity_info *const entity,
 #endif /* !defined(__x86_64__) */
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 pci_bar_read_u32(struct pci_entity_info *const entity,
                  struct pci_entity_bar_info *const bar,
                  const uint32_t offset)
@@ -186,7 +186,7 @@ pci_bar_read_u32(struct pci_entity_info *const entity,
 #endif /* !defined(__x86_64__) */
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 pci_bar_read_u64(struct pci_entity_info *const entity,
                  struct pci_entity_bar_info *const bar,
                  const uint32_t offset)
@@ -221,7 +221,7 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
 #endif /* defined(__x86_64__) */
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_bar_write_u8(struct pci_entity_info *const entity,
                  struct pci_entity_bar_info *const bar,
                  const uint32_t offset,
@@ -250,7 +250,7 @@ pci_bar_write_u8(struct pci_entity_info *const entity,
     }
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_bar_write_u16(struct pci_entity_info *const entity,
                   struct pci_entity_bar_info *const bar,
                   const uint32_t offset,
@@ -279,7 +279,7 @@ pci_bar_write_u16(struct pci_entity_info *const entity,
     }
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_bar_write_u32(struct pci_entity_info *const entity,
                   struct pci_entity_bar_info *const bar,
                   const uint32_t offset,
@@ -308,7 +308,7 @@ pci_bar_write_u32(struct pci_entity_info *const entity,
     }
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_bar_write_u64(struct pci_entity_info *const entity,
                   struct pci_entity_bar_info *const bar,
                   const uint32_t offset,

@@ -15,6 +15,6 @@ static struct ahci_hba_device g_device = {
     .supports_staggered_spinup = false,
 };
 
-__optimize(3) struct ahci_hba_device *ahci_hba_get() {
+__debug_optimize(3) struct ahci_hba_device *ahci_hba_get() {
     return &g_device;
 }

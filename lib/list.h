@@ -22,12 +22,12 @@ struct slist {
 #define LIST_INIT(lvalue) { .prev = &(lvalue), .next = &(lvalue) }
 #define SLIST_INIT(lvalue) { .prev = &(lvalue) }
 
-__optimize(3) static inline void list_init(struct list *const head) {
+__debug_optimize(3) static inline void list_init(struct list *const head) {
     head->prev = head;
     head->next = head;
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 list_add_common(struct list *const elem,
                 struct list *const prev,
                 struct list *const next)
@@ -40,14 +40,14 @@ list_add_common(struct list *const elem,
 }
 
 // Add to front of list
-__optimize(3)
+__debug_optimize(3)
 static inline void list_add(struct list *const head, struct list *const item) {
     list_add_common(item, head, head->next);
 }
 
 typedef int (*list_add_inorder_compare_t)(struct list *head, struct list *item);
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 list_add_inorder(struct list *const head,
                  struct list *const item,
                  const list_add_inorder_compare_t compare)
@@ -64,7 +64,7 @@ list_add_inorder(struct list *const head,
     list_add(prev, item);
 }
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 slist_add(struct slist *const head,
           struct slist *const tail,
           struct slist *const item)
@@ -74,20 +74,21 @@ slist_add(struct slist *const head,
 }
 
 // Add to back of list
-__optimize(3)
+__debug_optimize(3)
 static inline void list_radd(struct list *const head, struct list *const item) {
     list_add_common(item, head->prev, head);
 }
 
-__optimize(3) static inline bool list_empty(const struct list *const list) {
+__debug_optimize(3)
+static inline bool list_empty(const struct list *const list) {
     return list == list->prev;
 }
 
-__optimize(3) static inline bool slist_empty(struct slist *const list) {
+__debug_optimize(3) static inline bool slist_empty(struct slist *const list) {
     return list == list->next;
 }
 
-__optimize(3) static inline void list_remove(struct list *const elem) {
+__debug_optimize(3) static inline void list_remove(struct list *const elem) {
     elem->next->prev = elem->prev;
     elem->prev->next = elem->next;
 
@@ -95,7 +96,7 @@ __optimize(3) static inline void list_remove(struct list *const elem) {
     elem->next = elem;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 void slist_remove(struct slist *const head, struct slist *const elem) {
     for (struct slist *iter = head->next; iter != head; iter = iter->next) {
         if (iter->next == elem) {
@@ -107,7 +108,7 @@ void slist_remove(struct slist *const head, struct slist *const elem) {
     verify_not_reached();
 }
 
-__optimize(3) static inline void list_deinit(struct list *const elem) {
+__debug_optimize(3) static inline void list_deinit(struct list *const elem) {
     elem->next->prev = elem->prev;
     elem->prev->next = elem->next;
 
@@ -115,7 +116,7 @@ __optimize(3) static inline void list_deinit(struct list *const elem) {
     elem->next = NULL;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 void slist_delete(struct slist *const head, struct slist *const elem) {
     for (struct slist *iter = head->next; iter != head; iter = iter->next) {
         if (iter->next == elem) {

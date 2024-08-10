@@ -6,14 +6,14 @@
 #include "mm/pagemap.h"
 #include "sched/thread.h"
 
-__optimize(3) struct thread *current_thread() {
+__debug_optimize(3) struct thread *current_thread() {
     struct thread *result = NULL;
     asm volatile ("move %0, $tp" : "=r"(result));
 
     return result;
 }
 
-__optimize(3) void sched_set_current_thread(struct thread *const thread) {
+__debug_optimize(3) void sched_set_current_thread(struct thread *const thread) {
     asm volatile ("move $tp, %0" :: "r"(thread));
 }
 

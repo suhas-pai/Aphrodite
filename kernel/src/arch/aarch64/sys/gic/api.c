@@ -13,7 +13,7 @@
 
 static uint32_t g_version = 0;
 
-__optimize(3) void gicd_mask_irq(const irq_number_t irq) {
+__debug_optimize(3) void gicd_mask_irq(const irq_number_t irq) {
     switch (g_version) {
         case 2:
             gicdv2_mask_irq(irq);
@@ -26,7 +26,7 @@ __optimize(3) void gicd_mask_irq(const irq_number_t irq) {
     verify_not_reached();
 }
 
-__optimize(3) void gicd_unmask_irq(const irq_number_t irq) {
+__debug_optimize(3) void gicd_unmask_irq(const irq_number_t irq) {
     switch (g_version) {
         case 2:
             gicdv2_unmask_irq(irq);
@@ -39,7 +39,7 @@ __optimize(3) void gicd_unmask_irq(const irq_number_t irq) {
     verify_not_reached();
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 gicd_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     switch (g_version) {
         case 2:
@@ -51,7 +51,7 @@ gicd_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 gicd_free_msi_vector(struct device *const device,
                      const isr_vector_t vector,
                      const uint16_t msi_index)
@@ -68,7 +68,7 @@ gicd_free_msi_vector(struct device *const device,
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicd_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     switch (g_version) {
         case 2:
@@ -82,7 +82,7 @@ void gicd_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 gicd_set_irq_trigger_mode(const irq_number_t irq,
                           const enum irq_trigger_mode mode)
 {
@@ -98,7 +98,7 @@ gicd_set_irq_trigger_mode(const irq_number_t irq,
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     switch (g_version) {
         case 2:
@@ -112,7 +112,7 @@ void gicd_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicd_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     switch (g_version) {
         case 2:
@@ -126,7 +126,7 @@ void gicd_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     verify_not_reached();
 }
 
-__optimize(3) void gicd_send_sipi(const uint8_t int_no) {
+__debug_optimize(3) void gicd_send_sipi(const uint8_t int_no) {
     switch (g_version) {
         case 2:
             gicdv2_send_sipi(int_no);
@@ -139,7 +139,7 @@ __optimize(3) void gicd_send_sipi(const uint8_t int_no) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 volatile uint64_t *gicd_get_msi_address(const isr_vector_t vector) {
     switch (g_version) {
         case 2:
@@ -151,7 +151,7 @@ volatile uint64_t *gicd_get_msi_address(const isr_vector_t vector) {
     verify_not_reached();
 }
 
-__optimize(3) enum isr_msi_support gicd_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support gicd_get_msi_support() {
     switch (g_version) {
         case 2:
             return gicdv2_get_msi_support();
@@ -162,7 +162,8 @@ __optimize(3) enum isr_msi_support gicd_get_msi_support() {
     verify_not_reached();
 }
 
-__optimize(3) irq_number_t gic_cpu_get_irq_number(uint8_t *const cpu_id_out) {
+__debug_optimize(3)
+irq_number_t gic_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     switch (g_version) {
         case 2:
             return gicv2_cpu_get_irq_number(cpu_id_out);
@@ -173,7 +174,7 @@ __optimize(3) irq_number_t gic_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     verify_not_reached();
 }
 
-__optimize(3) uint32_t gic_cpu_get_irq_priority() {
+__debug_optimize(3) uint32_t gic_cpu_get_irq_priority() {
     switch (g_version) {
         case 2:
             return gicv2_cpu_get_irq_priority();
@@ -184,7 +185,7 @@ __optimize(3) uint32_t gic_cpu_get_irq_priority() {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gic_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     switch (g_version) {
         case 2:
@@ -211,7 +212,7 @@ void gic_init_on_this_cpu(const struct range range) {
     verify_not_reached();
 }
 
-__optimize(3) void gic_set_version(const uint8_t version) {
+__debug_optimize(3) void gic_set_version(const uint8_t version) {
     g_version = version;
 }
 

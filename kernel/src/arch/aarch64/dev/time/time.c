@@ -26,30 +26,30 @@ enum cntv_ctl {
     __CNTV_CTL_ENABLE = 1 << 0,
 };
 
-__optimize(3) nsec_t system_timer_get_count_ns() {
+__debug_optimize(3) nsec_t system_timer_get_count_ns() {
     nsec_t timestamp = 0;
     asm volatile ("mrs %0, cntpct_el0" : "=r"(timestamp));
 
     return timestamp;
 }
 
-__optimize(3) nsec_t nsec_since_boot() {
+__debug_optimize(3) nsec_t nsec_since_boot() {
     return seconds_to_nano(system_timer_get_count_ns() / g_frequency -
                            (sec_t)boot_get_time());
 }
 
-__optimize(3) uint64_t system_timer_get_freq_ns() {
+__debug_optimize(3) uint64_t system_timer_get_freq_ns() {
     return g_frequency;
 }
 
-__optimize(3) nsec_t system_timer_get_compare_ns() {
+__debug_optimize(3) nsec_t system_timer_get_compare_ns() {
     nsec_t compare = 0;
     asm volatile ("mrs %0, cntp_cval_el0" : "=r"(compare));
 
     return compare;
 }
 
-__optimize(3) nsec_t system_timer_get_remaining_ns() {
+__debug_optimize(3) nsec_t system_timer_get_remaining_ns() {
     const nsec_t count = system_timer_get_count_ns();
     const nsec_t compare = system_timer_get_compare_ns();
 
@@ -60,16 +60,16 @@ __optimize(3) nsec_t system_timer_get_remaining_ns() {
     return (compare - count) / g_frequency;
 }
 
-__optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
+__debug_optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
     const usec_t tval = nano_to_seconds(check_mul_assert(g_frequency, nano));
     asm volatile ("msr cntp_tval_el0, %0" :: "r"(tval));
 }
 
-__optimize(3) void system_timer_stop_alarm() {
+__debug_optimize(3) void system_timer_stop_alarm() {
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 interrupt_handler(const uint64_t intr_no, struct thread_context *const frame) {
     sched_next(intr_no, frame);
 }

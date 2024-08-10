@@ -8,7 +8,7 @@
 #include "lib/list.h"
 #include "lib/time.h"
 
-#define SCHED_ROUND_ROBIN_DEF_TIMESLICE_US (usec_t)5000
+#define SCHED_BASIC_DEF_TIMESLICE_US (usec_t)5000
 
 struct sched_process_info {
 

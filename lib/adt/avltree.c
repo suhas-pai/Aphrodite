@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "avltree.h"
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 void avlnode_verify(struct avlnode *const node, struct avlnode *const parent) {
 #if defined (BUILD_TEST)
     if (node == NULL) {
@@ -25,7 +25,7 @@ void avlnode_verify(struct avlnode *const node, struct avlnode *const parent) {
 #endif /* defined(BUILD_TEST ) */
 }
 
-__optimize(3) static struct avlnode *
+__debug_optimize(3) static struct avlnode *
 go_up_parents(struct avlnode *node, uint32_t *const depth_level_in) {
     struct avlnode *parent = node->parent;
     uint32_t depth_level = *depth_level_in;
@@ -46,7 +46,7 @@ go_up_parents(struct avlnode *node, uint32_t *const depth_level_in) {
     return NULL;
 }
 
-__optimize(3) static bool
+__debug_optimize(3) static bool
 parent_has_next(struct avlnode *node,
                 const uint32_t node_depth_level,
                 const uint32_t depth_index)
@@ -62,7 +62,7 @@ parent_has_next(struct avlnode *node,
     return parent->left == node;
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 print_prefix_lines(struct avlnode *const current,
                    const avlnode_print_sv_cb_t print_sv_cb,
                    void *const cb_info,
@@ -146,7 +146,8 @@ avlnode_print(struct avlnode *const node,
     } while (true);
 }
 
-__optimize(3) static struct avlnode *rotate_left(struct avlnode *const node) {
+__debug_optimize(3)
+static struct avlnode *rotate_left(struct avlnode *const node) {
     avlnode_verify(node, node->parent);
 
     struct avlnode *const new_top = node->right;
@@ -172,7 +173,8 @@ __optimize(3) static struct avlnode *rotate_left(struct avlnode *const node) {
     return new_top;
 }
 
-__optimize(3) static struct avlnode *rotate_right(struct avlnode *const node) {
+__debug_optimize(3)
+static struct avlnode *rotate_right(struct avlnode *const node) {
     avlnode_verify(node, node->parent);
 
     struct avlnode *const new_top = node->left;
@@ -198,21 +200,22 @@ __optimize(3) static struct avlnode *rotate_right(struct avlnode *const node) {
     return new_top;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline uint32_t node_height(const struct avlnode *const node) {
     return node != NULL ? node->height : 0;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline int64_t node_balance(const struct avlnode *const node) {
     return (int64_t)node_height(node->right) - node_height(node->left);
 }
 
-__optimize(3) static inline void reset_node_height(struct avlnode *const node) {
+__debug_optimize(3)
+static inline void reset_node_height(struct avlnode *const node) {
     node->height = 1 + max(node_height(node->left), node_height(node->right));
 }
 
-__optimize(3) static inline struct avlnode **
+__debug_optimize(3) static inline struct avlnode **
 get_node_link(struct avlnode *const node, struct avltree *const tree) {
     struct avlnode *const parent = node->parent;
     if (parent != NULL) {
@@ -222,7 +225,7 @@ get_node_link(struct avlnode *const node, struct avltree *const tree) {
     return &tree->root;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 void avlnode_update(struct avlnode *const node, const avlnode_update_t update) {
     if (update != NULL) {
         update(node);
@@ -302,7 +305,7 @@ avltree_fixup(struct avltree *const tree,
     }
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 insert_at_loc(struct avltree *const tree,
               struct avlnode *const node,
               struct avlnode *const parent,
@@ -326,7 +329,7 @@ insert_at_loc(struct avltree *const tree,
     avltree_fixup(tree, parent, update);
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 avltree_insert(struct avltree *const tree,
                struct avlnode *const node,
                const avlnode_compare_t comparator,
@@ -357,7 +360,7 @@ avltree_insert(struct avltree *const tree,
     return true;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 avltree_insert_at_loc(struct avltree *const tree,
                       struct avlnode *const node,
                       struct avlnode *const parent,
@@ -367,7 +370,7 @@ avltree_insert_at_loc(struct avltree *const tree,
     insert_at_loc(tree, node, parent, link, update, /*added_node=*/NULL);
 }
 
-__optimize(3) struct avlnode *
+__debug_optimize(3) struct avlnode *
 avltree_delete(struct avltree *const tree,
                void *const key,
                const avlnode_compare_key_t comparator,
@@ -387,7 +390,7 @@ avltree_delete(struct avltree *const tree,
     return NULL;
 }
 
-__optimize(3) struct avlnode *avlnode_successor(struct avlnode *node) {
+__debug_optimize(3) struct avlnode *avlnode_successor(struct avlnode *node) {
     if (node->right != NULL) {
         node = node->right;
         while (node->left != NULL) {
@@ -485,7 +488,7 @@ avltree_delete_node(struct avltree *const tree,
     avltree_fixup(tree, parent, update);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct avlnode *avltree_leftmost(const struct avltree *const tree) {
     struct avlnode *node = tree->root;
     if (node == NULL) {
@@ -501,7 +504,7 @@ struct avlnode *avltree_leftmost(const struct avltree *const tree) {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct avlnode *avltree_rightmost(const struct avltree *const tree) {
     struct avlnode *node = tree->root;
     if (node == NULL) {
@@ -517,7 +520,7 @@ struct avlnode *avltree_rightmost(const struct avltree *const tree) {
     }
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 avltree_print(struct avltree *const tree,
               const avlnode_print_node_cb_t print_node_cb,
               const avlnode_print_sv_cb_t print_sv_cb,

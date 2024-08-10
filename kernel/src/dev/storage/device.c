@@ -41,12 +41,9 @@ parse_gpt_entries(struct storage_device *const device,
     do {
         const uint32_t read_size =
             min(entry_list_end - entry_list_start, device->lba_size);
-        const struct range entry_list_range =
-            RANGE_INIT(entry_list_start, read_size);
 
-        if (storage_device_read(device, entry_list, entry_list_range)
-                != read_size)
-        {
+        const struct range list_range = RANGE_INIT(entry_list_start, read_size);
+        if (storage_device_read(device, list_range, entry_list) != read_size) {
             kfree(entry_list);
             return false;
         }
@@ -58,14 +55,10 @@ parse_gpt_entries(struct storage_device *const device,
                 continue;
             }
 
-            const uint64_t lba_count = entry->end - entry->start;
-            if (lba_count == 0) {
-                continue;
-            }
-
+            const uint64_t lba_count = distance_incl(entry->start, entry->last);
             const struct range lba_range = RANGE_INIT(entry->start, lba_count);
-            struct range full_range = RANGE_EMPTY();
 
+            struct range full_range = RANGE_EMPTY();
             if (!range_multiply(lba_range, device->lba_size, &full_range)) {
                 continue;
             }
@@ -80,15 +73,11 @@ parse_gpt_entries(struct storage_device *const device,
                 sv_create_upto_length((const char *)entry->name,
                                       sizeof(entry->name));
 
-            struct string name = string_alloc(name_sv);
-            if (!partition_init(partition, name, device, full_range)) {
-                string_destroy(&name);
-                kfree(partition);
+            const struct string name = string_alloc(name_sv);
 
-                continue;
-            }
-
+            partition_init(partition, name, device, full_range);
             list_add(&device->partition_list, &partition->list);
+
             found_atleast_one = true;
         }
 
@@ -124,12 +113,9 @@ parse_mbr_entries(struct storage_device *const device,
             return false;
         }
 
-        if (!partition_init(partition, STRING_NULL(), device, full_range)) {
-            kfree(partition);
-            continue;
-        }
-
+        partition_init(partition, STRING_NULL(), device, full_range);
         list_add(&device->partition_list, &partition->list);
+
         found_atleast_one = true;
     }
 
@@ -137,28 +123,31 @@ parse_mbr_entries(struct storage_device *const device,
 }
 
 static bool identify_partitions(struct storage_device *const device) {
-    const struct range gpt_range =
-        RANGE_INIT(GPT_HEADER_LOCATION, sizeof(struct gpt_header));
+    {
+        const struct range range =
+            RANGE_INIT(GPT_HEADER_LOCATION, sizeof(struct gpt_header));
 
-    struct gpt_header gpt_header;
-    if (storage_device_read(device, &gpt_header, gpt_range) != gpt_range.size) {
-        return false;
+        struct gpt_header header;
+        if (storage_device_read(device, range, &header) != range.size) {
+            return false;
+        }
+
+        if (verify_gpt_header(&header)) {
+            return parse_gpt_entries(device, &header);
+        }
     }
+    {
+        const struct range range =
+            RANGE_INIT(MBR_HEADER_LOCATION, sizeof(struct mbr_header));
 
-    if (verify_gpt_header(&gpt_header)) {
-        return parse_gpt_entries(device, &gpt_header);
-    }
+        struct mbr_header header;
+        if (storage_device_read(device, range, &header) != range.size) {
+            return false;
+        }
 
-    const struct range mbr_range =
-        RANGE_INIT(MBR_HEADER_LOCATION, sizeof(struct mbr_header));
-
-    struct mbr_header mbr_header;
-    if (storage_device_read(device, &mbr_header, mbr_range) != mbr_range.size) {
-        return false;
-    }
-
-    if (verify_mbr_header(&mbr_header)) {
-        return parse_mbr_entries(device, &mbr_header);
+        if (verify_mbr_header(&header)) {
+            return parse_mbr_entries(device, &header);
+        }
     }
 
     return true;
@@ -217,7 +206,7 @@ storage_device_init(struct storage_device *const device,
     return found_atleast_one_fs;
 }
 
-__optimize(3) static inline void *
+__debug_optimize(3) static inline void *
 find_in_cache_or_read_block(struct storage_device *const device,
                             const uint64_t lba)
 {
@@ -246,8 +235,8 @@ find_in_cache_or_read_block(struct storage_device *const device,
 
 uint64_t
 storage_device_read(struct storage_device *const device,
-                    void *const buf,
-                    const struct range range)
+                    const struct range range,
+                    void *const buf)
 {
     uint64_t lba = range.front / device->lba_size;
     uint64_t block_offset = range.front % device->lba_size;
@@ -282,8 +271,8 @@ storage_device_read(struct storage_device *const device,
 
 uint64_t
 storage_device_write(struct storage_device *const device,
-                     const void *const buf,
-                     const struct range range)
+                     const struct range range,
+                     const void *const buf)
 {
     uint64_t lba = range.front / device->lba_size;
     uint64_t lba_offset = range.front % device->lba_size;

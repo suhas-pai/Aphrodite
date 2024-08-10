@@ -10,7 +10,7 @@
 
 #define DEVICETREE_PHANDLE_MAP_BUCKET_COUNT 10
 
-__optimize(3) struct devicetree *devicetree_alloc() {
+__debug_optimize(3) struct devicetree *devicetree_alloc() {
     struct devicetree_node *const root = kmalloc(sizeof(*root));
     if (root == NULL) {
         return NULL;
@@ -31,7 +31,7 @@ __optimize(3) struct devicetree *devicetree_alloc() {
     return tree;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 devicetree_init_fields(struct devicetree *const tree,
                        struct devicetree_node *const root)
 {
@@ -46,7 +46,7 @@ devicetree_init_fields(struct devicetree *const tree,
                      /*hash_cb_info=*/NULL);
 }
 
-__optimize(3) const struct devicetree_node *
+__debug_optimize(3) const struct devicetree_node *
 devicetree_get_node_for_phandle(const struct devicetree *const tree,
                                 const uint32_t phandle)
 {
@@ -212,7 +212,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
     }
 }
 
-__optimize(3) void devicetree_free(struct devicetree *const tree) {
+__debug_optimize(3) void devicetree_free(struct devicetree *const tree) {
     devicetree_node_free(tree->root);
     hashmap_destroy(&tree->phandle_map);
 

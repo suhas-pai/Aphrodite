@@ -69,7 +69,7 @@ enum xcr {
     XCR_XSTATE_FEATURES_IN_USE
 };
 
-__optimize(3) static inline uint64_t read_xcr(const enum xcr xcr) {
+__debug_optimize(3) static inline uint64_t read_xcr(const enum xcr xcr) {
     uint32_t eax = 0;
     uint32_t edx = 0;
 
@@ -77,7 +77,7 @@ __optimize(3) static inline uint64_t read_xcr(const enum xcr xcr) {
     return (uint64_t)edx << 32 | eax;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline void write_xcr(const enum xcr xcr, const uint64_t val) {
     asm volatile ("xsetbv"
                   :: "a"((uint32_t)val), "c"(xcr), "d"((uint32_t)(val >> 32))

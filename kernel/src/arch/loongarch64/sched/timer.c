@@ -9,18 +9,18 @@
 #include "sys/irqdef.h"
 #include "sys/timer.h"
 
-__optimize(3) void sched_timer_oneshot(const usec_t usec) {
+__debug_optimize(3) void sched_timer_oneshot(const usec_t usec) {
     timer_oneshot(usec);
 }
 
-__optimize(3) void sched_timer_stop() {
+__debug_optimize(3) void sched_timer_stop() {
     timer_stop();
 }
 
-__optimize(3) usec_t sched_timer_remaining() {
+__debug_optimize(3) usec_t sched_timer_remaining() {
     return timer_remaining();
 }
 
-__optimize(3) void sched_irq_eoi(const irq_number_t irq) {
+__debug_optimize(3) void sched_irq_eoi(const irq_number_t irq) {
     isr_eoi(irq);
 }

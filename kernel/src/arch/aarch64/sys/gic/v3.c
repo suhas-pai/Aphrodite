@@ -167,7 +167,7 @@ _Static_assert((PAGE_SIZE << GIC_REDIST_PENDING_ALLOC_ORDER)
                >= (GIC_ITS_MAX_LPIS_SUPPORTED * sizeof(uint64_t)),
                "GIC_REDIST_PENDING_ALLOC_ORDER is too low");
 
-__optimize(3)
+__debug_optimize(3)
 volatile struct gicv3_redist_registers *gic_redist_for_this_cpu() {
     volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
     volatile const struct gicv3_redist_registers *const end =
@@ -198,7 +198,7 @@ volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
     return g_dist_regs;
 }
 
-__optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
+__debug_optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
     const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
@@ -209,7 +209,7 @@ __optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
     enable_irqs_if_flag(flag);
 }
 
-__optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
+__debug_optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
     const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
@@ -220,7 +220,7 @@ __optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
     enable_irqs_if_flag(flag);
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 gicdv3_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     struct gic_its_info *its = NULL;
     list_foreach(its, gic_its_get_list(), list) {
@@ -233,7 +233,7 @@ gicdv3_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     return ISR_INVALID_VECTOR;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 gicdv3_free_msi_vector(struct device *const device,
                        const isr_vector_t vector,
                        const uint16_t msi_index)
@@ -244,7 +244,7 @@ gicdv3_free_msi_vector(struct device *const device,
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     if (irq < GIC_SPI_INTERRUPT_START) {
         printk(LOGLEVEL_WARN,
@@ -262,7 +262,7 @@ void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
                | affinity);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 gicdv3_set_irq_trigger_mode(const irq_number_t irq,
                             const enum irq_trigger_mode mode)
 {
@@ -306,7 +306,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
     enable_irqs_if_flag(flag);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
@@ -323,7 +323,7 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     enable_irqs_if_flag(flag);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint64_t value =
         (uint64_t)(uint8_t)(cpu->affinity >> 24) << ICC_SGI1R_AFF3_SHIFT
@@ -337,7 +337,7 @@ void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     isb();
 }
 
-__optimize(3) void gicdv3_send_sipi(const uint8_t int_no) {
+__debug_optimize(3) void gicdv3_send_sipi(const uint8_t int_no) {
     preempt_disable();
     const struct cpu_info *const cpu = this_cpu();
 
@@ -345,7 +345,7 @@ __optimize(3) void gicdv3_send_sipi(const uint8_t int_no) {
     preempt_enable();
 }
 
-__optimize(3)
+__debug_optimize(3)
 volatile uint64_t *gicdv3_get_msi_address(const isr_vector_t vector) {
     (void)vector;
 
@@ -358,11 +358,12 @@ volatile uint64_t *gicdv3_get_msi_address(const isr_vector_t vector) {
     return NULL;
 }
 
-__optimize(3) enum isr_msi_support gicdv3_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support gicdv3_get_msi_support() {
     return ISR_MSI_SUPPORT_MSIX;
 }
 
-__optimize(3) irq_number_t gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
+__debug_optimize(3) irq_number_t
+gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     uint64_t iar1 = 0;
     asm volatile("mrs %0, icc_iar1_el1" : "=r"(iar1));
 
@@ -375,11 +376,11 @@ __optimize(3) irq_number_t gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     return (irq_number_t)irq;
 }
 
-__optimize(3) uint32_t gicv3_cpu_get_irq_priority() {
+__debug_optimize(3) uint32_t gicv3_cpu_get_irq_priority() {
     return 0;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
     (void)cpu_id;
 

@@ -70,7 +70,7 @@ static bool notify_queue_if_done(struct nvme_queue *const queue) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void handle_irq(const uint64_t int_no, struct thread_context *const context) {
     (void)context;
 
@@ -118,7 +118,7 @@ void handle_irq(const uint64_t int_no, struct thread_context *const context) {
 
 #define MAX_ATTEMPTS 100
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 bool wait_until_stopped(volatile struct nvme_registers *const regs) {
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
         if ((mmio_read(&regs->status) & __NVME_CNTLR_STATUS_READY) == 0) {
@@ -131,7 +131,7 @@ bool wait_until_stopped(volatile struct nvme_registers *const regs) {
     return false;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 bool wait_until_ready(volatile struct nvme_registers *const regs) {
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
         const uint8_t status = mmio_read(&regs->status);

@@ -21,6 +21,6 @@ void sched_irq_eoi(const irq_number_t irq) {
     gic_cpu_eoi(this_cpu()->processor_id, irq);
 }
 
-__optimize(3) usec_t sched_timer_remaining() {
+__debug_optimize(3) usec_t sched_timer_remaining() {
     return nano_to_micro(system_timer_get_remaining_ns());
 }

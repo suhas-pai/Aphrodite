@@ -55,7 +55,7 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, data);
 }
 
-__optimize(3) void pit_sleep_for(const uint32_t ms) {
+__debug_optimize(3) void pit_sleep_for(const uint32_t ms) {
     pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0x30);
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, ms);
 
@@ -69,7 +69,7 @@ __optimize(3) void pit_sleep_for(const uint32_t ms) {
     } while (true);
 }
 
-__optimize(3) uint16_t pit_get_current_tick() {
+__debug_optimize(3) uint16_t pit_get_current_tick() {
     const bool flag = disable_irqs_if_enabled();
     pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0);
 
@@ -80,7 +80,7 @@ __optimize(3) uint16_t pit_get_current_tick() {
     return (uint16_t)high << 8 | low;
 }
 
-__optimize(3) void pit_set_reload_value(const uint16_t count) {
+__debug_optimize(3) void pit_set_reload_value(const uint16_t count) {
     const bool flag = disable_irqs_if_enabled();
 
     pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, count & 0xFF);

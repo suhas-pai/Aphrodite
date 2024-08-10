@@ -10,7 +10,7 @@
 
 #include "sys/boot.h"
 
-__optimize(3) nsec_t nsec_since_boot() {
+__debug_optimize(3) nsec_t nsec_since_boot() {
     return seconds_to_nano((sec_t)boot_get_time()) +
             femto_to_nano(hpet_get_femto());
 }

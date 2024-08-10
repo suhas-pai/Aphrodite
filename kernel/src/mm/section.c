@@ -10,7 +10,7 @@
 #include "page.h"
 #include "zone.h"
 
-__optimize(3) void
+__debug_optimize(3) void
 page_section_init(struct page_section *const section,
                   struct page_zone *const zone,
                   const struct range range,
@@ -32,7 +32,7 @@ page_section_init(struct page_section *const section,
     list_init(&section->zone_list);
 }
 
-__optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
+__debug_optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
     struct page_section *const begin = mm_get_page_section_list();
     struct page_section *const end = begin + mm_get_section_count();
 
@@ -45,7 +45,7 @@ __optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
     verify_not_reached();
 }
 
-__optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
+__debug_optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
     struct page_section *const begin = mm_get_page_section_list();
     struct page_section *const end = begin + mm_get_section_count();
 
@@ -59,7 +59,7 @@ __optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
     verify_not_reached();
 }
 
-__optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
+__debug_optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
     const struct page_section *const begin = mm_get_page_section_list();
     const struct page_section *const end = begin + mm_get_section_count();
 
@@ -72,7 +72,7 @@ __optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
     verify_not_reached();
 }
 
-__optimize(3) uint64_t page_to_phys(const struct page *const page) {
+__debug_optimize(3) uint64_t page_to_phys(const struct page *const page) {
     assert((uint64_t)page >= PAGE_OFFSET && (uint64_t)page < PAGE_END);
     const struct page_section *const section = page_to_section(page);
 
@@ -82,7 +82,7 @@ __optimize(3) uint64_t page_to_phys(const struct page *const page) {
     return section->range.front + (relative_pfn << PAGE_SHIFT);
 }
 
-__optimize(3) uint64_t pfn_to_phys_manual(const uint64_t pfn) {
+__debug_optimize(3) uint64_t pfn_to_phys_manual(const uint64_t pfn) {
     const struct page_section *const begin = mm_get_page_section_list();
     const struct page_section *const end = begin + mm_get_section_count();
 

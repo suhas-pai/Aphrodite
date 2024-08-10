@@ -19,7 +19,7 @@ struct partition {
     struct range range;
 };
 
-bool
+void
 partition_init(struct partition *partition,
                struct string name,
                struct storage_device *device,
@@ -27,10 +27,10 @@ partition_init(struct partition *partition,
 
 uint64_t
 partition_read(const struct partition *partition,
-               void *buf,
-               struct range range);
+               struct range range,
+               void *buf);
 
 uint64_t
 partition_write(const struct partition *partition,
-                const void *buf,
-                struct range range);
+                struct range range,
+                const void *buf);

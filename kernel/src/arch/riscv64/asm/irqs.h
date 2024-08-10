@@ -34,19 +34,19 @@ enum ie_flags {
         __INTR_MACHINE_SOFTWARE | __INTR_MACHINE_TIMER | __INTR_MACHINE_EXTERNAL
 };
 
-__optimize(3) static inline void disable_interrupts(void) {
+__debug_optimize(3) static inline void disable_interrupts(void) {
     asm volatile ("csrci sstatus, 0x2" ::: "memory");
 }
 
-__optimize(3) static inline void enable_interrupts(void) {
+__debug_optimize(3) static inline void enable_interrupts(void) {
     asm volatile ("csrsi sstatus, 0x2" ::: "memory");
 }
 
-__optimize(3) static inline bool are_interrupts_enabled() {
-    return read_sstatus() & __SSTATUS_SUPERVISOR_INTR_ENABLE;
+__debug_optimize(3) static inline bool are_interrupts_enabled() {
+    return csr_read(sstatus) & __SSTATUS_SUPERVISOR_INTR_ENABLE;
 }
 
-__optimize(3) static inline bool disable_irqs_if_enabled() {
+__debug_optimize(3) static inline bool disable_irqs_if_enabled() {
     const bool result = are_interrupts_enabled();
     if (result) {
         disable_interrupts();
@@ -55,7 +55,7 @@ __optimize(3) static inline bool disable_irqs_if_enabled() {
     return result;
 }
 
-__optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
+__debug_optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
     if (flag) {
         enable_interrupts();
     }

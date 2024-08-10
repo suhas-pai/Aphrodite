@@ -50,7 +50,7 @@ enum pci_bar_masks {
     PCI_BAR_PORT_ADDR_SIZE_MASK = 0xfffffffc
 };
 
-__optimize(3) static enum parse_bar_result
+__debug_optimize(3) static enum parse_bar_result
 pci_bar_parse_size(struct pci_entity_info *const dev,
                    struct pci_entity_bar_info *const info,
                    uint64_t base_addr,
@@ -294,7 +294,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                     pci_read_cap_field(struct pci_spec_cap_msi, msg_control);
 
                 if (msg_control & __PCI_CAP_MSI_CTRL_ENABLE
-                    || msg_control & __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE)
+                 || msg_control & __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE)
                 {
                     msg_control =
                         rm_mask(msg_control,
@@ -348,7 +348,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                     pci_read_cap_field(struct pci_spec_cap_msix, msg_control);
 
                 if (msg_control & __PCI_CAP_MSIX_CTRL_ENABLE
-                    || msg_control & __PCI_CAP_MSIX_CTRL_FUNC_MASK)
+                 || msg_control & __PCI_CAP_MSIX_CTRL_FUNC_MASK)
                 {
                     msg_control =
                         rm_mask(msg_control,
@@ -448,7 +448,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
 #undef pci_read_cap_field
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
     carr_foreach(pci_vendor_info_list, iter) {
         if (entity->vendor_id == iter->id) {
@@ -518,8 +518,8 @@ parse_function(struct pci_bus *const bus,
 
     const bool class_is_pci_bridge =
         entity->class == PCI_ENTITY_CLASS_BRIDGE_DEVICE
-        && (entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE
-            || entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
+     && (entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE
+         || entity->subclass == PCI_ENTITY_SUBCLASS_PCI_BRIDGE_2);
 
     const bool hdrkind_is_pci_bridge =
         hdrkind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE;
@@ -837,7 +837,7 @@ void pci_init_drivers() {
     }
 }
 
-__optimize(3) void pci_init() {
+__debug_optimize(3) void pci_init() {
     int flag = 0;
     const struct array *const bus_list = pci_get_root_bus_list_locked(&flag);
 

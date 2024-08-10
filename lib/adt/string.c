@@ -6,7 +6,7 @@
 #include "lib/format.h"
 #include "growable_buffer.h"
 
-__optimize(3)
+__debug_optimize(3)
 static inline void set_null_terminator(const struct string *const string) {
     /*
      * HACK: We can't officially include the null-terminator as part of the
@@ -22,19 +22,19 @@ static inline void set_null_terminator(const struct string *const string) {
     ((uint8_t *)gbuffer.begin)[gbuffer.index] = '\0';
 }
 
-__optimize(3) struct string string_alloc(const struct string_view sv) {
+__debug_optimize(3) struct string string_alloc(const struct string_view sv) {
     struct string result = STRING_NULL();
     string_append_sv(&result, sv);
 
     return result;
 }
 
-__optimize(3) struct string string_copy(const struct string string) {
+__debug_optimize(3) struct string string_copy(const struct string string) {
     const struct string result = { .gbuffer = gbuffer_copy(string.gbuffer) };
     return result;
 }
 
-__optimize(3) struct string string_format(const char *const fmt, ...) {
+__debug_optimize(3) struct string string_format(const char *const fmt, ...) {
     va_list list;
     va_start(list, fmt);
 
@@ -44,7 +44,7 @@ __optimize(3) struct string string_format(const char *const fmt, ...) {
     return result;
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct string string_vformat(const char *const fmt, va_list list) {
     struct string result = STRING_NULL();
     vformat_to_string(&result, fmt, list);
@@ -52,12 +52,12 @@ struct string string_vformat(const char *const fmt, va_list list) {
     return result;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 bool prepare_append(struct string *const string, const uint32_t length) {
     return gbuffer_ensure_can_add_capacity(&string->gbuffer, length + 1);
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_append_char(struct string *const string,
                    const char ch,
                    const uint32_t amount)
@@ -75,7 +75,7 @@ string_append_char(struct string *const string,
     return string;
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_append_sv(struct string *const string, const struct string_view sv) {
     if (__builtin_expect(!prepare_append(string, sv.length), 0)) {
         gbuffer_destroy(&string->gbuffer);
@@ -91,7 +91,7 @@ string_append_sv(struct string *const string, const struct string_view sv) {
     return string;
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_append_format(struct string *const string, const char *const fmt, ...) {
     va_list list;
     va_start(list, fmt);
@@ -102,7 +102,7 @@ string_append_format(struct string *const string, const char *const fmt, ...) {
     return string;
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_append_vformat(struct string *const string,
                       const char *const fmt,
                       va_list list)
@@ -111,7 +111,7 @@ string_append_vformat(struct string *const string,
     return string;
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_append(struct string *const string, const struct string *const append) {
     if (__builtin_expect(!prepare_append(string, string_length(*string)), 0)) {
         return NULL;
@@ -127,7 +127,7 @@ string_append(struct string *const string, const struct string *const append) {
     return string;
 }
 
-__optimize(3) char string_front(const struct string string) {
+__debug_optimize(3) char string_front(const struct string string) {
     if (__builtin_expect(!gbuffer_empty(string.gbuffer), 1)) {
         return ((uint8_t *)string.gbuffer.begin)[0];
     }
@@ -135,7 +135,7 @@ __optimize(3) char string_front(const struct string string) {
     verify_not_reached();
 }
 
-__optimize(3) char string_back(const struct string string) {
+__debug_optimize(3) char string_back(const struct string string) {
     const uint32_t length = string_length(string);
     if (__builtin_expect(length != 0, 1)) {
         return ((uint8_t *)string.gbuffer.begin)[length - 1];
@@ -144,27 +144,29 @@ __optimize(3) char string_back(const struct string string) {
     verify_not_reached();
 }
 
-__optimize(3) uint32_t string_length(const struct string string) {
+__debug_optimize(3) uint32_t string_length(const struct string string) {
     return gbuffer_used_size(string.gbuffer);
 }
 
-__optimize(3) void string_reserve(struct string *string, uint32_t capacity) {
+__debug_optimize(3)
+void string_reserve(struct string *string, uint32_t capacity) {
     gbuffer_ensure_can_add_capacity(&string->gbuffer, capacity);
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_remove_index(struct string *const string, const uint32_t index) {
     gbuffer_remove_index(&string->gbuffer, index);
     return string;
 }
 
-__optimize(3) struct string *
+__debug_optimize(3) struct string *
 string_remove_range(struct string *const string, const struct range range) {
     gbuffer_remove_range(&string->gbuffer, range);
     return string;
 }
 
-__optimize(3) int64_t string_find_char(struct string *const string, char ch) {
+__debug_optimize(3)
+int64_t string_find_char(struct string *const string, char ch) {
     char *const result = strchr(string->gbuffer.begin, ch);
     if (result != NULL) {
         return ((int64_t)result - (int64_t)string->gbuffer.begin);
@@ -173,7 +175,7 @@ __optimize(3) int64_t string_find_char(struct string *const string, char ch) {
     return -1;
 }
 
-__optimize(3) int64_t
+__debug_optimize(3) int64_t
 string_find_sv(struct string *const string, const struct string_view sv) {
     const uint32_t string_len = string_length(*string);
     if (string_len == 0 || sv.length == 0) {
@@ -194,13 +196,14 @@ string_find_sv(struct string *const string, const struct string_view sv) {
     return -1;
 }
 
-__optimize(3) int64_t
+__debug_optimize(3) int64_t
 string_find_string(struct string *const string, const struct string *const find)
 {
     return string_find_sv(string, string_to_sv(*find));
 }
 
-__optimize(3) struct string_view string_to_sv(const struct string string) {
+__debug_optimize(3)
+struct string_view string_to_sv(const struct string string) {
     const uint32_t length = string_length(string);
     if (length == 0) {
         return SV_EMPTY();
@@ -209,12 +212,12 @@ __optimize(3) struct string_view string_to_sv(const struct string string) {
     return sv_create_nocheck(string.gbuffer.begin, length);
 }
 
-__optimize(3) const char *string_to_cstr(const struct string string) {
+__debug_optimize(3) const char *string_to_cstr(const struct string string) {
     assert(string.gbuffer.begin != NULL);
     return string.gbuffer.begin;
 }
 
-__optimize(3) void string_destroy(struct string *const string) {
+__debug_optimize(3) void string_destroy(struct string *const string) {
     gbuffer_destroy(&string->gbuffer);
 }
 

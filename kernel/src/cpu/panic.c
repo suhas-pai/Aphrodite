@@ -11,7 +11,7 @@
 #include "cpu/util.h"
 #include "dev/printk.h"
 
-__optimize(3) void panic(const char *const fmt, ...) {
+__debug_optimize(3) void panic(const char *const fmt, ...) {
     disable_interrupts();
 
     va_list list;

@@ -35,11 +35,11 @@ static struct irq_info g_lpi_irq_info_list[GIC_ITS_MAX_LPIS_SUPPORTED] = {0};
 static struct spinlock g_sgi_lock = SPINLOCK_INIT();
 static uint16_t g_sgi_interrupt = 0;
 
-__optimize(3) void isr_init() {
+__debug_optimize(3) void isr_init() {
     assert(g_lpi_irq_info_list != NULL);
 }
 
-__optimize(3) isr_vector_t isr_alloc_sgi_vector() {
+__debug_optimize(3) isr_vector_t isr_alloc_sgi_vector() {
     const int flag = spin_acquire_save_irq(&g_sgi_lock);
     const uint16_t result = g_sgi_interrupt;
 
@@ -50,7 +50,7 @@ __optimize(3) isr_vector_t isr_alloc_sgi_vector() {
     return result;
 }
 
-__optimize(3)
+__debug_optimize(3)
 void isr_reserve_msi_irqs(const uint16_t base, const uint16_t count) {
     for (uint16_t irq = base; irq != base + count; irq++) {
         g_irq_info_list[irq].for_msi = true;
@@ -67,7 +67,7 @@ void isr_install_vbar() {
     printk(LOGLEVEL_INFO, "isr: installed vbar_el1\n");
 }
 
-__optimize(3) isr_vector_t isr_alloc_vector() {
+__debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const uint64_t result =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
@@ -78,19 +78,19 @@ __optimize(3) isr_vector_t isr_alloc_vector() {
     return ISR_INVALID_VECTOR;
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     return gicd_alloc_msi_vector(device, msi_index);
 }
 
-__optimize(3) void isr_free_vector(const isr_vector_t vector) {
+__debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert_msg(bitset_has(g_bitset, vector),
                "isr: isr_free_vector() called on unallocated vector");
 
     bitset_unset(g_bitset, /*invert=*/true);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_free_msi_vector(struct device *const device,
                     const isr_vector_t vector,
                     const uint16_t msi_index)
@@ -98,7 +98,7 @@ isr_free_msi_vector(struct device *const device,
     gicd_free_msi_vector(device, vector, msi_index);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_set_vector(const isr_vector_t vector,
                const isr_func_t handler,
                struct arch_isr_info *const info)
@@ -123,7 +123,7 @@ isr_set_vector(const isr_vector_t vector,
            vector);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_set_msi_vector(const isr_vector_t vector,
                    const isr_func_t handler,
                    struct arch_isr_info *const info)
@@ -155,26 +155,26 @@ isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
     verify_not_reached();
 }
 
-__optimize(3) void isr_mask_irq(const isr_vector_t irq) {
+__debug_optimize(3) void isr_mask_irq(const isr_vector_t irq) {
     gicd_mask_irq(irq);
 }
 
-__optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
+__debug_optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     gicd_unmask_irq(irq);
 }
 
-__optimize(3) void isr_eoi(const uint64_t intr_info) {
+__debug_optimize(3) void isr_eoi(const uint64_t intr_info) {
     gic_cpu_eoi(intr_info >> 16, /*irq_number=*/(uint16_t)intr_info);
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
     (void)cpu;
     return (uint64_t)gicd_get_msi_address(vector);
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msix_address(const struct cpu_info *const cpu,
                      const isr_vector_t vector)
 {
@@ -182,11 +182,12 @@ isr_get_msix_address(const struct cpu_info *const cpu,
     return (uint64_t)gicd_get_msi_address(vector);
 }
 
-__optimize(3) enum isr_msi_support isr_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     return gicd_get_msi_support();
 }
 
-__optimize(3) void handle_interrupt(struct thread_context *const context) {
+__debug_optimize(3)
+void handle_interrupt(struct thread_context *const context) {
     uint8_t cpu_id = 0;
     const irq_number_t irq = gic_cpu_get_irq_number(&cpu_id);
 
@@ -243,7 +244,7 @@ __optimize(3) void handle_interrupt(struct thread_context *const context) {
     }
 }
 
-__optimize(3) void handle_sync_exception(struct thread_context *const context) {
+__debug_optimize(3) void handle_sync_exception(struct thread_context *const context) {
     this_cpu_mut()->in_exception = true;
 
     const uint64_t esr = context->esr_el1;
@@ -406,7 +407,7 @@ __optimize(3) void handle_sync_exception(struct thread_context *const context) {
     cpu_idle();
 }
 
-__optimize(3)
+__debug_optimize(3)
 static const char *aet_get_cstr(const enum esr_serror_aet_kind kind) {
     switch (kind) {
         case ESR_SERROR_AET_KIND_UNCONTAINBLE:

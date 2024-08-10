@@ -12,7 +12,7 @@ enum pci_config_address_flags {
     __PCI_CONFIG_ADDR_ENABLE = 1ull << 31,
 };
 
-__optimize(3) static inline void
+__debug_optimize(3) static inline void
 seek_to_space_location(const struct pci_location *const loc,
                        const uint32_t offset)
 {
@@ -27,7 +27,7 @@ seek_to_space_location(const struct pci_location *const loc,
 }
 
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 pci_legacy_domain_read(const struct pci_location *const loc,
                        const uint32_t offset,
                        const uint8_t access_size)
@@ -45,7 +45,7 @@ pci_legacy_domain_read(const struct pci_location *const loc,
     verify_not_reached();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 pci_legacy_domain_write(const struct pci_location *const loc,
                         const uint32_t offset,
                         const uint32_t value,

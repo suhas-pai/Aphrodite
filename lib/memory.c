@@ -8,7 +8,7 @@
 
 #define REP_MIN 32
 
-__optimize(3)
+__debug_optimize(3)
 uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
 #if defined(__x86_64__)
     if (count > REP_MIN) {
@@ -30,7 +30,7 @@ uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
     return buf;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
     void *const ret = buf;
 #if defined(__x86_64__)
@@ -75,7 +75,7 @@ uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
     return ret;
 }
 
-__optimize(3)
+__debug_optimize(3)
 uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
     void *ret = buf;
 #if defined(__x86_64__)
@@ -120,7 +120,7 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
     return ret;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
     const uint8_t *const end = buf + count;
     for (uint8_t *iter = buf; iter != end; iter++) {
@@ -132,7 +132,7 @@ membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
     return true;
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
     const uint16_t *const end = buf + count;
     for (uint16_t *iter = buf; iter != end; iter++) {
@@ -144,7 +144,7 @@ membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
     const uint32_t *const end = buf + count;
 #if defined(__aarch64__)
@@ -187,7 +187,7 @@ bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool membuf64_is_all(uint64_t *buf, uint64_t count, const uint64_t c) {
 #if defined(__aarch64__)
     if (count >= 2) {

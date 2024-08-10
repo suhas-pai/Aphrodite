@@ -13,7 +13,7 @@
 
 #define RETRY_LIMIT 10
 
-__optimize(3) int16_t ps2_read_input_byte() {
+__debug_optimize(3) int16_t ps2_read_input_byte() {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
         const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
         if ((byte & __PS2_STATUS_REG_OUTPUT_BUFFER_FULL) == 0) {
@@ -27,7 +27,7 @@ __optimize(3) int16_t ps2_read_input_byte() {
     return -1;
 }
 
-__optimize(3) bool ps2_write(const port_t port, const uint8_t value) {
+__debug_optimize(3) bool ps2_write(const port_t port, const uint8_t value) {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
         const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
         if (byte & __PS2_STATUS_REG_INPUT_BUFFER_FULL) {
@@ -42,11 +42,11 @@ __optimize(3) bool ps2_write(const port_t port, const uint8_t value) {
     return false;
 }
 
-__optimize(3) bool ps2_send_command(const enum ps2_command command) {
+__debug_optimize(3) bool ps2_send_command(const enum ps2_command command) {
     return ps2_write(PIO_PORT_PS2_WRITE_CMD, command);
 }
 
-__optimize(3) int16_t ps2_read_config() {
+__debug_optimize(3) int16_t ps2_read_config() {
     if (!ps2_send_command(PS2_CMD_READ_INPUT_BUFFER_BYTE)) {
         return -1;
     }
@@ -54,7 +54,7 @@ __optimize(3) int16_t ps2_read_config() {
     return ps2_read_input_byte();
 }
 
-__optimize(3) bool ps2_write_config(const uint8_t value) {
+__debug_optimize(3) bool ps2_write_config(const uint8_t value) {
     if (!ps2_send_command(PS2_CMD_WRITE_INPUT_BUFFER_BYTE)) {
         return false;
     }
@@ -66,7 +66,7 @@ __optimize(3) bool ps2_write_config(const uint8_t value) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool send_byte_to_port(const enum ps2_port_id device, const uint8_t byte) {
     if (device != PS2_FIRST_PORT) {
         if (!ps2_send_command(PS2_CMD_WRITE_NEXT_BYTE_TO_2ND_DEVICE_INPUT)) {
@@ -77,7 +77,7 @@ bool send_byte_to_port(const enum ps2_port_id device, const uint8_t byte) {
     return ps2_write(PIO_PORT_PS2_INPUT_BUFFER, byte);
 }
 
-__optimize(3)
+__debug_optimize(3)
 int16_t ps2_send_to_port(const enum ps2_port_id device, const uint8_t byte) {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
         if (!send_byte_to_port(device, byte)) {
@@ -263,7 +263,7 @@ void ps2_init() {
 
     bool first_port_enabled = true;
     if (ps2_send_command(PS2_CMD_TEST_1ST_DEVICE)
-        && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
+     && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
     {
         first_port_enabled = true;
     } else {
@@ -273,7 +273,7 @@ void ps2_init() {
     bool second_port_enabled = false;
     if (has_second_port) {
         if (ps2_send_command(PS2_CMD_TEST_2ND_DEVICE)
-            && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
+         && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
         {
             second_port_enabled = true;
         } else {

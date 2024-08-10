@@ -10,11 +10,11 @@
 #include "sched/process.h"
 #include "sched/thread.h"
 
-__optimize(3) struct thread *current_thread() {
+__debug_optimize(3) struct thread *current_thread() {
     return (struct thread *)read_gsbase();
 }
 
-__optimize(3) void sched_set_current_thread(struct thread *const thread) {
+__debug_optimize(3) void sched_set_current_thread(struct thread *const thread) {
     write_gsbase((uint64_t)thread);
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)thread);
 }

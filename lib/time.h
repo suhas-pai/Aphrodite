@@ -245,7 +245,7 @@ struct tm tm_from_stamp(const timestamp_t timestamp);
 #define TIMESPEC_INIT(sec, nsec) \
     ((struct timespec{ .tv_sec = (sec), .tv_nsec = (nsec)}))
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 timespec_add(const struct timespec left,
              const struct timespec right,
              struct timespec *const result_out)
@@ -270,7 +270,7 @@ timespec_add(const struct timespec left,
     return true;
 }
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 timespec_sub(const struct timespec left,
              const struct timespec right,
              struct timespec *const result_out)
@@ -297,7 +297,7 @@ timespec_sub(const struct timespec left,
     return true;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 int timespec_compare(const struct timespec left, const struct timespec right) {
     if (left.tv_sec > right.tv_sec) {
         return 1;
@@ -538,11 +538,11 @@ enum month {
 // Weekday - Day of the Week (Sunday...Saturday)
 // Year day - Days since January 1st
 
-__optimize(3) static inline bool weekday_valid(const enum weekday day) {
+__debug_optimize(3) static inline bool weekday_valid(const enum weekday day) {
     return day >= WEEKDAY_SUNDAY && day <= WEEKDAY_SATURDAY;
 }
 
-__optimize(3) static inline bool month_valid(const enum month month) {
+__debug_optimize(3) static inline bool month_valid(const enum month month) {
     return month >= MONTH_JANUARY && month <= MONTH_DECEMBER;
 }
 

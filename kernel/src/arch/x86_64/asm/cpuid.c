@@ -12,7 +12,7 @@
  * modified by the operation, so we need to tell the compiler about it
  */
 
-__optimize(3) void
+__debug_optimize(3) void
 cpuid(const uint32_t leaf,
       const uint32_t subleaf,
       uint64_t *const a,
@@ -26,7 +26,7 @@ cpuid(const uint32_t leaf,
 }
 
 // Issue a complete request, storing general registers output as a string.
-__optimize(3) int cpuid_string(const int code, char string[const 16]) {
+__debug_optimize(3) int cpuid_string(const int code, char string[const 16]) {
     uint32_t *const where = (uint32_t *)(uint64_t)string;
     asm volatile ("cpuid"
                  : "=a"(where[0]), "=b"(where[1]),

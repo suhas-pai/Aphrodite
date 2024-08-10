@@ -37,8 +37,7 @@ vma_alloc(struct pagemap *pagemap,
 struct vm_area *
 vma_create(struct pagemap *pagemap,
            struct range in_range,
-           uint64_t virt_addr,
-           uint64_t size,
+           struct range phys_range,
            uint64_t align,
            prot_t prot,
            enum vma_cachekind cachekind);

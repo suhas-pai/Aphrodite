@@ -17,7 +17,7 @@
 
 #include "walker.h"
 
-__optimize(3) void
+__debug_optimize(3) void
 pageop_init(struct pageop *const pageop,
             struct pagemap *const pagemap,
             const struct range range)
@@ -132,14 +132,14 @@ pageop_setup_for_range(struct pageop *const pageop, const struct range virt) {
     pageop->flush_range = virt;
 }
 
-__optimize(3) static void free_all_pages(struct pageop *const pageop) {
+__debug_optimize(3) static void free_all_pages(struct pageop *const pageop) {
     struct page *iter = NULL;
     list_foreach(iter, &pageop->delayed_free, table.delayed_free_list) {
         free_page(iter);
     }
 }
 
-__optimize(3) void pageop_finish(struct pageop *const pageop) {
+__debug_optimize(3) void pageop_finish(struct pageop *const pageop) {
     if (range_empty(pageop->flush_range)) {
         free_all_pages(pageop);
         return;

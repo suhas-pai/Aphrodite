@@ -10,7 +10,7 @@
 
 __hidden isr_vector_t g_sched_sgi_vector = 0;
 
-__optimize(3) static void
+__debug_optimize(3) static void
 ipi_handler(const uint64_t intr_no, struct thread_context *const context) {
     sched_next(intr_no, context);
 }
@@ -27,6 +27,6 @@ void sched_self_ipi() {
     enable_irqs_if_flag(flag);
 }
 
-__optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
+__debug_optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
     mmio_write(&cpu->imsic_page[0], g_sched_sgi_vector);
 }

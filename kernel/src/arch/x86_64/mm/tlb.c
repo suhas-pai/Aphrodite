@@ -8,13 +8,13 @@
 
 #include "tlb.h"
 
-__optimize(3) static void tlb_flush_range(const struct range range) {
+__debug_optimize(3) static void tlb_flush_range(const struct range range) {
     range_iterate(range, addr, PAGE_SIZE) {
         invlpg(addr);
     }
 }
 
-__optimize(3) void tlb_flush_pageop(struct pageop *const pageop) {
+__debug_optimize(3) void tlb_flush_pageop(struct pageop *const pageop) {
     tlb_flush_range(pageop->flush_range);
 
     struct page *page = NULL;

@@ -9,11 +9,11 @@
 #include "fs/driver.h"
 #include "structs.h"
 
-__optimize(3) static bool try_init(struct partition *const partition) {
+__debug_optimize(3) static bool try_init(struct partition *const partition) {
     struct fat32_bootrecord record;
     const struct range range = RANGE_INIT(0, sizeof(record));
 
-    if (partition_read(partition, &record, range) != range.size) {
+    if (partition_read(partition, range, &record) != range.size) {
         printk(LOGLEVEL_WARN, "fat32: failed to read boot record\n");
         return false;
     }

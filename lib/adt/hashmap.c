@@ -8,7 +8,7 @@
 
 #include "hashmap.h"
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 hashmap_no_hash(const hashmap_key_t key, const struct hashmap *const hashmap) {
     (void)hashmap;
     return (uint32_t)(uint64_t)key;
@@ -31,12 +31,12 @@ hashmap_alloc(const uint32_t object_size,
     return hashmap;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline bool hashmap_initialized(const struct hashmap *const hashmap) {
     return hashmap->bucket_count != 0 && hashmap->object_size != 0;
 }
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 uint32_t hash_of(const struct hashmap *const hashmap, const hashmap_key_t key) {
     return hashmap->hash(key, hashmap) % hashmap->bucket_count;
 }

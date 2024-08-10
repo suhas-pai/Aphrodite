@@ -32,7 +32,7 @@ _Static_assert(
     "AHCI_HBA_CMD_TABLE_PAGE_ORDER is too low to fit all "
     "struct ahci_spec_hba_cmd_table entries");
 
-__optimize(3)
+__debug_optimize(3)
 static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
     const int flag = spin_acquire_save_irq(&port->lock);
     if (port->ports_bitset == UINT32_MAX) {
@@ -56,12 +56,12 @@ static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
 
 #define MAX_ATTEMPTS 100
 
-__optimize(3) static inline
+__debug_optimize(3) static inline
 void flush_writes(volatile struct ahci_spec_hba_port *const port) {
     mmio_read(&port->cmd_status);
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     bool cmdlist_stopped = false;
@@ -98,7 +98,7 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     mmio_write(&spec->cmd_status,
@@ -140,12 +140,12 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
     return fis_stopped;
 }
 
-__optimize(3) static
+__debug_optimize(3) static
 inline void clear_error_bits(volatile struct ahci_spec_hba_port *const port) {
     mmio_write(&port->interrupt_status, mmio_read(&port->interrupt_status));
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
     const uint32_t tfd_flags =
         __AHCI_HBA_TFD_STATUS_BUSY
@@ -168,7 +168,7 @@ static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
     return false;
 }
 
-__optimize(3) static void comreset_port(struct ahci_hba_port *const port) {
+__debug_optimize(3) static void comreset_port(struct ahci_hba_port *const port) {
     // Spec v1.3.1, §10.4.2 Port Reset
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     {
@@ -191,7 +191,7 @@ __optimize(3) static void comreset_port(struct ahci_hba_port *const port) {
     }
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline bool wait_until_det_present(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
@@ -209,7 +209,7 @@ static inline bool wait_until_det_present(struct ahci_hba_port *const port) {
     return false;
 }
 
-__optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
+__debug_optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_stop(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to reset port #%" PRIu8 ".\n",
@@ -239,7 +239,7 @@ __optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
     return true;
 }
 
-__optimize(3) static void print_serr_error(const uint32_t serr) {
+__debug_optimize(3) static void print_serr_error(const uint32_t serr) {
     if (serr == 0) {
         printk(LOGLEVEL_WARN, "ahci: serr is zero\n");
         return;
@@ -284,7 +284,7 @@ __optimize(3) static void print_serr_error(const uint32_t serr) {
     printk(LOGLEVEL_WARN, "ahci: serr has an unrecognized error\n");
 }
 
-__optimize(3) static void print_serr_diag(const uint32_t serr) {
+__debug_optimize(3) static void print_serr_diag(const uint32_t serr) {
     if (serr == 0) {
         printk(LOGLEVEL_WARN, "ahci: serr-diag is zero\n");
         return;
@@ -339,7 +339,7 @@ __optimize(3) static void print_serr_diag(const uint32_t serr) {
     printk(LOGLEVEL_WARN, "ahci: serr has an unrecognized diag\n");
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 handle_error(struct ahci_hba_port *const port, const uint32_t interrupt_status)
 {
     if (interrupt_status & __AHCI_HBA_PORT_IS_RESET_REQ_FLAGS) {
@@ -347,7 +347,7 @@ handle_error(struct ahci_hba_port *const port, const uint32_t interrupt_status)
     }
 }
 
-__optimize(3) static
+__debug_optimize(3) static
 void enable_port_interrupts(volatile struct ahci_spec_hba_port *const port) {
     mmio_write(&port->interrupt_enable,
                __AHCI_HBA_IE_DEV_TO_HOST_FIS
@@ -355,7 +355,7 @@ void enable_port_interrupts(volatile struct ahci_spec_hba_port *const port) {
                | __AHCI_HBA_PORT_IE_ERROR_FLAGS);
 }
 
-__optimize(3) static uint32_t
+__debug_optimize(3) static uint32_t
 handle_irq_for_port(struct ahci_hba_port *const port,
                     uint32_t *const finished_cmdhdrs,
                     const uint32_t index)
@@ -385,7 +385,7 @@ handle_irq_for_port(struct ahci_hba_port *const port,
     return interrupt_status;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 ahci_port_handle_irq(const uint64_t vector,
                      struct thread_context *const context)
 {
@@ -454,7 +454,7 @@ ahci_port_handle_irq(const uint64_t vector,
     }
 }
 
-__optimize(3) bool ahci_hba_port_start(struct ahci_hba_port *const port) {
+__debug_optimize(3) bool ahci_hba_port_start(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_start_running(port)) {
         return false;
     }
@@ -465,7 +465,7 @@ __optimize(3) bool ahci_hba_port_start(struct ahci_hba_port *const port) {
     return true;
 }
 
-__optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
+__debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     const uint32_t cmd_status = mmio_read(&spec->cmd_status);
 
@@ -489,7 +489,7 @@ __optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
     return false;
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 ahci_hba_port_power_on_and_spin_up(
     volatile struct ahci_spec_hba_port *const port,
     const uint8_t index)
@@ -518,7 +518,7 @@ ahci_hba_port_power_on_and_spin_up(
     }
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 ahci_hba_port_set_state(volatile struct ahci_spec_hba_port *const port,
                         const enum ahci_hba_port_interface_comm_ctrl ctrl)
 {
@@ -530,7 +530,7 @@ ahci_hba_port_set_state(volatile struct ahci_spec_hba_port *const port,
     mmio_write(&port->cmd_status, cmd_status);
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline bool recognize_port_sig(struct ahci_hba_port *const port) {
     switch (port->sig) {
         case SATA_SIG_ATA:
@@ -558,7 +558,7 @@ static inline bool recognize_port_sig(struct ahci_hba_port *const port) {
     verify_not_reached();
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 ahci_hba_port_read(struct storage_device *const device,
                    const uint64_t phys,
                    const struct range lba_range)
@@ -575,7 +575,7 @@ ahci_hba_port_read(struct storage_device *const device,
     return 0;
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 ahci_hba_port_write(struct storage_device *const device,
                     const uint64_t phys,
                     const struct range lba_range)
@@ -592,7 +592,7 @@ ahci_hba_port_write(struct storage_device *const device,
     return 0;
 }
 
-__optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
+__debug_optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_stop_running(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to stop port #%" PRIu8 " before init\n",
@@ -827,7 +827,7 @@ __optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     return true;
 }
 
-__optimize(3)
+__debug_optimize(3)
 static void print_interrupt_status(const uint32_t interrupt_status) {
     enum ahci_hba_port_interrupt_status_flags flag =
         __AHCI_HBA_IS_DEV_TO_HOST_FIS;
@@ -892,7 +892,7 @@ static void print_interrupt_status(const uint32_t interrupt_status) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline bool fix_any_errors(struct ahci_hba_port *const port) {
     switch (port->state) {
         case AHCI_HBA_PORT_STATE_OK:
@@ -909,7 +909,7 @@ static inline bool fix_any_errors(struct ahci_hba_port *const port) {
     verify_not_reached();
 }
 
-__optimize(3)
+__debug_optimize(3)
 static inline uint8_t prepare_port(struct ahci_hba_port *const port) {
     if (!fix_any_errors(port)) {
         return UINT8_MAX;
@@ -935,7 +935,7 @@ static inline uint8_t prepare_port(struct ahci_hba_port *const port) {
     return slot;
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
                   const uint8_t command,
                   const uint16_t feature,
@@ -968,7 +968,7 @@ setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
     h2d_fis->control = 0;
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 setup_prdt_table(volatile struct ahci_spec_port_cmdhdr *const cmd_header,
                  struct ahci_spec_hba_cmd_table *const cmd_table,
                  const uint64_t phys_addr,
@@ -1112,7 +1112,7 @@ send_ata_command(struct ahci_hba_port *const port,
     return await_result.result_bool;
 }
 
-__optimize(3) static void
+__debug_optimize(3) static void
 setup_atapi_command(volatile uint8_t *const atapi_command,
                     const enum atapi_command command,
                     const uint64_t sector_offset,

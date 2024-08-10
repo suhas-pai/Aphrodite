@@ -28,7 +28,7 @@ static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
 static isr_vector_t g_spur_vector = 0;
 static isr_vector_t g_timer_vector = 0;
 
-__optimize(3) isr_vector_t isr_alloc_vector() {
+__debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_save_irq(&g_lock);
     const uint64_t bit_index =
         bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
@@ -44,7 +44,7 @@ __optimize(3) isr_vector_t isr_alloc_vector() {
     return vector;
 }
 
-__optimize(3) isr_vector_t
+__debug_optimize(3) isr_vector_t
 isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     (void)device;
     (void)msi_index;
@@ -52,7 +52,7 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     return isr_alloc_vector();
 }
 
-__optimize(3) void isr_free_vector(const isr_vector_t vector) {
+__debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
@@ -65,7 +65,7 @@ __optimize(3) void isr_free_vector(const isr_vector_t vector) {
     printk(LOGLEVEL_INFO, "isr: freed vector " ISR_VECTOR_FMT "\n", vector);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_free_msi_vector(struct device *const device,
                     const isr_vector_t vector,
                     const uint16_t msi_index)
@@ -76,26 +76,26 @@ isr_free_msi_vector(struct device *const device,
     return isr_free_vector(vector);
 }
 
-__optimize(3) isr_vector_t isr_get_timer_vector() {
+__debug_optimize(3) isr_vector_t isr_get_timer_vector() {
     return g_timer_vector;
 }
 
-__optimize(3) isr_vector_t isr_get_spur_vector() {
+__debug_optimize(3) isr_vector_t isr_get_spur_vector() {
     return g_spur_vector;
 }
 
-__optimize(3) void isr_mask_irq(const isr_vector_t irq) {
+__debug_optimize(3) void isr_mask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
-__optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
+__debug_optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
     (void)irq;
 }
 
 extern void
 handle_exception(const uint64_t vector, struct thread_context *const frame);
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
 {
     if (__builtin_expect(g_funcs[vector] != NULL, 1)) {
@@ -115,7 +115,7 @@ isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
     lapic_eoi();
 }
 
-__optimize(3) static
+__debug_optimize(3) static
 void spur_tick(const uint64_t intr_no, struct thread_context *const frame) {
     (void)intr_no;
     (void)frame;
@@ -140,7 +140,7 @@ void isr_init() {
     idt_register_exception_handlers();
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_set_vector(const isr_vector_t vector,
                const isr_func_t handler,
                struct arch_isr_info *const info)
@@ -149,7 +149,7 @@ isr_set_vector(const isr_vector_t vector,
     idt_set_vector(vector, info->ist, IDT_DEFAULT_FLAGS);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_set_msi_vector(const isr_vector_t vector,
                    const isr_func_t handler,
                    struct arch_isr_info *const info)
@@ -157,7 +157,7 @@ isr_set_msi_vector(const isr_vector_t vector,
     isr_set_vector(vector, handler, info);
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
                       const uint8_t irq,
                       const isr_vector_t vector,
@@ -166,12 +166,12 @@ isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
     ioapic_redirect_irq(cpu->lapic_id, irq, vector, masked);
 }
 
-__optimize(3) void isr_eoi(const uint64_t intr_no) {
+__debug_optimize(3) void isr_eoi(const uint64_t intr_no) {
     (void)intr_no;
     lapic_eoi();
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
     (void)vector;
@@ -180,7 +180,7 @@ isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
         | cpu->lapic_id << 12;
 }
 
-__optimize(3) uint64_t
+__debug_optimize(3) uint64_t
 isr_get_msix_address(const struct cpu_info *const cpu,
                      const isr_vector_t vector)
 {
@@ -190,7 +190,7 @@ isr_get_msix_address(const struct cpu_info *const cpu,
         | cpu->lapic_id << 12;
 }
 
-__optimize(3) enum isr_msi_support isr_get_msi_support() {
+__debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
     if (fadt != NULL) {
         if (fadt->iapc_boot_arch_flags &

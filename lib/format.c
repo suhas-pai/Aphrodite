@@ -6,7 +6,7 @@
 #include "format.h"
 #include "parse_printf.h"
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 format_to_buffer(char *const buffer,
                  const uint32_t buffer_len,
                  const char *const fmt,
@@ -21,7 +21,7 @@ format_to_buffer(char *const buffer,
     return result;
 }
 
-__optimize(3) static uint32_t
+__debug_optimize(3) static uint32_t
 buffer_char_callback(struct printf_spec_info *const spec_info,
                      void *const cb_info,
                      const char ch,
@@ -40,7 +40,7 @@ buffer_char_callback(struct printf_spec_info *const spec_info,
     return appended;
 }
 
-__optimize(3) static uint32_t
+__debug_optimize(3) static uint32_t
 buffer_sv_callback(struct printf_spec_info *const spec_info,
                    void *const cb_info,
                    const struct string_view sv,
@@ -58,7 +58,7 @@ buffer_sv_callback(struct printf_spec_info *const spec_info,
     return appended;
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 vformat_to_buffer(char *const buffer,
                   const uint32_t buffer_length,
                   const char *const fmt,
@@ -76,7 +76,7 @@ vformat_to_buffer(char *const buffer,
     return result;
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 format_to_string(struct string *const string, const char *const fmt, ...) {
     va_list list;
     va_start(list, fmt);
@@ -87,7 +87,7 @@ format_to_string(struct string *const string, const char *const fmt, ...) {
     return result;
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 string_char_callback(struct printf_spec_info *const spec_info,
                      void *const cb_info,
                      const char ch,
@@ -103,7 +103,7 @@ string_char_callback(struct printf_spec_info *const spec_info,
     return 0;
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 string_sv_callback(struct printf_spec_info *const spec_info,
                    void *const cb_info,
                    const struct string_view sv,
@@ -118,7 +118,7 @@ string_sv_callback(struct printf_spec_info *const spec_info,
     return 0;
 }
 
-__optimize(3) uint32_t
+__debug_optimize(3) uint32_t
 vformat_to_string(struct string *const string,
                   const char *const fmt,
                   va_list list)

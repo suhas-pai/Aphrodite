@@ -39,7 +39,7 @@ clock_read_res(const struct clock *clock,
                enum clock_resolution res,
                uint64_t *result_out);
 
-__optimize(3) static inline bool
+__debug_optimize(3) static inline bool
 clock_has_atleast_res(const struct clock *const clock,
                       const enum clock_resolution res)
 {

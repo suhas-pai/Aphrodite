@@ -14,7 +14,7 @@
 #include "page.h"
 #include "section.h"
 
-__optimize(3) void zero_page(void *page) {
+__debug_optimize(3) void zero_page(void *page) {
 #if defined(__x86_64__)
     uint64_t count = PAGE_SIZE / sizeof(uint64_t);
     asm volatile ("cld;\n"
@@ -52,7 +52,7 @@ __optimize(3) void zero_page(void *page) {
     }
 }
 
-__optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
+__debug_optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
     const uint64_t full_size = check_mul_assert(PAGE_SIZE, count);
 #if defined(__x86_64__)
     uint64_t qword_count = full_size / sizeof(uint64_t);
@@ -91,27 +91,27 @@ __optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
     }
 }
 
-__optimize(3) uint32_t page_get_flags(const struct page *const page) {
+__debug_optimize(3) uint32_t page_get_flags(const struct page *const page) {
     return atomic_load_explicit(&page->flags, memory_order_relaxed);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void page_set_flag(struct page *const page, const enum struct_page_flags flag) {
     atomic_fetch_or_explicit(&page->flags, flag, memory_order_relaxed);
 }
 
-__optimize(3) bool
+__debug_optimize(3) bool
 page_has_flag(const struct page *const page, const enum struct_page_flags flag)
 {
     return page_get_flags(page) & flag;
 }
 
-__optimize(3) void
+__debug_optimize(3) void
 page_clear_flag(struct page *const page, const enum struct_page_flags flag) {
     atomic_fetch_and_explicit(&page->flags, ~flag, memory_order_relaxed);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void set_pages_dirty(struct page *const page, const uint64_t amount) {
     struct page *iter = page;
     uint64_t avail = amount;
@@ -156,16 +156,17 @@ void set_pages_dirty(struct page *const page, const uint64_t amount) {
     } while (avail != 0);
 }
 
-__optimize(3) enum page_state page_get_state(const struct page *const page) {
+__debug_optimize(3)
+enum page_state page_get_state(const struct page *const page) {
     return atomic_load_explicit(&page->state, memory_order_relaxed);
 }
 
-__optimize(3)
+__debug_optimize(3)
 void page_set_state(struct page *const page, const enum page_state state) {
     atomic_store_explicit(&page->state, state, memory_order_relaxed);
 }
 
-__optimize(3)
+__debug_optimize(3)
 struct page_section *page_to_section(const struct page *const page) {
     assert(page->section != 0);
     return &mm_get_page_section_list()[page->section - 1];

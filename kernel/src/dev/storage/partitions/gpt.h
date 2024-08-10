@@ -35,6 +35,7 @@ struct gpt_header {
 
 #define GPT_HEADER_MIN_SIZE 92
 #define GPT_HEADER_MAGIC_SV SV_STATIC("EFI PART")
+#define GPT_HEADER_REVISION 0x10000
 
 // First lba
 #define GPT_HEADER_LOCATION SECTOR_SIZE
@@ -58,7 +59,7 @@ struct gpt_entry {
     uint64_t guid_hi64;
 
     uint64_t start;
-    uint64_t end;
+    uint64_t last;
 
     uint64_t attributes;
     uint16_t name[36]; // In UTF-16

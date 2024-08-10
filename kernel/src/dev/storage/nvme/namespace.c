@@ -15,7 +15,7 @@
 
 #define NVME_IO_QUEUE_COUNT 1024ul
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 nvme_read(struct storage_device *const device,
           const uint64_t phys,
           const struct range lba_range)
@@ -30,7 +30,7 @@ nvme_read(struct storage_device *const device,
     return 0;
 }
 
-__optimize(3) static uint64_t
+__debug_optimize(3) static uint64_t
 nvme_write(struct storage_device *const device,
            const uint64_t phys,
            const struct range lba_range)
@@ -177,7 +177,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
     }
 
     if (!nvme_create_completion_queue(controller, namespace)
-        || !nvme_create_submit_queue(controller, namespace))
+     || !nvme_create_submit_queue(controller, namespace))
     {
         return false;
     }

@@ -10,11 +10,12 @@
 
 #include "structs.h"
 
-__optimize(3) static bool try_init(struct partition *const partition) {
+__debug_optimize(3) static bool try_init(struct partition *const partition) {
     struct ext2fs_superblock superblock;
-    const struct range range = RANGE_INIT(0, sizeof(superblock));
+    const struct range range =
+        RANGE_INIT(EXT2FS_SUPERBLOCK_LOC, sizeof(superblock));
 
-    if (partition_read(partition, &superblock, range) != range.size) {
+    if (partition_read(partition, range, &superblock) != range.size) {
         printk(LOGLEVEL_WARN, "ext2fs: failed to read superblock\n");
         return false;
     }

@@ -33,12 +33,12 @@ static struct cpu_features g_cpu_features = {0};
 struct list g_cpu_list = LIST_INIT(g_cpu_list);
 static bool g_base_cpu_init = false;
 
-__optimize(3) const struct cpu_info *base_cpu() {
+__debug_optimize(3) const struct cpu_info *base_cpu() {
     assert(g_base_cpu_init);
     return &g_base_cpu_info;
 }
 
-__optimize(3) const struct cpu_features *cpu_get_features() {
+__debug_optimize(3) const struct cpu_features *cpu_get_features() {
     return &g_cpu_features;
 }
 
@@ -171,34 +171,34 @@ void collect_cpu_features() {
 
     if (aa64isar1_el1_apa_support ==
             ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_FPACCOMBINE
-        && aa64isar1_el1_api_support ==
+     && aa64isar1_el1_api_support ==
             ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_FPACCOMBINE
-        && aa64isar1_el1_apa3_support ==
+     && aa64isar1_el1_apa3_support ==
             ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_FPACCOMBINE)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH_FPACCOMBINE;
     } else if (aa64isar1_el1_apa_support ==
                     ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH2
-               && aa64isar1_el1_api_support ==
-                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH2
-               && aa64isar1_el1_apa3_support ==
-                    ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH2)
+            && aa64isar1_el1_api_support ==
+                   ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH2
+            && aa64isar1_el1_apa3_support ==
+                   ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH2)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH2;
     } else if (aa64isar1_el1_apa_support ==
                     ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_EPAC
-               && aa64isar1_el1_api_support ==
-                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_EPAC
-               && aa64isar1_el1_apa3_support ==
-                    ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_EPAC)
+            && aa64isar1_el1_api_support ==
+                   ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_EPAC
+            && aa64isar1_el1_apa3_support ==
+                   ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_EPAC)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH_EPAC;
     } else if (aa64isar1_el1_apa_support ==
                ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH
-               && aa64isar1_el1_api_support ==
-                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH
-               && aa64isar1_el1_apa3_support ==
-                    ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH)
+            && aa64isar1_el1_api_support ==
+                   ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH
+            && aa64isar1_el1_apa3_support ==
+                   ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_PAUTH)
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH;
     }
@@ -226,10 +226,10 @@ void collect_cpu_features() {
 
     g_cpu_features.pacqarma5 =
         (id_aa64isar1 & __ID_AA64ISAR1_EL1_GPA)
-        && (aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE);
+     && (aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE);
     g_cpu_features.pacimp =
         (id_aa64isar1 & __ID_AA64ISAR1_EL1_GPI)
-        && (aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE);
+     && (aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE);
 
     g_cpu_features.frintts = (id_aa64isar1 & __ID_AA64ISAR1_EL1_FRINTTS) != 0;
     g_cpu_features.sb = (id_aa64isar1 & __ID_AA64ISAR1_EL1_SB) != 0;
@@ -290,7 +290,7 @@ void collect_cpu_features() {
     g_cpu_features.rpres = (id_aa64isar2 & __ID_AA64ISAR2_EL1_RPRES) != 0;
     g_cpu_features.pacqarma3 =
         (id_aa64isar2 & __ID_AA64ISAR2_EL1_GPA3) != 0
-        && aa64isar1_el1_apa3_support == ID_AA64ISAR2_EL1_APA3_SUPPORT_NONE;
+     && aa64isar1_el1_apa3_support == ID_AA64ISAR2_EL1_APA3_SUPPORT_NONE;
 
     g_cpu_features.mops = (id_aa64isar2 & __ID_AA64ISAR2_EL1_MOPS) != 0;
     g_cpu_features.hbc = (id_aa64isar2 & __ID_AA64ISAR2_EL1_BC) != 0;
@@ -633,7 +633,7 @@ void collect_cpu_features() {
     g_cpu_features.ccidx = (id_aa64mmfr2 & __ID_AA64MMFR2_CCIDX) != 0;
     g_cpu_features.lva =
         (id_aa64mmfr2 & __ID_AA64MMFR2_VARANGE) != 0
-        || (tcr_el1 & __TCR_DS) != 0;
+      || (tcr_el1 & __TCR_DS) != 0;
 
     const enum id_aa64mmfr2_nv_support id_aa64mmfr2_nv_support =
         (id_aa64mmfr2 & __ID_AA64MMFR2_NV) >> ID_AA64MMFR2_NV_SUPPORT_SHIFT;
@@ -685,7 +685,7 @@ void collect_cpu_features() {
             ID_AA64MMFR3_SNERR_SUPPORT_SHIFT;
 
     if (id_aa64mmfr3_anerr_support == ID_AA64MMFR3_ANERR_SUPPORT_FEAT_ANERR
-        && id_aa64mmfr3_snerr_support == ID_AA64MMFR3_SNERR_SUPPORT_FEAT_ANERR)
+     && id_aa64mmfr3_snerr_support == ID_AA64MMFR3_SNERR_SUPPORT_FEAT_ANERR)
     {
         g_cpu_features.anerr = true;
     }
@@ -698,7 +698,7 @@ void collect_cpu_features() {
             ID_AA64MMFR3_SDERR_SUPPORT_SHIFT;
 
     if (id_aa64mmfr3_aderr_support == ID_AA64MMFR3_ADERR_SUPPORT_FEAT_ADERR
-        && id_aa64mmfr3_sderr_support == ID_AA64MMFR3_SDERR_SUPPORT_FEAT_ADERR)
+     && id_aa64mmfr3_sderr_support == ID_AA64MMFR3_SDERR_SUPPORT_FEAT_ADERR)
     {
         g_cpu_features.aderr = true;
     }
@@ -722,7 +722,7 @@ void collect_cpu_features() {
 
     g_cpu_features.b16b16 =
         (id_aa64zfr0 & __ID_AA64ZFR0_EL1_B16B16) != 0
-        && (id_aa64smfr0 & __ID_AA64SMFR0_B16B16) != 0;
+     && (id_aa64smfr0 & __ID_AA64SMFR0_B16B16) != 0;
 
     g_cpu_features.sve_sha3 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SHA3) != 0;
     g_cpu_features.sve_sm4 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SM4) != 0;
@@ -1402,7 +1402,7 @@ void print_cpu_features() {
     assert_msg(g_cpu_features.mops, "cpu: missing FEAT_MOPS");
 }
 
-__optimize(3) void cpu_early_init() {
+__debug_optimize(3) void cpu_early_init() {
     const uint64_t mpidr = read_mpidr_el1();
     g_base_cpu_info.affinity =
         (((mpidr >> 32) & 0xFF) << 24) | (mpidr & 0xFFFFFF);
@@ -1429,11 +1429,11 @@ void cpu_init() {
     print_cpu_features();
 }
 
-__optimize(3) bool cpu_in_bad_state() {
+__debug_optimize(3) bool cpu_in_bad_state() {
     return this_cpu()->in_exception;
 }
 
-__optimize(3) struct cpu_info *cpu_mut_for_id(const uint32_t id) {
+__debug_optimize(3) struct cpu_info *cpu_mut_for_id(const uint32_t id) {
     struct cpu_info *iter = NULL;
     list_foreach(iter, &g_cpu_list, cpu_list) {
         if (iter->processor_id == id) {
