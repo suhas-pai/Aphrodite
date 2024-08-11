@@ -39,10 +39,10 @@ ifeq ($(shell $(KLD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1
 	override KLD_IS_LLD := yes
 endif
 
-COMMON_KCFLAGS = -std=gnu17 -g3 -pipe -Wcast-align -Wcast-qual \
-				 -Wsign-conversion -Werror -Wfloat-equal -Wredundant-decls \
-				 -Wshadow -Wstrict-overflow=5 -Wundef -Wnull-dereference \
-				 -funsigned-char -Wformat=2 -Isrc/arch/$(KARCH) -DBUILD_KERNEL \
+COMMON_KCFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
+				 -Wfloat-equal -Wredundant-decls -Wshadow -Wstrict-overflow=5 \
+				 -Wundef -Wnull-dereference -funsigned-char -Wformat=2 \
+				 -Isrc/arch/$(KARCH) -DBUILD_KERNEL \
 				 -Wno-address-of-packed-member -fno-omit-frame-pointer \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
 				 -fsanitize=undefined
@@ -104,17 +104,21 @@ override KCFLAGS += \
 	-Wall \
 	-Wextra \
 	-std=gnu17 \
+	-nostdinc \
 	-ffreestanding \
 	-fno-stack-protector \
 	-fno-stack-check \
 	-fno-lto \
 	-fPIE \
+	-ffunction-sections \
+	-fdata-sections \
 	$(EXTRA_KCFLAGS)
 
 # Internal C preprocessor flags that should not be changed by the user.
 override KCPPFLAGS := \
 	-I src \
 	$(EXTRA_KCPPFLAGS) \
+	-isystem freestanding-headers \
 	-MMD \
 	-MP
 
@@ -216,6 +220,7 @@ override KLDFLAGS += \
 	-pie \
 	-z text \
 	-z max-page-size=0x1000 \
+	-gc-sections \
 	-T src/arch/$(KARCH)/linker.ld
 
 define FIND_FILES
@@ -243,12 +248,15 @@ LIBFILES += \
 override OBJ := $(addprefix obj-$(KARCH)/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(LIBFILES:../lib/%.c=lib/%.c.o) $(NASMFILES:src/%.asm=%.asm.o))
 override HEADER_DEPS := $(addprefix obj-$(KARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
+# Ensure the dependencies have been obtained.
+override MISSING_DEPS := $(shell if ! test -d freestanding-headers || ! test -f src/cc-runtime.c || ! test -f src/limine.h || ! test -f freestanding-headers/stdatomic.h; then echo 1; fi)
+ifeq ($(MISSING_DEPS),1)
+    $(error Please run the ./get-deps script first)
+endif
+
 # Default target.
 .PHONY: all
 all: bin-$(KARCH)/$(KERNEL)
-
-src/limine.h:
-	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
 
 src/dev/pci/vendors.h:
 	curl -Lo src/dev/pci/pci.ids https://pci-ids.ucw.cz/v2.2/pci.ids
@@ -272,9 +280,13 @@ bin-$(KARCH)/$(KERNEL): GNUmakefile src/arch/$(KARCH)/linker.ld $(OBJ)
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.c files.
-obj-$(KARCH)/%.c.o: src/%.c GNUmakefile src/limine.h src/dev/pci/vendors.h
+obj-$(KARCH)/%.c.o: src/%.c GNUmakefile src/dev/pci/vendors.h
 	mkdir -p "$$(dirname $@)"
 	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
+
+obj-$(KARCH)/cc-runtime.c.o: src/cc-runtime.c GNUmakefile
+	mkdir -p "$$(dirname $@)"
+	$(KCC) $(filter-out -Wsign-conversion -Wundef,$(KCFLAGS)) $(KCPPFLAGS) -c $< -o $@
 
 obj-$(KARCH)/flanterm/%.c.o: src/flanterm/%.c GNUmakefile
 	mkdir -p "$$(dirname $@)"
@@ -301,6 +313,11 @@ clean:
 
 .PHONY: distclean
 distclean:
+	rm -rf bin-* obj-* freestanding-headers
 	rm -f src/limine.h
 	rm -f src/dev/pci/vendors.h
-	rm -rf bin-* obj-*
+
+.PHONY: install
+install: all
+	install -d "$(DESTDIR)$(PREFIX)/share/$(KERNEL)"
+	install -m 644 bin-$(KARCH)/$(KERNEL) "$(DESTDIR)$(PREFIX)/share/$(KERNEL)/$(KERNEL)-$(KARCH)"
