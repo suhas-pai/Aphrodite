@@ -24,7 +24,7 @@ struct thread_context {
         .sepc = (uint64_t)(func), \
         .sstatus = \
             __SSTATUS_SUPERVISOR_PRIVL_INTR_ENABLE \
-            | (((thread)->process == &kernel_process) ? \
+          | (((thread)->process == &kernel_process) ? \
                 __SSTATUS_SUPERVISOR_PREV_PRIVL_WAS_SUPERVISOR : 0), \
         .sp = (uint64_t)(stack) + ((stack_size) - 1), \
         .gp = 0, \

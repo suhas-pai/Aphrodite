@@ -237,7 +237,7 @@ void mm_arch_init() {
     const uint64_t pat_msr =
         rm_mask(pat_msr_orig,
                 (MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2)
-                | (MSR_PAT_ENTRY_MASK) << MSR_PAT_INDEX_PAT3);
+              | (MSR_PAT_ENTRY_MASK) << MSR_PAT_INDEX_PAT3);
 
     printk(LOGLEVEL_INFO,
            "mm: pat msr original value is 0x%" PRIx64 "\n",

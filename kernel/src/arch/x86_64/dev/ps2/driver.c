@@ -245,7 +245,7 @@ void ps2_init() {
 
     ps2_config |=
         __PS2_CNTRLR_CONFIG_1ST_PORT_INTERRUPT
-        | __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
+      | __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
 
     const bool has_second_port =
         ps2_config & __PS2_CNTRLR_CONFIG_2ND_PORT_CLOCK;

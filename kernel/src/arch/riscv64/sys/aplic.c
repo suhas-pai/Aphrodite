@@ -206,8 +206,8 @@ aplic_set_target_msi(const enum riscv64_privl privl,
 
     mmio_write(&aplic->regs->target[irq],
                hart_id << APLIC_TARGET_HART_SHIFT
-               | guest << APLIC_TARGET_GUEST_SHIFT
-               | eiid);
+             | guest << APLIC_TARGET_GUEST_SHIFT
+             | eiid);
 
     return true;
 }

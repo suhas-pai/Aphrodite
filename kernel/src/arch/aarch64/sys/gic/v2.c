@@ -171,9 +171,9 @@ enum gic_cpu_interrupt_control_flags {
 
     __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE =
         __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_0
-        | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_1
-        | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_2
-        | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_3,
+      | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_1
+      | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_2
+      | __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE_GROUP_3,
 
     __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI = 1 << 9,
 };
@@ -273,9 +273,9 @@ static uint8_t get_cpu_iface_number() {
 
         const uint32_t mask =
             ((target >> 24) & 0xFF)
-            | ((target >> 16) & 0xFF)
-            | ((target >> 8) & 0xFF)
-            | (target & 0xFF);
+          | ((target >> 16) & 0xFF)
+          | ((target >> 8) & 0xFF)
+          | (target & 0xFF);
 
         return count_lsb_zero_bits(mask, /*start_index=*/0);
     }
@@ -333,8 +333,8 @@ void gicv2_init_on_this_cpu(const struct range range) {
 
     mmio_write(&g_cpu->interrupt_control,
                 __GIC_CPU_INTR_CTRL_ENABLE
-                | bypass
-                | (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
+              | bypass
+              | (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
 
     printk(LOGLEVEL_INFO,
            "gicv2: cpu iface no is %" PRIu8 "\n",
@@ -556,7 +556,7 @@ void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_target =
         rm_mask(target, (uint32_t)0xFF << bit_index)
-        | 1ull << (affinity + bit_index);
+      | 1ull << (affinity + bit_index);
 
     atomic_store_explicit(&g_regs->interrupt_targets[index],
                           new_target,
@@ -609,7 +609,7 @@ void gicdv2_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
     const uint32_t new_priority =
         rm_mask(irq_priority, (uint32_t)0xFF << bit_index)
-        | (uint32_t)priority << bit_index;
+      | (uint32_t)priority << bit_index;
 
     atomic_store_explicit(&g_regs->interrupt_priority[index],
                           new_priority,
@@ -620,8 +620,8 @@ __debug_optimize(3)
 void gicdv2_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint32_t info =
         GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD
-        | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->processor_id)
-        | int_no;
+      | 1ull << (GICD_V2_SGI_CPU_TARGET_MASK_SHIFT + cpu->processor_id)
+      | int_no;
 
     atomic_store_explicit(&g_regs->software_generated_interrupts[0],
                           info,

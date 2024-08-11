@@ -203,8 +203,6 @@ struct lapic_info {
     bool online_capable : 1;
 };
 
-extern volatile struct lapic_registers *lapic_regs;
-
 void lapic_init();
 void lapic_add(const struct lapic_info *info);
 

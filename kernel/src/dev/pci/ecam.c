@@ -103,8 +103,8 @@ pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
 {
     return
         range_index_for_loc(domain->bus_range, loc->bus) << 20
-        | (uint64_t)loc->slot << 15
-        | (uint64_t)loc->function << 12;
+      | (uint64_t)loc->slot << 15
+      | (uint64_t)loc->function << 12;
 }
 
 __debug_optimize(3) uint8_t

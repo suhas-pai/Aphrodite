@@ -79,7 +79,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     pci_entity_enable_privls(pci_entity,
                              __PCI_ENTITY_PRIVL_BUS_MASTER
-                             | __PCI_ENTITY_PRIVL_MEM_ACCESS);
+                           | __PCI_ENTITY_PRIVL_MEM_ACCESS);
 
     g_hba_vector = isr_alloc_msi_vector(&pci_entity->device, /*msi_index=*/0);
     assert(g_hba_vector != ISR_INVALID_VECTOR);
@@ -172,7 +172,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         printk(LOGLEVEL_INFO, "ahci: hba supports bios handoff\n");
         mmio_write(&regs->bios_os_handoff_ctrl_status,
                    mmio_read(&regs->bios_os_handoff_ctrl_status)
-                    | __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_OS_OWNED_SEM);
+                 | __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_OS_OWNED_SEM);
 
         bool handoff_successful = false;
         for (uint32_t i = 0; i != MAX_ATTEMPTS; i++) {
@@ -281,8 +281,8 @@ static const struct pci_driver pci_driver = {
     .prog_if = 0x1,
     .match =
         __PCI_DRIVER_MATCH_CLASS
-        | __PCI_DRIVER_MATCH_SUBCLASS
-        | __PCI_DRIVER_MATCH_PROGIF,
+      | __PCI_DRIVER_MATCH_SUBCLASS
+      | __PCI_DRIVER_MATCH_PROGIF,
     .init = init_from_pci
 };
 

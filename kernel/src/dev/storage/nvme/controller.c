@@ -26,8 +26,8 @@
 #define NVME_QUEUE_PAGE_ALLOC_ORDER 0
 #define NVME_VERSION(major, minor, tertiary) \
     ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT \
-     | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
-     | (uint32_t)tertiary)
+   | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
+   | (uint32_t)tertiary)
 
 static struct list g_controller_list = LIST_INIT(g_controller_list);
 static uint32_t g_controller_count = 0;
@@ -328,9 +328,9 @@ nvme_controller_create(struct nvme_controller *const controller,
     mmio_write(&regs->config,
                NVME_SUBMIT_QUEUE_SIZE <<
                 NVME_CONFIG_IO_SUBMIT_QUEUE_ENTRY_SIZE_SHIFT
-               | NVME_COMPLETION_QUEUE_SIZE <<
+             | NVME_COMPLETION_QUEUE_SIZE <<
                 NVME_CONFIG_IO_COMPL_QUEUE_ENTRY_SIZE_SHIFT
-               | __NVME_CONFIG_ENABLE);
+             | __NVME_CONFIG_ENABLE);
 
     if (!wait_until_ready(regs)) {
         printk(LOGLEVEL_WARN, "nvme: controller failed to restart in time\n");

@@ -501,13 +501,13 @@ __debug_optimize(3) void *memset(void *dst, const int val, unsigned long n) {
     if (n >= sizeof(uint64_t)) {
         value64 =
             (uint64_t)val << 56
-            | (uint64_t)val << 48
-            | (uint64_t)val << 40
-            | (uint64_t)val << 32
-            | (uint64_t)val << 24
-            | (uint64_t)val << 16
-            | (uint64_t)val << 8
-            | (uint64_t)val;
+          | (uint64_t)val << 48
+          | (uint64_t)val << 40
+          | (uint64_t)val << 32
+          | (uint64_t)val << 24
+          | (uint64_t)val << 16
+          | (uint64_t)val << 8
+          | (uint64_t)val;
 
     #if defined(__aarch64__)
         while (n >= sizeof(uint64_t) * 2) {

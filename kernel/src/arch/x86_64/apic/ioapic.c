@@ -26,12 +26,12 @@ create_ioapic_redirect_request(
 
     const uint64_t result =
         vector
-        | delivery_mode << 8
-        | dest_mode << 11
-        | (uint32_t)is_active_low << 13
-        | (uint32_t)is_level_triggered << 15
-        | (uint32_t)masked << 16
-        | (uint64_t)lapic_id << 56;
+      | delivery_mode << 8
+      | dest_mode << 11
+      | (uint32_t)is_active_low << 13
+      | (uint32_t)is_level_triggered << 15
+      | (uint32_t)masked << 16
+      | (uint64_t)lapic_id << 56;
 
     return result;
 }

@@ -351,7 +351,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     pci_entity_enable_privls(pci_entity,
                              __PCI_ENTITY_PRIVL_BUS_MASTER
-                             | __PCI_ENTITY_PRIVL_PIO_ACCESS);
+                           | __PCI_ENTITY_PRIVL_PIO_ACCESS);
 }
 
 static const struct pci_driver pci_driver = {

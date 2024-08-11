@@ -19,18 +19,20 @@ enum {
     __IA32_MSR_APIC_BASE_ENABLE = 1 << 11
 };
 
-extern struct mmio_region *lapic_mmio_region;
+static struct mmio_region *g_lapic_region = NULL;
+static  volatile struct lapic_registers *lapic_regs;
+
 
 void apic_init(const uint64_t local_apic_base) {
-    lapic_mmio_region =
+    g_lapic_region =
         vmap_mmio(RANGE_INIT(local_apic_base, PAGE_SIZE),
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
-    assert_msg(lapic_mmio_region != NULL,
+    assert_msg(g_lapic_region != NULL,
                "apic: failed to mmio-map local-apic registers");
 
-    lapic_regs = lapic_mmio_region->base;
+    lapic_regs = g_lapic_region->base;
     pic_disable();
 
     printk(LOGLEVEL_INFO, "apic: local apic id: %x\n", lapic_regs->id);

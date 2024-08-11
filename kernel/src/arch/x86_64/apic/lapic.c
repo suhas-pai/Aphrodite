@@ -19,10 +19,8 @@
 #include "sys/mmio.h"
 #include "lapic.h"
 
-struct mmio_region *lapic_mmio_region = NULL;
-volatile struct lapic_registers *lapic_regs = NULL;
-
 static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
+volatile struct lapic_registers *lapic_regs = NULL;
 
 __debug_optimize(3) static inline uint32_t
 create_timer_register(const enum lapic_timer_mode timer_mode,

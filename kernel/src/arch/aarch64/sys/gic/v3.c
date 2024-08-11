@@ -257,9 +257,9 @@ void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
 
     mmio_write(&g_dist_regs->irq_router[irq - GIC_SPI_INTERRUPT_START],
                (uint32_t)affinity << 24
-               | (uint32_t)affinity << 16
-               | (uint32_t)affinity << 8
-               | affinity);
+             | (uint32_t)affinity << 16
+             | (uint32_t)affinity << 8
+             | affinity);
 }
 
 __debug_optimize(3) void
@@ -283,7 +283,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
 
     atomic_store_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
                           rm_mask(irq_config, 0b11 << bit_offset)
-                          | bit_value << bit_offset,
+                        | bit_value << bit_offset,
                           memory_order_relaxed);
 
     const uint32_t group_bit_offset = irq % sizeof_bits(uint32_t);
@@ -317,7 +317,7 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
 
     atomic_store_explicit(&dist->irq_priority[irq],
                           rm_mask(irq_priority, 0xFFull << bit_index)
-                          | (uint32_t)priority << bit_index,
+                        | (uint32_t)priority << bit_index,
                           memory_order_relaxed);
 
     enable_irqs_if_flag(flag);
@@ -327,10 +327,10 @@ __debug_optimize(3)
 void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
     const uint64_t value =
         (uint64_t)(uint8_t)(cpu->affinity >> 24) << ICC_SGI1R_AFF3_SHIFT
-        | (uint64_t)(uint8_t)(cpu->affinity >> 16) << ICC_SGI1R_AFF2_SHIFT
-        | (uint64_t)(uint8_t)(cpu->affinity >> 8) << ICC_SGI1R_AFF1_SHIFT
-        | (uint64_t)int_no << ICC_SGI1R_INTR_ID_SHIFT
-        | 1 << (uint8_t)cpu->affinity;
+      | (uint64_t)(uint8_t)(cpu->affinity >> 16) << ICC_SGI1R_AFF2_SHIFT
+      | (uint64_t)(uint8_t)(cpu->affinity >> 8) << ICC_SGI1R_AFF1_SHIFT
+      | (uint64_t)int_no << ICC_SGI1R_INTR_ID_SHIFT
+      | 1 << (uint8_t)cpu->affinity;
 
     dsbisht();
     asm volatile("msr icc_sgi1r_el1, %0" :: "r"(value));
@@ -425,7 +425,7 @@ void gic_redist_init_on_this_cpu() {
     mmio_write(&redist->dist.irq_group_mod[0], 0);
     mmio_write(&redist->control,
                mmio_read(&redist->control)
-                | __GICV3_REDIST_CONTROL_ENABLE_LPIS);
+             | __GICV3_REDIST_CONTROL_ENABLE_LPIS);
 
     // Pending page has to be aligned to 64kib
     struct page *const pend_page =
@@ -449,8 +449,8 @@ void gic_redist_init_on_this_cpu() {
     mmio_write(&redist->pend_baser, mmio_read(&redist->pend_baser) | pend_phys);
     mmio_write(&redist->prop_baser,
                mmio_read(&redist->prop_baser)
-                | prop_phys
-                | (GIC_REDIST_IDBITS - 1));
+             | prop_phys
+             | (GIC_REDIST_IDBITS - 1));
 
     this_cpu_mut()->processor_id =
         (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
@@ -529,11 +529,11 @@ static bool init_from_regs() {
 
     mmio_write(&g_dist_regs->control,
                __GICDV3_CTRL_ENABLE_GROUP_0
-               | __GICDV3_CTRL_ENABLE_GROUP_1_NON_SECURE
-               | __GICDV3_CTRL_ENABLE_GROUP_1_SECURE
-               | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_SECURE
-               | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_NON_SECURE
-               | __GICDV3_CTRL_DISABLE_SECURITY);
+             | __GICDV3_CTRL_ENABLE_GROUP_1_NON_SECURE
+             | __GICDV3_CTRL_ENABLE_GROUP_1_SECURE
+             | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_SECURE
+             | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_NON_SECURE
+             | __GICDV3_CTRL_DISABLE_SECURITY);
 
     gic_redist_init_on_this_cpu();
     gicv3_init_on_this_cpu();

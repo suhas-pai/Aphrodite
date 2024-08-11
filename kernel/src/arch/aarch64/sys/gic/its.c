@@ -218,7 +218,7 @@ fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
     entry->flags =
         this_cpu()->processor_id
             << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
-        | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
+      | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
 
     preempt_enable();
     return true;
@@ -248,9 +248,9 @@ fill_out_device_table(struct gic_its_info *const its,
 
         entry->flags |=
             (phys >> GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR_SHIFT) << 6
-            | (GIC_MAX_ITS_INTR_TABLE_ENTRIES - 1)
+          | (GIC_MAX_ITS_INTR_TABLE_ENTRIES - 1)
                 << GIC_ITS_DEVICE_TABLE_ENTRY_SIZE_SHIFT
-            | __GIC_ITS_DEVICE_TABLE_ENTRY_VALID;
+          | __GIC_ITS_DEVICE_TABLE_ENTRY_VALID;
     } else {
         phys =
             ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR) >> 6)
@@ -261,9 +261,9 @@ fill_out_device_table(struct gic_its_info *const its,
     itt[msi_index].flags =
         (uint64_t)(GIC_ITS_LPI_INTERRUPT_START + vector)
             << GIC_ITS_INTR_TABLE_VECTOR_SHIFT
-        | (uint64_t)icid << GIC_ITS_INTR_TABLE_ICID_SHIFT
-        | __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTR
-        | __GIC_ITS_INTR_TABLE_ENTRY_VALID;
+      | (uint64_t)icid << GIC_ITS_INTR_TABLE_ICID_SHIFT
+      | __GIC_ITS_INTR_TABLE_ENTRY_PHYSICAL_INTR
+      | __GIC_ITS_INTR_TABLE_ENTRY_VALID;
 
     return true;
 }
@@ -505,8 +505,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
 
         baser =
             rm_mask(baser, __GIC_ITS_BASER_PAGE_SIZE)
-            | GIC_ITS_BASER_PAGE_SIZE_4KIB << GIC_ITS_BASER_PAGE_SIZE_SHIFT
-            | __GIC_ITS_BASER_VALID;
+          | GIC_ITS_BASER_PAGE_SIZE_4KIB << GIC_ITS_BASER_PAGE_SIZE_SHIFT
+          | __GIC_ITS_BASER_VALID;
 
         mmio_write(baser_iter, baser);
         switch (kind) {

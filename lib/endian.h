@@ -20,20 +20,20 @@ __debug_optimize(3) static inline uint16_t swap_endian_16(const uint16_t num) {
 
 __debug_optimize(3) static inline uint32_t swap_endian_32(const uint32_t num) {
     return ((num & 0xFF) << 24)
-           | ((num & 0xFF00) << 8)
-           | ((num & 0xFF0000) >> 8)
-           | ((num & 0xFF000000) >> 24);
+         | ((num & 0xFF00) << 8)
+         | ((num & 0xFF0000) >> 8)
+         | ((num & 0xFF000000) >> 24);
 }
 
 __debug_optimize(3) static inline be64_t swap_endian_64(const uint64_t num) {
     return ((num & 0xFFULL) << 56)
-           | ((num & 0xFF00ULL) << 40)
-           | ((num & 0xFF0000ULL) << 24)
-           | ((num & 0xFF000000ULL) << 8)
-           | ((num & 0xFF00000000ULL) >> 8)
-           | ((num & 0xFF0000000000ULL) >> 24)
-           | ((num & 0xFF000000000000ULL) >> 40)
-           | ((num & 0xFF00000000000000ULL) >> 56);
+         | ((num & 0xFF00ULL) << 40)
+         | ((num & 0xFF0000ULL) << 24)
+         | ((num & 0xFF000000ULL) << 8)
+         | ((num & 0xFF00000000ULL) >> 8)
+         | ((num & 0xFF0000000000ULL) >> 24)
+         | ((num & 0xFF000000000000ULL) >> 40)
+         | ((num & 0xFF00000000000000ULL) >> 56);
 }
 
 __debug_optimize(3) static inline be16_t le16_to_be(const le16_t le) {

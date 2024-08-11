@@ -17,11 +17,12 @@
 __debug_optimize(3) uint16_t
 pci_entity_get_requester_id(const struct pci_entity_info *const entity) {
     return (uint16_t)entity->loc.bus << 8
-           | (uint16_t)entity->loc.slot << 3
-           | entity->loc.function;
+         | (uint16_t)entity->loc.slot << 3
+         | entity->loc.function;
 }
 
-__debug_optimize(3) bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
+__debug_optimize(3)
+bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
@@ -347,7 +348,7 @@ pci_entity_enable_privls(struct pci_entity_info *const entity,
         pci_read(entity, struct pci_spec_entity_info_base, command);
     const uint16_t new_command =
         (old_command | (privls & __PCI_ENTITY_PRIVL_MASK))
-        ^ __PCI_DEVCMDREG_PIN_INTR_DISABLE;
+      ^ __PCI_DEVCMDREG_PIN_INTR_DISABLE;
 
     pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
     spin_release_preempt_enable(&entity->lock);

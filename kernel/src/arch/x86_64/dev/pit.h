@@ -58,8 +58,8 @@ enum pit_granularity {
 
 #define PIT_DEFAULT_FLAGS \
     (PIT_TIMER_CHANNEL_0 \
-     | PIT_TIMER_ACCESS_MODE_FULL_BYTE \
-     | PIT_TIMER_OP_MODE_RATE_GENERATOR)
+   | PIT_TIMER_ACCESS_MODE_FULL_BYTE \
+   | PIT_TIMER_OP_MODE_RATE_GENERATOR)
 
 _Static_assert(PIT_DEFAULT_FLAGS == 0x34,
                "pit: PIT_DEFAULT_FLAGS is incorrect");
