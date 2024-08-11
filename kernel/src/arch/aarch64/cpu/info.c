@@ -73,7 +73,7 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.sha1 = (id_aa64isar0 & __ID_AA64ISAR0_EL1_SHA1) != 0;
+    g_cpu_features.sha1 = id_aa64isar0 & __ID_AA64ISAR0_EL1_SHA1;
     const enum id_aa64isar0_el1_sha2_support aa64isar0_el1_sha2_support =
         (id_aa64isar0 & __ID_AA64ISAR0_EL1_SHA2) >>
             ID_AA64ISAR0_EL1_SHA2_SUPPORT_SHIFT;
@@ -89,7 +89,7 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.crc32 = (id_aa64isar0 & __ID_AA64ISAR0_EL1_CRC32) != 0;
+    g_cpu_features.crc32 = id_aa64isar0 & __ID_AA64ISAR0_EL1_CRC32;
     const enum id_aa64isar0_el1_atomic_support aa64isar0_el1_atomic_support =
         (id_aa64isar0 & __ID_AA64ISAR0_EL1_ATOMIC) >>
             ID_AA64ISAR0_EL1_ATOMIC_SUPPORT_SHIFT;
@@ -105,13 +105,13 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.tme = (id_aa64isar0 & __ID_AA64ISAR0_EL1_TME) != 0;
-    g_cpu_features.rdm = (id_aa64isar0 & __ID_AA64ISAR0_EL1_RDM) != 0;
-    g_cpu_features.sha3 = (id_aa64isar0 & __ID_AA64ISAR0_EL1_SHA3) != 0;
-    g_cpu_features.sm3 = (id_aa64isar0 & __ID_AA64ISAR0_EL1_SM3) != 0;
-    g_cpu_features.sm4 = (id_aa64isar0 & __ID_AA64ISAR0_EL1_SM4) != 0;
-    g_cpu_features.dot_product = (id_aa64isar0 & __ID_AA64ISAR0_EL1_DP) != 0;
-    g_cpu_features.fhm = (id_aa64isar0 & __ID_AA64ISAR0_EL1_FHM) != 0;
+    g_cpu_features.tme = id_aa64isar0 & __ID_AA64ISAR0_EL1_TME;
+    g_cpu_features.rdm = id_aa64isar0 & __ID_AA64ISAR0_EL1_RDM;
+    g_cpu_features.sha3 = id_aa64isar0 & __ID_AA64ISAR0_EL1_SHA3;
+    g_cpu_features.sm3 = id_aa64isar0 & __ID_AA64ISAR0_EL1_SM3;
+    g_cpu_features.sm4 = id_aa64isar0 & __ID_AA64ISAR0_EL1_SM4;
+    g_cpu_features.dot_product = id_aa64isar0 & __ID_AA64ISAR0_EL1_DP;
+    g_cpu_features.fhm = id_aa64isar0 & __ID_AA64ISAR0_EL1_FHM;
 
     const enum id_aa64isar0_el1_ts_support id_aa64isar0_el1_ts_support =
         (id_aa64isar0 & __ID_AA64ISAR0_EL1_TS) >>
@@ -158,7 +158,7 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.rndr = (id_aa64isar0 & __ID_AA64ISAR0_EL1_RNDR) != 0;
+    g_cpu_features.rndr = id_aa64isar0 & __ID_AA64ISAR0_EL1_RNDR;
     const enum id_aa64isar1_el1_apa_support aa64isar1_el1_apa_support =
         (id_aa64isar1 & __ID_AA64ISAR1_EL1_APA) >>
             ID_AA64ISAR1_EL1_APA_SUPPORT_SHIFT;
@@ -178,7 +178,7 @@ void collect_cpu_features() {
     {
         g_cpu_features.pauth = CPU_FEAT_PAUTH_FPACCOMBINE;
     } else if (aa64isar1_el1_apa_support ==
-                    ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH2
+                   ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_PAUTH2
             && aa64isar1_el1_api_support ==
                    ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_PAUTH2
             && aa64isar1_el1_apa3_support ==
@@ -203,8 +203,8 @@ void collect_cpu_features() {
         g_cpu_features.pauth = CPU_FEAT_PAUTH;
     }
 
-    g_cpu_features.jscvt = (id_aa64isar1 & __ID_AA64ISAR1_EL1_JSCVT) != 0;
-    g_cpu_features.fcma = (id_aa64isar1 & __ID_AA64ISAR1_EL1_FCMA) != 0;
+    g_cpu_features.jscvt = id_aa64isar1 & __ID_AA64ISAR1_EL1_JSCVT;
+    g_cpu_features.fcma = id_aa64isar1 & __ID_AA64ISAR1_EL1_FCMA;
 
     const enum id_aa64isar1_el1_lrcpc_support id_aa64isar1_el1_lrcpc_support =
         (id_aa64isar1 & __ID_AA64ISAR1_EL1_LRCPC) >>
@@ -225,14 +225,15 @@ void collect_cpu_features() {
     }
 
     g_cpu_features.pacqarma5 =
-        (id_aa64isar1 & __ID_AA64ISAR1_EL1_GPA)
-     && (aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE);
-    g_cpu_features.pacimp =
-        (id_aa64isar1 & __ID_AA64ISAR1_EL1_GPI)
-     && (aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE);
+        id_aa64isar1 & __ID_AA64ISAR1_EL1_GPA
+     && aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE;
 
-    g_cpu_features.frintts = (id_aa64isar1 & __ID_AA64ISAR1_EL1_FRINTTS) != 0;
-    g_cpu_features.sb = (id_aa64isar1 & __ID_AA64ISAR1_EL1_SB) != 0;
+    g_cpu_features.pacimp =
+        id_aa64isar1 & __ID_AA64ISAR1_EL1_GPI
+     && aa64isar1_el1_apa_support > ID_AA64ISAR1_EL1_APA_SUPPORT_NONE;
+
+    g_cpu_features.frintts = id_aa64isar1 & __ID_AA64ISAR1_EL1_FRINTTS;
+    g_cpu_features.sb = id_aa64isar1 & __ID_AA64ISAR1_EL1_SB;
 
     const enum id_aa64isar1_el1_specres_support specres_support =
         (id_aa64isar1 & __ID_AA64ISAR1_EL1_SPECRES) >>
@@ -264,9 +265,9 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.dgh = (id_aa64isar1 & __ID_AA64ISAR1_EL1_DGH) != 0;
-    g_cpu_features.i8mm = (id_aa64isar1 & __ID_AA64ISAR1_EL1_I8MM) != 0;
-    g_cpu_features.xs = (id_aa64isar1 & __ID_AA64ISAR1_EL1_XS) != 0;
+    g_cpu_features.dgh = id_aa64isar1 & __ID_AA64ISAR1_EL1_DGH;
+    g_cpu_features.i8mm = id_aa64isar1 & __ID_AA64ISAR1_EL1_I8MM;
+    g_cpu_features.xs = id_aa64isar1 & __ID_AA64ISAR1_EL1_XS;
 
     const enum id_aa64isar1_el1_ls64_support id_aa64isar1_el1_ls64_support =
         (id_aa64isar1 & ID_AA64ISAR1_EL1_LS64_SUPPORT_SHIFT) >>
@@ -286,20 +287,18 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.wfxt = (id_aa64isar2 & __ID_AA64ISAR2_EL1_WFxT) != 0;
-    g_cpu_features.rpres = (id_aa64isar2 & __ID_AA64ISAR2_EL1_RPRES) != 0;
+    g_cpu_features.wfxt = id_aa64isar2 & __ID_AA64ISAR2_EL1_WFxT;
+    g_cpu_features.rpres = id_aa64isar2 & __ID_AA64ISAR2_EL1_RPRES;
     g_cpu_features.pacqarma3 =
-        (id_aa64isar2 & __ID_AA64ISAR2_EL1_GPA3) != 0
+        id_aa64isar2 & __ID_AA64ISAR2_EL1_GPA3
      && aa64isar1_el1_apa3_support == ID_AA64ISAR2_EL1_APA3_SUPPORT_NONE;
 
-    g_cpu_features.mops = (id_aa64isar2 & __ID_AA64ISAR2_EL1_MOPS) != 0;
-    g_cpu_features.hbc = (id_aa64isar2 & __ID_AA64ISAR2_EL1_BC) != 0;
-    g_cpu_features.clrbhb = (id_aa64isar2 & __ID_AA64ISAR2_EL1_CLRBHB) != 0;
-    g_cpu_features.sysreg128 =
-        (id_aa64isar2 & __ID_AA64ISAR2_EL1_SYSREG_128) != 0;
-    g_cpu_features.sysinstr128 =
-        (id_aa64isar2 & __ID_AA64ISAR2_EL1_SYSINSTR_128) != 0;
-    g_cpu_features.prfmslc = (id_aa64isar2 & __ID_AA64ISAR2_EL1_PRFMSLC) != 0;
+    g_cpu_features.mops = id_aa64isar2 & __ID_AA64ISAR2_EL1_MOPS;
+    g_cpu_features.hbc = id_aa64isar2 & __ID_AA64ISAR2_EL1_BC;
+    g_cpu_features.clrbhb = id_aa64isar2 & __ID_AA64ISAR2_EL1_CLRBHB;
+    g_cpu_features.sysreg128 = id_aa64isar2 & __ID_AA64ISAR2_EL1_SYSREG_128;
+    g_cpu_features.sysinstr128 = id_aa64isar2 & __ID_AA64ISAR2_EL1_SYSINSTR_128;
+    g_cpu_features.prfmslc = id_aa64isar2 & __ID_AA64ISAR2_EL1_PRFMSLC;
 
     const enum id_aa64pfr0_el1_fp_support id_aa64pfr0_el1_fp_support =
         (id_aa64pfr0 & __ID_AA64PFR0_EL1_FP) >>
@@ -416,7 +415,7 @@ void collect_cpu_features() {
     }
 #endif
 
-    g_cpu_features.sel2 = (id_aa64pfr0 & __ID_AA64PFR0_EL1_SEL2) != 0;
+    g_cpu_features.sel2 = id_aa64pfr0 & __ID_AA64PFR0_EL1_SEL2;
     const enum id_aa64pfr0_el1_amu_support id_aa64pfr0_el1_amu_support =
         (id_aa64pfr0 & __ID_AA64ZFR0_EL1_BF16) >>
             ID_AA64PFR0_EL1_AMU_SUPPORT_SHIFT;
@@ -432,8 +431,8 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.dit = (id_aa64pfr0 & __ID_AA64PFR0_EL1_DIT) != 0;
-    g_cpu_features.rme = (id_aa64pfr0 & __ID_AA64PFR0_EL1_RME) != 0;
+    g_cpu_features.dit = id_aa64pfr0 & __ID_AA64PFR0_EL1_DIT;
+    g_cpu_features.rme = id_aa64pfr0 & __ID_AA64PFR0_EL1_RME;
 
     const enum id_aa64pfr0_el1_csv2_support id_aa64pfr0_el1_csv2_support =
         (id_aa64pfr0 & __ID_AA64PFR0_EL1_CSV2) >>
@@ -453,8 +452,8 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.csv3 = (id_aa64pfr0 & __ID_AA64PFR0_EL1_CSV3) != 0;
-    g_cpu_features.bti = (id_aa64pfr0 & __ID_AA64PFR1_EL1_BT) != 0;
+    g_cpu_features.csv3 = id_aa64pfr0 & __ID_AA64PFR0_EL1_CSV3;
+    g_cpu_features.bti = id_aa64pfr0 & __ID_AA64PFR1_EL1_BT;
 
     const enum id_aa64pfr1_el1_ssbs_support id_aa64pfr1_el1_ssbs_support =
         (id_aa64pfr1 & __ID_AA64PFR1_EL1_SSBS) >>
@@ -515,11 +514,11 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.rndr_trap = (id_aa64pfr1 & __ID_AA64PFR1_EL1_RNDR_TRAP) != 0;
-    g_cpu_features.nmi = (id_aa64pfr1 & __ID_AA64PFR1_EL1_NMI) != 0;
-    g_cpu_features.gcs = (id_aa64pfr1 & __ID_AA64PFR1_EL1_GCS) != 0;
-    g_cpu_features.the = (id_aa64pfr1 & __ID_AA64PFR1_EL1_THE) != 0;
-    g_cpu_features.pfar = (id_aa64pfr1 & __ID_AA64PFR1_EL1_PFAR) != 0;
+    g_cpu_features.rndr_trap = id_aa64pfr1 & __ID_AA64PFR1_EL1_RNDR_TRAP;
+    g_cpu_features.nmi = id_aa64pfr1 & __ID_AA64PFR1_EL1_NMI;
+    g_cpu_features.gcs = id_aa64pfr1 & __ID_AA64PFR1_EL1_GCS;
+    g_cpu_features.the = id_aa64pfr1 & __ID_AA64PFR1_EL1_THE;
+    g_cpu_features.pfar = id_aa64pfr1 & __ID_AA64PFR1_EL1_PFAR;
     g_cpu_features.pa_range =
         (id_aa64mmfr0 & __ID_AA64MMFR0_PARANGE) >> ID_AA64MMFR0_PA_RANGE_SHIFT;
 
@@ -531,7 +530,7 @@ void collect_cpu_features() {
         }
     }
 
-    g_cpu_features.exs = (id_aa64mmfr0 & __ID_AA64MMFR0_EXS) != 0;
+    g_cpu_features.exs = id_aa64mmfr0 & __ID_AA64MMFR0_EXS;
     const enum id_aa64mmfr0_fgt_support id_aa64mmfr0_fgt_support =
         (id_aa64mmfr0 & __ID_AA64MMFR0_FGT) >> ID_AA64MMFR0_FGT_SUPPORT_SHIFT;
 
@@ -581,8 +580,8 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.vmid16 = (id_aa64mmfr1 & __ID_AA64MMFR1_VMIDBITS) != 0;
-    g_cpu_features.haft = (id_aa64mmfr1 & __ID_AA64MMFR1_VH) != 0;
+    g_cpu_features.vmid16 = id_aa64mmfr1 & __ID_AA64MMFR1_VMIDBITS;
+    g_cpu_features.haft = id_aa64mmfr1 & __ID_AA64MMFR1_VH;
 
     const enum id_aa64mmfr1_hpds_support id_aa64mmfr1_hpds_support =
         (id_aa64mmfr1 & __ID_AA64MMFR1_HPDS) >> ID_AA64MMFR1_HPDS_SUPPORT_SHIFT;
@@ -598,7 +597,7 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.lor = (id_aa64mmfr1 & __ID_AA64MMFR1_LO) != 0;
+    g_cpu_features.lor = id_aa64mmfr1 & __ID_AA64MMFR1_LO;
 
     const enum id_aa64mmfr1_pan_support id_aa64mmfr1_pan_support =
         (id_aa64mmfr1 & __ID_AA64MMFR1_PAN) >> ID_AA64MMFR1_PAN_SUPPORT_SHIFT;
@@ -617,23 +616,22 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.xnx = (id_aa64mmfr1 & __ID_AA64MMFR1_XNX) != 0;
-    g_cpu_features.twed = (id_aa64mmfr1 & __ID_AA64MMFR1_TWED) != 0;
-    g_cpu_features.ets = (id_aa64mmfr1 & __ID_AA64MMFR1_ETS) != 0;
-    g_cpu_features.hcx = (id_aa64mmfr1 & __ID_AA64MMFR1_HCX) != 0;
-    g_cpu_features.afp = (id_aa64mmfr1 & __ID_AA64MMFR1_AFP) != 0;
-    g_cpu_features.ntlbpa = (id_aa64mmfr2 & __ID_AA64MMFR1_NTLBPA) != 0;
-    g_cpu_features.tidcp1 = (id_aa64mmfr2 & __ID_AA64MMFR1_TIDCP1) != 0;
-    g_cpu_features.cmow = (id_aa64mmfr2 & __ID_AA64MMFR1_CMOW) != 0;
-    g_cpu_features.ecbhb = (id_aa64mmfr2 & __ID_AA64MMFR1_ECBHB) != 0;
-    g_cpu_features.ttcnp = (id_aa64mmfr2 & __ID_AA64MMFR2_CNP) != 0;
-    g_cpu_features.uao = (id_aa64mmfr2 & __ID_AA64MMFR2_UAO) != 0;
-    g_cpu_features.lsmaoc = (id_aa64mmfr2 & __ID_AA64MMFR2_LSM) != 0;
-    g_cpu_features.iesb = (id_aa64mmfr2 & __ID_AA64MMFR2_IESB) != 0;
-    g_cpu_features.ccidx = (id_aa64mmfr2 & __ID_AA64MMFR2_CCIDX) != 0;
+    g_cpu_features.xnx = id_aa64mmfr1 & __ID_AA64MMFR1_XNX;
+    g_cpu_features.twed = id_aa64mmfr1 & __ID_AA64MMFR1_TWED;
+    g_cpu_features.ets = id_aa64mmfr1 & __ID_AA64MMFR1_ETS;
+    g_cpu_features.hcx = id_aa64mmfr1 & __ID_AA64MMFR1_HCX;
+    g_cpu_features.afp = id_aa64mmfr1 & __ID_AA64MMFR1_AFP;
+    g_cpu_features.ntlbpa = id_aa64mmfr2 & __ID_AA64MMFR1_NTLBPA;
+    g_cpu_features.tidcp1 = id_aa64mmfr2 & __ID_AA64MMFR1_TIDCP1;
+    g_cpu_features.cmow = id_aa64mmfr2 & __ID_AA64MMFR1_CMOW;
+    g_cpu_features.ecbhb = id_aa64mmfr2 & __ID_AA64MMFR1_ECBHB;
+    g_cpu_features.ttcnp = id_aa64mmfr2 & __ID_AA64MMFR2_CNP;
+    g_cpu_features.uao = id_aa64mmfr2 & __ID_AA64MMFR2_UAO;
+    g_cpu_features.lsmaoc = id_aa64mmfr2 & __ID_AA64MMFR2_LSM;
+    g_cpu_features.iesb = id_aa64mmfr2 & __ID_AA64MMFR2_IESB;
+    g_cpu_features.ccidx = id_aa64mmfr2 & __ID_AA64MMFR2_CCIDX;
     g_cpu_features.lva =
-        (id_aa64mmfr2 & __ID_AA64MMFR2_VARANGE) != 0
-      || (tcr_el1 & __TCR_DS) != 0;
+        id_aa64mmfr2 & __ID_AA64MMFR2_VARANGE || tcr_el1 & __TCR_DS;
 
     const enum id_aa64mmfr2_nv_support id_aa64mmfr2_nv_support =
         (id_aa64mmfr2 & __ID_AA64MMFR2_NV) >> ID_AA64MMFR2_NV_SUPPORT_SHIFT;
@@ -649,11 +647,11 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.ttst = (id_aa64mmfr2 & __ID_AA64MMFR2_ST) != 0;
-    g_cpu_features.lse2 = (id_aa64mmfr2 & __ID_AA64MMFR2_AT) != 0;
-    g_cpu_features.idst = (id_aa64mmfr2 & __ID_AA64MMFR2_IDS) != 0;
-    g_cpu_features.s2fwb = (id_aa64mmfr2 & __ID_AA64MMFR2_FWB) != 0;
-    g_cpu_features.ttl = (id_aa64mmfr2 & __ID_AA64MMFR2_TTL) != 0;
+    g_cpu_features.ttst = id_aa64mmfr2 & __ID_AA64MMFR2_ST;
+    g_cpu_features.lse2 = id_aa64mmfr2 & __ID_AA64MMFR2_AT;
+    g_cpu_features.idst = id_aa64mmfr2 & __ID_AA64MMFR2_IDS;
+    g_cpu_features.s2fwb = id_aa64mmfr2 & __ID_AA64MMFR2_FWB;
+    g_cpu_features.ttl = id_aa64mmfr2 & __ID_AA64MMFR2_TTL;
 
     const enum id_aa64mmfr2_bbm_support id_aa64mmfr2_bbm_support =
         (id_aa64mmfr2 & __ID_AA64MMFR2_BBM) >> ID_AA64MMFR2_BBM_SUPPORT_SHIFT;
@@ -670,8 +668,8 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.evt = (id_aa64mmfr2 & __ID_AA64MMFR2_EVT) != 0;
-    g_cpu_features.e0pd = (id_aa64mmfr2 & __ID_AA64MMFR2_E0PD) != 0;
+    g_cpu_features.evt = id_aa64mmfr2 & __ID_AA64MMFR2_EVT;
+    g_cpu_features.e0pd = id_aa64mmfr2 & __ID_AA64MMFR2_E0PD;
 
     if (g_cpu_features.e0pd) {
         g_cpu_features.csv3 = true;
@@ -703,33 +701,33 @@ void collect_cpu_features() {
         g_cpu_features.aderr = true;
     }
 
-    g_cpu_features.aie = (id_aa64mmfr3 & __ID_AA64MMFR3_AIE) != 0;
-    g_cpu_features.mec = (id_aa64mmfr3 & __ID_AA64MMFR3_MEC) != 0;
-    g_cpu_features.s1pie = (id_aa64mmfr3 & __ID_AA64MMFR3_S1PIE) != 0;
-    g_cpu_features.s2pie = (id_aa64mmfr3 & __ID_AA64MMFR3_S2PIE) != 0;
-    g_cpu_features.s1poe = (id_aa64mmfr3 & __ID_AA64MMFR3_S1POE) != 0;
-    g_cpu_features.s2poe = (id_aa64mmfr3 & __ID_AA64MMFR3_S2POE) != 0;
+    g_cpu_features.aie = id_aa64mmfr3 & __ID_AA64MMFR3_AIE;
+    g_cpu_features.mec = id_aa64mmfr3 & __ID_AA64MMFR3_MEC;
+    g_cpu_features.s1pie = id_aa64mmfr3 & __ID_AA64MMFR3_S1PIE;
+    g_cpu_features.s2pie = id_aa64mmfr3 & __ID_AA64MMFR3_S2PIE;
+    g_cpu_features.s1poe = id_aa64mmfr3 & __ID_AA64MMFR3_S1POE;
+    g_cpu_features.s2poe = id_aa64mmfr3 & __ID_AA64MMFR3_S2POE;
 #if 0
-    g_cpu_features.sve_bitperm = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_BITPERM) != 0;
+    g_cpu_features.sve_bitperm = id_aa64zfr0 & __ID_AA64ZFR0_EL1_BITPERM;
 
-    g_cpu_features.sme_f16f16 = (id_aa64smfr0 & __ID_AA64SMFR0_F16F16) != 0;
-    g_cpu_features.sme_f64f64 = (id_aa64smfr0 & __ID_AA64SMFR0_F64F64) != 0;
-    g_cpu_features.sme_i16i64 = (id_aa64smfr0 & __ID_AA64SMFR0_I16I64) != 0;
+    g_cpu_features.sme_f16f16 = id_aa64smfr0 & __ID_AA64SMFR0_F16F16;
+    g_cpu_features.sme_f64f64 = id_aa64smfr0 & __ID_AA64SMFR0_F64F64;
+    g_cpu_features.sme_i16i64 = id_aa64smfr0 & __ID_AA64SMFR0_I16I64;
 
     if (g_cpu_features.sme != CPU_FEAT_NONE) {
-        g_cpu_features.sme_fa64 = (id_aa64smfr0 & __ID_AA64SMFR0_FA64) != 0;
+        g_cpu_features.sme_fa64 = id_aa64smfr0 & __ID_AA64SMFR0_FA64;
     }
 
     g_cpu_features.b16b16 =
-        (id_aa64zfr0 & __ID_AA64ZFR0_EL1_B16B16) != 0
-     && (id_aa64smfr0 & __ID_AA64SMFR0_B16B16) != 0;
+        id_aa64zfr0 & __ID_AA64ZFR0_EL1_B16B16
+     && id_aa64smfr0 & __ID_AA64SMFR0_B16B16
 
-    g_cpu_features.sve_sha3 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SHA3) != 0;
-    g_cpu_features.sve_sm4 = (id_aa64zfr0 & __ID_AA64ZFR0_EL1_SM4) != 0;
+    g_cpu_features.sve_sha3 = id_aa64zfr0 & __ID_AA64ZFR0_EL1_SHA3;
+    g_cpu_features.sve_sm4 = id_aa64zfr0 & __ID_AA64ZFR0_EL1_SM4;
 #endif
-    g_cpu_features.i8mm = (id_aa64isar1 & __ID_AA64ISAR1_EL1_I8MM) != 0;
-    g_cpu_features.xs = (id_aa64isar1 & __ID_AA64ISAR1_EL1_XS) != 0;
-    g_cpu_features.ls64 = (id_aa64isar1 & __ID_AA64ISAR1_EL1_LS64) != 0;
+    g_cpu_features.i8mm = id_aa64isar1 & __ID_AA64ISAR1_EL1_I8MM;
+    g_cpu_features.xs = id_aa64isar1 & __ID_AA64ISAR1_EL1_XS;
+    g_cpu_features.ls64 = id_aa64isar1 & __ID_AA64ISAR1_EL1_LS64;
 
     const enum id_aa64dfr0_el1_debug_version_support debug_version_support =
         (id_aa64dfr0 & __ID_AA64DFR0_EL1_DEBUG_VERSION) >>
@@ -786,13 +784,13 @@ void collect_cpu_features() {
             break;
     }
 
-    g_cpu_features.pmuv3_ss = (id_aa64dfr0 & __ID_AA64DFR0_EL1_PMSS) != 0;
-    g_cpu_features.sebep = (id_aa64dfr0 & __ID_AA64DFR0_EL1_SEBEP) != 0;
+    g_cpu_features.pmuv3_ss = id_aa64dfr0 & __ID_AA64DFR0_EL1_PMSS;
+    g_cpu_features.sebep = id_aa64dfr0 & __ID_AA64DFR0_EL1_SEBEP;
     g_cpu_features.double_lock =
-        (id_aa64dfr0 & __ID_AA64DFR0_EL1_DOUBLELOCK) != 0;
+        id_aa64dfr0 & __ID_AA64DFR0_EL1_DOUBLELOCK;
 
-    g_cpu_features.trf = (id_aa64dfr0 & __ID_AA64DFR0_EL1_TRACEFILT) != 0;
-    g_cpu_features.trbe = (id_aa64dfr0 & __ID_AA64DFR0_EL1_TRACEBUFFER) != 0;
+    g_cpu_features.trf = id_aa64dfr0 & __ID_AA64DFR0_EL1_TRACEFILT;
+    g_cpu_features.trbe = id_aa64dfr0 & __ID_AA64DFR0_EL1_TRACEBUFFER;
 
     const enum id_aa64dfr0_el1_mtpmu_support id_aa64dfr0_el1_mtpmu_support =
         (id_aa64dfr0 & __ID_AA64DFR0_EL1_MTPMU) >> IO_AA64DFR0_EL1_MTPMU_SHIFT;
@@ -823,15 +821,15 @@ void collect_cpu_features() {
     }
 
     g_cpu_features.trbe_ext =
-        (id_aa64dfr0 & __ID_AA64DFR0_EL1_EXTTRCBUFF) != 0
-        && (id_aa64dfr0 & __ID_AA64DFR0_EL1_TRACEBUFFER) != 0;
+        id_aa64dfr0 & __ID_AA64DFR0_EL1_EXTTRCBUFF
+      & id_aa64dfr0 & __ID_AA64DFR0_EL1_TRACEBUFFER;
 
-    g_cpu_features.hpmn0 = (id_aa64dfr0 & __ID_AA64DFR0_EL1_HPMN0) != 0;
-    g_cpu_features.able = (id_aa64dfr1 & __ID_AA64DFR1_EL1_ABLE) != 0;
-    g_cpu_features.ebep = (id_aa64dfr1 & __ID_AA64DFR1_EL1_EBEP) != 0;
-    g_cpu_features.ite = (id_aa64dfr1 & __ID_AA64DFR1_EL1_ITE) != 0;
-    g_cpu_features.pmuv3_icntr = (id_aa64dfr1 & __ID_AA64DFR1_EL1_PMICNTR) != 0;
-    g_cpu_features.spmu = (id_aa64dfr1 & __ID_AA64DFR1_EL1_SPMU) != 0;
+    g_cpu_features.hpmn0 = id_aa64dfr0 & __ID_AA64DFR0_EL1_HPMN0;
+    g_cpu_features.able = id_aa64dfr1 & __ID_AA64DFR1_EL1_ABLE;
+    g_cpu_features.ebep = id_aa64dfr1 & __ID_AA64DFR1_EL1_EBEP;
+    g_cpu_features.ite = id_aa64dfr1 & __ID_AA64DFR1_EL1_ITE;
+    g_cpu_features.pmuv3_icntr = id_aa64dfr1 & __ID_AA64DFR1_EL1_PMICNTR;
+    g_cpu_features.spmu = id_aa64dfr1 & __ID_AA64DFR1_EL1_SPMU;
 
     if (!g_cpu_features.b16b16) {
         g_cpu_features.sve = CPU_FEAT_SVE;

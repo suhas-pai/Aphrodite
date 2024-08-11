@@ -423,12 +423,12 @@ static void init_cpuid_features() {
     // Setup Syscall MSRs
     msr_write(IA32_MSR_STAR,
               ((uint64_t)gdt_get_kernel_code_segment() << 32
-               | (uint64_t)gdt_get_user_data_segment() << 48));
+             | (uint64_t)gdt_get_user_data_segment() << 48));
 
     msr_write(IA32_MSR_FMASK, /*value=*/0);
     msr_write(IA32_MSR_MISC_ENABLE,
               (msr_read(IA32_MSR_MISC_ENABLE)
-               | __IA32_MSR_MISC_FAST_STRING_ENABLE));
+             | __IA32_MSR_MISC_FAST_STRING_ENABLE));
 
     xsave_init();
     printk(LOGLEVEL_INFO,

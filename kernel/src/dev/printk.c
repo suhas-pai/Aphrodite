@@ -21,8 +21,8 @@ __debug_optimize(3) void printk_add_terminal(struct terminal *const term) {
 
 __debug_optimize(3)
 void printk(const enum log_level loglevel, const char *const string, ...) {
-    va_list list;
     (void)loglevel;
+    va_list list;
 
     va_start(list, string);
     vprintk(loglevel, string, list);

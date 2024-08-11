@@ -244,7 +244,8 @@ void handle_interrupt(struct thread_context *const context) {
     }
 }
 
-__debug_optimize(3) void handle_sync_exception(struct thread_context *const context) {
+__debug_optimize(3)
+void handle_sync_exception(struct thread_context *const context) {
     this_cpu_mut()->in_exception = true;
 
     const uint64_t esr = context->esr_el1;

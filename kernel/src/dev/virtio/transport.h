@@ -123,15 +123,14 @@ virtio_mmio_set_selected_queue_device_phys(struct virtio_device *device,
         virtio_pci_write_device_info((device), (offset), (size), (buf)) : \
         virtio_mmio_write_device_info((device), (offset), (size), (buf)))
 
-#define virtio_device_read_info_field(device, type, field) \
-    ({ \
-        uint64_t __result__; \
-        virtio_device_read_info((device), \
-                                offsetof(type, field), \
-                                sizeof_field(type, field), \
-                                &__result__); \
-        (typeof_field(type, field))__result__; \
-    })
+#define virtio_device_read_info_field(device, type, field) ({ \
+    uint64_t __result__; \
+    virtio_device_read_info((device), \
+                            offsetof(type, field), \
+                            sizeof_field(type, field), \
+                            &__result__); \
+    (typeof_field(type, field))__result__; \
+})
 
 #define virtio_device_write_info_field(device, type, field, value) \
     virtio_device_write_info((device), \
