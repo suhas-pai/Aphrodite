@@ -71,7 +71,7 @@ if ! test -f version; then
         de2789b4dfceda28a11e98603a302d8d7ebbc2c1f87fa90ea475e37a991b4209
 
     download_by_hash \
-        https://gist.githubusercontent.com/nhatminhle/5181506/raw/541482dbc61862bba8a156edaae57faa2995d791/stdatomic.h \
+        https://gist.githubusercontent.com/suhas-pai/2a6c1c4d32491aaf363ee3b1b3884390/raw/541482dbc61862bba8a156edaae57faa2995d791/stdatomic.h \
         freestanding-headers/stdatomic.h \
         5e5d78080b2126535ee724a03082fea398dd5afb98548d95177c738a1fc17abe
 fi
