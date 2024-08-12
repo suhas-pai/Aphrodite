@@ -550,9 +550,10 @@ uint8_t hour12_to_24hour(uint8_t hour, bool is_pm);
 uint8_t hour24_to_12hour(uint8_t hour);
 
 bool hour24_is_pm(uint8_t hour);
-uint8_t weekday_to_decimal_monday_one(enum weekday weekday);
 
+uint8_t weekday_to_decimal_monday_one(enum weekday weekday);
 uint8_t month_get_day_count(enum month month, bool in_leap_year);
+
 uint8_t
 get_week_count_at_day(enum weekday weekday,
                       uint16_t days_since_jan_1,
