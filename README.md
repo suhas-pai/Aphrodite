@@ -14,18 +14,18 @@ The project has the implemented all of the following:
 * Has serial UART drivers; uart8250 on x86_64, riscv64 and pl011 on aarch64
 * Full abstract virtual memory manager with large page support.
 * Implements `kmalloc()` using a slab allocator.
-* Keeps time with RTC (google,goldfish-rtc on riscv64) and LAPIC Timer, HPET on x86_64
+* Keeps time with RTC (`google,goldfish-rtc` on riscv64) and LAPIC Timer, HPET on x86_64
 * Discovers devices in ACPI Tables and Device Tree (when available)
 * Finds and Initializes PCI(e) Devices.
 
-The following is currently being worked on.
+And more
+
+The following is currently being thought out and worked on.
 * IDE, AHCI, SATA, NVME controllers to read disks
 * VirtIO drivers
 * Virtual File System (VFS)
 * Full SMP support with scheduler
 * User processes and threads
-
-And more
 
 ## Building
 ### Prerequisites
