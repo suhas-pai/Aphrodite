@@ -67,10 +67,6 @@ The GNUmakefile provides the following targets to use with `make` for building:
  * `all-hdd` target builds a flat hard disk/USB image instead.
  * `install` target can install the system into a directory provided by the variable `DESTDIR`.
 
-On `x86_64`, additional targets are available:
- * `run-bios`, `run-hdd-bios` targets are equivalent to their non -bios counterparts
-   except that they boot qemu using the default SeaBIOS firmware instead of OVMF.
-
 #### Variables
 
 Several variables are available to configure how the project is built:
@@ -91,6 +87,10 @@ To run from a built raw HDD image, rather than a bootable ISO, run the following
 command instead:
 
 ``` make run-hdd KARCH=x86_64 KCC=clang KLD=ld.lld```
+
+On `x86_64`, additional options are available:
+ * `run-bios`, `run-hdd-bios` Makefile targets are equivalent to their non `-bios` counterparts
+   except that they boot QEMU using the default `SeaBIOS` firmware instead of `OVMF`.
 
 Several variables are also available to configure the system provided by QEMU.
 If not provided, they are given a default value that is detailed below:
