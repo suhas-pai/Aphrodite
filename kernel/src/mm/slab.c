@@ -81,7 +81,7 @@ get_free_object(struct page *const page, struct slab_allocator *const alloc) {
     return result;
 }
 
-void slab_verify(struct slab_allocator *const alloc) {
+__debug_optimize(3) void slab_verify(struct slab_allocator *const alloc) {
 #if defined(CHECK_SLABS)
     if (list_empty(&alloc->free_slab_head_list)) {
         return;
@@ -104,11 +104,12 @@ void slab_verify(struct slab_allocator *const alloc) {
             break;
         }
 
-        verify_free_object(free_obj, alloc);
         assert(free_obj->next != prev);
 
         prev = free_obj->next;
         free_obj = get_free_ptr_from_index(head, alloc, free_obj->next);
+
+        verify_free_object(free_obj, alloc);
     }
 #else
     (void)alloc;

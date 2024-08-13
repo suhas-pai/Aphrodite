@@ -18,9 +18,10 @@
 __debug_optimize(3) void spin_acquire(struct spinlock *const lock) {
     const uint32_t ticket = atomic_fetch_add(&lock->back, 1);
     while (true) {
-        if (atomic_load(&lock->front) == ticket) {
+        const uint32_t front = atomic_load(&lock->front);
+        if (front == ticket) {
         #if defined(DEBUG_LOCKS)
-            assert(lock->front <= lock->back);
+            assert(front <= atomic_load(&lock->back));
         #endif /* defined(DEBUG_LOCKS) */
 
             return;
@@ -32,10 +33,6 @@ __debug_optimize(3) void spin_acquire(struct spinlock *const lock) {
 
 __debug_optimize(3) void spin_release(struct spinlock *const lock) {
     atomic_fetch_add(&lock->front, 1);
-
-#if defined(DEBUG_LOCKS)
-    assert(lock->front <= lock->back);
-#endif /* defined(DEBUG_LOCKS) */
 }
 
 __debug_optimize(3) bool spin_try_acquire(struct spinlock *const lock) {
@@ -91,7 +88,7 @@ spin_try_acquire_save_irq(struct spinlock *const lock, int *const flag_out) {
 
 __debug_optimize(3) void spinlock_deinit(struct spinlock *const lock) {
 #if defined(DEBUG_LOCKS)
-    assert(lock->front == lock->back);
+    assert(atomic_load(&lock->front) == atomic_load(&lock->back));
 #endif /* defined(DEBUG_LOCKS) */
 
     lock->front = 0;

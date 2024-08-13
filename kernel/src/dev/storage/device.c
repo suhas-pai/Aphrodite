@@ -94,7 +94,7 @@ parse_mbr_entries(struct storage_device *const device,
 {
     list_init(&device->partition_list);
 
-    bool found_atleast_one = false;
+    uint8_t count = 0;
     carr_foreach(header->entry_list, entry) {
         if (!verify_mbr_entry(entry)) {
             continue;
@@ -116,10 +116,15 @@ parse_mbr_entries(struct storage_device *const device,
         partition_init(partition, STRING_NULL(), device, full_range);
         list_add(&device->partition_list, &partition->list);
 
-        found_atleast_one = true;
+        count++;
     }
 
-    return found_atleast_one;
+    if (count == 0) {
+        return false;
+    }
+
+    printk(LOGLEVEL_INFO, "storage/mbr: found %" PRIu8 " partition(s)\n", count);
+    return true;
 }
 
 static bool identify_partitions(struct storage_device *const device) {

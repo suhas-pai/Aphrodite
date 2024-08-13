@@ -28,7 +28,7 @@ void smp_init() {
 #define bsp_field VAR_CONCAT(bsp_, field)
 
 #if !defined(__loongarch64)
-    struct limine_smp_info **const cpu_list = smp_resp->cpus;
+    struct limine_smp_info *const *const cpu_list = smp_resp->cpus;
     const uint64_t cpu_count = smp_resp->cpu_count;
 
     for (uint64_t i = 0; i != cpu_count; i++) {

@@ -62,6 +62,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *port);
 
 bool ahci_hba_port_start(struct ahci_hba_port *port);
 bool ahci_hba_port_stop(struct ahci_hba_port *port);
+bool ahci_hba_port_is_idle(const struct ahci_hba_port *port);
 
 bool
 ahci_hba_port_send_scsi_command(struct ahci_hba_port *port,

@@ -114,3 +114,4 @@ If not provided, they are given a default value that is detailed below:
     with the list in the correct format. Default is `""`
   * `CHECK_SLABS=` to enable pervasive slab checks in `kmalloc()` and other slab allocators.
      Default is `0`
+  * `DEBUG_LOCKS=` to enable pervasive lock integrity checks. Default is `0`

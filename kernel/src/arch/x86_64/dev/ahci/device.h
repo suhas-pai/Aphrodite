@@ -27,3 +27,4 @@ struct ahci_hba_device {
 };
 
 struct ahci_hba_device *ahci_hba_get();
+bool ahci_hba_reset();

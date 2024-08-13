@@ -15,6 +15,7 @@
 
 #include "lib/bits.h"
 #include "lib/size.h"
+#include "lib/util.h"
 
 #include "mm/kmalloc.h"
 #include "mm/zone.h"
@@ -43,7 +44,7 @@ static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
     const uint8_t slot =
        find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
 
-    if (slot > sizeof_bits(uint32_t)) {
+    if (!index_in_bounds(slot, sizeof_bits(uint32_t))) {
         spin_release_restore_irq(&port->lock, flag);
         return UINT8_MAX;
     }
@@ -67,8 +68,8 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     bool cmdlist_stopped = false;
 
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status) &
-                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
+        if ((mmio_read(&spec->cmd_status)
+                & __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
             cmdlist_stopped = true;
             break;
@@ -142,7 +143,7 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
 
 __debug_optimize(3) static
 inline void clear_error_bits(volatile struct ahci_spec_hba_port *const port) {
-    mmio_write(&port->interrupt_status, mmio_read(&port->interrupt_status));
+    mmio_write(&port->interrupt_status, UINT32_MAX);
 }
 
 __debug_optimize(3)
@@ -168,7 +169,8 @@ static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
     return false;
 }
 
-__debug_optimize(3) static void comreset_port(struct ahci_hba_port *const port) {
+__debug_optimize(3)
+static void comreset_port(struct ahci_hba_port *const port) {
     // Spec v1.3.1, §10.4.2 Port Reset
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     {
@@ -466,6 +468,20 @@ __debug_optimize(3) bool ahci_hba_port_start(struct ahci_hba_port *const port) {
 }
 
 __debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
+    /*
+     * System software places a port into the idle state by clearing PxCMD.ST
+     * and waiting for PxCMD.CR to return ‘0’ when read.
+     *
+     * Software should wait at least 500 milliseconds for this to occur. If
+     * PxCMD.FRE is set to ‘1’, software should clear it to ‘0’ and wait at
+     * least 500 milliseconds for PxCMD.FR to return ‘0’ when read.
+     *
+     * If PxCMD.CR or PxCMD.FR do not clear to ‘0’ correctly, then software may
+     * attempt a port reset or a full HBA reset to recover.
+     */
+
+    // TODO: Implement 500ms wait
+
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     const uint32_t cmd_status = mmio_read(&spec->cmd_status);
 
@@ -489,7 +505,20 @@ __debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
     return false;
 }
 
-__debug_optimize(3) static void
+__debug_optimize(3)
+bool ahci_hba_port_is_idle(const struct ahci_hba_port *const port) {
+    // If PxCMD.ST, PxCMD.CR, PxCMD.FRE and PxCMD.FR are all cleared, the port
+    // is in an idle state.
+
+    const uint32_t flags =
+        __AHCI_HBA_PORT_CMDSTATUS_START
+      | __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING
+      | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE;
+
+    return (mmio_read(&port->spec->cmd_status) & flags) == 0;
+}
+
+__debug_optimize(3) static bool
 ahci_hba_port_power_on_and_spin_up(
     volatile struct ahci_spec_hba_port *const port,
     const uint8_t index)
@@ -515,7 +544,22 @@ ahci_hba_port_power_on_and_spin_up(
         printk(LOGLEVEL_INFO,
                "ahci: spinning up port #%" PRIu8 "\n",
                index + 1);
+
+        // TODO: Wait for about 1ms here
+        for (int i = 0; i != MAX_ATTEMPTS; i++) {
+            const uint32_t sata_status = mmio_read(&port->sata_status);
+            const enum ahci_hba_port_det det =
+                sata_status & __AHCI_HBA_PORT_SATA_STAT_CTRL_DET;
+
+            if (det == AHCI_HBA_PORT_DET_PRESENT) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    return true;
 }
 
 __debug_optimize(3) static void
@@ -555,7 +599,7 @@ static inline bool recognize_port_sig(struct ahci_hba_port *const port) {
             return false;
     }
 
-    verify_not_reached();
+    return false;
 }
 
 __debug_optimize(3) static uint64_t
@@ -592,18 +636,10 @@ ahci_hba_port_write(struct storage_device *const device,
     return 0;
 }
 
-__debug_optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
-    if (!ahci_hba_port_stop_running(port)) {
-        printk(LOGLEVEL_WARN,
-               "ahci: failed to stop port #%" PRIu8 " before init\n",
-               port->index + 1);
-        return false;
-    }
-
-    port->sig = (enum sata_sig)mmio_read(&port->spec->signature);
-    if (!recognize_port_sig(port)) {
-        return false;
-    }
+__debug_optimize(3)
+bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
+    // We assume here that the port is idle.
+    assert(ahci_hba_port_is_idle(port));
 
     struct page *cmd_list_page = NULL;
     struct page *cmd_table_pages = NULL;
@@ -657,11 +693,6 @@ __debug_optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const por
     if (supports_64bit_dma) {
         mmio_write(&spec->cmd_list_base_phys_upper32, cmd_list_phys >> 32);
     }
-
-    printk(LOGLEVEL_INFO,
-           "ahci: port #%" PRIu8 " has a cmd-list base at %p\n",
-           port->index + 1,
-           (void *)phys_range.front);
 
     struct ahci_hba_port_cmdhdr_info *const cmdhdr_info_list =
         kmalloc(sizeof(struct ahci_hba_port_cmdhdr_info)
@@ -724,20 +755,47 @@ __debug_optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const por
         return false;
     }
 
-    clear_error_bits(spec);
-
-    ahci_hba_port_power_on_and_spin_up(spec, port->index);
-    ahci_hba_port_set_state(spec, AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE);
-
-    mmio_write(&spec->cmd_status,
-               mmio_read(&spec->cmd_status)
-             | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
-
-    flush_writes(spec);
-    if (!ahci_hba_port_start(port)) {
+    if (!ahci_hba_port_power_on_and_spin_up(spec, port->index)) {
         free_page(resp_page);
+        free_page(cmd_list_page);
+
+        free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+        kfree(cmdhdr_info_list);
+
         return false;
     }
+
+    clear_error_bits(spec);
+    ahci_hba_port_set_state(spec, AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE);
+    flush_writes(spec);
+
+    if (!ahci_hba_port_start(port)) {
+        free_page(resp_page);
+        free_page(cmd_list_page);
+
+        free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+        kfree(cmdhdr_info_list);
+
+        return false;
+    }
+
+    port->sig = (enum sata_sig)mmio_read(&port->spec->signature);
+    if (!recognize_port_sig(port)) {
+        ahci_hba_port_stop(port);
+
+        free_page(resp_page);
+        free_page(cmd_list_page);
+
+        free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+        kfree(cmdhdr_info_list);
+
+        return false;
+    }
+
+    printk(LOGLEVEL_INFO,
+           "ahci: port #%" PRIu8 " has a cmd-list base at %p\n",
+           port->index + 1,
+           (void *)phys_range.front);
 
     bool result =
         ahci_hba_port_send_scsi_command(port,
@@ -745,12 +803,18 @@ __debug_optimize(3) bool ahci_spec_hba_port_init(struct ahci_hba_port *const por
                                         page_to_phys(resp_page));
 
     if (!result) {
+        ahci_hba_port_stop(port);
+
         free_page(resp_page);
+        free_page(cmd_list_page);
+
+        free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+        kfree(cmdhdr_info_list);
+
         printk(LOGLEVEL_WARN,
                "ahci: failed to get identity of port #%" PRIu8 "\n",
                port->index + 1);
 
-        // TODO: Power down and free cmd-list/cmd-table pages
         return false;
     }
 
@@ -1048,9 +1112,9 @@ send_ata_command(struct ahci_hba_port *const port,
     switch (command_kind) {
         case ATA_CMD_READ_DMA:
         case ATA_CMD_READ_DMA_EXT:
+        case ATA_CMD_IDENTIFY_PACKET:
             feature = __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA;
             break;
-        case ATA_CMD_IDENTIFY_PACKET:
         case ATA_CMD_IDENTIFY:
         case ATA_CMD_CACHE_FLUSH:
         case ATA_CMD_CACHE_FLUSH_EXT:

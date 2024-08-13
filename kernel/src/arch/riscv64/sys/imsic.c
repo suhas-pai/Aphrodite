@@ -313,7 +313,10 @@ imsic_add_region(const uint64_t hart_id, const struct range range) {
 
 __debug_optimize(3)
 volatile void *imsic_region_for_hartid(const uint64_t hart_id) {
-    array_foreach(&g_supervisor_region_list, struct imsic_region, region) {
+    array_foreach(&g_supervisor_region_list,
+                  const struct imsic_region,
+                  region)
+    {
         if (region->hart_id == hart_id) {
             return region->mmio->base;
         }
