@@ -181,7 +181,8 @@ __debug_optimize(3) struct string_view weekday_to_sv(const enum weekday day) {
     verify_not_reached();
 }
 
-__debug_optimize(3) struct string_view weekday_to_sv_upper(const enum weekday day) {
+__debug_optimize(3)
+struct string_view weekday_to_sv_upper(const enum weekday day) {
     switch (day) {
 #define WEEKDAY_CASE(name)                                                     \
     case VAR_CONCAT(WEEKDAY_, name):                                           \
@@ -230,7 +231,8 @@ __debug_optimize(3) struct string_view month_to_sv(const enum month month) {
     verify_not_reached();
 }
 
-__debug_optimize(3) struct string_view month_to_sv_upper(const enum month month) {
+__debug_optimize(3)
+struct string_view month_to_sv_upper(const enum month month) {
     switch (month) {
 #define MONTH_CASE(name)                                                       \
     case VAR_CONCAT(MONTH_, name):                                             \
@@ -257,7 +259,8 @@ __debug_optimize(3) struct string_view month_to_sv_upper(const enum month month)
     verify_not_reached();
 }
 
-__debug_optimize(3) struct string_view weekday_to_sv_abbrev(const enum weekday day) {
+__debug_optimize(3)
+struct string_view weekday_to_sv_abbrev(const enum weekday day) {
     switch (day) {
 #define WEEKDAY_CASE(name)                                                     \
     case VAR_CONCAT(WEEKDAY_, name):                                           \
@@ -302,7 +305,8 @@ struct string_view weekday_to_sv_abbrev_upper(const enum weekday day) {
     verify_not_reached();
 }
 
-__debug_optimize(3) struct string_view month_to_sv_abbrev(const enum month month) {
+__debug_optimize(3)
+struct string_view month_to_sv_abbrev(const enum month month) {
     switch (month) {
 #define MONTH_CASE(name)                                                       \
     case VAR_CONCAT(MONTH_, name):                                             \

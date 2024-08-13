@@ -12,7 +12,8 @@ extern int16_t g_xsave_feat_noncompacted_offsets[XSAVE_FEAT_MAX];
 extern int16_t g_xsave_feat_sizes[XSAVE_FEAT_MAX];
 extern uint8_t g_xsave_feat_flags[XSAVE_FEAT_MAX];
 
-__debug_optimize(3) bool xsave_feat_is_supervisor(const enum xsave_feature feat) {
+__debug_optimize(3)
+bool xsave_feat_is_supervisor(const enum xsave_feature feat) {
     return g_xsave_feat_flags[feat] & __XSAVE_FEAT_FLAG_SUPERVISOR_FEAT;
 }
 

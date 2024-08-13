@@ -381,7 +381,8 @@ __debug_optimize(3) void mm_init() {
            SIZE_UNIT_FMT_ARGS_ABBREV(g_total_free_pages * PAGE_SIZE));
 }
 
-__debug_optimize(3) static inline void init_table_page(struct page *const page) {
+__debug_optimize(3)
+static inline void init_table_page(struct page *const page) {
     list_init(&page->table.delayed_free_list);
     refcount_init(&page->table.refcount);
 }

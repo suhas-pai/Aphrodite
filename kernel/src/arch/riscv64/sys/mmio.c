@@ -57,7 +57,8 @@ __debug_optimize(3) uint64_t mmio_read_64(volatile const void *const ptr) {
     return result;
 }
 
-__debug_optimize(3) void mmio_write_8(volatile void *const ptr, const uint8_t value) {
+__debug_optimize(3)
+void mmio_write_8(volatile void *const ptr, const uint8_t value) {
     io_bw_fence();
     asm volatile ("sb %0, 0(%1)"
                   :: "r"(value), "r"(ptr)

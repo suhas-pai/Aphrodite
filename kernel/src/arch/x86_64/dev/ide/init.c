@@ -49,7 +49,9 @@ static struct ide_channel g_channel_list[2] = {0};
 
 void ide_write(const uint8_t channel, const uint8_t reg, const uint8_t data) {
     if (reg > 0x07 && reg < 0x0C) {
-        ide_write(channel, ATA_REG_CONTROL, 0x80 | g_channel_list[channel].nIEN);
+        ide_write(channel,
+                  ATA_REG_CONTROL,
+                  0x80 | g_channel_list[channel].nIEN);
     }
 
     if (reg < 0x08) {
@@ -111,7 +113,9 @@ ide_read_buffer(const uint8_t channel,
                 const uint32_t quads)
 {
     if (reg > 0x07 && reg < 0x0C) {
-        ide_write(channel, ATA_REG_CONTROL, 0x80 | g_channel_list[channel].nIEN);
+        ide_write(channel,
+                  ATA_REG_CONTROL,
+                  0x80 | g_channel_list[channel].nIEN);
     }
 
     if (reg < 0x08) {

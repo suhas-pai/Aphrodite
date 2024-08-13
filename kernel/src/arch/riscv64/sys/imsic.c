@@ -49,7 +49,8 @@ static struct imsic *g_supervisor_imsic = NULL;
 static struct array g_supervisor_region_list =
     ARRAY_INIT(sizeof(struct imsic_region));
 
-__debug_optimize(3) struct imsic *imsic_for_privl(const enum riscv64_privl privl) {
+__debug_optimize(3)
+struct imsic *imsic_for_privl(const enum riscv64_privl privl) {
     switch (privl) {
         case RISCV64_PRIVL_MACHINE:
             return g_machine_imsic;

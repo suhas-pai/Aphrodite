@@ -153,7 +153,8 @@ aplic_init(struct aplic *const aplic,
     return aplic;
 }
 
-__debug_optimize(3) struct aplic *aplic_for_privl(const enum riscv64_privl privl) {
+__debug_optimize(3)
+struct aplic *aplic_for_privl(const enum riscv64_privl privl) {
     switch (privl) {
         case RISCV64_PRIVL_MACHINE:
             return g_machine_aplic;

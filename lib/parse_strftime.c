@@ -60,18 +60,18 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
 
 #define RECURSIVE_CALL_FOR_SPEC(other_spec) \
     do {                                                                       \
-        const struct strftime_spec_info other_spec_info = {                    \
+        const struct strftime_spec_info h_var(spec_info) = {                   \
             .spec = other_spec,                                                \
             .mods = spec_info->mods                                            \
         };                                                                     \
-        const bool valid_spec =                                                \
-            handle_strftime_spec(&other_spec_info,                             \
+        const bool h_var(valid_spec) =                                         \
+            handle_strftime_spec(&h_var(spec_info),                            \
                                  sv_cb,                                        \
                                  sv_cb_info,                                   \
                                  tm,                                           \
                                  written_out,                                  \
                                  should_cont_out);                             \
-        assert(valid_spec);                                                    \
+        assert(h_var(valid_spec));                                             \
         if (!*should_cont_out) {                                               \
             goto done;                                                         \
         }                                                                      \
@@ -82,12 +82,12 @@ handle_strftime_spec(const struct strftime_spec_info *const spec_info,
 
 #define PAD_WITH_CHAR_IF_NECESSARY(sv, ch, expected_len) \
     do {                                                                       \
-        const struct strftime_modifiers mods = spec_info->mods;                \
-        if (!mods.dont_pad_number) {                                           \
+        const struct strftime_modifiers h_var(mods) = spec_info->mods;         \
+        if (!h_var(mods).dont_pad_number) {                                    \
             char __pad_ch__ = ch;                                              \
-            if (mods.pad_spaces_to_number) {                                   \
+            if (h_var(mods).pad_spaces_to_number) {                            \
                 __pad_ch__ = ' ';                                              \
-            } else if (mods.pad_zeros) {                                       \
+            } else if (h_var(mods).pad_zeros) {                                \
                 __pad_ch__ = '0';                                              \
             }                                                                  \
             char *__sv_begin__ = sv_begin_mut(sv);                             \

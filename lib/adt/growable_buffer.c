@@ -10,7 +10,8 @@
 
 #define GBUFFER_MAX_CAP (UINT32_MAX >> 1)
 
-__debug_optimize(3) struct growable_buffer gbuffer_alloc(const uint32_t capacity) {
+__debug_optimize(3)
+struct growable_buffer gbuffer_alloc(const uint32_t capacity) {
     assert(capacity <= GBUFFER_MAX_CAP);
 
     uint32_t size = 0;

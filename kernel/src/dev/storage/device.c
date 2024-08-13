@@ -123,7 +123,10 @@ parse_mbr_entries(struct storage_device *const device,
         return false;
     }
 
-    printk(LOGLEVEL_INFO, "storage/mbr: found %" PRIu8 " partition(s)\n", count);
+    printk(LOGLEVEL_INFO,
+           "storage/mbr: found %" PRIu8 " partition(s)\n",
+           count);
+
     return true;
 }
 

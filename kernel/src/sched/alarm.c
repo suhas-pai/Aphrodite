@@ -28,7 +28,8 @@ static int compare(struct list *const theirs, struct list *const ours) {
     return twovar_cmp(their_alarm->remaining, our_alarm->remaining);
 }
 
-__debug_optimize(3) void alarm_post(struct alarm *const alarm, const bool await) {
+__debug_optimize(3)
+void alarm_post(struct alarm *const alarm, const bool await) {
     const int flag = spin_acquire_save_irq(&g_lock);
 
     list_add_inorder(&g_list, &alarm->list, compare);
