@@ -70,10 +70,10 @@ The GNUmakefile provides the following targets to use with `make` for building:
 #### Variables
 
 Several variables are available to configure how the project is built:
- * `KARCH` specifies the architecture the project is built for. Default is `x86_64`,
+ * `KARCH=` specifies the architecture the project is built for. Default is `x86_64`,
     but also accepts `aarch64`, `riscv64`, `loongarch64` as inputs to run the
     project on the respective architecture.
- * `KCC`, `KLD` variables detail the compiler and linker used to build the *kernel*.
+ * `KCC=`, `KLD=` detail the compiler and linker used to build the *kernel*.
    Default is `KCC=clang` `KLD=ld.lld`.
 
 ## Running
