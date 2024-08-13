@@ -80,6 +80,8 @@ static volatile struct limine_smp_request smp_request = {
     .flags = 0,
 };
 
+static uint64_t g_slide = 0;
+
 // Finally, define the start and end markers for the Limine requests.
 // These can also be moved anywhere, to any .c file, as seen fit.
 
@@ -147,6 +149,10 @@ __debug_optimize(3) int64_t boot_get_time() {
     return boot_time;
 }
 
+__debug_optimize(3) uint64_t boot_get_slide() {
+    return g_slide;
+}
+
 __debug_optimize(3) uint64_t mm_get_full_section_mask() {
     return mask_for_n_bits(mm_page_section_count);
 }
@@ -174,6 +180,13 @@ void boot_init() {
     HHDM_OFFSET = hhdm_request.response->offset;
     KERNEL_BASE = kern_addr_request.response->virtual_base;
     PAGING_MODE = paging_mode_request.response->mode;
+
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv64) \
+ || defined(__loongarch64)
+    g_slide = KERNEL_BASE - 0xffffffff80000000;
+#else
+    #error "Unrecognized architecture when calculating slide"
+#endif
 
     const struct limine_memmap_response *const resp = memmap_request.response;
 
@@ -317,7 +330,8 @@ __debug_optimize(3) void boot_merge_usable_memmaps() {
     }
 }
 
-__debug_optimize(3) void boot_remove_section(struct page_section *const section) {
+__debug_optimize(3)
+void boot_remove_section(struct page_section *const section) {
     const uint64_t length =
         distance(section + 1, &mm_page_section_list[mm_page_section_count]);
 

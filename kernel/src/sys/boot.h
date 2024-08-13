@@ -19,6 +19,8 @@ const void *boot_get_rsdp();
 const void *boot_get_dtb();
 
 int64_t boot_get_time();
+uint64_t boot_get_slide();
+
 uint64_t mm_get_full_section_mask();
 
 void boot_merge_usable_memmaps();
