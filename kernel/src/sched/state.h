@@ -5,7 +5,8 @@
 
 #pragma once
 
-enum sched_entity_state {
-    SCHED_ENTITY_STATE_NONE,
-    SCHED_ENTITY_STATE_PENDING
+enum thread_state {
+    THREAD_STATE_NONE,
+    THREAD_STATE_PENDING,
+    THREAD_STATE_RUNNING,
 };

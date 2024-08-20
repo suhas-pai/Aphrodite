@@ -64,7 +64,7 @@ pci_domain_read_8(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            return pci_ecam_read_8((const struct pci_ecam_domain *)domain,
+            return pci_ecam_read_8((const struct pci_domain_ecam *)domain,
                                    loc,
                                    offset);
     }
@@ -84,7 +84,7 @@ pci_domain_read_16(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            return pci_ecam_read_16((const struct pci_ecam_domain *)domain,
+            return pci_ecam_read_16((const struct pci_domain_ecam *)domain,
                                     loc,
                                     offset);
     }
@@ -104,7 +104,7 @@ pci_domain_read_32(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            return pci_ecam_read_32((const struct pci_ecam_domain *)domain,
+            return pci_ecam_read_32((const struct pci_domain_ecam *)domain,
                                     loc,
                                     offset);
     }
@@ -124,7 +124,7 @@ pci_domain_read_64(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            return pci_ecam_read_64((const struct pci_ecam_domain *)domain,
+            return pci_ecam_read_64((const struct pci_domain_ecam *)domain,
                                     loc,
                                     offset);
     }
@@ -146,7 +146,7 @@ pci_domain_write_8(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            pci_ecam_write_8((const struct pci_ecam_domain *)domain,
+            pci_ecam_write_8((const struct pci_domain_ecam *)domain,
                              loc,
                              offset,
                              value);
@@ -170,7 +170,7 @@ pci_domain_write_16(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            pci_ecam_write_16((const struct pci_ecam_domain *)domain,
+            pci_ecam_write_16((const struct pci_domain_ecam *)domain,
                               loc,
                               offset,
                               value);
@@ -194,7 +194,7 @@ pci_domain_write_32(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            pci_ecam_write_32((const struct pci_ecam_domain *)domain,
+            pci_ecam_write_32((const struct pci_domain_ecam *)domain,
                               loc,
                               offset,
                               value);
@@ -217,7 +217,7 @@ pci_domain_write_64(const struct pci_domain *const domain,
     #endif /* defined(__x86_64__) */
 
         case PCI_DOMAIN_ECAM:
-            pci_ecam_write_64((const struct pci_ecam_domain *)domain,
+            pci_ecam_write_64((const struct pci_domain_ecam *)domain,
                               loc,
                               offset,
                               value);

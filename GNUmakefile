@@ -17,8 +17,8 @@ override DEFAULT_KARCH := x86_64
 $(eval $(call DEFAULT_VAR,KARCH,$(DEFAULT_KARCH)))
 
 override IMAGE_NAME := template-$(KARCH)
-
 override DEFAULT_MEM := 4G
+
 $(eval $(call DEFAULT_VAR,MEM,$(DEFAULT_MEM)))
 
 override DEFAULT_SMP := 4
@@ -45,13 +45,18 @@ $(error ACPI cannot be disabled on x86_64)
 endif
 else
 	ifeq ($(DISABLE_ACPI), 1)
-		MACHINE=$(DEFAULT_MACHINE),acpi=off
+		MACHINE := $(MACHINE),acpi=off
 	endif
+endif
+
+ifeq ($(KARCH), aarch64)
+	MACHINE := $(MACHINE),gic-version=max
 endif
 
 DEFAULT_DRIVE_KIND=nvme
 ifeq ($(KARCH), riscv64)
-	DEFAULT_DRIVE_KIND=scsi
+	DEFAULT_DRIVE_KIND = scsi
+	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
 endif
 
 DRIVE_KIND?=nvme
@@ -77,25 +82,47 @@ $(eval $(call DEFAULT_VAR,CHECK_SLABS,$(DEFAULT_CHECK_SLABS)))
 VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
 
+QEMU_CDROM_ARGS=\
+	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(KARCH).fd,readonly=on \
+	-drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-$(KARCH).fd
+
+QEMU_HDD_ARGS=\
+	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(KARCH).fd,readonly=on \
+	-drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-$(KARCH).fd
+
 ifeq ($(DRIVE_KIND),block)
 	ifeq ($(KARCH), riscv64)
 $(error "block device not supported on riscv64")
 	endif
 
-	DRIVE_CD_QEMU_ARG=-cdrom $(IMAGE_NAME).iso
-	DRIVE_HDD_QEMU_ARG=-hda $(IMAGE_NAME).hdd
+	QEMU_CDROM_ARGS += cdrom $(IMAGE_NAME).iso
+	QEMU_HDD_ARGS += -hda $(IMAGE_NAME).hdd
 else ifeq ($(DRIVE_KIND), scsi)
-	DRIVE_CD_QEMU_ARG=-device virtio-scsi-pci,id=scsi -device scsi-cd,drive=cd0 -drive id=cd0,if=none,format=raw,file=$(IMAGE_NAME).iso
-	DRIVE_HDD_QEMU_ARG=-device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd0 -drive id=hd0,format=raw,file=$(IMAGE_NAME).hdd
+	QEMU_CDROM_ARGS += \
+		-device virtio-scsi-pci,id=scsi \
+		-device scsi-cd,drive=cd0 \
+		-drive id=cd0,if=none,format=raw,file=$(IMAGE_NAME).iso
+	QEMU_HDD_ARGS += \
+		-device virtio-scsi-pci,id=scsi \
+		-device scsi-hd,drive=hd0 \
+		-drive id=hd0,format=raw,file=$(IMAGE_NAME).hdd
 else ifeq ($(DRIVE_KIND),nvme)
 DEFAULT_NVME_MAX_QUEUE_COUNT=64
 $(eval $(call DEFAULT_VAR,NVME_MAX_QUEUE_COUNT,$(DEFAULT_NVME_MAX_QUEUE_COUNT)))
 
-	DRIVE_CD_QEMU_ARG=-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
-	DRIVE_HDD_QEMU_ARG=-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw -device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
+	QEMU_CDROM_ARGS += \
+		-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw \
+		-device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
+	QEMU_HDD_ARGS += \
+		-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw \
+		-device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
 else
 $(error "Unrecognized value for variable DRIVE_KIND: \"${DRIVE_KIND}\"")
 endif
+
+# Default user QEMU flags. These are appended to the QEMU command calls.
+override DEFAULT_QEMUFLAGS := -M $(MACHINE) -m $(MEM) -smp $(SMP)
+$(eval $(call DEFAULT_VAR,QEMUFLAGS,$(DEFAULT_QEMUFLAGS)))
 
 .PHONY: all
 all: $(IMAGE_NAME).iso
@@ -110,71 +137,111 @@ run: run-$(KARCH)
 run-hdd: run-hdd-$(KARCH)
 
 .PHONY: run-x86_64
-run-x86_64: QEMU_RUN = 1
-run-x86_64: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-x86_64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+	qemu-system-$(KARCH) \
+		-cpu max \
+		$(QEMUFLAGS) \
+		$(QEMU_CDROM_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-x86_64
-run-hdd-x86_64: QEMU_RUN = 1
-run-hdd-x86_64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -bios ovmf-x86_64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-hdd-x86_64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-$(KARCH) \
+		-cpu max \
+		$(QEMUFLAGS) \
+		$(QEMU_HDD_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-aarch64
-run-aarch64: QEMU_RUN = 1
-run-aarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-aarch64 -M $(MACHINE),gic-version=max -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-$(KARCH)/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+	qemu-system-$(KARCH) \
+		-cpu max \
+		-device ramfb \
+		-device qemu-xhci \
+		-device usb-kbd \
+		$(QEMUFLAGS) \
+		$(QEMU_CDROM_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-aarch64
-run-hdd-aarch64: QEMU_RUN = 1
-run-hdd-aarch64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-aarch64 -M $(MACHINE),gic-version=max -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-aarch64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-aarch64 \
+		-cpu max \
+		-device ramfb \
+		-device qemu-xhci \
+		-device usb-kbd \
+		$(QEMUFLAGS) \
+		$(QEMU_HDD_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-riscv64
-run-riscv64: QEMU_RUN = 1
-run-riscv64: ovmf $(IMAGE_NAME).iso
-	qemu-system-riscv64 -M $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1 -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_CD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+	qemu-system-riscv64 \
+		-cpu max \
+		-device ramfb \
+		-device qemu-xhci \
+		-device usb-kbd \
+		$(QEMUFLAGS) \
+		$(QEMU_CDROM_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-riscv64
-run-hdd-riscv64: QEMU_RUN = 1
-run-hdd-riscv64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-riscv64 -M $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1 -cpu max -device ramfb -device qemu-xhci -drive if=pflash,unit=0,format=raw,file=ovmf-riscv64/OVMF.fd -device usb-kbd -m $(MEM) $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-riscv64 \
+		-cpu max \
+		-device ramfb \
+		-device qemu-xhci \
+		-device usb-kbd \
+		$(QEMUFLAGS) \
+		$(QEMU_HDD_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-loongarch64
-run-loongarch64: ovmf $(IMAGE_NAME).iso
-	qemu-system-loongarch64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-loongarch64/OVMF.fd $(DRIVE_CD_QEMU_ARG) -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+	qemu-system-loongarch64 \
+		-device ramfb \
+		-device qemu-xhci \
+		-device usb-kbd \
+		$(QEMUFLAGS) \
+		$(QEMU_CDROM_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-loongarch64
-run-hdd-loongarch64: ovmf $(IMAGE_NAME).hdd
-	qemu-system-loongarch64 -M $(MACHINE) -cpu max -device ramfb -device qemu-xhci -device usb-kbd -m $(MEM) -bios ovmf-loongarch64/OVMF.fd $(DRIVE_HDD_QEMU_ARG) $(EXTRA_QEMU_ARGS) -smp $(SMP)
+run-hdd-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-loongarch64 \
+		-device ramfb \
+		-device qemu-xhci \
+		-device usb-kbd \
+		$(QEMUFLAGS) \
+		$(QEMU_HDD_ARGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-bios
-run-bios: QEMU_RUN = 1
 run-bios: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -cdrom $(IMAGE_NAME).iso -boot d $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-x86_64 \
+		-cdrom $(IMAGE_NAME).iso \
+		-boot d \
+		$(QEMUFLAGS) \
+		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-bios
-run-hdd-bios: QEMU_RUN = 1
 run-hdd-bios: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M $(MACHINE) -cpu max -m $(MEM) -hda $(IMAGE_NAME).hdd $(EXTRA_QEMU_ARGS) -smp $(SMP)
+	qemu-system-x86_64 \
+		-hda $(IMAGE_NAME).hdd \
+		$(QEMUFLAGS) \
+		$(EXTRA_QEMU_ARGS)
 
-.PHONY: ovmf
-ovmf: ovmf-$(KARCH)
+ovmf/ovmf-code-$(KARCH).fd:
+	mkdir -p ovmf
+	curl -Lo $@ https://github.com/limine-bootloader/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(KARCH).fd
+	if [ "$(KARCH)" = "aarch64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null; fi
+	if [ "$(KARCH)" = "riscv64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null; fi
 
-ovmf-x86_64:
-	mkdir -p ovmf-x86_64
-	cd ovmf-x86_64 && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
-
-ovmf-aarch64:
-	mkdir -p ovmf-aarch64
-	cd ovmf-aarch64 && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEAARCH64_QEMU_EFI.fd
-
-ovmf-riscv64:
-	mkdir -p ovmf-riscv64
-	cd ovmf-riscv64 && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT_CODE.fd && dd if=/dev/zero of=OVMF.fd bs=1 count=0 seek=33554432
-
-ovmf-loongarch64:
-	mkdir -p ovmf-loongarch64
-	cd ovmf-loongarch64 && curl -o OVMF.fd https://raw.githubusercontent.com/limine-bootloader/firmware/trunk/loongarch64/QEMU_EFI.fd
+ovmf/ovmf-vars-$(KARCH).fd:
+	mkdir -p ovmf
+	curl -Lo $@ https://github.com/limine-bootloader/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-$(KARCH).fd
+	if [ "$(KARCH)" = "aarch64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null; fi
+	if [ "$(KARCH)" = "riscv64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null; fi
 
 limine/limine:
 	rm -rf limine
@@ -256,9 +323,12 @@ endif
 .PHONY: clean
 clean:
 	if test -f kernel-deps; then $(MAKE) -C kernel clean; fi
-	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
+	rm -rf iso_root-$(KARCH)/boot/limine || true
+	rm iso_root-$(KARCH)/boot/kernel || true
+
+	rm $(IMAGE_NAME).iso $(IMAGE_NAME).hdd || true
 
 .PHONY: distclean
 distclean:
 	if test -f kernel-deps; then $(MAKE) -C kernel distclean; fi
-	rm -rf iso_root *.iso *.hdd kernel-deps limine ovmf*
+	rm -rf iso_root-* *.iso *.hdd kernel-deps limine ovmf*

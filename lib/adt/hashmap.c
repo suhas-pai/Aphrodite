@@ -195,7 +195,7 @@ hashmap_get(const struct hashmap *const hashmap, const hashmap_key_t key) {
                "hashmap_get(): hashmap not initialized");
 
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
-        return false;
+        return NULL;
     }
 
     const uint32_t key_hash = hash_of(hashmap, key);
@@ -223,7 +223,7 @@ hashmap_remove(struct hashmap *const hashmap,
                "hashmap_remove(): hashmap not initialized");
 
     if (__builtin_expect(hashmap->buckets == NULL, 0)) {
-        return false;
+        return NULL;
     }
 
     const uint32_t key_hash = hash_of(hashmap, key);

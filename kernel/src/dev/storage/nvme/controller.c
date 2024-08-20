@@ -318,7 +318,7 @@ nvme_controller_create(struct nvme_controller *const controller,
     mmio_write(&regs->admin_queue_attributes,
                (NVME_ADMIN_QUEUE_COUNT - 1) <<
                 NVME_ADMIN_QUEUE_ATTR_SUBMIT_QUEUE_SIZE_SHIFT
-               | (NVME_ADMIN_QUEUE_COUNT - 1));
+              | (NVME_ADMIN_QUEUE_COUNT - 1));
 
     mmio_write(&regs->admin_submit_queue_base_addr,
                controller->admin_queue.submit_queue_phys);

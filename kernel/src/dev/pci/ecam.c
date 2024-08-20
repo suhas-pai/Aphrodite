@@ -26,7 +26,7 @@ static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
     return bus_range.size << 20;
 }
 
-struct pci_ecam_domain *
+struct pci_domain_ecam *
 pci_add_ecam_domain(const struct range bus_range,
                     const uint64_t base_addr,
                     const uint16_t segment)
@@ -44,7 +44,7 @@ pci_add_ecam_domain(const struct range bus_range,
         return NULL;
     }
 
-    struct pci_ecam_domain *const ecam_domain = kmalloc(sizeof(*ecam_domain));
+    struct pci_domain_ecam *const ecam_domain = kmalloc(sizeof(*ecam_domain));
     if (ecam_domain == NULL) {
         printk(LOGLEVEL_WARN, "pci: failed to alloc ecam domain info\n");
         return NULL;
@@ -82,7 +82,7 @@ pci_add_ecam_domain(const struct range bus_range,
 }
 
 __debug_optimize(3)
-bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
+bool pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
     const int flag = spin_acquire_save_irq(&g_ecam_domain_lock);
 
     pci_remove_domain(&ecam_domain->domain);
@@ -98,7 +98,7 @@ bool pci_remove_ecam_domain(struct pci_ecam_domain *const ecam_domain) {
 }
 
 __debug_optimize(3) uint64_t
-pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
+pci_ecam_domain_loc_get_offset(const struct pci_domain_ecam *const domain,
                                const struct pci_location *const loc)
 {
     return
@@ -108,7 +108,7 @@ pci_ecam_domain_loc_get_offset(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) uint8_t
-pci_ecam_read_8(const struct pci_ecam_domain *const domain,
+pci_ecam_read_8(const struct pci_domain_ecam *const domain,
                 const struct pci_location *const loc,
                 const uint16_t off)
 {
@@ -121,7 +121,7 @@ pci_ecam_read_8(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) uint16_t
-pci_ecam_read_16(const struct pci_ecam_domain *const domain,
+pci_ecam_read_16(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
 {
@@ -134,7 +134,7 @@ pci_ecam_read_16(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) uint32_t
-pci_ecam_read_32(const struct pci_ecam_domain *const domain,
+pci_ecam_read_32(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
 {
@@ -147,7 +147,7 @@ pci_ecam_read_32(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) uint64_t
-pci_ecam_read_64(const struct pci_ecam_domain *const domain,
+pci_ecam_read_64(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off)
 {
@@ -160,7 +160,7 @@ pci_ecam_read_64(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) void
-pci_ecam_write_8(const struct pci_ecam_domain *const domain,
+pci_ecam_write_8(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
                  const uint16_t off,
                  const uint8_t value)
@@ -174,7 +174,7 @@ pci_ecam_write_8(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) void
-pci_ecam_write_16(const struct pci_ecam_domain *const domain,
+pci_ecam_write_16(const struct pci_domain_ecam *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
                   const uint16_t value)
@@ -188,7 +188,7 @@ pci_ecam_write_16(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) void
-pci_ecam_write_32(const struct pci_ecam_domain *const domain,
+pci_ecam_write_32(const struct pci_domain_ecam *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
                   const uint32_t value)
@@ -202,7 +202,7 @@ pci_ecam_write_32(const struct pci_ecam_domain *const domain,
 }
 
 __debug_optimize(3) void
-pci_ecam_write_64(const struct pci_ecam_domain *const domain,
+pci_ecam_write_64(const struct pci_domain_ecam *const domain,
                   const struct pci_location *const loc,
                   const uint16_t off,
                   const uint64_t value)
@@ -425,7 +425,7 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    struct pci_ecam_domain *const ecam_domain =
+    struct pci_domain_ecam *const ecam_domain =
         pci_add_ecam_domain(bus_range, mmio_range.front, /*segment=*/0);
     struct pci_bus *const root_bus =
         pci_bus_create(&ecam_domain->domain, bus_range.front, /*segment=*/0);
@@ -438,6 +438,7 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
+    // FIXME: We don't do anything when parse_dtb_resources() fails
     parse_dtb_resources(node, root_bus);
     if (!pci_add_root_bus(root_bus)) {
         pci_remove_root_bus(root_bus);

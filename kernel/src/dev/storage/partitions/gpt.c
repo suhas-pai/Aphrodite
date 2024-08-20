@@ -35,7 +35,8 @@ bool verify_gpt_header(const struct gpt_header *const header) {
     return true;
 }
 
-__debug_optimize(3) bool gpt_entry_mount_ok(const struct gpt_entry *const entry) {
+__debug_optimize(3)
+bool gpt_entry_mount_ok(const struct gpt_entry *const entry) {
     if (entry->last < entry->start) {
         return false;
     }

@@ -513,7 +513,8 @@ bool ahci_hba_port_is_idle(const struct ahci_hba_port *const port) {
     const uint32_t flags =
         __AHCI_HBA_PORT_CMDSTATUS_START
       | __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING
-      | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE;
+      | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE
+      | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING;
 
     return (mmio_read(&port->spec->cmd_status) & flags) == 0;
 }
@@ -739,15 +740,12 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         return false;
     }
 
-    port->cmdhdr_info_list = cmdhdr_info_list;
-    port->headers = phys_to_virt(cmd_list_phys);
-    port->cmdtable_phys = page_to_phys(cmd_table_pages);
-    port->mmio = mmio;
-
     struct page *const resp_page =
         alloc_page(PAGE_STATE_USED, /*alloc_flags=*/0);
 
     if (resp_page == NULL) {
+        vunmap_mmio(mmio);
+
         free_page(cmd_list_page);
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
@@ -757,11 +755,12 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
 
     if (!ahci_hba_port_power_on_and_spin_up(spec, port->index)) {
         free_page(resp_page);
+        vunmap_mmio(mmio);
+
         free_page(cmd_list_page);
-
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
-        kfree(cmdhdr_info_list);
 
+        kfree(cmdhdr_info_list);
         return false;
     }
 
@@ -769,13 +768,19 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     ahci_hba_port_set_state(spec, AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE);
     flush_writes(spec);
 
+    port->cmdhdr_info_list = cmdhdr_info_list;
+    port->headers = phys_to_virt(cmd_list_phys);
+    port->cmdtable_phys = page_to_phys(cmd_table_pages);
+    port->mmio = mmio;
+
     if (!ahci_hba_port_start(port)) {
         free_page(resp_page);
+        vunmap_mmio(mmio);
+
         free_page(cmd_list_page);
-
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
-        kfree(cmdhdr_info_list);
 
+        kfree(cmdhdr_info_list);
         return false;
     }
 
@@ -784,16 +789,17 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         ahci_hba_port_stop(port);
 
         free_page(resp_page);
+        vunmap_mmio(mmio);
+
         free_page(cmd_list_page);
-
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
-        kfree(cmdhdr_info_list);
 
+        kfree(cmdhdr_info_list);
         return false;
     }
 
     printk(LOGLEVEL_INFO,
-           "ahci: port #%" PRIu8 " has a cmd-list base at %p\n",
+           "ahci: port #%" PRIu8 " cmd-list is at phys address %p\n",
            port->index + 1,
            (void *)phys_range.front);
 
@@ -806,11 +812,12 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         ahci_hba_port_stop(port);
 
         free_page(resp_page);
+        vunmap_mmio(mmio);
+
         free_page(cmd_list_page);
-
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
-        kfree(cmdhdr_info_list);
 
+        kfree(cmdhdr_info_list);
         printk(LOGLEVEL_WARN,
                "ahci: failed to get identity of port #%" PRIu8 "\n",
                port->index + 1);
@@ -852,25 +859,39 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
                                             page_to_phys(resp_page));
 
         if (!result) {
+            ahci_hba_port_stop(port);
+
             free_page(resp_page);
+            vunmap_mmio(mmio);
+
+            free_page(cmd_list_page);
+            free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+
+            kfree(cmdhdr_info_list);
             printk(LOGLEVEL_WARN,
                    "ahci: failed to request sense of satapi port #%" PRIu8 "\n",
                    port->index + 1);
 
-            // TODO: Power down and free cmd-list/cmd-table pages
             return false;
         }
 
         struct atapi_sense_response *const resp = page_to_virt(resp_page);
         if (resp->sense != ATAPI_SENSE_NONE) {
+            ahci_hba_port_stop(port);
+
             free_page(resp_page);
+            vunmap_mmio(mmio);
+
+            free_page(cmd_list_page);
+            free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+
+            kfree(cmdhdr_info_list);
             printk(LOGLEVEL_WARN,
                    "ahci: atapi sense request for port #%" PRIu8 " "
                    "returned \"%s\". aborting init\n",
                    port->index + 1,
                    atapi_sense_to_cstr(resp->sense));
 
-            // TODO: Power down and free cmd-list/cmd-table pages
             return false;
         }
     }
@@ -885,6 +906,13 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
                              ahci_hba_port_read,
                              ahci_hba_port_write))
     {
+        ahci_hba_port_stop(port);
+        vunmap_mmio(mmio);
+
+        free_page(cmd_list_page);
+        free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+
+        kfree(cmdhdr_info_list);
         return false;
     }
 
