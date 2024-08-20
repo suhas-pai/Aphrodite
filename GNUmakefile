@@ -159,59 +159,65 @@ run-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME)
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
+		-device usb-mouse \
 		$(QEMUFLAGS) \
 		$(QEMU_CDROM_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-aarch64
 run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-aarch64 \
+	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
+		-device usb-mouse \
 		$(QEMUFLAGS) \
 		$(QEMU_HDD_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-riscv64
 run-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
-	qemu-system-riscv64 \
+	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
+		-device usb-mouse \
 		$(QEMUFLAGS) \
 		$(QEMU_CDROM_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-riscv64
 run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-riscv64 \
+	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
+		-device usb-mouse \
 		$(QEMUFLAGS) \
 		$(QEMU_HDD_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-loongarch64
 run-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
-	qemu-system-loongarch64 \
+	qemu-system-$(KARCH) \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
+		-device usb-mouse \
 		$(QEMUFLAGS) \
 		$(QEMU_CDROM_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-loongarch64
 run-hdd-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-loongarch64 \
+	qemu-system-$(KARCH) \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
+		-device usb-mouse \
 		$(QEMUFLAGS) \
 		$(QEMU_HDD_ARGS) \
 		$(EXTRA_QEMU_ARGS)
