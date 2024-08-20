@@ -52,12 +52,12 @@ paths to your `$PATH` environment variable:
 ```
 #### On Linux
 
-Install the latest version of LLVM available. Best option is from llvm.org.
+Install the latest version of LLVM available. The best option is from llvm.org.
 The llvm version available in your system's package manager may be too old to
 build this project.
 
-Make sure to also add llvm's installation folder to your `$PATH` environment variable.
 This project also requires installing `nasm` and `xorisso`.
+Make sure to add llvm's installation folder to your `$PATH` environment variable.
 
 #### Targets
 
