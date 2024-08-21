@@ -65,7 +65,7 @@ __debug_optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
 
     for (const struct page_section *iter = begin; iter != end; iter++) {
         if (range_has_loc(iter->range, phys)) {
-            return iter->pfn + (PAGE_COUNT(phys - iter->range.front));
+            return iter->pfn + PAGE_COUNT(phys - iter->range.front);
         }
     }
 

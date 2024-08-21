@@ -20,6 +20,7 @@ mm_early_identity_map_phys(uint64_t root_phys,
                            uint64_t pte_flags);
 
 void mm_remove_early_identity_map();
+uint64_t mm_get_total_page_count();
 
 uint64_t early_alloc_page();
 uint64_t early_alloc_large_page(pgt_level_t level);

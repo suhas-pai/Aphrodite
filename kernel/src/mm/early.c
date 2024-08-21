@@ -139,11 +139,11 @@ static void claim_pages(const struct mm_memmap *const memmap) {
                 prev->avail_page_count += page_count;
                 prev->total_page_count += page_count;
 
-                struct freepages_info *const prev_prev =
-                    list_prev_safe(prev, list, &g_freepage_list);
+                struct freepages_info *const prev_next =
+                    list_next_safe(prev, list, &g_freepage_list);
 
-                if (prev_prev != NULL
-                    && prev_prev->avail_page_count > prev->avail_page_count)
+                if (prev_next != NULL
+                 && prev->avail_page_count > prev_next->avail_page_count)
                 {
                     list_remove(&prev->asc_list);
                     add_to_asc_list(prev);
@@ -286,8 +286,11 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
     return free_page;
 }
 
+__debug_optimize(3) uint64_t mm_get_total_page_count() {
+    return g_total_free_pages;
+}
+
 __hidden uint64_t KERNEL_BASE = 0;
-__hidden uint64_t structpage_page_count = 0;
 
 __debug_optimize(3) void mm_early_init() {
     const uint64_t memmap_count = mm_get_memmap_count();
@@ -298,8 +301,6 @@ __debug_optimize(3) void mm_early_init() {
                 verify_not_reached();
             case MM_MEMMAP_KIND_USABLE:
                 claim_pages(memmap);
-                structpage_page_count += PAGE_COUNT(memmap->range.size);
-
                 break;
             case MM_MEMMAP_KIND_RESERVED:
             case MM_MEMMAP_KIND_ACPI_RECLAIMABLE:

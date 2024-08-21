@@ -9,8 +9,8 @@
 #include "limine.h"
 
 __hidden const uint64_t PAGE_OFFSET = 0xffffc00000000000;
-__hidden const uint64_t VMAP_BASE = 0xffffd00000000000;
-__hidden const uint64_t VMAP_END = 0xffffe00000000000;
+__hidden const uint64_t VMAP_BASE = 0xffffe00000000000;
+__hidden const uint64_t VMAP_END = 0xfffff00000000000;
 
 __hidden uint64_t PAGING_MODE = 0;
 __hidden uint64_t PAGE_END = 0;

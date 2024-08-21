@@ -69,12 +69,11 @@ alloc_region(const uint64_t virt_addr,
     }
 }
 
-extern uint64_t structpage_page_count;
-
 static void setup_pagestructs_table() {
-    const uint64_t table_size = structpage_page_count * SIZEOF_STRUCTPAGE;
-    uint64_t map_size = table_size;
+    const uint64_t table_size =
+        check_mul_assert(mm_get_total_page_count(), SIZEOF_STRUCTPAGE);
 
+    uint64_t map_size = table_size;
     if (!align_up(map_size, PAGE_SIZE, &map_size)) {
         panic("mm: failed to initialize memory, overflow error when aligning "
               "structpage-table size to PAGE_SIZE");
@@ -219,6 +218,15 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
                   RANGE_INIT(HHDM_OFFSET, gib(64)),
                   PROT_READ | PROT_WRITE,
                   VMA_CACHEKIND_DEFAULT);
+
+    printk(LOGLEVEL_INFO,
+           "mm: kernel pagemap ranges:\n"
+           "\tmmio: " RANGE_FMT "\n"
+           "\tkernel: " RANGE_FMT "\n"
+           "\thhdm: " RANGE_FMT "\n",
+           RANGE_FMT_ARGS(mmio->node.range),
+           RANGE_FMT_ARGS(kernel->node.range),
+           RANGE_FMT_ARGS(hhdm->node.range));
 
     assert_msg(
         addrspace_add_node(&kernel_process.pagemap.addrspace,
