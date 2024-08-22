@@ -876,7 +876,9 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         }
 
         struct atapi_sense_response *const resp = page_to_virt(resp_page);
-        if (resp->sense != ATAPI_SENSE_NONE) {
+        if (resp->sense != ATAPI_SENSE_NONE
+         || resp->asc != ATAPI_SENSE_ASC_NONE)
+        {
             ahci_hba_port_stop(port);
 
             free_page(resp_page);
@@ -1251,7 +1253,7 @@ send_atapi_command(struct ahci_hba_port *const port,
         &port->headers[slot];
     struct ahci_spec_hba_cmd_table *const cmd_table =
         (struct ahci_spec_hba_cmd_table *)phys_to_virt(port->cmdtable_phys)
-        + slot;
+      + slot;
 
     setup_prdt_table(cmd_header, cmd_table, phys_addr, sector_count, flags);
     setup_ata_h2d_fis(cmd_table,
