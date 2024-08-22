@@ -102,8 +102,8 @@ If not provided, they are given a default value that is detailed below:
   * `CONSOLE=` to start in QEMU's console mode. Default is `0`
   * `DISABLE_ACPI=` to start QEMU's machine without ACPI, relying exclusively on the DTB (Flattened Device Tree).
     Default is `0`
-  * `DISABLE_FLANTERM=` to disable `flanterm`, the terminal emulator used. This option helps improve bootup
-    performance. Default is `0`
+  * `DISABLE_FLANTERM=` to disable [flanterm](https://github.com/mintsuki/flanterm), the terminal emulator used in this project.
+    This option helps improve bootup performance. Default is `0`
   * `DRIVE_KIND=` to specify what drives are available from QEMU. Default is `scsi` for riscv64, and `nvme` for all other archs.
     Available options are:
      * `block` which provides the default cdrom/hda access from QEMU
