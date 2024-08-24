@@ -77,7 +77,11 @@ static volatile struct limine_smp_request smp_request = {
     .id = LIMINE_SMP_REQUEST,
     .revision = 0,
     .response = NULL,
+#if defined(__x86_64__)
+    .flags = 1 << 0, // Use x2apic (when available)
+#else
     .flags = 0,
+#endif /* defined(__x86_64__) */
 };
 
 static uint64_t g_slide = 0;

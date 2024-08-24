@@ -16,7 +16,9 @@
 #include "lib/freq.h"
 #include "lib/time.h"
 
+#include "sched/thread.h"
 #include "sys/mmio.h"
+
 #include "lapic.h"
 
 static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
@@ -83,7 +85,8 @@ static void calibrate_timer() {
     // Because the timer ticks down, init_tick_count > end_tick_count
     const uint16_t pit_end_tick_number = pit_get_current_tick();
     const uint16_t pit_tick_count = pit_init_tick_number - pit_end_tick_number;
-    const uint32_t lapic_timer_freq_multiple = sample_count / pit_tick_count;
+    const uint32_t lapic_timer_freq_multiple =
+        sample_count / pit_tick_count;
 
     this_cpu_mut()->lapic_timer_frequency =
         lapic_timer_freq_multiple * PIT_FREQUENCY;
@@ -191,13 +194,13 @@ __debug_optimize(3) void lapic_timer_stop() {
         x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, 0);
         x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER,
                      create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                                           /*vector=*/isr_get_timer_vector(),
+                                           /*vector=*/isr_get_lapic_vector(),
                                            /*masked=*/true));
     } else {
         mmio_write(&lapic_regs->timer_initial_count, 0);
         mmio_write(&lapic_regs->lvt_timer,
                    create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                                         /*vector=*/isr_get_timer_vector(),
+                                         /*vector=*/isr_get_lapic_vector(),
                                          /*masked=*/true));
     }
 }
@@ -250,9 +253,11 @@ void lapic_init() {
     calibrate_timer();
     lapic_timer_stop();
 
-    printk(LOGLEVEL_INFO,
-           "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
-           FREQ_TO_UNIT_FMT_ARGS_ABBREV(this_cpu()->lapic_timer_frequency));
+    if (this_cpu() == &g_base_cpu_info) {
+        printk(LOGLEVEL_INFO,
+               "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
+               FREQ_TO_UNIT_FMT_ARGS_ABBREV(this_cpu()->lapic_timer_frequency));
+    }
 
     enable_irqs_if_flag(flag);
 }

@@ -3,19 +3,18 @@
  * © suhas pai
  */
 
-#include "asm/context.h"
 #include "asm/fsgsbase.h"
 #include "asm/xsave.h"
+#include "lib/assert.h"
 
-#include "sched/process.h"
 #include "sched/thread.h"
 
 __debug_optimize(3) struct thread *current_thread() {
-    return (struct thread *)read_gsbase();
+    return (struct thread *)gsbase_read();
 }
 
 __debug_optimize(3) void sched_set_current_thread(struct thread *const thread) {
-    write_gsbase((uint64_t)thread);
+    gsbase_write((uint64_t)thread);
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)thread);
 }
 
@@ -29,12 +28,14 @@ sched_switch_to(struct thread *const prev,
     if (prev->process == &kernel_process) {
         //xsave_supervisor_into(&prev->arch_info.avx_state);
     } else {
+        verify_not_reached();
         xsave_user_into(&prev->arch_info.avx_state);
     }
 
     if (next->process == &kernel_process) {
         //xrstor_supervisor_from(&next->arch_info.avx_state);
     } else {
+        verify_not_reached();
         xrstor_user_from(&next->arch_info.avx_state);
     }
 
@@ -43,6 +44,8 @@ sched_switch_to(struct thread *const prev,
         prev->context = *prev_context;
     }
 
+    thread_context_verify(next->process, &next->context);
     thread_spinup(&next->context);
+
     verify_not_reached();
 }

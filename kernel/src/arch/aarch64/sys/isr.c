@@ -224,7 +224,7 @@ void handle_interrupt(struct thread_context *const context) {
                irq,
                cpu_id);
 
-        cpu_mut_for_id(cpu_id)->spur_intr_count++;
+        cpu_for_id_mut(cpu_id)->spur_intr_count++;
         gic_cpu_eoi(cpu_id, irq);
 
         return;

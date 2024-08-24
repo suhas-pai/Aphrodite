@@ -51,7 +51,7 @@ void ide_write(const uint8_t channel, const uint8_t reg, const uint8_t data) {
     if (reg > 0x07 && reg < 0x0C) {
         ide_write(channel,
                   ATA_REG_CONTROL,
-                  0x80 | g_channel_list[channel].nIEN);
+                  (1 << 7) | g_channel_list[channel].nIEN);
     }
 
     if (reg < 0x08) {
@@ -199,7 +199,7 @@ handle_device(struct ide_device *const device,
     device->reserved = 0; // Assuming that no drive here.
 
     // (I) Select Drive:
-    ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (drive << 4)); // Select Drive.
+    ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | drive << 4); // Select Drive.
     sched_sleep_us(milli_to_micro(1)); // Wait 1ms for drive select to work.
 
     // (II) Send ATA Identify Command:

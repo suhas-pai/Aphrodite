@@ -25,7 +25,7 @@ void sched_process_algo_info_init(struct process *const process) {
 void sched_thread_algo_info_init(struct thread *const thread) {
     thread->sched_info.timeslice = SCHED_BASIC_DEF_TIMESLICE_US;
     thread->sched_info.awaiting = false;
-    thread->sched_info.enqueued = true;
+    thread->sched_info.runnable = false;
 
     list_init(&thread->sched_info.list);
 }
@@ -42,46 +42,79 @@ __debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     list_radd(&g_run_queue, &thread->sched_info.list);
-    atomic_store_explicit(&thread->sched_info.enqueued,
+    atomic_store_explicit(&thread->sched_info.runnable,
                           true,
                           memory_order_relaxed);
 
     spin_release_restore_irq(&g_run_queue_lock, flag);
 }
 
+__debug_optimize(3)
+static void sched_dequeue_thread_for_use(struct thread *const thread) {
+    list_remove(&thread->sched_info.list);
+}
+
 __debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
+    assert(thread != thread->cpu->idle_thread);
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
-    assert(thread != thread->cpu->idle_thread);
-    atomic_store_explicit(&thread->sched_info.enqueued,
+    atomic_store_explicit(&thread->sched_info.runnable,
                           false,
                           memory_order_relaxed);
 
-    list_remove(&thread->sched_info.list);
+    sched_dequeue_thread_for_use(thread);
     spin_release_restore_irq(&g_run_queue_lock, flag);
 }
 
-__debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
-    return atomic_load_explicit(&thread->sched_info.enqueued,
+struct cpu_info *sched_dequeue_current_thread() {
+    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
+
+    struct thread *const thread = current_thread();
+    struct cpu_info *const cpu = thread->cpu;
+
+    atomic_store_explicit(&thread->sched_info.runnable,
+                          false,
+                          memory_order_relaxed);
+
+    sched_dequeue_thread_for_use(thread);
+    spin_release_restore_irq(&g_run_queue_lock, flag);
+
+    return cpu;
+}
+
+__debug_optimize(3) bool thread_runnable(const struct thread *thread) {
+    return atomic_load_explicit(&thread->sched_info.runnable,
                                 memory_order_relaxed);
+}
+
+__debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
+    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
+    const bool result = !list_empty(&thread->sched_info.list);
+
+    spin_release_restore_irq(&g_run_queue_lock, flag);
+    return result;
 }
 
 extern void sched_set_current_thread(struct thread *thread);
 
-__debug_optimize(3)
+__noinline
 static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
     struct thread *next = NULL;
 
     list_foreach(next, &g_run_queue, sched_info.list) {
         if (next != prev) {
+            sched_dequeue_thread_for_use(next);
             spin_release_restore_irq(&g_run_queue_lock, flag);
+
             return next;
         }
     }
 
-    if (thread_enqueued(prev)) {
+    if (thread_runnable(prev)) {
+        sched_dequeue_thread_for_use(prev);
         spin_release_restore_irq(&g_run_queue_lock, flag);
+
         return prev;
     }
 
@@ -91,33 +124,27 @@ static struct thread *get_next_thread(struct thread *const prev) {
     return result;
 }
 
-__debug_optimize(3)
-static void update_alarm_list(struct thread *const current_thread) {
-    int flag = 0;
+__noinline static void update_alarm_list(struct thread *const current_thread) {
+    struct list *const alarm_list = &this_cpu_mut()->alarm_list;
 
     struct alarm *iter = NULL;
     struct alarm *tmp = NULL;
 
-    struct list *const alarm_list = alarm_get_list_locked(&flag);
     list_foreach_mut(iter, tmp, alarm_list, list) {
         const usec_t time_spent =
             current_thread->sched_info.timeslice
-            - current_thread->sched_info.remaining;
+          - current_thread->sched_info.remaining;
 
         if (iter->remaining > time_spent) {
             iter->remaining -= time_spent;
             continue;
         }
 
-        iter->remaining = 0;
-
         atomic_store_explicit(&iter->active, false, memory_order_relaxed);
         sched_enqueue_thread(iter->listener);
 
         list_remove(&iter->list);
     }
-
-    alarm_list_unlock(flag);
 }
 
 extern __noreturn void thread_spinup(const struct thread_context *context);
@@ -126,7 +153,9 @@ void sched_next(const irq_number_t irq, struct thread_context *const context) {
     kmalloc_check_slabs();
 
     struct thread *const curr_thread = current_thread();
-    if (curr_thread->preemption_disabled != 0) {
+    thread_context_verify(curr_thread->process, context);
+
+    if (curr_thread->preemption_disabled > 0) {
         sched_irq_eoi(irq);
         sched_timer_oneshot(curr_thread->sched_info.timeslice);
 
@@ -166,17 +195,16 @@ void sched_next(const irq_number_t irq, struct thread_context *const context) {
     verify_not_reached();
 }
 
-void sched_yield() {
-    disable_interrupts();
-    assert(preemption_enabled());
+static void
+yield(struct thread *const curr_thread, struct cpu_info *const cpu) {
+    atomic_store_explicit(&curr_thread->sched_info.awaiting,
+                          true,
+                          memory_order_relaxed);
 
-    struct thread *const curr_thread = current_thread();
-
-    curr_thread->sched_info.awaiting = true;
     curr_thread->sched_info.remaining = sched_timer_remaining();
 
     sched_timer_stop();
-    sched_send_ipi(curr_thread->cpu);
+    sched_send_ipi(cpu);
 
     enable_interrupts();
     do {
@@ -184,4 +212,20 @@ void sched_yield() {
     } while (
         atomic_load_explicit(&curr_thread->sched_info.awaiting,
                              memory_order_relaxed));
+}
+
+void sched_yield() {
+    disable_interrupts();
+    assert(preemption_enabled());
+
+    struct thread *const curr_thread = current_thread();
+    yield(curr_thread, sched_dequeue_current_thread());
+}
+
+void sched_yield_with_this_cpu(struct cpu_info *const cpu) {
+    disable_interrupts();
+    assert(preemption_enabled());
+
+    struct thread *const curr_thread = current_thread();
+    yield(curr_thread, cpu);
 }

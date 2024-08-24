@@ -19,6 +19,8 @@
 
     #include "sys/gic/v2.h"
     #include "sys/gic/v3.h"
+
+    #include "mm/mm_types.h"
 #elif defined(__riscv64)
     #include "cpu/info.h"
     #include "mm/mmio.h"
@@ -556,7 +558,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 const struct acpi_madt_riscv_hart_irq_controller *const ctrlr =
                     (const struct acpi_madt_riscv_hart_irq_controller *)iter;
 
-                struct cpu_info *const cpu = cpu_for_hartid(ctrlr->hart_id);
+                struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv hart irq controller\n"
                        "\tversion: %" PRIu8 "\n"
@@ -813,7 +815,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
 
-            struct cpu_info *const cpu = cpu_for_hartid(ctrlr->hart_id);
+            struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
             if (cpu == NULL) {
                 printk(LOGLEVEL_WARN,
                        "madt: found hart irq controller pointing to unknown "

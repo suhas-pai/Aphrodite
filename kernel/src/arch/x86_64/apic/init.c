@@ -22,7 +22,6 @@ enum {
 static struct mmio_region *g_lapic_region = NULL;
 static  volatile struct lapic_registers *lapic_regs;
 
-
 void apic_init(const uint64_t local_apic_base) {
     g_lapic_region =
         vmap_mmio(RANGE_INIT(local_apic_base, PAGE_SIZE),

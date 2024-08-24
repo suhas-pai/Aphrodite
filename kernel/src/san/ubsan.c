@@ -41,10 +41,12 @@ __ubsan_handle_type_mismatch_v1(struct type_mismatch_info_v1 *const info,
     if (has_align(pointer, alignment)) {
         printk(LOGLEVEL_ERROR,
                "ubsan: [" SOURCE_LOCATION_FMT "] address %p with "
-               "insufficient space for an object of type %s\n",
+               "insufficient space for an object of type %s, alignment: "
+               "%" PRIu64 "\n",
                SOURCE_LOCATION_FMT_ARGS(&info->location),
                (void *)pointer,
-               info->type->name);
+               info->type->name,
+               alignment);
     } else {
         // We ignore misaligned accesses for now.
     }

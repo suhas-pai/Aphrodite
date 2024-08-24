@@ -7,6 +7,7 @@
 
 #include "asm/cr.h"
 #include "asm/error_code.h"
+#include "asm/irqs.h"
 #include "asm/stack_trace.h"
 
 #include "cpu/isr.h"
@@ -194,7 +195,7 @@ handle_exception(const uint64_t intr_no, struct thread_context *const context) {
             printk(LOGLEVEL_ERROR, "Stack Frame:\n");
             print_stack_trace(/*max_lines=*/10);
 
-            cpu_idle();
+            cpu_halt();
         case EXCEPTION_FPU_FAULT:
             except_str = "FPU fault exception";
             break;
@@ -230,9 +231,9 @@ handle_exception(const uint64_t intr_no, struct thread_context *const context) {
            (void *)context->rip);
 
     print_stack_trace(/*max_lines=*/10);
-    lapic_eoi();
 
-    cpu_idle();
+    lapic_eoi();
+    cpu_halt();
 }
 
 void idt_register_exception_handlers() {

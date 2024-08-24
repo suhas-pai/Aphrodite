@@ -6,9 +6,6 @@
 #pragma once
 #include "cpu/cpu_info.h"
 
-#include "sched/info.h"
-#include "sched/thread.h"
-
 struct cpu_capabilities {
     bool supports_avx512 : 1;
     bool supports_x2apic : 1;
@@ -24,23 +21,14 @@ struct cpu_capabilities {
 
 struct pagemap;
 struct cpu_info {
+    struct cpu_info_base;
+
     uint32_t processor_id;
     uint32_t lapic_id;
     uint32_t lapic_timer_frequency;
 
     bool active : 1;
     bool in_exception : 1;
-
-    uint32_t timer_ticks;
-
-    struct process *process;
-    struct list pagemap_node;
-
-    // Keep track of spurious interrupts for every lapic.
-    struct thread *idle_thread;
-    uint64_t spur_intr_count;
-
-    struct sched_percpu_info sched_info;
 };
 
 const struct cpu_capabilities *get_cpu_capabilities();

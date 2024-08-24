@@ -40,10 +40,12 @@ Ubuntu (Linux) to build this project.
 
 Run the following command to install the required packages from Homebrew.
 
-```brew install llvm make nasm xorriso coreutils```
+```brew install llvm make nasm xorriso coreutils mtools```
 
 Per the installation instructions of llvm, make, and coreutils, add the following
 paths to your `$PATH` environment variable:
+
+Note that `mtools` is only required to build `hdd` targets.
 
 ```
 /opt/homebrew/opt/llvm/bin
@@ -56,8 +58,10 @@ Install the latest version of LLVM available. The best option is from llvm.org.
 The llvm version available in your system's package manager may be too old to
 build this project.
 
-This project also requires installing `nasm` and `xorisso`.
+This project also requires installing `nasm`, `xorisso`, `sgdisk`, and `mtools`.
 Make sure to add llvm's installation folder to your `$PATH` environment variable.
+
+Note that `mtools` and `sgdisk` are only required to build the `hdd` targets.
 
 #### Targets
 

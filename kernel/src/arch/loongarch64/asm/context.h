@@ -72,3 +72,8 @@ struct thread_context {
         .s7 = 0, \
         .s8 = 0, \
     };
+
+struct process;
+void
+thread_context_verify(const struct process *process,
+                      const struct thread_context *context);

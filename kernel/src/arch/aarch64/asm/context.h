@@ -59,3 +59,8 @@ struct thread_context {
         .esr_el1 = 0, \
         .far_el1 = 0, \
     })
+
+struct process;
+void
+thread_context_verify(const struct process *process,
+                      const struct thread_context *context);

@@ -33,6 +33,10 @@
     #endif /* __has_attribute(optimize) */
 #endif /* !defined(__debug_optimize) */
 
+#if !defined(__noinline)
+    #define __noinline __attribute__((noinline))
+#endif /* !defined(__noinline) */
+
 #if !defined(__aligned)
     #if __has_attribute(aligned)
         #define __aligned(n) __attribute__((aligned(n)))

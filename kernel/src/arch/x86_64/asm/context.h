@@ -41,3 +41,8 @@ struct thread_context {
         .rsp = (uint64_t)(stack) + ((stack_size) - 1), \
         .ss = 0x30, \
     })
+
+struct process;
+void
+thread_context_verify(const struct process *process,
+                      const struct thread_context *context);

@@ -10,7 +10,9 @@
 #include "apic/lapic.h"
 
 #include "asm/msr.h"
+
 #include "cpu/isr.h"
+#include "cpu/spinlock.h"
 
 #include "dev/printk.h"
 
@@ -26,7 +28,8 @@ static bitset_decl(g_bitset, ISR_IRQ_COUNT);
 static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
 
 static isr_vector_t g_spur_vector = 0;
-static isr_vector_t g_timer_vector = 0;
+static isr_vector_t g_lapic_vector = 0;
+static isr_vector_t g_hpet_vector = 0;
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_save_irq(&g_lock);
@@ -76,8 +79,12 @@ isr_free_msi_vector(struct device *const device,
     return isr_free_vector(vector);
 }
 
-__debug_optimize(3) isr_vector_t isr_get_timer_vector() {
-    return g_timer_vector;
+__debug_optimize(3) isr_vector_t isr_get_lapic_vector() {
+    return g_lapic_vector;
+}
+
+__debug_optimize(3) isr_vector_t isr_get_hpet_vector() {
+    return g_hpet_vector;
 }
 
 __debug_optimize(3) isr_vector_t isr_get_spur_vector() {
@@ -108,10 +115,7 @@ isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
         return;
     }
 
-    printk(LOGLEVEL_INFO,
-            "isr: got unhandled interrupt %" PRIu64 "\n",
-            vector);
-
+    printk(LOGLEVEL_INFO, "isr: got unhandled interrupt %" PRIu64 "\n", vector);
     lapic_eoi();
 }
 
@@ -128,13 +132,17 @@ void isr_init() {
     // Set first 32 exception interrupts as allocated.
     g_bitset[0] = mask_for_n_bits(ISR_EXCEPTION_COUNT);
 
-    // Setup Timer
-    g_timer_vector = isr_alloc_vector();
-    assert(g_timer_vector != ISR_INVALID_VECTOR);
+    // Setup LAPIC Interrupt
+    g_lapic_vector = isr_alloc_vector();
+    assert(g_lapic_vector != ISR_INVALID_VECTOR);
 
     // Setup Spurious Interrupt
     g_spur_vector = isr_alloc_vector();
     assert(g_spur_vector != ISR_INVALID_VECTOR);
+
+    // Setup HPET Interrupt
+    g_hpet_vector = isr_alloc_vector();
+    assert(g_hpet_vector != ISR_INVALID_VECTOR);
 
     isr_set_vector(g_spur_vector, spur_tick, &ARCH_ISR_INFO_NONE());
     idt_register_exception_handlers();

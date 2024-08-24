@@ -21,9 +21,11 @@ struct sched_thread_info {
     usec_t remaining : 32;
 
     _Atomic bool awaiting;
-    _Atomic bool enqueued;
+    _Atomic bool runnable;
 };
 
 struct sched_percpu_info {
 
 };
+
+#define SCHED_PERCPU_INFO_INIT() (struct sched_percpu_info){}

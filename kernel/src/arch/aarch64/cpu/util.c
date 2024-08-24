@@ -3,16 +3,22 @@
  * © suhas pai
  */
 
-#include "cpu/info.h"
-#include "cpu/panic.h"
+#include "asm/irqs.h"
 #include "cpu/util.h"
 
 #include "dev/psci.h"
 #include "mm/kmalloc.h"
 
-void cpu_idle() {
+#include "sched/scheduler.h"
+
+__noreturn void cpu_idle() {
+    assert(are_interrupts_enabled());
+    cpu_halt();
+}
+
+__noreturn void cpu_halt() {
     while (true) {
-        asm volatile ("wfi");
+        asm ("wfi");
     }
 }
 
@@ -26,25 +32,29 @@ void cpu_reboot() {
     panic("kernel: cpu_reboot() failed with result=%d\n", result);
 }
 
-extern struct list g_cpu_list;
-
 struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc info");
 
-    list_init(&cpu->pagemap_node);
-    list_init(&cpu->cpu_list);
+    cpu_info_base_init(cpu, &kernel_process);
 
-    cpu->process = &kernel_process;
-    cpu->spur_intr_count = 0;
     cpu->mpidr = info->mpidr;
+    cpu->processor_id = info->processor_id;
     cpu->affinity =
         (((cpu->mpidr >> 32) & 0xFF) << 24) | (cpu->mpidr & 0xFFFFFF);
 
-    cpu->processor_id = info->processor_id;
     cpu->spe_overflow_interrupt = 0;
-    cpu->affinity = 0;
+    cpu->icid = 0;
 
-    list_add(&g_cpu_list, &cpu->cpu_list);
+    cpu->gic_its_pend_page = NULL,
+    cpu->gic_its_prop_page = NULL,
+
+    cpu->is_active = false,
+    cpu->in_lpi = false,
+    cpu->in_exception = false,
+
+    sched_init_on_cpu(cpu);
+    list_add(cpus_get_list(), &cpu->cpu_list);
+
     return cpu;
 }

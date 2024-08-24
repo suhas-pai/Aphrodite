@@ -31,3 +31,8 @@ struct thread_context {
         .tp = (uint64_t)(thread), \
         .frame = STACK_FRAME_INIT(arg), \
     })
+
+struct process;
+void
+thread_context_verify(const struct process *process,
+                      const struct thread_context *context);

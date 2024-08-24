@@ -6,9 +6,16 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "asm/irqs.h"
 #include "cpu/util.h"
+#include "lib/assert.h"
 
-void cpu_idle() {
+__noreturn void cpu_idle() {
+    assert(are_interrupts_enabled());
+    cpu_halt();
+}
+
+__noreturn void cpu_halt() {
     while (true) {
         asm volatile ("idle 0");
     }

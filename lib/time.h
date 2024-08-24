@@ -11,11 +11,11 @@
 #include "lib/macros.h"
 #include "lib/overflow.h"
 
-#define FEMTO_IN_PICO 1000
-#define PICO_IN_NANO 1000
-#define NANO_IN_MICRO 1000
-#define MICRO_IN_MILLI 1000
-#define MILLI_IN_SECOND 1000
+#define FEMTO_IN_PICO (uint64_t)1000
+#define PICO_IN_NANO (uint64_t)1000
+#define NANO_IN_MICRO (uint64_t)1000
+#define MICRO_IN_MILLI (uint64_t)1000
+#define MILLI_IN_SECOND (uint64_t)1000
 
 #define SECONDS_IN_MINUTE 60
 #define MINUTES_IN_HOUR 60
@@ -151,6 +151,12 @@
 #define days_to_pico(days) hours_to_pico(days_to_hours(days))
 
 #define days_to_femto(femto) hours_to_femto(days_to_hours(femto))
+
+#define femto_period_to_hz_freq(femto) ((femto) / FEMTO_IN_SECONDS)
+#define pico_period_to_hz_freq(pico) ((pico) / PICO_IN_SECONDS)
+#define nano_period_to_hz_freq(nano) ((nano) / NANO_IN_SECONDS)
+#define micro_period_to_hz_freq(micro) ((micro) / MICRO_IN_SECONDS)
+#define milli_period_to_hz_freq(milli) ((milli) / MILLI_IN_SECONDS)
 
 #define femto_mod_pico(femto) ((femto) % FEMTO_IN_PICO)
 #define pico_mod_nano(pico) ((pico) % PICO_IN_NANO)

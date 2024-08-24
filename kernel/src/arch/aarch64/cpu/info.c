@@ -16,26 +16,54 @@
 #include "features.h"
 
 __hidden struct cpu_info g_base_cpu_info = {
-    .process = &kernel_process,
-    .pagemap_node = LIST_INIT(g_base_cpu_info.pagemap_node),
+    CPU_INFO_BASE_INIT(g_base_cpu_info, &kernel_process),
 
-    .cpu_list = LIST_INIT(g_base_cpu_info.cpu_list),
-    .spur_intr_count = 0,
     .mpidr = 0,
-
     .processor_id = 0,
+    .affinity = 0,
 
     .spe_overflow_interrupt = 0,
-    .affinity = 0,
+
+    .gic_its_pend_page = NULL,
+    .gic_its_prop_page = NULL,
+
+    .is_active = false,
+    .in_lpi = false,
+    .in_exception = false,
 };
 
 static struct cpu_features g_cpu_features = {0};
-struct list g_cpu_list = LIST_INIT(g_cpu_list);
 static bool g_base_cpu_init = false;
 
 __debug_optimize(3) const struct cpu_info *base_cpu() {
     assert(g_base_cpu_init);
     return &g_base_cpu_info;
+}
+
+__debug_optimize(3) uint32_t cpu_get_id(const struct cpu_info *const cpu) {
+    return cpu->processor_id;
+}
+
+__debug_optimize(3) const struct cpu_info *cpu_for_id(const cpu_id_t id) {
+    const struct cpu_info *iter = NULL;
+    list_foreach(iter, cpus_get_list(), cpu_list) {
+        if (iter->processor_id == id) {
+            return iter;
+        }
+    }
+
+    return NULL;
+}
+
+__debug_optimize(3) struct cpu_info *cpu_for_id_mut(const cpu_id_t id) {
+    struct cpu_info *iter = NULL;
+    list_foreach(iter, cpus_get_list(), cpu_list) {
+        if (iter->processor_id == id) {
+            return iter;
+        }
+    }
+
+    return NULL;
 }
 
 __debug_optimize(3) const struct cpu_features *cpu_get_features() {
@@ -1408,7 +1436,7 @@ __debug_optimize(3) void cpu_early_init() {
     asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
 
     collect_cpu_features();
-    list_add(&g_cpu_list, &g_base_cpu_info.cpu_list);
+    list_add(cpus_get_list(), &g_base_cpu_info.cpu_list);
 
 #if defined(AARCH64_USE_16K_PAGES)
     assert_msg(g_cpu_features.granule_16k_supported,
@@ -1418,26 +1446,13 @@ __debug_optimize(3) void cpu_early_init() {
     g_base_cpu_init = true;
 }
 
-extern struct list g_cpu_list;
-
 void cpu_init() {
     g_base_cpu_info.mpidr = read_mpidr_el1();
 
-    list_add(&g_cpu_list, &g_base_cpu_info.cpu_list);
+    list_add(cpus_get_list(), &g_base_cpu_info.cpu_list);
     print_cpu_features();
 }
 
 __debug_optimize(3) bool cpu_in_bad_state() {
     return this_cpu()->in_exception;
-}
-
-__debug_optimize(3) struct cpu_info *cpu_mut_for_id(const uint32_t id) {
-    struct cpu_info *iter = NULL;
-    list_foreach(iter, &g_cpu_list, cpu_list) {
-        if (iter->processor_id == id) {
-            return iter;
-        }
-    }
-
-    return NULL;
 }

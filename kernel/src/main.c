@@ -96,6 +96,8 @@ void kmain(void) {
 
     dev_init();
     sched_init();
+
+    smp_boot_all_cpus();
     dev_init_drivers();
 
     test_alloc_largepage();
@@ -104,8 +106,6 @@ void kmain(void) {
     sched_sleep_us(seconds_to_micro(5));
     printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 
-    sched_dequeue_thread(current_thread());
     sched_yield();
-
     verify_not_reached();
 }

@@ -15,9 +15,10 @@ void sched_algo_init();
 void sched_algo_post_init();
 
 struct thread_context;
-
 void sched_next(irq_number_t irq, struct thread_context *context);
+
 void sched_yield();
+void sched_yield_with_this_cpu(struct cpu_info *cpu);
 
 struct thread;
 
@@ -28,3 +29,5 @@ sched_switch_to(struct thread *prev,
 
 void sched_enqueue_thread(struct thread *thread);
 void sched_dequeue_thread(struct thread *thread);
+
+struct cpu_info *sched_dequeue_current_thread();

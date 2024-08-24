@@ -15,6 +15,7 @@
 #include "mm/mmio.h"
 #include "mm/page_alloc.h"
 
+#include "sched/thread.h"
 #include "sys/mmio.h"
 
 #include "api.h"

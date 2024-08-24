@@ -16,7 +16,7 @@ jobs:
     - name: Install Dependencies
       run: |
         brew update --preinstall
-        brew install llvm make nasm xorriso coreutils
+        brew install llvm make nasm xorriso coreutils mtools
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
         echo "/opt/homebrew/opt/make/libexec/gnubin" >> $GITHUB_PATH
         echo "/usr/local/opt/coreutils/libexec/gnubin" >> $GITHUB_PATH
@@ -24,7 +24,10 @@ jobs:
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=${{ matrix.arch }}
+      run: |
+        make KARCH=${{ matrix.arch }}
+        make clean KARCH=${{ matrix.arch }}
+        make all-hdd KARCH=${{ matrix.arch }}
     - name: Run Tests
       working-directory: tests/
       run: |
@@ -40,13 +43,16 @@ jobs:
     - run: |
        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
        sudo apt update
-       sudo apt install -y clang lld nasm xorriso
+       sudo apt install -y clang lld nasm xorriso gdisk mtools
        echo "$(find /usr/lib/llvm-* -maxdepth 0)/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: make
-      run: make KARCH=${{ matrix.arch }}
+      run: |
+        make KARCH=${{ matrix.arch }}
+        make clean KARCH=${{ matrix.arch }}
+        make all-hdd KARCH=${{ matrix.arch }}
     - name: Run Tests
       working-directory: tests/
       run: |

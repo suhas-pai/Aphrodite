@@ -42,7 +42,7 @@ endif
 COMMON_KCFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 				 -Wfloat-equal -Wredundant-decls -Wshadow -Wstrict-overflow=5 \
 				 -Wundef -Wnull-dereference -funsigned-char -Wformat=2 \
-				 -Isrc/arch/$(KARCH) -DBUILD_KERNEL \
+				 -Isrc/arch/$(KARCH) -DBUILD_KERNEL -Wno-microsoft \
 				 -Wno-address-of-packed-member -fno-omit-frame-pointer \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
 				 -fsanitize=undefined

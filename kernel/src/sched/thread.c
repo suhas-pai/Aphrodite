@@ -19,10 +19,11 @@ __hidden struct thread kernel_main_thread = {
 void
 sched_thread_init(struct thread *const thread,
                   struct process *const process,
+                  struct cpu_info *const cpu,
                   const void *const entry)
 {
     thread->process = process;
-    thread->cpu = this_cpu_mut();
+    thread->cpu = cpu;
 
     thread->preemption_disabled = 0;
     thread->signal_enqueued = false;

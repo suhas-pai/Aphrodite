@@ -10,11 +10,7 @@
 #include "lib/list.h"
 
 struct cpu_info {
-    struct list cpu_list;
-    struct list pagemap_node;
-
-    struct process *process;
-    struct thread *idle_thread;
+    struct cpu_info_base;
 
     uint8_t core_id;
     bool in_exception : 1;

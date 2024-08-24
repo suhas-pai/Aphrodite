@@ -95,7 +95,7 @@ ifeq ($(DRIVE_KIND),block)
 $(error "block device not supported on riscv64")
 	endif
 
-	QEMU_CDROM_ARGS += cdrom $(IMAGE_NAME).iso
+	QEMU_CDROM_ARGS += -cdrom $(IMAGE_NAME).iso
 	QEMU_HDD_ARGS += -hda $(IMAGE_NAME).hdd
 else ifeq ($(DRIVE_KIND), scsi)
 	QEMU_CDROM_ARGS += \
@@ -225,6 +225,7 @@ run-hdd-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMA
 .PHONY: run-bios
 run-bios: $(IMAGE_NAME).iso
 	qemu-system-x86_64 \
+		-cpu max \
 		-cdrom $(IMAGE_NAME).iso \
 		-boot d \
 		$(QEMUFLAGS) \
@@ -233,6 +234,7 @@ run-bios: $(IMAGE_NAME).iso
 .PHONY: run-hdd-bios
 run-hdd-bios: $(IMAGE_NAME).hdd
 	qemu-system-x86_64 \
+		-cpu max \
 		-hda $(IMAGE_NAME).hdd \
 		$(QEMUFLAGS) \
 		$(EXTRA_QEMU_ARGS)

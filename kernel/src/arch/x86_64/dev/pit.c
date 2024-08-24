@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include <stdatomic.h>
-
 #include "asm/context.h"
 #include "asm/irqs.h"
 

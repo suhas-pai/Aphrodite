@@ -30,21 +30,24 @@ struct addrspace_node {
 
 #define ADDRSPACE_INIT(lvalue) \
     ((struct address_space){ \
-        .avltree = AVLTREE_INIT(),   \
+        .avltree = AVLTREE_INIT(), \
         .list = LIST_INIT(lvalue.list) \
     })
 
 #define ADDRSPACE_NODE_INIT(lvalue, addrspace_) \
     ((struct addrspace_node){ \
-        .addrspace = (addrspace_),     \
-        .avlnode = AVLNODE_INIT(),     \
+        .addrspace = (addrspace_), \
+        .avlnode = AVLNODE_INIT(), \
         .list = LIST_INIT(lvalue.list),  \
-        .range = RANGE_EMPTY(),        \
-        .largest_free_to_prev = 0      \
+        .range = RANGE_EMPTY(), \
+        .largest_free_to_prev = 0 \
     })
 
 #define addrspace_node_of(obj) \
     container_of((obj), struct addrspace_node, avlnode)
+
+#define addrspace_foreach_node(addrspace, node) \
+    list_foreach(node, &addrspace->list, list)
 
 struct addrspace_node *addrspace_node_prev(struct addrspace_node *node);
 struct addrspace_node *addrspace_node_next(struct addrspace_node *node);

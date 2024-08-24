@@ -104,14 +104,8 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
            "\t\tlba %" PRIu32 ":\n"
            "\t\t\tmetadata size: " SIZE_UNIT_FMT "\n"
            "\t\t\tlba data size shift: %" PRIu8 "\n"
-           "\t\t\trelative performance: %" PRIu8 "\n",
-           formatted_lba + 1,
-           SIZE_UNIT_FMT_ARGS_ABBREV(lba.metadata_size),
-           lba.lba_data_size_shift,
-           lba.relative_performance);
-
-    printk(LOGLEVEL_INFO,
-           "\tformatted lba index: %" PRIu8 "\n"
+           "\t\t\trelative performance: %" PRIu8 "\n"
+            "\tformatted lba index: %" PRIu8 "\n"
            "\tmetadata capabilities: 0x%" PRIu8 "\n"
            "\tdata protection capabilities: 0x%" PRIu8 "\n"
            "\tdata protection settings: 0x%" PRIu8 "\n"
@@ -138,6 +132,10 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
            "\tattributes: %" PRIu8 "\n"
            "\tnvm set-id: %" PRIu16 "\n"
            "\tiee uid: %" PRIu64 "\n",
+           formatted_lba + 1,
+           SIZE_UNIT_FMT_ARGS_ABBREV(lba.metadata_size),
+           lba.lba_data_size_shift,
+           lba.relative_performance,
            identity->formatted_lba_index,
            identity->metadata_capabilities,
            identity->data_protection_capabilities,

@@ -11,16 +11,9 @@
 
 struct process;
 struct cpu_info {
-    struct process *process;
+    struct cpu_info_base;
 
-    struct list pagemap_node;
-    struct list cpu_list;
-
-    struct thread *idle_thread;
-
-    uint64_t spur_intr_count;
     uint16_t hart_id;
-
     uint16_t cbo_size;
     uint16_t cmo_size;
 
@@ -34,8 +27,6 @@ struct cpu_info {
 
     volatile uint32_t *imsic_page;
 };
-
-struct cpu_info *cpu_for_hartid(uint16_t hart_id);
 
 struct cpus_info {
     uint64_t timebase_frequency;

@@ -32,11 +32,14 @@ extern struct thread kernel_main_thread;
 void
 sched_thread_init(struct thread *thread,
                   struct process *process,
+                  struct cpu_info *cpu,
                   const void *entry);
 
 struct thread *current_thread();
 
+bool thread_runnable(const struct thread *thread);
 bool thread_enqueued(const struct thread *thread);
+
 bool preemption_enabled();
 
 void preempt_disable();

@@ -6,23 +6,13 @@
 #pragma once
 #include "cpu/cpu_info.h"
 
-#include "sched/info.h"
-#include "sched/thread.h"
-
 struct process;
 struct cpu_info {
-    struct process *process;
-
-    struct list pagemap_node;
-    struct list cpu_list;
-
-    uint64_t spur_intr_count;
+    struct cpu_info_base;
     uint64_t mpidr;
 
     uint32_t processor_id;
     uint64_t affinity;
-
-    struct thread *idle_thread;
 
     uint16_t spe_overflow_interrupt;
     uint16_t icid;
@@ -33,9 +23,4 @@ struct cpu_info {
     bool is_active : 1;
     bool in_lpi : 1;
     bool in_exception : 1;
-
-    struct sched_percpu_info info;
 };
-
-extern struct list g_cpu_list;
-struct cpu_info *cpu_mut_for_id(uint32_t intr_number);

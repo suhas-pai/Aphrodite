@@ -3,12 +3,17 @@
  * © suhas pai
  */
 
+#include "lib/adt/bitset.h"
+
+#include "cpu/spinlock.h"
 #include "dev/printk.h"
 
 #include "lib/align.h"
+#include "lib/freq.h"
 #include "lib/time.h"
 
 #include "mm/mmio.h"
+#include "sched/event.h"
 #include "sys/mmio.h"
 
 #include "hpet.h"
@@ -45,19 +50,50 @@ struct hpet_addrspace {
     volatile uint64_t main_counter_value;
     volatile uint64_t padding_4[2];
 
-    struct hpet_addrspace_timer_info timers[31];
+    struct hpet_addrspace_timer_info timers[32];
 } __packed;
 
-static struct mmio_region *hpet_mmio = NULL;
-static volatile struct hpet_addrspace *addrspace = NULL;
+static struct mmio_region *g_hpet_mmio = NULL;
+static volatile struct hpet_addrspace *g_addrspace = NULL;
+
+static uint64_t g_frequency = 0;
+
+static bitset_decl(g_bitset, sizeof_field(struct hpet_addrspace, timers));
+static struct spinlock g_lock = SPINLOCK_INIT();
+
+static uint8_t g_timer_count = 0;
+static struct event g_bitset_event = EVENT_INIT();
 
 __debug_optimize(3) fsec_t hpet_get_femto() {
-    assert_msg(addrspace != NULL, "hpet: hpet_get_femto() called before init");
-    return mmio_read(&addrspace->main_counter_value);
+    assert_msg(g_addrspace != NULL, "hpet: hpet_get_femto() called before init");
+    return mmio_read(&g_addrspace->main_counter_value);
 }
 
 __debug_optimize(3) usec_t hpet_read() {
     return femto_to_micro(hpet_get_femto());
+}
+
+void hpet_oneshot_fsec(const fsec_t fsec) {
+    const int flag = spin_acquire_save_irq(&g_lock);
+    uint64_t index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+
+    spin_release_restore_irq(&g_lock, flag);
+    while (index_in_bounds(index, g_timer_count)) {
+        struct event *events = &g_bitset_event;
+        events_await(&events,
+                     /*events_count=*/1,
+                     /*block=*/true,
+                     /*drop_after_recv=*/true);
+
+        index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+    }
+
+    mmio_write(&g_addrspace->timers[index].config_and_capability, 0);
+    mmio_write(&g_addrspace->timers[index].comparator_value,
+               check_mul_assert(g_frequency, fsec));
+
+    mmio_write(&g_addrspace->timers[index].config_and_capability,
+               __HPET_TIMER_ENABLE_INT);
 }
 
 void hpet_init(const struct acpi_hpet *const hpet) {
@@ -83,42 +119,45 @@ void hpet_init(const struct acpi_hpet *const hpet) {
     }
 
     struct range range = RANGE_EMPTY();
-    if (!range_create_and_verify(hpet->base_address.address,
-                                 PAGE_SIZE,
-                                 &range))
+    if (!range_create_and_verify(hpet->base_address.address, PAGE_SIZE, &range))
     {
         printk(LOGLEVEL_WARN, "hpet: address-space's range oveflows\n");
         return;
     }
 
-    hpet_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (hpet_mmio == NULL) {
+    g_hpet_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
+    if (g_hpet_mmio == NULL) {
         printk(LOGLEVEL_WARN, "hpet: failed to mmio-map address-space\n");
         return;
     }
 
-    addrspace = (volatile struct hpet_addrspace *)hpet_mmio->base;
+    g_addrspace = (volatile struct hpet_addrspace *)g_hpet_mmio->base;
 
-    const uint64_t cap_and_id = mmio_read(&addrspace->general_cap_and_id);
+    const uint64_t cap_and_id = mmio_read(&g_addrspace->general_cap_and_id);
     const uint32_t main_counter_period = cap_and_id >> 32;
 
     printk(LOGLEVEL_INFO,
-           "hpet: period is %" PRIu32 ".%" PRIu32 " nanoseconds\n",
+           "hpet: period is %" PRIu64 ".%" PRIu64 " nanoseconds\n",
            femto_to_nano(main_counter_period),
            femto_mod_nano(main_counter_period));
 
-    mmio_write(&addrspace->general_config, 0);
+    g_frequency = femto_period_to_hz_freq(main_counter_period);
+    printk(LOGLEVEL_INFO,
+           "hpet: frequency is " FREQ_TO_UNIT_FMT "\n",
+           FREQ_TO_UNIT_FMT_ARGS_ABBREV(g_frequency));
 
-    const uint8_t timer_count = (cap_and_id >> 8) & 0x1f;
-    printk(LOGLEVEL_WARN, "hpet: got %" PRIu8 " timers\n", timer_count);
+    mmio_write(&g_addrspace->general_config, 0);
 
-    for (volatile struct hpet_addrspace_timer_info *timer = addrspace->timers;
-         timer != addrspace->timers + timer_count;
+    g_timer_count = ((cap_and_id >> 8) & 0x1f) + 1;
+    printk(LOGLEVEL_WARN, "hpet: got %" PRIu8 " timers\n", g_timer_count);
+
+    for (volatile struct hpet_addrspace_timer_info *timer = g_addrspace->timers;
+         timer != g_addrspace->timers + g_timer_count;
          timer++)
     {
         mmio_write(&timer->comparator_value, 0);
     }
 
-    mmio_write(&addrspace->main_counter_value, 1);
-    mmio_write(&addrspace->general_config, 1);
+    mmio_write(&g_addrspace->main_counter_value, 1);
+    mmio_write(&g_addrspace->general_config, 1);
 }

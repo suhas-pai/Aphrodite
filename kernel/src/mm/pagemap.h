@@ -15,12 +15,12 @@
 #endif
 
 struct pagemap {
-#if defined(__aarch64__) || defined(__loongarch64)
+#if PAGEMAP_HAS_SPLIT_ROOT
     pte_t *lower_root;
     pte_t *higher_root;
 #else
     pte_t *root;
-#endif /* defined(__aarch64__) */
+#endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
     struct address_space addrspace;
     struct spinlock addrspace_lock;

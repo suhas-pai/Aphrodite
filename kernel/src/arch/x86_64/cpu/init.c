@@ -5,7 +5,6 @@
 
 #include "asm/cpuid.h"
 #include "asm/cr.h"
-#include "asm/fsgsbase.h"
 #include "asm/msr.h"
 #include "asm/xsave.h"
 
@@ -54,7 +53,7 @@ uint8_t g_xsave_feat_flags[XSAVE_FEAT_MAX] = {
 
 #define __XSAVE_FEAT_SUPERVISOR_MASK \
     (__XSAVE_FEAT_MASK(XSAVE_FEAT_PASID) \
-     | __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_USER))
+   | __XSAVE_FEAT_MASK(XSAVE_FEAT_CET_USER))
 
 // List of features that are disabled in XSTATE. User programs running these
 // instructions will trap, and the xstate space will be enlarged.
@@ -66,7 +65,7 @@ uint8_t g_xsave_feat_flags[XSAVE_FEAT_MAX] = {
    | __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILECFG) \
    | __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILEDATA))
 
-static void xsave_init() {
+static void xsave_init(const bool print) {
     const xsave_feat_mask_t xsave_supervisor_features =
         __XSAVE_FEAT_MASK(XSAVE_FEAT_X87)
       | __XSAVE_FEAT_MASK(XSAVE_FEAT_SSE)
@@ -97,18 +96,23 @@ static void xsave_init() {
         g_cpu_capabilities.xsave_supervisor_features
       | g_cpu_capabilities.xsave_user_features;
 
-    printk(LOGLEVEL_INFO,
-           "cpu: xsave full feature set is 0x%" XSAVE_FEATURE_MASK_FMT "\n",
-           all_features_supported);
+    if (print) {
+        printk(LOGLEVEL_INFO,
+               "cpu: xsave full feature set is 0x%" XSAVE_FEATURE_MASK_FMT "\n",
+               all_features_supported);
+    }
 
     for (enum xsave_feature feat = XSAVE_FEAT_SSE + 1;
          feat <= XSAVE_FEAT_MAX;
          feat++)
     {
         if ((all_features_supported & __XSAVE_FEAT_MASK(feat)) == 0) {
-            printk(LOGLEVEL_INFO,
-                   "cpu: xsave feat %s is not supported\n",
-                   xsave_feat_get_string(feat));
+            if (print) {
+                printk(LOGLEVEL_INFO,
+                       "cpu: xsave feat %s is not supported\n",
+                       xsave_feat_get_string(feat));
+            }
+
             continue;
         }
 
@@ -134,9 +138,13 @@ static void xsave_init() {
               &edx);
 
         if (feat_size == 0) {
-            printk(LOGLEVEL_INFO,
-                   "cpu: xsave feat %s is not supported according to cpuid\n",
-                   xsave_feat_get_string(feat));
+            if (print) {
+                printk(LOGLEVEL_INFO,
+                       "cpu: xsave feat %s is not supported according to "
+                       "cpuid\n",
+                       xsave_feat_get_string(feat));
+            }
+
             continue;
         }
 
@@ -144,16 +152,19 @@ static void xsave_init() {
         g_xsave_feat_sizes[feat] = feat_size;
         g_xsave_feat_flags[feat] = feat_flags;
 
-        printk(LOGLEVEL_INFO,
-               "cpu: xsave feat %s has range " RANGE_FMT "\n",
-               xsave_feat_get_string(feat),
-               RANGE_FMT_ARGS(
-                   RANGE_INIT((uint16_t)g_xsave_feat_noncompacted_offsets[feat],
-                              (uint16_t)g_xsave_feat_sizes[feat])));
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpu: xsave feat %s has range " RANGE_FMT "\n",
+                   xsave_feat_get_string(feat),
+                   RANGE_FMT_ARGS(
+                       RANGE_INIT(
+                        (uint16_t)g_xsave_feat_noncompacted_offsets[feat],
+                        (uint16_t)g_xsave_feat_sizes[feat])));
+        }
     }
 }
 
-static void init_cpuid_features() {
+static void init_cpuid_features(const bool print) {
     //
     // Recommended settings for recent x86-64 cpus are:
     //  0 for EM
@@ -179,27 +190,31 @@ static void init_cpuid_features() {
       | __CR4_BIT_OSXSAVE;
 
     write_cr4(cr4 | cr4_bits);
-    printk(LOGLEVEL_INFO,
-           "cpu: control-registers:\n"
-           "\tcr0: 0x%" PRIx64 "\n"
-           "\tcr4: 0x%" PRIx64 "\n",
-           cr0,
-           cr4);
+    if (print) {
+        printk(LOGLEVEL_INFO,
+               "cpu: control-registers:\n"
+               "\tcr0: 0x%" PRIx64 "\n"
+               "\tcr4: 0x%" PRIx64 "\n",
+               cr0,
+               cr4);
+    }
 
     {
         uint64_t eax, ebx, ecx, edx;
         cpuid(CPUID_GET_FEATURES, /*subleaf=*/0, &eax, &ebx, &ecx, &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: cpuid_get_features: "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax,
-               ebx,
-               ecx,
-               edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: cpuid_get_features: "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax,
+                   ebx,
+                   ecx,
+                   edx);
+        }
 
         const uint32_t expected_ecx_features =
             __CPUID_FEAT_ECX_SSE3
@@ -242,16 +257,18 @@ static void init_cpuid_features() {
               &ecx,
               &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: get_features_extended_7(ecx=0): "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax,
-               ebx,
-               ecx,
-               edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: get_features_extended_7(ecx=0): "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax,
+                   ebx,
+                   ecx,
+                   edx);
+        }
 
         const uint32_t expected_ebx_features =
             __CPUID_FEAT_EXT7_ECX0_EBX_FSGSBASE
@@ -275,16 +292,18 @@ static void init_cpuid_features() {
               &ecx,
               &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: get_power_management_instr: "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax,
-               ebx,
-               ecx,
-               edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: get_power_management_instr: "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax,
+                   ebx,
+                   ecx,
+                   edx);
+        }
 
         if ((eax & __CPUID_FEAT_PWR_MGMT_EAX_APIC_TIMER_ALWAYS_RUNNING) == 0) {
             panic("cpu: doesn't support always running lapic timer\n");
@@ -299,13 +318,15 @@ static void init_cpuid_features() {
               &ecx,
               &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: get_features_extended_7(ecx=1): "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax, ebx, ecx, edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: get_features_extended_7(ecx=1): "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax, ebx, ecx, edx);
+        }
 
         const uint32_t expected_eax_features =
             __CPUID_FEAT_EXT7_ECX1_EAX_FAST_ZEROLEN_REP_MOVSB
@@ -323,16 +344,18 @@ static void init_cpuid_features() {
               &ecx,
               &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: get_features_extended_0x800000007: "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax,
-               ebx,
-               ecx,
-               edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: get_features_extended_0x800000007: "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax,
+                   ebx,
+                   ecx,
+                   edx);
+        }
 
         const uint32_t expected_edx_features =
             __CPUID_FEAT_EXT80000001_EDX_SYSCALL_SYSRET;
@@ -360,23 +383,27 @@ static void init_cpuid_features() {
               &ecx,
               &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: cpuid_get_features_xsave: "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax,
-               ebx,
-               ecx,
-               edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: cpuid_get_features_xsave: "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax,
+                   ebx,
+                   ecx,
+                   edx);
+        }
 
         g_cpu_capabilities.xsave_user_features = (uint64_t)edx << 32 | eax;
         g_cpu_capabilities.xsave_user_size = ecx;
 
-        printk(LOGLEVEL_INFO,
-               "cpu: xsave user size is %" PRIu16 "\n",
-               g_cpu_capabilities.xsave_user_size);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpu: xsave user size is %" PRIu16 "\n",
+                   g_cpu_capabilities.xsave_user_size);
+        }
     }
     {
         uint64_t eax, ebx, ecx = 1, edx;
@@ -387,16 +414,18 @@ static void init_cpuid_features() {
               &ecx,
               &edx);
 
-        printk(LOGLEVEL_INFO,
-               "cpuid: cpuid_get_features_xsave(ecx=1): "
-               "eax: 0x%" PRIX64 " "
-               "ebx: 0x%" PRIX64 " "
-               "ecx: 0x%" PRIX64 " "
-               "edx: 0x%" PRIX64 "\n",
-               eax,
-               ebx,
-               ecx,
-               edx);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpuid: cpuid_get_features_xsave(ecx=1): "
+                   "eax: 0x%" PRIX64 " "
+                   "ebx: 0x%" PRIX64 " "
+                   "ecx: 0x%" PRIX64 " "
+                   "edx: 0x%" PRIX64 "\n",
+                   eax,
+                   ebx,
+                   ecx,
+                   edx);
+        }
 
         const uint32_t expected_eax_features =
             __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XSAVEOPT
@@ -411,9 +440,11 @@ static void init_cpuid_features() {
         g_cpu_capabilities.xsave_supervisor_features =
             (uint64_t)edx << 32 | ecx;
 
-        printk(LOGLEVEL_INFO,
-               "cpu: xsave supervisor size is %" PRIu16 "\n",
-               g_cpu_capabilities.xsave_supervisor_size);
+        if (print) {
+            printk(LOGLEVEL_INFO,
+                   "cpu: xsave supervisor size is %" PRIu16 "\n",
+                   g_cpu_capabilities.xsave_supervisor_size);
+        }
     }
 
     // Enable Syscalls
@@ -430,10 +461,12 @@ static void init_cpuid_features() {
               (msr_read(IA32_MSR_MISC_ENABLE)
              | __IA32_MSR_MISC_FAST_STRING_ENABLE));
 
-    xsave_init();
-    printk(LOGLEVEL_INFO,
-           "cpu: xsave compacted size is %" PRIu16 " bytes\n",
-           xsave_get_compacted_size());
+    xsave_init(print);
+    if (print) {
+        printk(LOGLEVEL_INFO,
+               "cpu: xsave compacted size is %" PRIu16 " bytes\n",
+               xsave_get_compacted_size());
+    }
 }
 
 __debug_optimize(3) const struct cpu_capabilities *get_cpu_capabilities() {
@@ -441,15 +474,31 @@ __debug_optimize(3) const struct cpu_capabilities *get_cpu_capabilities() {
 }
 
 __debug_optimize(3) void cpu_early_init() {
-    write_gsbase_early((uint64_t)&kernel_main_thread);
+    msr_write(IA32_MSR_GS_BASE, (uint64_t)&kernel_main_thread);
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)&kernel_main_thread);
 
-    list_add(&kernel_process.pagemap.cpu_list, &g_base_cpu_info.pagemap_node);
-    init_cpuid_features();
-
+    init_cpuid_features(/*print=*/true);
     g_base_cpu_init = true;
 }
 
 void cpu_init() {
 
+}
+
+__debug_optimize(3)
+void cpu_init_for_smp(const struct limine_smp_info *const info) {
+    struct thread *const thread = (struct thread *)info->extra_argument;
+
+    msr_write(IA32_MSR_GS_BASE, (uint64_t)thread);
+    msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)thread);
+
+    struct cpu_info *const cpu = cpu_for_id_mut(info->lapic_id);
+    assert_msg(cpu != NULL,
+               "smp: failed to find cpu for lapic id %" PRIu32 "\n",
+               info->lapic_id);
+
+    thread->cpu = cpu;
+
+    init_cpuid_features(/*print=*/false);
+    cpu_init();
 }

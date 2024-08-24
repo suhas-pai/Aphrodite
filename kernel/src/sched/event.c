@@ -86,12 +86,12 @@ events_await(struct event *const *const events,
     }
 
     struct thread *const thread = current_thread();
-
     add_listeners_to_events(events, events_count, thread);
-    sched_dequeue_thread(thread);
+
+    struct cpu_info *const cpu = sched_dequeue_current_thread();
 
     unlock_events(events, events_count);
-    sched_yield();
+    sched_yield_with_this_cpu(cpu);
 
     flag = disable_irqs_if_enabled();
     index = thread->event_index;

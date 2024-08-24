@@ -7,6 +7,7 @@
 
 #include "asm/irqs.h"
 #include "asm/pause.h"
+
 #include "sched/thread.h"
 
 #if defined(DEBUG_LOCKS)

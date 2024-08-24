@@ -302,7 +302,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (is_trans) {
         const uint64_t dev_features = virtio_device_read_features(&virt_device);
         if ((dev_features & __VIRTIO_F_VERSION_1) == 0) {
-            printk(LOGLEVEL_DEBUG,
+            printk(LOGLEVEL_WARN,
                    "virtio-pci: device is legacy and unsupported\n");
 
             virtio_device_destroy(&virt_device);

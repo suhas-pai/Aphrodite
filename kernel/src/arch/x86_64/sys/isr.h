@@ -26,4 +26,5 @@ typedef idt_vector_t isr_vector_t;
 typedef void (*isr_func_t)(uint64_t intr_no, struct thread_context *frame);
 
 isr_vector_t isr_get_spur_vector();
-isr_vector_t isr_get_timer_vector();
+isr_vector_t isr_get_lapic_vector();
+isr_vector_t isr_get_hpet_vector();
