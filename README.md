@@ -40,9 +40,9 @@ Ubuntu (Linux) to build this project.
 
 Run the following command to install the required packages from Homebrew.
 
-```brew install llvm make nasm xorriso coreutils mtools gdisk```
+```brew install llvm make nasm xorriso coreutils mtools gptfdisk```
 
-Note that `mtools` and `gdisk` is only required to build `hdd` targets.
+Note that `mtools` and `gptfdisk` is only required to build `hdd` targets.
 
 Per the installation instructions of llvm, make, and coreutils, add the following
 paths to your `$PATH` environment variable:
