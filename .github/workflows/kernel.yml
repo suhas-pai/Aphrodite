@@ -16,7 +16,7 @@ jobs:
     - name: Install Dependencies
       run: |
         brew update --preinstall
-        brew install llvm make nasm xorriso coreutils mtools sgdisk
+        brew install llvm make nasm xorriso coreutils mtools gdisk
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
         echo "/opt/homebrew/opt/make/libexec/gnubin" >> $GITHUB_PATH
         echo "/usr/local/opt/coreutils/libexec/gnubin" >> $GITHUB_PATH
