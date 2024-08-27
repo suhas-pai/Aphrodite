@@ -176,3 +176,13 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
              tmp = list_prev(iter, field);             \
          &iter->field != (list);                       \
          iter = tmp, tmp = list_prev(iter, field))
+
+#define list_verify(list_, field) ({ \
+    struct list *h_var(prev) = (list_); \
+    struct list *h_var(iter) = (list_)->next; \
+\
+    for (; h_var(iter) != (list_); h_var(iter) = h_var(iter)->next) { \
+        assert(h_var(iter)->prev == h_var(prev)); \
+        h_var(prev) = h_var(iter); \
+    } \
+})
