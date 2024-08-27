@@ -43,17 +43,27 @@ __debug_optimize(3) bool thread_runnable(const struct thread *const thread) {
                                 memory_order_relaxed);
 }
 
+__debug_optimize(3)
+bool thread_enqueued_nolock(const struct thread *const thread) {
+    return !list_empty(&thread->sched_info.list);
+}
+
 __debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
-    const bool result = !list_empty(&thread->sched_info.list);
+    const bool result = thread_enqueued_nolock(thread);
 
     spin_release_restore_irq(&g_run_queue_lock, flag);
     return result;
 }
 
+__debug_optimize(3)
+bool thread_running_nolock(const struct thread *const thread) {
+    return thread->cpu != NULL;
+}
+
 __debug_optimize(3) bool thread_running(const struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
-    const bool result = thread->cpu != NULL;
+    const bool result = thread_running_nolock(thread);
 
     spin_release_restore_irq(&g_run_queue_lock, flag);
     return result;
@@ -62,20 +72,23 @@ __debug_optimize(3) bool thread_running(const struct thread *const thread) {
 __debug_optimize(3)
 static void sched_enqueue_thread_for_use(struct thread *const thread) {
     list_radd(&g_run_queue, &thread->sched_info.list);
+    list_verify(&g_run_queue, sched_info.list);;
 }
 
 __debug_optimize(3)
 static void sched_dequeue_thread_for_use(struct thread *const thread) {
     list_remove(&thread->sched_info.list);
+    list_verify(&g_run_queue, sched_info.list);;
 }
 
 __debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     // sched_enqueue_thread() might be called from a dequeued but running thread
-    // so only enqueue-for-use in for threads that are not running.
+    // so only enqueue-for-use in for threads that are not running and aren't
+    // already enqueued.
 
-    if (thread->cpu == NULL) {
+    if (!thread_running_nolock(thread) && !thread_enqueued_nolock(thread)) {
         sched_enqueue_thread_for_use(thread);
     }
 
@@ -101,17 +114,20 @@ static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
     struct thread *next = NULL;
 
+    list_verify(&g_run_queue, sched_info.list);;
     list_foreach(next, &g_run_queue, sched_info.list) {
-        if (next != prev) {
-            if (thread_runnable(prev)) {
-                sched_enqueue_thread_for_use(prev);
-            }
-
-            sched_dequeue_thread_for_use(next);
-            spin_release_restore_irq(&g_run_queue_lock, flag);
-
-            return next;
+        if (next == prev) {
+            continue;
         }
+
+        if (thread_runnable(prev)) {
+            sched_enqueue_thread_for_use(prev);
+        }
+
+        sched_dequeue_thread_for_use(next);
+        spin_release_restore_irq(&g_run_queue_lock, flag);
+
+        return next;
     }
 
     if (thread_runnable(prev)) {
@@ -119,9 +135,10 @@ static struct thread *get_next_thread(struct thread *const prev) {
         return prev;
     }
 
-    struct thread *const result = prev->cpu->idle_thread;
-    spin_release_restore_irq(&g_run_queue_lock, flag);
+    struct cpu_info *const cpu = prev->cpu;
+    struct thread *const result = cpu->idle_thread;
 
+    spin_release_restore_irq(&g_run_queue_lock, flag);
     return result;
 }
 

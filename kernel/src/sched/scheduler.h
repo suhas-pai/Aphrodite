@@ -6,7 +6,6 @@
 #pragma once
 
 #include "sys/irqdef.h"
-
 #include "thread.h"
 
 void sched_init();
