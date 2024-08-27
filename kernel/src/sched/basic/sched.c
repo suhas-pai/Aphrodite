@@ -72,13 +72,11 @@ __debug_optimize(3) bool thread_running(const struct thread *const thread) {
 __debug_optimize(3)
 static void sched_enqueue_thread_for_use(struct thread *const thread) {
     list_radd(&g_run_queue, &thread->sched_info.list);
-    list_verify(&g_run_queue, sched_info.list);;
 }
 
 __debug_optimize(3)
 static void sched_dequeue_thread_for_use(struct thread *const thread) {
     list_remove(&thread->sched_info.list);
-    list_verify(&g_run_queue, sched_info.list);;
 }
 
 __debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
