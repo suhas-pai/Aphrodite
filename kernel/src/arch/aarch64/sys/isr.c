@@ -44,7 +44,9 @@ __debug_optimize(3) isr_vector_t isr_alloc_sgi_vector() {
     const uint16_t result = g_sgi_interrupt;
 
     spin_release_restore_irq(&g_sgi_lock, flag);
-    assert(index_in_bounds(result, GIC_SGI_INTERRUPT_LAST));
+    if (result > GIC_SGI_INTERRUPT_LAST) {
+        return ISR_INVALID_VECTOR;
+    }
 
     g_sgi_interrupt++;
     return result;
@@ -131,7 +133,7 @@ isr_set_msi_vector(const isr_vector_t vector,
     (void)info;
     if (!index_in_bounds(vector, GIC_ITS_MAX_LPIS_SUPPORTED)) {
         printk(LOGLEVEL_WARN,
-                "isr: isr_set_vector() called on invalid lpi\n");
+               "isr: isr_set_vector() called on invalid lpi\n");
         return;
     }
 
@@ -191,6 +193,7 @@ void handle_interrupt(struct thread_context *const context) {
     uint8_t cpu_id = 0;
     const irq_number_t irq = gic_cpu_get_irq_number(&cpu_id);
 
+    disable_interrupts();
     if (irq >= GIC_ITS_LPI_INTERRUPT_START) {
         const uint16_t index = irq - GIC_ITS_LPI_INTERRUPT_START;
         this_cpu_mut()->in_lpi = true;
@@ -212,6 +215,8 @@ void handle_interrupt(struct thread_context *const context) {
                    "cpu %" PRIu8 "\n",
                    irq,
                    cpu_id);
+
+            gic_cpu_eoi(cpu_id, irq);
         }
 
         return;
@@ -254,155 +259,134 @@ void handle_sync_exception(struct thread_context *const context) {
     const enum esr_error_code error_code =
         (esr & __ESR_ERROR_CODE) >> ESR_ERROR_CODE_SHIFT;
 
+    printk(LOGLEVEL_WARN,
+           "isr: received sync exception\n"
+           "\telr_el1: %p\n"
+           "\tfar_el1: %p\n"
+           "\tsp_el1: %p\n",
+           (void *)context->elr_el1,
+           (void *)context->far_el1,
+           (void *)context->sp_el1);
+
     switch (error_code) {
         case ESR_ERROR_CODE_UNKNOWN:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a recognized unknown exception\n");
+            printk(LOGLEVEL_WARN, "kind: recognized unknown\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_WF:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a trapped wf* instruction exception\n");
+            printk(LOGLEVEL_WARN, "kind: trapped wf* instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MCR_OR_MRC_EC0:
             printk(LOGLEVEL_WARN,
-                   "isr: received a trapped mcrr/mrrc with ec0 instruction "
-                   "exception\n");
+                   "kind: trapped mcrr/mrrc with ec0 instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MCRR_OR_MRRC:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a trapped mcrr/mrrc instruction exception\n");
+            printk(LOGLEVEL_WARN, "kind: trapped mcrr/mrrc instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MCR_OR_MRC:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a trapped mcr/mrc instruction exception\n");
+            printk(LOGLEVEL_WARN, "kind: trapped mcr/mrc instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_LDC_OR_SDC:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a trapped ldc/sdc instruction exception\n");
+            printk(LOGLEVEL_WARN, "kind: trapped ldc/sdc instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_SVE:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a trapped sve instruction exception\n");
+            printk(LOGLEVEL_WARN, "kind: trapped sve instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_LD64B_OR_SD64B:
             printk(LOGLEVEL_WARN,
-                   "isr: received a trapped ld64b, st64b, st64bv, or st64bv0 "
-                   "instruction exception\n");
+                   "kind: trapped ld64b, st64b, st64bv, or st64bv0 "
+                   "instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MRRC:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a trapped mrrc instruction exception\n");
+            printk(LOGLEVEL_WARN, "kind: trapped mrrc instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_BRANCH_TARGET_EXCEPTION:
-            printk(LOGLEVEL_WARN, "isr: received a branch target exception\n");
+            printk(LOGLEVEL_WARN, "kind: branch target\n");
             cpu_idle();
         case ESR_ERROR_CODE_ILLEGAL_EXEC_STATE:
-            printk(LOGLEVEL_WARN, "isr: received an illegal exec exception\n");
+            printk(LOGLEVEL_WARN, "kind: illegal exec\n");
             cpu_idle();
         case ESR_ERROR_CODE_SVC_IN_AARCH32:
-            printk(LOGLEVEL_WARN, "isr: received a svc in aarch32 exception\n");
+            printk(LOGLEVEL_WARN, "kind: svc in aarch32\n");
             cpu_idle();
         case ESR_ERROR_CODE_SVC_IN_AARCH64:
-            printk(LOGLEVEL_WARN, "isr: received a svc in aarch64 exception\n");
+            printk(LOGLEVEL_WARN, "kind: svc in aarch64\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_MSR_OR_MRS:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a msr/mrs or other sys instruction "
-                   "exception\n");
+            printk(LOGLEVEL_WARN, "kind: msr/mrs or other sys instruction\n");
             cpu_idle();
         case ESR_ERROR_CODE_TRAPPED_SVE_EC0:
-            printk(LOGLEVEL_WARN, "isr: received a svc with ec 0 exception\n");
+            printk(LOGLEVEL_WARN, "kind: svc with ec 0\n");
             cpu_idle();
         case ESR_ERROR_CODE_TSTART_ACCESS:
-            printk(LOGLEVEL_WARN, "isr: received a tstart access exception\n");
+            printk(LOGLEVEL_WARN, "kind: tstart access\n");
             cpu_idle();
         case ESR_ERROR_CODE_PTR_AUTH_FAIL:
-            printk(LOGLEVEL_WARN, "isr: received a ptr auth exception\n");
+            printk(LOGLEVEL_WARN, "kind: ptr auth\n");
             cpu_idle();
         case ESR_ERROR_CODE_INSTR_ABORT_LOWER_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received an instr abort from a lower el exception\n");
+            printk(LOGLEVEL_WARN, "kind: instr abort from a lower el\n");
             cpu_idle();
         case ESR_ERROR_CODE_INSTR_ABORT_SAME_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received an instr abort from the same el exception\n");
+            printk(LOGLEVEL_WARN, "kind: instr abort from the same el\n");
             cpu_idle();
         case ESR_ERROR_CODE_PC_ALIGNMENT_FAULT:
             printk(LOGLEVEL_WARN,
-                   "isr: received a pc alignment fault from a lower el "
-                   "exception\n");
+                   "kind: pc alignment fault from a lower el\n");
             cpu_idle();
         case ESR_ERROR_PAGE_TABLE_WALK_EL1:
-            printk(LOGLEVEL_WARN,
-                   "isr: received page table walk error at el1\n");
+            printk(LOGLEVEL_WARN, "kind: page table walk error at el1\n");
             cpu_idle();
         case ESR_ERROR_CODE_DATA_ABORT_LOWER_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a data abort fault from a lower el "
-                   "exception\n");
+            printk(LOGLEVEL_WARN, "kind: data abort fault from a lower el\n");
             cpu_idle();
         case ESR_ERROR_CODE_DATA_ABORT_SAME_EL:
             printk(LOGLEVEL_WARN,
-                   "isr: received a data abort fault from the same el "
-                   "exception\n");
+                   "kind: data abort fault from the same el\n");
             cpu_idle();
         case ESR_ERROR_CODE_SP_ALIGNMENT_FAULT:
             printk(LOGLEVEL_WARN,
-                   "isr: received a sp alignment fault from a lower el "
-                   "exception\n");
+                   "kind: sp alignment fault from a lower el\n");
             cpu_idle();
         case ESR_ERROR_CODE_FP_ON_AARCH32_TRAP:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a fp on aarch32 trap exception\n");
+            printk(LOGLEVEL_WARN, "kind: fp on aarch32 trap\n");
             cpu_idle();
         case ESR_ERROR_CODE_FP_ON_AARCH64_TRAP:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a fp on aarch64 trap exception\n");
+            printk(LOGLEVEL_WARN, "kind: fp on aarch64 trap\n");
             cpu_idle();
         case ESR_ERROR_CODE_SERROR_INTERRUPT:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a serror trap exception\n");
+            printk(LOGLEVEL_WARN, "kind: serror trap\n");
             cpu_idle();
         case ESR_ERROR_CODE_BREAKPOINT_LOWER_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a breakpoint from a lower el exception\n");
+            printk(LOGLEVEL_WARN, "kind: breakpoint from a lower el\n");
             cpu_idle();
         case ESR_ERROR_CODE_BREAKPOINT_SAME_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a breakpoint from the same el exception\n");
+            printk(LOGLEVEL_WARN, "kind: breakpoint from the same el\n");
             cpu_idle();
         case ESR_ERROR_CODE_SOFTWARE_STEP_LOWER_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a software step from a lowerl el "
-                   "exception\n");
+            printk(LOGLEVEL_WARN, "kind: software step from a lowerl el\n");
             cpu_idle();
         case ESR_ERROR_CODE_SOFTWARE_STEP_SAME_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a software step from the same el "
-                   "exception\n");
+            printk(LOGLEVEL_WARN, "kind: software step from the same el\n");
             cpu_idle();
         case ESR_ERROR_CODE_WATCHPOINT_LOWER_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a watchpoint from a lower el exception\n");
+            printk(LOGLEVEL_WARN, "kind: watchpoint from a lower el\n");
             cpu_idle();
         case ESR_ERROR_CODE_WATCHPOINT_SAME_EL:
-            printk(LOGLEVEL_WARN,
-                   "isr: received a watchpoint from the same el exception\n");
+            printk(LOGLEVEL_WARN, "kind: watchpoint from the same el\n");
             cpu_idle();
         case ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH32:
             printk(LOGLEVEL_WARN,
-                   "isr: received a bkpt instrunction exec on aarch32 fault "
-                   "exception\n");
+                   "kind: bkpt instrunction exec on aarch32 fault\n");
             cpu_idle();
         case ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH64:
             printk(LOGLEVEL_WARN,
-                   "isr: received a bkpt instrunction exec on aarch64 fault "
-                   "exception\n");
+                   "kind: bkpt instrunction exec on aarch64 fault\n");
             cpu_idle();
     }
 
     printk(LOGLEVEL_WARN,
-           "isr: received unknown synchronous exception, with code %d\n",
+           "\tunknown synchronous exception\n"
+           "\t\tcode: %d\n",
            error_code);
 
     cpu_idle();

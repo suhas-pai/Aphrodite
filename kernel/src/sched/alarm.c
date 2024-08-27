@@ -6,9 +6,24 @@
 #include <stdatomic.h>
 
 #include "asm/irqs.h"
+#include "mm/kmalloc.h"
 #include "sched/scheduler.h"
 
 #include "alarm.h"
+
+struct alarm *alarm_create(const usec_t time) {
+    struct alarm *const alarm = kmalloc(sizeof(*alarm));
+    if (alarm == NULL) {
+        return NULL;
+    }
+
+    preempt_disable();
+    alarm->listener = current_thread();
+    preempt_enable();
+
+    alarm->remaining = time;
+    return alarm;
+}
 
 __debug_optimize(3)
 static int compare(struct list *const theirs, struct list *const ours) {
@@ -26,11 +41,10 @@ void alarm_post(struct alarm *const alarm, const bool await) {
     enable_irqs_if_flag(flag);
 
     atomic_store_explicit(&alarm->active, true, memory_order_relaxed);
-    if (!await) {
-        return;
+    if (await) {
+        sched_dequeue_thread(current_thread());
+        sched_yield();
     }
-
-    sched_yield();
 }
 
 __debug_optimize(3) void alarm_clear(struct alarm *const alarm) {

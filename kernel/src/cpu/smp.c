@@ -3,12 +3,16 @@
  * © suhas pai
  */
 
-#include "asm/irqs.h"
-#include "dev/printk.h"
-#include "mm/kmalloc.h"
+#include <stdatomic.h>
 
-#include "sched/thread.h"
+#include "asm/irqs.h"
+#include "asm/pause.h"
+#include "dev/printk.h"
+
+#include "sched/scheduler.h"
 #include "sys/boot.h"
+
+#include "smp.h"
 
 extern void arch_init_for_smp();
 
@@ -45,9 +49,7 @@ void smp_init() {
 }
 
 void smp_boot_all_cpus() {
-#if defined(__x86_64__)
-    printk(LOGLEVEL_INFO, "smp: booting all cpus\n");
-
+#if defined(__x86_64__) || defined(__aarch64__)
     const struct limine_smp_response *const smp_resp = boot_get_smp();
     if (smp_resp == NULL) {
         return;
@@ -56,20 +58,36 @@ void smp_boot_all_cpus() {
     struct limine_smp_info *const *const cpu_list = smp_resp->cpus;
     const uint64_t cpu_count = smp_resp->cpu_count;
 
+    if (cpu_count == 1) {
+        return;
+    }
+
+    printk(LOGLEVEL_INFO, "smp: booting all cpus\n");
+
     const int flag = disable_irqs_if_enabled();
     for (uint64_t i = 0; i != cpu_count; i++) {
-        struct thread *const fake_thread = kmalloc(sizeof(*fake_thread));
+        if (cpu_list[i]->field == smp_resp->bsp_field) {
+            continue;
+        }
 
-        assert_msg(fake_thread != NULL, "smp: failed to alloc sched-thread");
-        sched_thread_init(fake_thread,
-                          &kernel_process,
-                          NULL, // Fixed in arch_init_for_smp()
-                          arch_init_for_smp);
+        struct cpu_info *const cpu = cpu_for_id_mut(cpu_list[i]->processor_id);
+        struct smp_boot_info boot_info = SMP_BOOT_INFO_INIT(cpu);
 
-        cpu_list[i]->extra_argument = (uint64_t)fake_thread;
+        assert_msg(cpu != NULL,
+                   "smp: failed to find cpu-info for "
+                   "processor-id %" PRIu32 "\n",
+                   cpu->processor_id);
+
+        sched_init_on_cpu(cpu);
+
+        cpu_list[i]->extra_argument = (uint64_t)&boot_info;
         cpu_list[i]->goto_address = arch_init_for_smp;
+
+        while (!atomic_load_explicit(&boot_info.booted, memory_order_seq_cst)) {
+            cpu_pause();
+        }
     }
 
     enable_irqs_if_flag(flag);
-#endif /* defined(__x86_64__) */
+#endif /* defined(__x86_64__) || defined(__aarch64__) */
 }

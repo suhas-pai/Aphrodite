@@ -758,8 +758,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 return;
             }
 
-            gicv2_init_from_info(gic_dist->phys_base_address);
-            gicv2_init_on_this_cpu(gicv2_cpu_intr_range);
+            gicv2_init_from_info(gicv2_cpu_intr_range,
+                                 gic_dist->phys_base_address);
 
             array_foreach(&its_list,
                           struct acpi_madt_entry_gic_msi_frame *,

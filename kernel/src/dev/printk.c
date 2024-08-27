@@ -10,7 +10,6 @@
 #include "cpu/spinlock.h"
 
 #include "lib/parse_printf.h"
-#include "sched/thread.h"
 #include "printk.h"
 
 static struct terminal *_Atomic g_first_term = NULL;
@@ -75,21 +74,10 @@ write_sv(struct printf_spec_info *const spec_info,
 static struct spinlock g_print_lock = SPINLOCK_INIT();
 
 #define ACQUIRE_OR_BUST_LOCK() \
-    const bool flag = disable_irqs_if_enabled(); \
-    const bool in_exception = cpu_in_bad_state(); \
-\
-    if (in_exception) { \
-        g_print_lock = SPINLOCK_INIT(); \
-    } else { \
-        spin_acquire(&g_print_lock); \
-    }
+    const int flag = spin_acquire_save_irq(&g_print_lock);
 
 #define RELEASE_LOCK() \
-    if (!in_exception) { \
-        spin_release(&g_print_lock); \
-    } \
-\
-    enable_irqs_if_flag(flag);
+    spin_release_restore_irq(&g_print_lock, flag);
 
 __debug_optimize(3)
 void putk(const enum log_level level, const char *const string) {
@@ -130,7 +118,7 @@ vprintk(const enum log_level loglevel, const char *const string, va_list list) {
     (void)loglevel;
     ACQUIRE_OR_BUST_LOCK();
 
-    printk_internal("[cpu %" PRIu32 "] ", cpu_get_id(current_thread()->cpu));
+    printk_internal("[cpu %" PRIu32 "] ", cpu_get_id(this_cpu()));
     parse_printf(string,
                  write_char,
                  /*char_cb_info=*/NULL,

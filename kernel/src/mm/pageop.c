@@ -5,6 +5,7 @@
 
 #include "asm/irqs.h"
 #include "cpu/info.h"
+#include "sched/thread.h"
 
 #if __has_include("mm/tlb.h")
     #include "mm/tlb.h"
@@ -146,7 +147,7 @@ __debug_optimize(3) void pageop_finish(struct pageop *const pageop) {
     }
 
     assert(!are_interrupts_enabled());
-    if (&this_cpu()->process->pagemap == pageop->pagemap) {
+    if (&current_thread()->process->pagemap == pageop->pagemap) {
     #if defined(__x86_64__)
         tlb_flush_pageop(pageop);
     #elif defined(__riscv64)

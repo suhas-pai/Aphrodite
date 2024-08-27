@@ -29,7 +29,7 @@
 #define IRQ_NUMBER_FMT "%" PRIu32
 
 void gic_init_from_dtb();
-void gic_init_on_this_cpu(uint64_t phys_addr, uint64_t size);
+void gic_init_on_this_cpu();
 
 void gic_set_version(uint8_t gic);
 

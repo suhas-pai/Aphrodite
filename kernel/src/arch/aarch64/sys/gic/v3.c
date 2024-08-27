@@ -37,21 +37,27 @@ struct gicd_v3_registers {
     volatile uint32_t control;
     volatile uint32_t type;
 
-    volatile const uint8_t reserved[184];
+    volatile const uint8_t reserved[120];
     volatile _Atomic uint32_t irq_group[16];
+
+    volatile const uint8_t reserved_2[64];
 
     volatile _Atomic uint32_t irq_set_enable[32];
     volatile _Atomic uint32_t irq_clear_enable[32];
 
-    volatile const uint8_t reserved_2[512];
-    volatile _Atomic uint32_t irq_priority[32];
+    volatile _Atomic uint32_t irq_set_pending[32];
+    volatile _Atomic uint32_t irq_clear_pending[32];
 
-    volatile const uint8_t reserved_3[1920];
+    volatile _Atomic uint32_t irq_set_active[32];
+    volatile _Atomic uint32_t irq_clear_active[32];
+
+    volatile _Atomic uint32_t irq_priority[8];
+    volatile const uint8_t reserved_4[2016];
 
     volatile _Atomic uint32_t irq_config[64];
     volatile _Atomic uint32_t irq_group_mod[64];
 
-    volatile const uint8_t reserved_4[20990];
+    volatile const uint8_t reserved_5[20990];
     volatile _Atomic uint32_t irq_router[32];
 };
 
@@ -149,12 +155,11 @@ volatile static struct gicd_v3_registers *g_dist_regs = NULL;
 static struct mmio_region *g_dist_mmio = NULL;
 static struct mmio_region *g_redist_mmio = NULL;
 
-static bool gic_initialized = false;
-static uint32_t g_redist_count = 0;
+static bool g_gic_initialized = false;
 
 #define MAX_ATTEMPTS 100
 #define GICD_BITS_PER_IFACE 8
-#define GICD_DEFAULT_PRIO 0xA0
+#define GICD_DEFAULT_PRIO 0x80
 #define GIC_REDIST_IDBITS 16
 
 #define GIC_REDIST_PROP_ALLOC_ORDER 1
@@ -167,25 +172,6 @@ _Static_assert((PAGE_SIZE << GIC_REDIST_PROP_ALLOC_ORDER)
 _Static_assert((PAGE_SIZE << GIC_REDIST_PENDING_ALLOC_ORDER)
                >= (GIC_ITS_MAX_LPIS_SUPPORTED * sizeof(uint64_t)),
                "GIC_REDIST_PENDING_ALLOC_ORDER is too low");
-
-__debug_optimize(3)
-volatile struct gicv3_redist_registers *gic_redist_for_this_cpu() {
-    volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
-    volatile const struct gicv3_redist_registers *const end =
-        redist + g_redist_count;
-
-    const uint32_t affinity = this_cpu()->affinity;
-    for (; redist != end; redist++) {
-        const uint32_t redist_affinity =
-            mmio_read(&redist->typer) & __GICV3_REDIST_TYPER_AFFINITY;
-
-        if (redist_affinity == affinity) {
-            return redist;
-        }
-    }
-
-    verify_not_reached();
-}
 
 static
 volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
@@ -312,11 +298,13 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     const bool flag = disable_irqs_if_enabled();
     volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
+    const uint8_t index = irq / sizeof(uint32_t);
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
-    const uint32_t irq_priority =
-        atomic_load_explicit(&dist->irq_priority[irq], memory_order_relaxed);
 
-    atomic_store_explicit(&dist->irq_priority[irq],
+    const uint32_t irq_priority =
+        atomic_load_explicit(&dist->irq_priority[index], memory_order_relaxed);
+
+    atomic_store_explicit(&dist->irq_priority[index],
                           rm_mask(irq_priority, 0xFFull << bit_index)
                         | (uint32_t)priority << bit_index,
                           memory_order_relaxed);
@@ -395,9 +383,8 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 
 void gic_redist_init_on_this_cpu() {
     const bool flag = disable_irqs_if_enabled();
-    volatile struct gicv3_redist_registers *const redist =
-        gic_redist_for_this_cpu();
 
+    volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
     const uint64_t typer = mmio_read(&redist->typer);
 
     assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);
@@ -453,9 +440,12 @@ void gic_redist_init_on_this_cpu() {
              | prop_phys
              | (GIC_REDIST_IDBITS - 1));
 
-    this_cpu_mut()->processor_id =
+    const uint32_t processor_id =
         (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
             >> GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
+
+    assert_msg(processor_id == this_cpu()->processor_id,
+               "gicv3: processor-id is different than from bootloader");
 
     this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
     this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
@@ -465,6 +455,7 @@ void gic_redist_init_on_this_cpu() {
 
 void gicv3_init_on_this_cpu() {
     uint64_t icc_sre = 0;
+    gic_redist_init_on_this_cpu();
 
     asm volatile("mrs %0, icc_sre_el1" : "=r"(icc_sre));
     asm volatile("msr icc_sre_el1, %0" :: "r"(icc_sre | __ICC_SRE_ENABLE));
@@ -508,7 +499,7 @@ void gicv3_init_on_this_cpu() {
 static bool init_from_regs() {
     mmio_write(&g_dist_regs->control,
                __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_SECURE
-               | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_NON_SECURE);
+             | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_NON_SECURE);
 
     bool rwp_cleared = false;
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
@@ -536,16 +527,14 @@ static bool init_from_regs() {
              | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_NON_SECURE
              | __GICDV3_CTRL_DISABLE_SECURITY);
 
-    gic_redist_init_on_this_cpu();
     gicv3_init_on_this_cpu();
-
     return true;
 }
 
 bool
 gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
 {
-    if (gic_initialized) {
+    if (g_gic_initialized) {
         printk(LOGLEVEL_WARN,
                "gicv3: attempting to initialize multiple gics\n");
         return false;
@@ -577,15 +566,13 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
     }
 
     g_dist_regs = g_dist_mmio->base;
-    g_redist_count = 1;
-
     if (!init_from_regs()) {
         vunmap_mmio(g_dist_mmio);
         return false;
     }
 
     gic_set_version(3);
-    gic_initialized = true;
+    g_gic_initialized = true;
 
     printk(LOGLEVEL_WARN, "gicv3: fully initialized\n");
     return true;
@@ -652,13 +639,14 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    if (!devicetree_prop_other_get_u32(redist_count_prop, &g_redist_count)) {
+    uint32_t count = 0;
+    if (!devicetree_prop_other_get_u32(redist_count_prop, &count)) {
         printk(LOGLEVEL_WARN,
                "gicv3: '#redistributor-regions' prop is malformed\n");
         return false;
     }
 
-    if (g_redist_count != 1) {
+    if (count != 1) {
         printk(LOGLEVEL_WARN, "gicv3: '#redistributor-regions' must be one\n");
         return false;
     }

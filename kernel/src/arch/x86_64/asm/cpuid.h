@@ -207,7 +207,7 @@ enum {
     // PBE is a synonym for PSE36.
     __CPUID_FEAT_EDX_PBE = 1ull << 31,
 
-    __CPUID_FEAT_PWR_MGMT_EAX_APIC_TIMER_ALWAYS_RUNNING = 1ull << 2,
+    __CPUID_FEAT_PWR_MGMT_EAX_APICTIMER_ALWAYS_RUNNING = 1ull << 2,
 
     // FSGSBASE = FS/GS BASE access instructions
     __CPUID_FEAT_EXT7_ECX0_EBX_FSGSBASE = 1ull << 0,

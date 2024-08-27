@@ -6,6 +6,7 @@
 #pragma once
 
 #include "sys/irqdef.h"
+
 #include "thread.h"
 
 void sched_init();
@@ -18,16 +19,11 @@ struct thread_context;
 void sched_next(irq_number_t irq, struct thread_context *context);
 
 void sched_yield();
-void sched_yield_with_this_cpu(struct cpu_info *cpu);
-
-struct thread;
 
 void
-sched_switch_to(struct thread *prev,
-                struct thread *next,
-                struct thread_context *context);
+sched_save_restore_context(struct thread *prev,
+                           struct thread *next,
+                           struct thread_context *context);
 
 void sched_enqueue_thread(struct thread *thread);
 void sched_dequeue_thread(struct thread *thread);
-
-struct cpu_info *sched_dequeue_current_thread();

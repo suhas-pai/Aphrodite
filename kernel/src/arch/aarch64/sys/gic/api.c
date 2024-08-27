@@ -199,10 +199,10 @@ void gic_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     verify_not_reached();
 }
 
-void gic_init_on_this_cpu(const struct range range) {
+void gic_init_on_this_cpu() {
     switch (g_version) {
         case 2:
-            gicv2_init_on_this_cpu(range);
+            gicv2_init_on_this_cpu();
             return;
         case 3:
             gicv3_init_on_this_cpu();

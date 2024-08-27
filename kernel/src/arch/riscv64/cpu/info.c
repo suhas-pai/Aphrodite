@@ -4,21 +4,18 @@
  */
 
 #include "mm/kmalloc.h"
-
-#include "sched/process.h"
 #include "sched/scheduler.h"
 
 #include "sys/boot.h"
 #include "info.h"
 
 static struct cpu_info g_base_cpu_info = {
-    CPU_INFO_BASE_INIT(g_base_cpu_info, &kernel_process),
+    CPU_INFO_BASE_INIT(g_base_cpu_info),
 
     .cbo_size = 0,
     .cmo_size = 0,
     .hart_id = 0,
     .timer_start = 0,
-    .is_active = true,
     .imsic_phys = 0,
     .imsic_page = NULL
 };
@@ -67,13 +64,11 @@ struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc cpu info");
 
-    cpu_info_base_init(cpu, &kernel_process);
+    cpu_info_base_init(cpu);
 
-    cpu->spur_intr_count = 0;
     cpu->cbo_size = 0;
     cpu->cmo_size = 0;
     cpu->hart_id = info->hartid;
-    cpu->is_active = false;
 
     sched_init_on_cpu(cpu);
     list_add(cpus_get_list(), &cpu->cpu_list);

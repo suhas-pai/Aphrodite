@@ -91,6 +91,9 @@ static void calibrate_timer() {
     this_cpu_mut()->lapic_timer_frequency =
         lapic_timer_freq_multiple * PIT_FREQUENCY;
 
+    assert_msg(this_cpu()->lapic_timer_frequency != 0,
+               "lapic: failed to calculate timer frequency");
+
     enable_irqs_if_flag(flag);
 }
 
@@ -213,11 +216,11 @@ __debug_optimize(3) usec_t lapic_timer_remaining() {
     preempt_enable();
     if (get_acpi_info()->using_x2apic) {
         return x2apic_read(X2APIC_LAPIC_REG_TIMER_INIT_COUNT)
-               / lapic_timer_freq_in_microseconds;
+             / lapic_timer_freq_in_microseconds;
     }
 
     return mmio_read(&lapic_regs->timer_initial_count)
-           / lapic_timer_freq_in_microseconds;
+         / lapic_timer_freq_in_microseconds;
 }
 
 __debug_optimize(3)

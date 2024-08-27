@@ -16,7 +16,7 @@
 #include "features.h"
 
 __hidden struct cpu_info g_base_cpu_info = {
-    CPU_INFO_BASE_INIT(g_base_cpu_info, &kernel_process),
+    CPU_INFO_BASE_INIT(g_base_cpu_info),
 
     .mpidr = 0,
     .processor_id = 0,
@@ -27,7 +27,6 @@ __hidden struct cpu_info g_base_cpu_info = {
     .gic_its_pend_page = NULL,
     .gic_its_prop_page = NULL,
 
-    .is_active = false,
     .in_lpi = false,
     .in_exception = false,
 };
@@ -1428,12 +1427,14 @@ void print_cpu_features() {
     assert_msg(g_cpu_features.mops, "cpu: missing FEAT_MOPS");
 }
 
+void sched_set_current_thread(struct thread *thread);
+
 __debug_optimize(3) void cpu_early_init() {
     const uint64_t mpidr = read_mpidr_el1();
-    g_base_cpu_info.affinity =
-        (((mpidr >> 32) & 0xFF) << 24) | (mpidr & 0xFFFFFF);
+    sched_set_current_thread(&kernel_main_thread);
 
-    asm volatile ("msr tpidr_el1, %0" :: "r"(&kernel_main_thread));
+    g_base_cpu_info.affinity =
+        ((mpidr >> 32) & 0xFF) << 24 | (mpidr & 0xFFFFFF);
 
     collect_cpu_features();
     list_add(cpus_get_list(), &g_base_cpu_info.cpu_list);

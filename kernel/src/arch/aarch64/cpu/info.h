@@ -20,7 +20,6 @@ struct cpu_info {
     void *gic_its_pend_page;
     void *gic_its_prop_page;
 
-    bool is_active : 1;
     bool in_lpi : 1;
     bool in_exception : 1;
 };

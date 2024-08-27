@@ -158,9 +158,6 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 
     const int flag = spin_acquire_save_irq(&pagemap->cpu_lock);
 
-    list_remove(&this_cpu_mut()->pagemap_node);
-    list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);
-
 #if defined(__x86_64__)
     write_cr3(virt_to_phys(pagemap->root));
 #elif defined(__aarch64__)
@@ -186,6 +183,9 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 #else
     verify_not_reached();
 #endif /* defined(__x86_64__) */
+
+    list_remove(&this_cpu_mut()->pagemap_node);
+    list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);
 
     spin_release_restore_irq(&pagemap->cpu_lock, flag);
 }

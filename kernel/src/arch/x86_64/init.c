@@ -3,12 +3,14 @@
  * © suhas pai
  */
 
+#include <stdatomic.h>
 #include "apic/lapic.h"
-#include "asm/irqs.h"
 
 #include "cpu/init.h"
-#include "mm/init.h"
+#include "cpu/smp.h"
+#include "cpu/util.h"
 
+#include "mm/init.h"
 #include "sched/scheduler.h"
 
 #include "sys/gdt.h"
@@ -22,17 +24,32 @@ void arch_post_mm_init() {
 
 }
 
-__debug_optimize(3) void arch_init_for_smp(struct limine_smp_info *const cpu) {
-    cpu_init_for_smp(cpu);
+void sched_set_current_thread(struct thread *thread);
+
+__debug_optimize(3) void arch_init_for_smp(struct limine_smp_info *const info) {
+    cpu_init_for_smp();
 
     gdt_load();
     idt_load();
-    lapic_init();
 
+    struct smp_boot_info *const smp_info =
+        (struct smp_boot_info *)info->extra_argument;
+
+    struct cpu_info *const cpu = smp_info->cpu;
+
+    sched_set_current_thread(cpu->idle_thread);
     switch_to_pagemap(&kernel_process.pagemap);
-    assert(!are_interrupts_enabled());
+
+    lapic_init();
+    atomic_store_explicit(&smp_info->booted, true, memory_order_seq_cst);
+
+    // On cpu init, we point current-thread to the idle-thread, so we have to
+    // call cpu_idle() for the rare case where the scheduler has no threads for
+    // us to run, so it returns execution to us.
 
     sched_yield();
+    cpu_idle();
+
     verify_not_reached();
 }
 

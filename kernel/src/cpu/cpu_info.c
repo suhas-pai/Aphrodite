@@ -24,15 +24,12 @@ __debug_optimize(3) struct cpu_info *this_cpu_mut() {
     return current_thread()->cpu;
 }
 
-__debug_optimize(3) void
-cpu_info_base_init(struct cpu_info *const cpu, struct process *const process) {
+__debug_optimize(3) void cpu_info_base_init(struct cpu_info *const cpu) {
     list_init(&cpu->alarm_list);
     list_init(&cpu->cpu_list);
     list_init(&cpu->pagemap_node);
 
-    cpu->process = process;
     cpu->idle_thread = NULL;
-
     cpu->spur_intr_count = 0;
     cpu->sched_info = SCHED_PERCPU_INFO_INIT();
 }

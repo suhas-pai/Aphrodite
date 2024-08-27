@@ -39,6 +39,7 @@ struct thread *current_thread();
 
 bool thread_runnable(const struct thread *thread);
 bool thread_enqueued(const struct thread *thread);
+bool thread_running(const struct thread *thread);
 
 bool preemption_enabled();
 

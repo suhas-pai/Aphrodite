@@ -18,8 +18,6 @@ struct cpu_info {
     uint16_t cmo_size;
 
     usec_t timer_start;
-
-    bool is_active : 1;
     bool in_exception : 1;
 
     uint8_t isr_oode;

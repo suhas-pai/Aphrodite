@@ -5,6 +5,8 @@
 
 #include "asm/fsgsbase.h"
 #include "asm/xsave.h"
+
+#include "cpu/info.h"
 #include "lib/assert.h"
 
 #include "sched/thread.h"
@@ -21,9 +23,9 @@ __debug_optimize(3) void sched_set_current_thread(struct thread *const thread) {
 extern __noreturn void thread_spinup(const struct thread_context *context);
 
 void
-sched_switch_to(struct thread *const prev,
-                struct thread *const next,
-                struct thread_context *const prev_context)
+sched_save_restore_context(struct thread *const prev,
+                           struct thread *const next,
+                           struct thread_context *const prev_context)
 {
     if (prev->process == &kernel_process) {
         //xsave_supervisor_into(&prev->arch_info.avx_state);
@@ -40,12 +42,11 @@ sched_switch_to(struct thread *const prev,
     }
 
     // Don't overwrite context of idle threads
-    if (prev->cpu == NULL || prev != prev->cpu->idle_thread) {
+    struct cpu_info *const cpu = next->cpu;
+    if (prev != cpu->idle_thread) {
         prev->context = *prev_context;
     }
 
+    thread_context_verify(prev->process, &prev->context);
     thread_context_verify(next->process, &next->context);
-    thread_spinup(&next->context);
-
-    verify_not_reached();
 }

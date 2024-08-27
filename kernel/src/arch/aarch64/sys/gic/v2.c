@@ -235,9 +235,7 @@ static struct mmio_region *g_cpu_mmio = NULL;
 static volatile struct gic_cpu_interface *g_cpu = NULL;
 
 static struct list g_msi_info_list = LIST_INIT(g_msi_info_list);
-
-static uint64_t g_cpu_phys_addr = 0;
-static uint64_t g_cpu_size = 0;
+static struct range g_cpu_phys_range= RANGE_EMPTY();
 
 static bool g_dist_initialized = false;
 static bool g_use_split_eoi = false;
@@ -285,7 +283,7 @@ static uint8_t get_cpu_iface_number() {
     verify_not_reached();
 }
 
-void gicv2_init_on_this_cpu(const struct range range) {
+void gicv2_init_on_this_cpu() {
     for (uint8_t irq = GIC_SGI_INTERRUPT_START;
          irq <= GIC_PPI_INTERRUPT_LAST;
          irq++)
@@ -293,59 +291,12 @@ void gicv2_init_on_this_cpu(const struct range range) {
         gicdv2_mask_irq(irq);
         gicdv2_set_irq_priority(irq, GICD_DEFAULT_PRIO);
     }
-
-    if (g_cpu_mmio != NULL) {
-        assert(range.front == g_cpu_phys_addr && range.size == g_cpu_size);
-    } else {
-        assert_msg(range_has_align(range, PAGE_SIZE),
-                   "gicv2: cpu interface mmio-region isn't aligned to "
-                   "page-size\n");
-
-        g_cpu_mmio =
-            vmap_mmio(range, PROT_READ | PROT_WRITE | PROT_DEVICE, /*flags=*/0);
-
-        assert_msg(g_cpu_mmio != NULL,
-                   "gicv2: failed to allocate mmio-region for cpu-interface");
-
-        g_cpu_phys_addr = range.front;
-        g_cpu_size = range.size;
-
-        g_cpu = g_cpu_mmio->base;
-        g_use_split_eoi = range.size > PAGE_SIZE;
-
-        if (g_use_split_eoi) {
-            printk(LOGLEVEL_INFO, "gicv2: using split-eoi for cpu-interface\n");
-        }
-
-        printk(LOGLEVEL_INFO,
-               "gicv2: cpu interface at %p, size: 0x%" PRIx64 "\n",
-               g_cpu,
-               range.size);
-    }
-
-    mmio_write(&g_cpu->priority_mask, 0xF0);
-    mmio_write(&g_cpu->active_priority_base[0], /*value=*/0);
-    mmio_write(&g_cpu->active_priority_base[1], /*value=*/0);
-    mmio_write(&g_cpu->active_priority_base[2], /*value=*/0);
-    mmio_write(&g_cpu->active_priority_base[3], /*value=*/0);
-
-    const uint32_t bypass =
-        mmio_read(&g_cpu->interrupt_control) &
-        __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE;
-
-    mmio_write(&g_cpu->interrupt_control,
-                __GIC_CPU_INTR_CTRL_ENABLE
-              | bypass
-              | (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
-
-    printk(LOGLEVEL_INFO,
-           "gicv2: cpu iface no is %" PRIu8 "\n",
-           get_cpu_iface_number());
-
-    printk(LOGLEVEL_INFO, "gicv2: initialized cpu interface\n");
 }
 
-bool gicv2_init_from_info(const uint64_t phys_base_address) {
+bool
+gicv2_init_from_info(const struct range cpu_range,
+                     const uint64_t phys_base_address)
+{
     if (g_dist_initialized) {
         printk(LOGLEVEL_WARN,
                "gicv2: attempting to initialize multiple gic distributions\n");
@@ -394,6 +345,51 @@ bool gicv2_init_from_info(const uint64_t phys_base_address) {
 
     init_with_regs();
     gic_set_version(2);
+
+    assert_msg(range_has_align(cpu_range, PAGE_SIZE),
+               "gicv2: cpu interface mmio-region isn't aligned to "
+               "page-size\n");
+
+    g_cpu_mmio =
+        vmap_mmio(cpu_range, PROT_READ | PROT_WRITE | PROT_DEVICE, /*flags=*/0);
+
+    assert_msg(g_cpu_mmio != NULL,
+               "gicv2: failed to allocate mmio-region for cpu-interface");
+
+    g_cpu = g_cpu_mmio->base;
+    g_cpu_phys_range = cpu_range;
+    g_use_split_eoi = cpu_range.size > PAGE_SIZE;
+
+    if (g_use_split_eoi) {
+        printk(LOGLEVEL_INFO, "gicv2: using split-eoi for cpu-interface\n");
+    }
+
+    printk(LOGLEVEL_INFO,
+           "gicv2: cpu interface at %p, size: 0x%" PRIx64 "\n",
+           g_cpu,
+           cpu_range.size);
+
+    mmio_write(&g_cpu->priority_mask, 0xF0);
+    mmio_write(&g_cpu->active_priority_base[0], /*value=*/0);
+    mmio_write(&g_cpu->active_priority_base[1], /*value=*/0);
+    mmio_write(&g_cpu->active_priority_base[2], /*value=*/0);
+    mmio_write(&g_cpu->active_priority_base[3], /*value=*/0);
+
+    const uint32_t bypass =
+        mmio_read(&g_cpu->interrupt_control)
+      & __GIC_CPU_INTR_CTLR_FIQ_BYPASS_DISABLE;
+
+    mmio_write(&g_cpu->interrupt_control,
+               __GIC_CPU_INTR_CTRL_ENABLE
+             | bypass
+             | (g_use_split_eoi ? __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI : 0));
+
+    printk(LOGLEVEL_INFO,
+           "gicv2: cpu iface no is %" PRIu8 "\n",
+           get_cpu_iface_number());
+
+    gicv2_init_on_this_cpu();
+    printk(LOGLEVEL_INFO, "gicv2: initialized cpu interface\n");
 
     g_dist_initialized = true;
     return true;
@@ -694,7 +690,19 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
     struct devicetree_prop_reg_info *const dist_reg_info =
         array_front(reg_prop->list);
 
-    gicv2_init_from_info(dist_reg_info->address);
+    struct range cpu_reg_range = RANGE_EMPTY();
+    struct devicetree_prop_reg_info *const cpu_reg_info =
+        array_at(reg_prop->list, /*index=*/1);
+
+    if (!range_create_and_verify(cpu_reg_info->address,
+                                 cpu_reg_info->size,
+                                 &cpu_reg_range))
+    {
+        printk(LOGLEVEL_INFO, "gicv2: dtb node's 'reg' prop range overflows\n");
+        return false;
+    }
+
+    gicv2_init_from_info(cpu_reg_range, dist_reg_info->address);
     devicetree_node_foreach_child(node, child_node) {
         const struct string_view msi_sv = SV_STATIC("arm,gic-v2m-frame");
         if (!devicetree_node_has_compat_sv(child_node, msi_sv)) {
@@ -744,18 +752,5 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
         gicv2_add_msi_frame(msi_reg_info->address);
     }
 
-    struct range cpu_reg_range = RANGE_EMPTY();
-    struct devicetree_prop_reg_info *const cpu_reg_info =
-        array_at(reg_prop->list, /*index=*/1);
-
-    if (!range_create_and_verify(cpu_reg_info->address,
-                                 cpu_reg_info->size,
-                                 &cpu_reg_range))
-    {
-        printk(LOGLEVEL_INFO, "gicv2: dtb node's 'reg' prop range overflows\n");
-        return false;
-    }
-
-    gicv2_init_on_this_cpu(cpu_reg_range);
     return true;
 }

@@ -17,15 +17,7 @@ struct alarm {
     usec_t remaining;
 };
 
-#define ALARM_INIT(name, time) \
-    ((struct alarm){ \
-        .list = LIST_INIT(name.list), \
-        .listener = current_thread(), \
-        .remaining = (time) \
-    })
-
-struct list *alarm_get_list_locked(int *flag_out);
-void alarm_list_unlock(const int flag);
+struct alarm *alarm_create(usec_t time);
 
 void alarm_post(struct alarm *alarm, bool await);
 void alarm_clear(struct alarm *alarm);

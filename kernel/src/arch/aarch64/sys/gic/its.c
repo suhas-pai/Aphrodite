@@ -212,7 +212,7 @@ static bool
 fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
     struct gic_its_collection_table_entry *const entry =
         its->int_collection_table
-        + (its->int_collection_table_entry_count * icid);
+      + (its->int_collection_table_entry_count * icid);
 
     preempt_disable();
     entry->flags =
@@ -324,8 +324,8 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     preempt_disable();
     mmio_write(&((uint8_t *)this_cpu()->gic_its_prop_page)[vector],
                __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
-               | GICD_DEFAULT_PRIO <<
-                    GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
+             | GICD_DEFAULT_PRIO <<
+                GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
 
     preempt_enable();
     return vector;
@@ -363,8 +363,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
     info->id = id;
     info->phys_addr = phys_addr;
     info->queue_free_slot_count =
-        (PAGE_SIZE << CMD_QUEUE_PAGE_ORDER) /
-        sizeof(struct gic_its_cmd_queue_entry);
+        PAGE_SIZE << CMD_QUEUE_PAGE_ORDER
+      / sizeof(struct gic_its_cmd_queue_entry);
 
     struct range range =
         RANGE_INIT(phys_addr, sizeof(struct gic_its_registers));

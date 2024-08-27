@@ -3,6 +3,10 @@
  * © suhas pai
  */
 
+#if __has_include("asm/stack_trace.h")
+    #include "asm/stack_trace.h"
+#endif /* __has_include("asm/stack_trace.h")*/
+
 #include "cpu/util.h"
 #include "dev/printk.h"
 #include "lib/align.h"
@@ -34,7 +38,12 @@ __ubsan_handle_type_mismatch_v1(struct type_mismatch_info_v1 *const info,
                SOURCE_LOCATION_FMT_ARGS(&info->location),
                type_check_kind_list[info->type_check_kind],
                info->type->name);
-        cpu_idle();
+
+    #if __has_include("asm/stack_trace.h")
+        print_stack_trace(/*max_lines=*/10);
+    #endif /* __has_include("asm/stack_trace.h")*/
+
+        cpu_halt();
     }
 
     const uint64_t alignment = 1ull << info->log_alignment;
@@ -387,6 +396,8 @@ __ubsan_handle_builtin_unreachable(struct unreachable_info *const info) {
     printk(LOGLEVEL_ERROR,
            "ubsan: [" SOURCE_LOCATION_FMT "] Reached the unreachable\n",
            SOURCE_LOCATION_FMT_ARGS(&info->location));
+
+    cpu_halt();
 }
 
 __debug_optimize(3)

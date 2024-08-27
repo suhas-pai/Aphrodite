@@ -123,9 +123,9 @@ nvme_queue_create(struct nvme_queue *const queue,
             div_round_up(1ull << max_transfer_shift, PAGE_SIZE);
 
         const uint64_t phys_region_page_list_size =
-            queue->phys_region_pages_count *
-            queue->entry_count *
-            sizeof(uint64_t);
+            queue->phys_region_pages_count
+          * queue->entry_count
+          * sizeof(uint64_t);
 
         const uint64_t prp_phys = phalloc(phys_region_page_list_size);
         if (prp_phys == INVALID_PHYS) {

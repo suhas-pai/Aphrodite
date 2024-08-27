@@ -3,12 +3,10 @@
  * © suhas pai
  */
 
-#include "cpu/info.h"
-
 #include "lib/align.h"
 #include "lib/util.h"
 
-#include "sched/process.h"
+#include "sched/thread.h"
 
 #include "early.h"
 #include "page_alloc.h"
@@ -79,7 +77,7 @@ get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
 __debug_optimize(3) void
 ptwalker_default(struct pt_walker *const walker, const uint64_t virt_addr) {
     return ptwalker_default_for_pagemap(walker,
-                                        &this_cpu()->process->pagemap,
+                                        &current_thread()->process->pagemap,
                                         virt_addr);
 }
 
@@ -102,7 +100,7 @@ ptwalker_create(struct pt_walker *const walker,
                 const ptwalker_free_pgtable_t free_pgtable)
 {
     return ptwalker_create_for_pagemap(walker,
-                                       &this_cpu()->process->pagemap,
+                                       &current_thread()->process->pagemap,
                                        virt_addr,
                                        alloc_pgtable,
                                        free_pgtable);

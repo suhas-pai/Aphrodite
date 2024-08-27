@@ -1,9 +1,9 @@
 /*
- * kernel/src/arch/aarch64/sched/thread.c
+ * kernel/src/arch/loongarch64/sched/thread.c
  * © suhas pai
  */
 
-#include "mm/pagemap.h"
+#include "asm/context.h"
 #include "sched/thread.h"
 
 __debug_optimize(3) struct thread *current_thread() {
@@ -20,18 +20,14 @@ __debug_optimize(3) void sched_set_current_thread(struct thread *const thread) {
 extern __noreturn void thread_spinup(const struct thread_context *context);
 
 void
-sched_switch_to(struct thread *const prev,
-                struct thread *const next,
-                struct thread_context *const prev_context)
+sched_save_restore_context(struct thread *const prev,
+                           struct thread *const next,
+                           struct thread_context *const prev_context)
 {
-    if (prev->process != next->process) {
-        switch_to_pagemap(&next->process->pagemap);
-    }
-
-    if (prev->cpu == NULL || prev != prev->cpu->idle_thread) {
+    struct cpu_info *const cpu = next->cpu;
+    if (cpu == NULL || prev != cpu->idle_thread) {
         prev->context = *prev_context;
     }
 
-    thread_spinup(&next->context);
-    verify_not_reached();
+    thread_context_verify(next->process, &next->context);
 }

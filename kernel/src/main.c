@@ -23,6 +23,7 @@
 #include "sched/scheduler.h"
 #include "sched/sleep.h"
 
+#include "sched/thread.h"
 #include "sys/boot.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
@@ -106,6 +107,10 @@ void kmain(void) {
     sched_sleep_us(seconds_to_micro(5));
     printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 
+    disable_interrupts();
+
+    sched_dequeue_thread(current_thread());
     sched_yield();
+
     verify_not_reached();
 }

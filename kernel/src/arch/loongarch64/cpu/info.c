@@ -10,7 +10,7 @@
 #include "info.h"
 
 __hidden struct cpu_info g_base_cpu_info = {
-    CPU_INFO_BASE_INIT(g_base_cpu_info, &kernel_process),
+    CPU_INFO_BASE_INIT(g_base_cpu_info),
 
     .core_id = 0,
     .in_exception = false,
@@ -57,7 +57,7 @@ struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc cpu info");
 
-    cpu_info_base_init(cpu, &kernel_process);
+    cpu_info_base_init(cpu);
 
     cpu->core_id = 0; // FIXME: Use info->core_id when added to limine
     cpu->in_exception = false;

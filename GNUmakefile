@@ -1,5 +1,7 @@
 # Nuke built-in rules and variables.
-override MAKEFLAGS += -rR
+MAKEFLAGS += -rR
+.SUFFIXES:
+
 export IN_QEMU := 0
 
 # Convenience macro to reliably declare user overridable variables.

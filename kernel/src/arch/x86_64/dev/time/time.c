@@ -4,6 +4,7 @@
  */
 
 #include "dev/time/hpet.h"
+#include "dev/pit.h"
 
 #include "lib/time.h"
 #include "sys/boot.h"
@@ -14,6 +15,8 @@ __debug_optimize(3) nsec_t nsec_since_boot() {
 }
 
 void arch_init_time() {
-    // No longer used with multi-processor setups and LAPIC
-    // pit_init(PIT_DEFAULT_FLAGS, PIT_GRANULARITY_5_MS);
+    // No longer used with multi-processor setups, but used to calculate LAPIC
+    // frequency
+
+    pit_init(PIT_DEFAULT_FLAGS, PIT_GRANULARITY_5_MS);
 }

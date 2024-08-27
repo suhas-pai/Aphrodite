@@ -51,9 +51,12 @@ __debug_optimize(3) nsec_t system_timer_get_compare_ns() {
 
 __debug_optimize(3) nsec_t system_timer_get_remaining_ns() {
     const nsec_t count = system_timer_get_count_ns();
-    const nsec_t compare = system_timer_get_compare_ns();
+    if (__builtin_expect(count == UINT64_MAX, 0)) {
+        return 0;
+    }
 
-    if (__builtin_expect(count > compare || count == UINT64_MAX, 0)) {
+    const nsec_t compare = system_timer_get_compare_ns();
+    if (__builtin_expect(count > compare, 0)) {
         return 0;
     }
 

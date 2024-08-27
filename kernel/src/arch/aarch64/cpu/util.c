@@ -36,22 +36,21 @@ struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc info");
 
-    cpu_info_base_init(cpu, &kernel_process);
+    cpu_info_base_init(cpu);
 
     cpu->mpidr = info->mpidr;
     cpu->processor_id = info->processor_id;
     cpu->affinity =
-        (((cpu->mpidr >> 32) & 0xFF) << 24) | (cpu->mpidr & 0xFFFFFF);
+        ((cpu->mpidr >> 32) & 0xFF) << 24 | (cpu->mpidr & 0xFFFFFF);
 
     cpu->spe_overflow_interrupt = 0;
     cpu->icid = 0;
 
-    cpu->gic_its_pend_page = NULL,
-    cpu->gic_its_prop_page = NULL,
+    cpu->gic_its_pend_page = NULL;
+    cpu->gic_its_prop_page = NULL;
 
-    cpu->is_active = false,
-    cpu->in_lpi = false,
-    cpu->in_exception = false,
+    cpu->in_lpi = false;
+    cpu->in_exception = false;
 
     sched_init_on_cpu(cpu);
     list_add(cpus_get_list(), &cpu->cpu_list);

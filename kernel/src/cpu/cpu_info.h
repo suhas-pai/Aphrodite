@@ -13,8 +13,6 @@
 
 struct cpu_info;
 struct cpu_info_base {
-    struct process *process;
-
     struct list alarm_list;
     struct list cpu_list;
     struct list pagemap_node;
@@ -26,8 +24,7 @@ struct cpu_info_base {
     struct sched_percpu_info sched_info;
 };
 
-#define CPU_INFO_BASE_INIT(name, process_) \
-    .process = (process_), \
+#define CPU_INFO_BASE_INIT(name) \
     .pagemap_node = LIST_INIT(name.pagemap_node), \
     .cpu_list = LIST_INIT(name.cpu_list), \
     .alarm_list = LIST_INIT(name.alarm_list), \
@@ -35,7 +32,7 @@ struct cpu_info_base {
     .spur_intr_count = 0, \
     .sched_info = SCHED_PERCPU_INFO_INIT()
 
-void cpu_info_base_init(struct cpu_info *cpu, struct process *process);
+void cpu_info_base_init(struct cpu_info *cpu);
 
 extern struct cpu_info g_base_cpu_info;
 const struct cpu_info *this_cpu();
