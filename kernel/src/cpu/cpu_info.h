@@ -25,9 +25,9 @@ struct cpu_info_base {
 };
 
 #define CPU_INFO_BASE_INIT(name) \
-    .pagemap_node = LIST_INIT(name.pagemap_node), \
-    .cpu_list = LIST_INIT(name.cpu_list), \
     .alarm_list = LIST_INIT(name.alarm_list), \
+    .cpu_list = LIST_INIT(name.cpu_list), \
+    .pagemap_node = LIST_INIT(name.pagemap_node), \
     .idle_thread = NULL, \
     .spur_intr_count = 0, \
     .sched_info = SCHED_PERCPU_INFO_INIT()

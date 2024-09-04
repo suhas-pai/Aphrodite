@@ -5,13 +5,12 @@
 
 #include "asm/irqs.h"
 #include "cpu/info.h"
-#include "sched/thread.h"
 
 #if __has_include("mm/tlb.h")
     #include "mm/tlb.h"
 #endif /* __has_include("mm/tlb.h") */
 
-#include "sched/process.h"
+#include "sched/thread.h"
 
 #include "pagemap.h"
 #include "page_alloc.h"

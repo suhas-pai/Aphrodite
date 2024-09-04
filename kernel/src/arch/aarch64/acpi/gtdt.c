@@ -4,7 +4,6 @@
  */
 
 #include "dev/time/time.h"
-#include "sys/gic/api.h"
 
 #include "dev/printk.h"
 #include "lib/util.h"

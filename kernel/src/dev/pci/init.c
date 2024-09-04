@@ -688,9 +688,7 @@ parse_function(struct pci_bus *const bus,
             return;
         }
 
-        struct pci_entity_bar_info *const bar =
-            &entity->bar_list[bar_index];
-
+        struct pci_entity_bar_info *const bar = &entity->bar_list[bar_index];
         if (!bar->is_present) {
             pci_entity_info_destroy(entity);
             printk(LOGLEVEL_WARN, "pcie: msix table-bar is not present\n");

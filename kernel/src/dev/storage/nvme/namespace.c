@@ -101,11 +101,11 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
            identity->formatted_lba_count);
 
     printk(LOGLEVEL_INFO,
-           "\t\tlba %" PRIu32 ":\n"
-           "\t\t\tmetadata size: " SIZE_UNIT_FMT "\n"
-           "\t\t\tlba data size shift: %" PRIu8 "\n"
-           "\t\t\trelative performance: %" PRIu8 "\n"
-            "\tformatted lba index: %" PRIu8 "\n"
+           "lba %" PRIu32 ":\n"
+           "\t\tmetadata size: " SIZE_UNIT_FMT "\n"
+           "\t\tlba data size shift: %" PRIu8 "\n"
+           "\t\trelative performance: %" PRIu8 "\n"
+           "\tformatted lba index: %" PRIu8 "\n"
            "\tmetadata capabilities: 0x%" PRIu8 "\n"
            "\tdata protection capabilities: 0x%" PRIu8 "\n"
            "\tdata protection settings: 0x%" PRIu8 "\n"
@@ -235,7 +235,7 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
             uint64_t *const prp_list =
                 &namespace->io_queue.phys_region_page_list[
                     namespace->io_queue.phys_region_pages_count
-                    * command.readwrite.cid];
+                  * command.readwrite.cid];
 
             for (uint32_t i = 0; i != prp_count; i++) {
                 prp_list[i] = command.readwrite.prp2 + (PAGE_SIZE * i);

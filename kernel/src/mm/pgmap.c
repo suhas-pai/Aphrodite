@@ -199,7 +199,7 @@ override_pte(struct pt_walker *const walker,
      && pte_to_phys(entry, level) == phys_addr
      && (pte_is_large(entry) ?
             pte_flags_equal(entry, walker->level, options->large_pte_flags)
-            : pte_flags_equal(entry, walker->level, options->leaf_pte_flags)))
+          : pte_flags_equal(entry, walker->level, options->leaf_pte_flags)))
     {
         *offset_in += PAGE_SIZE_AT_LEVEL(walker->level);
         if (*offset_in >= size) {
@@ -682,7 +682,7 @@ pgmap_at(struct pagemap *const pagemap,
             uint64_t offset = virt_addr - walker_virt_addr;
             pte_t *const pte =
                 walker.tables[walker.level - 1]
-                + walker.indices[walker.level - 1];
+              + walker.indices[walker.level - 1];
 
             const pte_t entry = pte_read(pte);
             if (phys_range.front >= offset
@@ -691,7 +691,7 @@ pgmap_at(struct pagemap *const pagemap,
             {
                 offset =
                     walker_virt_addr + PAGE_SIZE_AT_LEVEL(walker.level)
-                    - virt_addr;
+                  - virt_addr;
 
                 if (!range_has_index(phys_range, offset)) {
                     enable_irqs_if_flag(flag);

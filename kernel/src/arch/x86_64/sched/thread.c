@@ -28,16 +28,14 @@ sched_save_restore_context(struct thread *const prev,
                            struct thread_context *const prev_context)
 {
     if (prev->process == &kernel_process) {
-        //xsave_supervisor_into(&prev->arch_info.avx_state);
+        // xsave_supervisor_into(&prev->arch_info.avx_state);
     } else {
-        verify_not_reached();
         xsave_user_into(&prev->arch_info.avx_state);
     }
 
     if (next->process == &kernel_process) {
-        //xrstor_supervisor_from(&next->arch_info.avx_state);
+        // xrstor_supervisor_from(&next->arch_info.avx_state);
     } else {
-        verify_not_reached();
         xrstor_user_from(&next->arch_info.avx_state);
     }
 
@@ -47,6 +45,5 @@ sched_save_restore_context(struct thread *const prev,
         prev->context = *prev_context;
     }
 
-    thread_context_verify(prev->process, &prev->context);
     thread_context_verify(next->process, &next->context);
 }

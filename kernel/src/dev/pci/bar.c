@@ -94,7 +94,7 @@ pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
 
             if (range_has_loc(child_range, offset)) {
                 return res->mmio->base
-                        + range_index_for_loc(child_range, offset);
+                     + range_index_for_loc(child_range, offset);
             }
         }
 

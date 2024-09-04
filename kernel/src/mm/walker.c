@@ -633,34 +633,33 @@ uint64_t ptwalker_get_virt_addr(const struct pt_walker *const walker) {
 
 __debug_optimize(3)
 uint64_t ptwalker_get_phys_addr(const struct pt_walker *const walker) {
-    if (__builtin_expect(walker->level < 1, 0)) {
+    const pgt_level_t level = walker->level;
+    if (__builtin_expect(level < 1, 0)) {
         return INVALID_PHYS;
     }
 
-    if (__builtin_expect(
-            walker->level > 1 && !pte_level_can_have_large(walker->level), 0))
-    {
+    if (__builtin_expect(level > 1 && !pte_level_can_have_large(level), 0)) {
         return INVALID_PHYS;
     }
 
-    const pte_t pte =
-        pte_read(walker->tables[walker->level - 1]
-                 + walker->indices[walker->level - 1]);
+    const pte_t *const ptr =
+        &walker->tables[level - 1][walker->indices[level - 1]];
 
+    const pte_t pte = pte_read(ptr);
     if (!pte_is_present(pte)) {
         return INVALID_PHYS;
     }
 
-    if (walker->level != 1 && !pte_is_large(pte)) {
+    if (level != 1 && !pte_is_large(pte)) {
         return INVALID_PHYS;
     }
 
-    return pte_to_phys(pte, walker->level);
+    return pte_to_phys(pte, level);
 }
 
 __debug_optimize(3)
 bool ptwalker_points_to_largepage(const struct pt_walker *const walker) {
-    const int16_t level = walker->level;
+    const pgt_level_t level = walker->level;
     if (level <= 1 || !pte_level_can_have_large(level)) {
         return false;
     }

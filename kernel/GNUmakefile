@@ -7,33 +7,18 @@ MAKEFLAGS += -rR
 override KERNEL := kernel
 
 # Convenience macro to reliably declare user overridable variables.
-define DEFAULT_VAR =
-	ifeq ($(origin $1),default)
-		override $(1) := $(2)
-	endif
-	ifeq ($(origin $1),undefined)
-		override $(1) := $(2)
-	endif
-endef
+override USER_VARIABLE = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
 
 # Target architecture to build for. Default to x86_64.
-override DEFAULT_KARCH := x86_64
-$(eval $(call DEFAULT_VAR,KARCH,$(DEFAULT_KARCH)))
+$(call USER_VARIABLE,KARCH,x86_64)
 
 # It is suggested to use a custom built cross toolchain to build a kernel.
 # We are using the standard "cc" here, it may work by using
 # the host system's toolchain, but this is not guaranteed.
-override DEFAULT_KCC := clang
-$(eval $(call DEFAULT_VAR,KCC,$(DEFAULT_KCC)))
-
-override KCC_IS_CLANG := no
-ifeq ($(shell $(KCC) --version 2>&1 | grep -i 'clang' >/dev/null 2>&1 && echo 1),1)
-	override KCC_IS_CLANG := yes
-endif
+$(call USER_VARIABLE,KCC,clang)
 
 # Same thing for "ld" (the linker).
-override DEFAULT_KLD := ld.lld
-$(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
+$(call USER_VARIABLE,KLD,ld.lld)
 
 override KLD_IS_LLD := no
 ifeq ($(shell $(KLD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
@@ -50,7 +35,9 @@ COMMON_KCFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 
 ifeq ($(KARCH), riscv64)
 	override COMMON_KCFLAGS += -D__riscv64
-else ifeq ($(KARCH), loongarch64)
+endif
+
+ifeq ($(KARCH), loongarch64)
 	override COMMON_KCFLAGS += -D__loongarch64
 endif
 
@@ -83,22 +70,18 @@ ifeq ($(CHECK_SLABS), 1)
 endif
 
 # User controllable C flags.
-override DEFAULT_KCFLAGS += $(COMMON_KCFLAGS)
-$(eval $(call DEFAULT_VAR,EXTRA_KCFLAGS,$(DEFAULT_KCFLAGS)))
+$(call USER_VARIABLE,EXTRA_KCFLAGS,$(COMMON_KCFLAGS))
 
 # User controllable C preprocessor flags. We set none by default.
-override DEFAULT_KCPPFLAGS := -I..
-$(eval $(call DEFAULT_VAR,EXTRA_KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
+$(call USER_VARIABLE,EXTRA_KCPPFLAGS,-I..)
 
 ifeq ($(KARCH), x86_64)
 # User controllable nasm flags.
-override DEFAULT_KNASMFLAGS := -F dwarf -g
-$(eval $(call DEFAULT_VAR,KNASMFLAGS,$(DEFAULT_KNASMFLAGS)))
+$(call USER_VARIABLE,KNASMFLAGS,-F dwarf -g)
 endif
 
 # User controllable linker flags. We set none by default.
-override DEFAULT_KLDFLAGS :=
-$(eval $(call DEFAULT_VAR,KLDFLAGS,$(DEFAULT_KLDFLAGS)))
+$(call USER_VARIABLE,KLDFLAGS,)
 
 # Internal C flags that should not be changed by the user.
 override KCFLAGS += \
@@ -130,7 +113,7 @@ ifeq ($(KARCH),x86_64)
 endif
 
 ifeq ($(RELEASE), 1)
-	ifeq ($(KCC_IS_CLANG),yes)
+	ifeq ($(KCC),clang)
 		override KCFLAGS += \
 			-mllvm -enable-cond-stores-vec \
 			-mllvm -enable-loopinterchange \
@@ -155,9 +138,9 @@ endif
 
 # Architecture specific internal flags.
 ifeq ($(KARCH),x86_64)
-	ifeq ($(KCC_IS_CLANG),yes)
+	ifeq ($(KCC),clang)
 		override KCC += \
-			-target x86_64-elf
+			-target x86_64-unknown-none
 	endif
 	override KCFLAGS += \
 		-m64 \
@@ -171,10 +154,12 @@ ifeq ($(KARCH),x86_64)
 		-m elf_x86_64
 	override KNASMFLAGS += \
 		-f elf64
-else ifeq ($(KARCH),aarch64)
-	ifeq ($(KCC_IS_CLANG),yes)
+endif
+
+ifeq ($(KARCH),aarch64)
+	ifeq ($(KCC),clang)
 		override KCC += \
-			-target aarch64-elf
+			-target aarch64-unknown-none
 	else
 		override KCFLAGS += \
 			-mno-outline-atomics
@@ -184,10 +169,12 @@ else ifeq ($(KARCH),aarch64)
 		-mgeneral-regs-only
 	override KLDFLAGS += \
 		-m aarch64elf
-else ifeq ($(KARCH),riscv64)
-	ifeq ($(KCC_IS_CLANG),yes)
+endif
+
+ifeq ($(KARCH),riscv64)
+	ifeq ($(KCC),clang)
 		override KCC += \
-			-target riscv64-elf
+			-target riscv64-unknown-none
 		override KCFLAGS += \
 			-march=rv64imaczicboz
 	else
@@ -200,10 +187,12 @@ else ifeq ($(KARCH),riscv64)
 	override KLDFLAGS += \
 		-m elf64lriscv \
 		--no-relax
-else ifeq ($(KARCH),loongarch64)
-    ifeq ($(KCC_IS_CLANG),yes)
+endif
+
+ifeq ($(KARCH),loongarch64)
+    ifeq ($(KCC),clang)
         override KCC += \
-            -target loongarch64-none
+            -target loongarch64-unknown-none
     endif
     override KCFLAGS += \
         -march=loongarch64 \
@@ -211,8 +200,6 @@ else ifeq ($(KARCH),loongarch64)
     override KLDFLAGS += \
         -m elf64loongarch \
         --no-relax
-else
-	$(error Architecture $(KARCH) not supported)
 endif
 
 # Internal linker flags that should not be changed by the user.
@@ -250,7 +237,7 @@ override OBJ := $(addprefix obj-$(KARCH)/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/
 override HEADER_DEPS := $(addprefix obj-$(KARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
 # Ensure the dependencies have been obtained.
-override MISSING_DEPS := $(shell if ! test -d freestanding-headers || ! test -f src/cc-runtime.c || ! test -f src/limine.h || ! test -f freestanding-headers/stdatomic.h; then echo 1; fi)
+override MISSING_DEPS := $(shell if ! test -d freestanding-headers || ! test -f src/cc-runtime.c || ! test -f src/limine.h; then echo 1; fi)
 ifeq ($(MISSING_DEPS),1)
     $(error Please run the ./get-deps script first)
 endif

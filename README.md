@@ -11,10 +11,10 @@ Check older repository for full commit history
 ## Features
 
 The project has the implemented all of the following:
-* Has serial UART drivers; uart8250 on x86_64, riscv64 and pl011 on aarch64
+* Has serial UART drivers; `uart8250` on x86_64, riscv64 and `pl011` on aarch64
 * Full abstract virtual memory manager with large page support.
 * Implements `kmalloc()` using a slab allocator.
-* Keeps time with RTC (`google,goldfish-rtc` on riscv64) and LAPIC Timer, HPET on x86_64
+* Keeps time with RTC (`google,goldfish-rtc` on riscv64) and `Local-APIC` Timer, `HPET` on x86_64
 * Discovers devices in ACPI Tables and Device Tree (when available)
 * Finds and Initializes PCI(e) Devices.
 
@@ -87,8 +87,8 @@ the following command:
 
 ``` make run KARCH=x86_64 KCC=clang KLD=ld.lld```
 
-To run from a built raw HDD image, rather than a bootable ISO, run the following
-command instead:
+To run from a built raw HDD image (creating if necessary), rather than a
+bootable ISO, run the following command instead:
 
 ``` make run-hdd KARCH=x86_64 KCC=clang KLD=ld.lld```
 
@@ -110,12 +110,11 @@ If not provided, they are given a default value that is detailed below:
     This option helps improve bootup performance. Default is `0`
   * `DRIVE_KIND=` to specify what drives are available from QEMU. Default is `scsi` for riscv64, and `nvme` for all other archs.
     Available options are:
-     * `block` which provides the default cdrom/hda access from QEMU
+     * `block` which provides the default `cdrom`/`hda` access from QEMU
      * `scsi` which provides `VirtIO` to access drives through the `virtio-scsi` interface
      * `nvme` which provides nvme drives instread
   * `NVME_MAX_QUEUE_COUNT=` to set nvme's max queue count. Only available when `DRIVE_KIND` is nvme. Default is `64`
   * `TRACE=` to trace certain logs in qemu to `log.txt`. Takes a space separated string and provides qemu
     with the list in the correct format. Default is `""`
-  * `CHECK_SLABS=` to enable pervasive slab checks in `kmalloc()` and other slab allocators.
-     Default is `0`
+  * `CHECK_SLABS=` to enable pervasive slab checks in `kmalloc()` and other slab allocators. Default is `0`
   * `DEBUG_LOCKS=` to enable pervasive lock integrity checks. Default is `0`

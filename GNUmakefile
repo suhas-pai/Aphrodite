@@ -2,84 +2,76 @@
 MAKEFLAGS += -rR
 .SUFFIXES:
 
-export IN_QEMU := 0
-
 # Convenience macro to reliably declare user overridable variables.
-define DEFAULT_VAR =
-    ifeq ($(origin $1),default)
-        override $(1) := $(2)
-    endif
-    ifeq ($(origin $1),undefined)
-        override $(1) := $(2)
-    endif
-endef
+override USER_VARIABLE = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
 
 # Target architecture to build for. Default to x86_64.
-override DEFAULT_KARCH := x86_64
-$(eval $(call DEFAULT_VAR,KARCH,$(DEFAULT_KARCH)))
+$(call USER_VARIABLE,KARCH,x86_64)
+
+# Check if the architecture is supported.
+ifeq ($(filter $(KARCH),aarch64 loongarch64 riscv64 x86_64),)
+    $(error Architecture $(KARCH) not supported)
+endif
+
+$(call USER_VARIABLE,MEM,4G)
+$(call USER_VARIABLE,SMP,4)
 
 override IMAGE_NAME := template-$(KARCH)
-override DEFAULT_MEM := 4G
 
-$(eval $(call DEFAULT_VAR,MEM,$(DEFAULT_MEM)))
+DEFAULT_MACHINE=virt
+ifeq ($(KARCH),x86_64)
+	DEFAULT_MACHINE=q35
+endif
 
-override DEFAULT_SMP := 4
-$(eval $(call DEFAULT_VAR,SMP,$(DEFAULT_SMP)))
+MACHINE=$(DEFAULT_MACHINE)
+ifeq ($(KARCH),x86_64)
+ifeq ($(DISABLE_ACPI),1)
+$(error ACPI cannot be disabled on x86_64)
+endif
+else
+	ifeq ($(DISABLE_ACPI),1)
+		MACHINE := $(MACHINE),acpi=off
+	endif
+endif
+
+ifeq ($(KARCH),aarch64)
+	MACHINE := $(MACHINE),gic-version=max
+endif
+
+ifeq ($(KARCH),riscv64)
+	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
+endif
+
+# Default user QEMU flags. These are appended to the QEMU command calls.
+$(call USER_VARIABLE,QEMUFLAGS,-M $(MACHINE) -m $(MEM) -smp $(SMP))
 
 EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime
-ifeq ($(DEBUG), 1)
+ifeq ($(DEBUG),1)
 	EXTRA_QEMU_ARGS += -s -S -serial stdio
-else ifeq ($(CONSOLE), 1)
+endif
+
+ifeq ($(CONSOLE),1)
 	EXTRA_QEMU_ARGS += -s -S -monitor stdio -no-reboot -no-shutdown
 else
 	EXTRA_QEMU_ARGS += -serial stdio
 endif
 
-DEFAULT_MACHINE=virt
-ifeq ($(KARCH), x86_64)
-	DEFAULT_MACHINE=q35
-endif
-
-MACHINE=$(DEFAULT_MACHINE)
-ifeq ($(KARCH), x86_64)
-ifeq ($(DISABLE_ACPI), 1)
-$(error ACPI cannot be disabled on x86_64)
-endif
-else
-	ifeq ($(DISABLE_ACPI), 1)
-		MACHINE := $(MACHINE),acpi=off
-	endif
-endif
-
-ifeq ($(KARCH), aarch64)
-	MACHINE := $(MACHINE),gic-version=max
-endif
-
 DEFAULT_DRIVE_KIND=nvme
-ifeq ($(KARCH), riscv64)
+ifeq ($(KARCH),riscv64)
 	DEFAULT_DRIVE_KIND = scsi
-	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
 endif
 
-DRIVE_KIND?=nvme
-$(eval $(call DEFAULT_VAR,DRIVE_KIND,$(DEFAULT_DRIVE_KIND)))
-
-DEFAULT_TRACE=
-$(eval $(call DEFAULT_VAR,TRACE,$(DEFAULT_TRACE)))
+$(call USER_VARIABLE,DRIVE_KIND,$(DEFAULT_DRIVE_KIND))
+$(call USER_VARIABLE,TRACE,)
 
 ifneq ($(TRACE),)
 	TRACE_LIST=$(wordlist 1, 2147483647, $(TRACE))
 	EXTRA_QEMU_ARGS += $(foreach trace_var,$(TRACE_LIST),$(addprefix -trace , $(trace_var)))
 endif
 
-DEFAULT_DISABLE_FLANTERM=0
-$(eval $(call DEFAULT_VAR,DISABLE_FLANTERM,$(DEFAULT_DISABLE_FLANTERM)))
-
-DEFAULT_DEBUG_LOCKS=0
-$(eval $(call DEFAULT_VAR,DEBUG_LOCKS,$(DEFAULT_DEBUG_LOCKS)))
-
-DEFAULT_CHECK_SLABS=0
-$(eval $(call DEFAULT_VAR,CHECK_SLABS,$(DEFAULT_CHECK_SLABS)))
+$(call USER_VARIABLE,DISABLE_FLANTERM,0)
+$(call USER_VARIABLE,DEBUG_LOCKS,0)
+$(call USER_VARIABLE,CHECK_SLABS,0)
 
 VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
@@ -93,13 +85,15 @@ QEMU_HDD_ARGS=\
 	-drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-$(KARCH).fd
 
 ifeq ($(DRIVE_KIND),block)
-	ifeq ($(KARCH), riscv64)
+	ifeq ($(KARCH),riscv64)
 $(error "block device not supported on riscv64")
 	endif
 
 	QEMU_CDROM_ARGS += -cdrom $(IMAGE_NAME).iso
 	QEMU_HDD_ARGS += -hda $(IMAGE_NAME).hdd
-else ifeq ($(DRIVE_KIND), scsi)
+endif
+
+ifeq ($(DRIVE_KIND),scsi)
 	QEMU_CDROM_ARGS += \
 		-device virtio-scsi-pci,id=scsi \
 		-device scsi-cd,drive=cd0 \
@@ -107,10 +101,11 @@ else ifeq ($(DRIVE_KIND), scsi)
 	QEMU_HDD_ARGS += \
 		-device virtio-scsi-pci,id=scsi \
 		-device scsi-hd,drive=hd0 \
-		-drive id=hd0,format=raw,file=$(IMAGE_NAME).hdd
-else ifeq ($(DRIVE_KIND),nvme)
-DEFAULT_NVME_MAX_QUEUE_COUNT=64
-$(eval $(call DEFAULT_VAR,NVME_MAX_QUEUE_COUNT,$(DEFAULT_NVME_MAX_QUEUE_COUNT)))
+		-drive id=hd0,if=none,format=raw,file=$(IMAGE_NAME).hdd
+endif
+
+ifeq ($(DRIVE_KIND),nvme)
+$(call USER_VARIABLE,NVME_MAX_QUEUE_COUNT,64)
 
 	QEMU_CDROM_ARGS += \
 		-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw \
@@ -118,13 +113,7 @@ $(eval $(call DEFAULT_VAR,NVME_MAX_QUEUE_COUNT,$(DEFAULT_NVME_MAX_QUEUE_COUNT)))
 	QEMU_HDD_ARGS += \
 		-drive file=$(IMAGE_NAME).hdd,if=none,id=osdrive,format=raw \
 		-device nvme,serial=1234,drive=osdrive,id=nvme0,max_ioqpairs=$(NVME_MAX_QUEUE_COUNT)
-else
-$(error "Unrecognized value for variable DRIVE_KIND: \"${DRIVE_KIND}\"")
 endif
-
-# Default user QEMU flags. These are appended to the QEMU command calls.
-override DEFAULT_QEMUFLAGS := -M $(MACHINE) -m $(MEM) -smp $(SMP)
-$(eval $(call DEFAULT_VAR,QEMUFLAGS,$(DEFAULT_QEMUFLAGS)))
 
 .PHONY: all
 all: $(IMAGE_NAME).iso
@@ -243,13 +232,13 @@ run-hdd-bios: $(IMAGE_NAME).hdd
 
 ovmf/ovmf-code-$(KARCH).fd:
 	mkdir -p ovmf
-	curl -Lo $@ https://github.com/limine-bootloader/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(KARCH).fd
+	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(KARCH).fd
 	if [ "$(KARCH)" = "aarch64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null; fi
 	if [ "$(KARCH)" = "riscv64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null; fi
 
 ovmf/ovmf-vars-$(KARCH).fd:
 	mkdir -p ovmf
-	curl -Lo $@ https://github.com/limine-bootloader/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-$(KARCH).fd
+	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-$(KARCH).fd
 	if [ "$(KARCH)" = "aarch64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null; fi
 	if [ "$(KARCH)" = "riscv64" ]; then dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null; fi
 
@@ -283,21 +272,27 @@ ifeq ($(KARCH),x86_64)
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 	./limine/limine bios-install $(IMAGE_NAME).iso
-else ifeq ($(KARCH),aarch64)
+endif
+
+ifeq ($(KARCH),aarch64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine
 	cp -v limine/BOOTAA64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs \
 		--efi-boot boot/limine/limine-uefi-cd.bin \
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
-else ifeq ($(KARCH),riscv64)
+endif
+
+ifeq ($(KARCH),riscv64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine
 	cp -v limine/BOOTRISCV64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs \
 		--efi-boot boot/limine/limine-uefi-cd.bin \
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
-else ifeq ($(KARCH),loongarch64)
+endif
+
+ifeq ($(KARCH),loongarch64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
 	cp -v limine/BOOTLOONGARCH64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs \
@@ -322,11 +317,17 @@ ifeq ($(KARCH),x86_64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/limine-bios.sys ::/boot/limine
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTIA32.EFI ::/EFI/BOOT
-else ifeq ($(KARCH),aarch64)
+endif
+
+ifeq ($(KARCH),aarch64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTAA64.EFI ::/EFI/BOOT
-else ifeq ($(KARCH),riscv64)
+endif
+
+ifeq ($(KARCH),riscv64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTRISCV64.EFI ::/EFI/BOOT
-else ifeq ($(KARCH),loongarch64)
+endif
+
+ifeq ($(KARCH),loongarch64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTLOONGARCH64.EFI ::/EFI/BOOT
 endif
 

@@ -46,8 +46,8 @@ static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
     if (has_xsdt()) {
         uint64_t *const data = (uint64_t *)(uint64_t)g_info.rsdt->ptrs;
         const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct acpi_sdt)) /
-            sizeof(uint64_t);
+            (g_info.rsdt->sdt.length - sizeof(struct acpi_sdt))
+          / sizeof(uint64_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
             if (data[i] == 0) {
@@ -60,8 +60,8 @@ static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
     } else {
         uint32_t *const data = (uint32_t *)(uint64_t)g_info.rsdt->ptrs;
         const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct acpi_sdt)) /
-            sizeof(uint32_t);
+            (g_info.rsdt->sdt.length - sizeof(struct acpi_sdt))
+          / sizeof(uint32_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
             if (data[i] == 0) {
@@ -200,7 +200,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
         uint64_t *const data = (uint64_t *)(uint64_t)g_info.rsdt->ptrs;
         const uint32_t entry_count =
             (g_info.rsdt->sdt.length - sizeof(struct acpi_sdt))
-            / sizeof(uint64_t);
+          / sizeof(uint64_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
             if (data[i] == 0) {
@@ -216,7 +216,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
         uint32_t *const data = (uint32_t *)(uint64_t)g_info.rsdt->ptrs;
         const uint32_t entry_count =
             (g_info.rsdt->sdt.length - sizeof(struct acpi_sdt))
-            / sizeof(uint32_t);
+          / sizeof(uint32_t);
 
         for (uint32_t i = 0; i != entry_count; i++) {
             if (data[i] == 0) {

@@ -57,9 +57,10 @@ __debug_optimize(3) void arch_init_for_smp(struct limine_smp_info *const info) {
 
     struct cpu_info *const cpu = boot_info->cpu;
 
+    cpu_init_for_smp(cpu);
     sched_set_current_thread(cpu->idle_thread);
-    switch_to_pagemap(&kernel_process.pagemap);
 
+    switch_to_pagemap(&kernel_process.pagemap);
     isr_install_vbar();
 
     gic_init_on_this_cpu();
@@ -80,6 +81,7 @@ __debug_optimize(3) void arch_init_for_smp(struct limine_smp_info *const info) {
 __debug_optimize(3) void arch_init() {
     cpu_init();
     mm_arch_init();
+    cpu_post_mm_init();
 
     isr_install_vbar();
 }

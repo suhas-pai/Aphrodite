@@ -20,6 +20,12 @@ struct cpu_info {
     void *gic_its_pend_page;
     void *gic_its_prop_page;
 
+    // In EL1 (The Kernel), we use a separate stack, that we store in SP_EL1.
+    // By default, we use SP_EL0, because SPSEL=0. In an interrupt/exception,
+    // SPSEL is set to 1, so SP_EL1 is used.
+
+    struct page *irq_stack;
+
     bool in_lpi : 1;
     bool in_exception : 1;
 };

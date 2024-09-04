@@ -17,10 +17,6 @@ struct alarm *alarm_create(const usec_t time) {
         return NULL;
     }
 
-    preempt_disable();
-    alarm->listener = current_thread();
-    preempt_enable();
-
     alarm->remaining = time;
     return alarm;
 }
@@ -36,6 +32,7 @@ static int compare(struct list *const theirs, struct list *const ours) {
 __debug_optimize(3)
 void alarm_post(struct alarm *const alarm, const bool await) {
     const int flag = disable_irqs_if_enabled();
+    alarm->listener = current_thread();
 
     list_add_inorder(&this_cpu_mut()->alarm_list, &alarm->list, compare);
     enable_irqs_if_flag(flag);
@@ -53,5 +50,5 @@ __debug_optimize(3) void alarm_clear(struct alarm *const alarm) {
 }
 
 __debug_optimize(3) bool alarm_cleared(const struct alarm *const alarm) {
-    return atomic_load_explicit(&alarm->active, memory_order_relaxed);
+    return !atomic_load_explicit(&alarm->active, memory_order_relaxed);
 }

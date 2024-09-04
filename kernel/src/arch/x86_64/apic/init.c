@@ -20,7 +20,7 @@ enum {
 };
 
 static struct mmio_region *g_lapic_region = NULL;
-static volatile struct lapic_registers *lapic_regs;
+static volatile struct lapic_registers *g_lapic_regs;
 
 void apic_init(const uint64_t local_apic_base) {
     g_lapic_region =
@@ -31,14 +31,14 @@ void apic_init(const uint64_t local_apic_base) {
     assert_msg(g_lapic_region != NULL,
                "apic: failed to mmio-map local-apic registers");
 
-    lapic_regs = g_lapic_region->base;
+    g_lapic_regs = g_lapic_region->base;
     pic_disable();
 
-    printk(LOGLEVEL_INFO, "apic: local apic id: %x\n", lapic_regs->id);
+    printk(LOGLEVEL_INFO, "apic: local apic id: %x\n", g_lapic_regs->id);
     printk(LOGLEVEL_INFO,
            "apic: local apic version reg: %" PRIx32 ", version: %" PRIu32 "\n",
-           lapic_regs->version,
-           lapic_regs->version & __LAPIC_VERSION_REG_VERION_MASK);
+           g_lapic_regs->version,
+           g_lapic_regs->version & __LAPIC_VERSION_REG_VERION_MASK);
 
     uint64_t apic_msr = msr_read(IA32_MSR_APIC_BASE);
 

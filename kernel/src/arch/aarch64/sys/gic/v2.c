@@ -484,12 +484,13 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
         return;
     }
 
-    if (!init_msi_frame(phys_base_address, mmio)) {
-        vunmap_mmio(mmio);
+    const bool result = init_msi_frame(phys_base_address, mmio);
+    vunmap_mmio(mmio);
+
+    if (!result) {
         return;
     }
 
-    vunmap_mmio(mmio);
     const struct gic_msi_frame msi_frame = {
         .id = array_item_count(g_dist.msi_frame_list),
     };

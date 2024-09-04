@@ -498,9 +498,7 @@ sv_to_signed(const struct string_view sv,
                 break;                                                         \
             }                                                                  \
                                                                                \
-            assert(i != 0);                                                    \
             i--;                                                               \
-                                                                               \
             number /= (base);                                                  \
         } while (true);                                                        \
                                                                                \
@@ -585,7 +583,6 @@ unsigned_to_string_view(uint64_t number,
             const int64_t h_var(neg_base) = (0 - (int64_t)(base));             \
             do {                                                               \
                 buffer[i] = h_var(chars)[0 - (number % (base))];               \
-                assert(i != 0);                                                \
                 i--;                                                           \
                                                                                \
                 if (number > h_var(neg_base)) {                                \

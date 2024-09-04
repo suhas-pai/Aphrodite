@@ -83,7 +83,7 @@ __debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
 
     // sched_enqueue_thread() might be called from a dequeued but running thread
-    // so only enqueue-for-use in for threads that are not running and aren't
+    // so only enqueue-for-use for threads that are not running and aren't
     // already enqueued.
 
     if (!thread_running_nolock(thread) && !thread_enqueued_nolock(thread)) {
@@ -112,7 +112,6 @@ static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_irq(&g_run_queue_lock);
     struct thread *next = NULL;
 
-    list_verify(&g_run_queue, sched_info.list);;
     list_foreach(next, &g_run_queue, sched_info.list) {
         if (next == prev) {
             continue;
@@ -140,7 +139,8 @@ static struct thread *get_next_thread(struct thread *const prev) {
     return result;
 }
 
-__noinline static void update_alarm_list(struct thread *const current_thread) {
+__debug_optimize(3)
+static void update_alarm_list(struct thread *const current_thread) {
     struct list *const alarm_list = &this_cpu_mut()->alarm_list;
 
     struct alarm *iter = NULL;
@@ -157,9 +157,10 @@ __noinline static void update_alarm_list(struct thread *const current_thread) {
         }
 
         atomic_store_explicit(&iter->active, false, memory_order_relaxed);
-        sched_enqueue_thread(iter->listener);
 
+        sched_enqueue_thread(iter->listener);
         list_remove(&iter->list);
+
         kfree(iter);
     }
 }
