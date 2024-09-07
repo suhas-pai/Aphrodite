@@ -8,7 +8,6 @@
 #include "asm/irqs.h"
 #include "cpu/spinlock.h"
 #include "dev/printk.h"
-#include "lib/util.h"
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"
