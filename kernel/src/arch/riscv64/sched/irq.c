@@ -21,7 +21,7 @@ void sched_init_irq() {
 }
 
 void sched_self_ipi() {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         mmio_write(&this_cpu()->imsic_page[0], g_sched_sgi_vector);
     });
 }

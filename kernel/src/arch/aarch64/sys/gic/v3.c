@@ -186,7 +186,7 @@ volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
 }
 
 __debug_optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
         volatile _Atomic(uint32_t) *const ptr =
             &dist->irq_clear_enable[irq / sizeof_bits(uint32_t)];
@@ -198,7 +198,7 @@ __debug_optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
 }
 
 __debug_optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
         volatile _Atomic(uint32_t) *const ptr =
             &dist->irq_set_enable[irq / sizeof_bits(uint32_t)];
@@ -261,7 +261,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
         return;
     }
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
         const uint32_t bit_offset = (irq % sizeof_bits(uint16_t)) * 2;
@@ -298,7 +298,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
 
 __debug_optimize(3)
 void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
         const uint8_t index = irq / sizeof(uint32_t);
@@ -331,11 +331,9 @@ void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
 }
 
 __debug_optimize(3) void gicdv3_send_sipi(const uint8_t int_no) {
-    preempt_disable();
-    const struct cpu_info *const cpu = this_cpu();
-
-    gicdv3_send_ipi(cpu, int_no);
-    preempt_enable();
+    with_preempt_disabled({
+        gicdv3_send_ipi(this_cpu(), int_no);
+    });
 }
 
 __debug_optimize(3)
@@ -386,7 +384,7 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 }
 
 void gic_redist_init_on_this_cpu() {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
         const uint64_t typer = mmio_read(&redist->typer);
 

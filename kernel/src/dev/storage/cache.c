@@ -25,7 +25,7 @@ storage_cache_push(struct storage_cache *const cache,
                    void *const block)
 {
     bool result = false;
-    SPIN_WITH_PREEMPT_DISABLED(&cache->lock, {
+    with_spinlock_preempt_disabled(&cache->lock, {
         result = hashmap_add(&cache->items, hashmap_key_create(lba), &block);
     });
 

@@ -17,9 +17,9 @@ void arch_init_dev() {
         return;
     }
 
-    disable_interrupts();
-    gic_init_from_dtb();
-    enable_interrupts();
+    with_irqs_disabled({
+        gic_init_from_dtb();
+    });
 
     static const struct string_view compat_list[] = {
         SV_STATIC("arm,psci"), SV_STATIC("arm,psci-1.0"),

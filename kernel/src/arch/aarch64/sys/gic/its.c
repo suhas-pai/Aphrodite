@@ -214,13 +214,13 @@ fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
         its->int_collection_table
       + (its->int_collection_table_entry_count * icid);
 
-    preempt_disable();
-    entry->flags =
-        this_cpu()->processor_id
-            << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
-      | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
+    with_preempt_disabled({
+        entry->flags =
+            this_cpu()->processor_id
+                << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
+          | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
+    });
 
-    preempt_enable();
     return true;
 }
 
@@ -299,8 +299,8 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     uint16_t icid = 0;
     uint64_t vector = 0;
 
-    WITH_IRQS_DISABLED({
-        WITH_SPIN_ACQUIRED(&its->bitset_lock, {
+    with_irqs_disabled({
+        with_spin_acquired(&its->bitset_lock, {
             vector =
                 bitset_find_unset(its->bitset, /*length=*/1, /*invert=*/true);
         });
@@ -322,13 +322,13 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
         return ISR_INVALID_VECTOR;
     }
 
-    preempt_disable();
-    mmio_write(&((uint8_t *)this_cpu()->gic_its_prop_page)[vector],
-               __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
-             | GICD_DEFAULT_PRIO <<
-                GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
+    with_preempt_disabled({
+        mmio_write(&((uint8_t *)this_cpu()->gic_its_prop_page)[vector],
+                   __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
+                 | GICD_DEFAULT_PRIO <<
+                    GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
+    });
 
-    preempt_enable();
     return vector;
 }
 
@@ -338,7 +338,7 @@ gic_its_free_msi_vector(struct gic_its_info *const its,
                         const isr_vector_t vector,
                         const uint16_t msi_index)
 {
-    SPIN_WITH_IRQ_ACQUIRED(&its->bitset_lock, {
+    with_spinlock_irq_disabled(&its->bitset_lock, {
         bitset_unset(its->bitset, vector);
         disable_msi_intr(its, device, msi_index);
     });

@@ -93,7 +93,7 @@ events_await(struct event *const *const events,
     unlock_events(events, events_count);
     sched_yield();
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         index = thread->event_index;
         thread->event_index = -1;
 
@@ -107,7 +107,7 @@ events_await(struct event *const *const events,
 
 __debug_optimize(3)
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
-    SPIN_WITH_IRQ_ACQUIRED(&event->lock, {
+    with_spinlock_irq_disabled(&event->lock, {
         if (!array_empty(event->listeners)) {
             array_foreach(&event->listeners,
                           const struct event_listener,

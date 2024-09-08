@@ -30,7 +30,7 @@ bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
                    "support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -47,7 +47,7 @@ bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -77,7 +77,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                    "doesn't support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -95,7 +95,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -225,7 +225,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
 
             return -1;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 const uint64_t msi_address = isr_get_msi_address(cpu, vector);
                 bind_msi_to_vector(entity, msi_address, vector, masked);
             });
@@ -234,7 +234,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
             uint16_t result = 0;
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 const uint64_t msix_address = isr_get_msix_address(cpu, vector);
                 result =
                     bind_msix_to_vector(entity, msix_address, vector, masked);
@@ -310,14 +310,14 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
 
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 toggle_msi_vector_mask(entity, vector, mask);
             });
 
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->lock, {
                 toggle_msix_vector_mask(entity, vector, mask);
             });
 
@@ -337,7 +337,7 @@ __debug_optimize(3) void
 pci_entity_enable_privls(struct pci_entity_info *const entity,
                          const uint16_t privls)
 {
-    SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+    with_spinlock_preempt_disabled(&entity->lock, {
         const uint16_t old_command =
             pci_read(entity, struct pci_spec_entity_info_base, command);
         const uint16_t new_command =
@@ -353,7 +353,7 @@ pci_entity_enable_privls(struct pci_entity_info *const entity,
 
 __debug_optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
-    SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+    with_spinlock_preempt_disabled(&entity->lock, {
         const uint16_t old_command =
             pci_read(entity, struct pci_spec_entity_info_base, command);
         const uint16_t new_command =
@@ -370,7 +370,7 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
 __debug_optimize(3)
 void pci_entity_info_destroy(struct pci_entity_info *const entity) {
     spinlock_deinit(&entity->lock);
-    SPIN_WITH_PREEMPT_DISABLED(&entity->bus->lock, {
+    with_spinlock_preempt_disabled(&entity->bus->lock, {
         list_deinit(&entity->list_in_entities);
         list_deinit(&entity->list_in_domain);
     });

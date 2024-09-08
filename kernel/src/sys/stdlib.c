@@ -584,9 +584,10 @@ __debug_optimize(3) void bzero(void *dst, unsigned long n) {
         }
     }
 #elif defined(__riscv64)
-    preempt_disable();
-    const uint16_t cbo_size = this_cpu()->cbo_size;
-    preempt_enable();
+    uint16_t cbo_size = 0;
+    with_preempt_disabled({
+        cbo_size = this_cpu()->cbo_size;
+    });
 
     if (__builtin_expect(cbo_size != 0, 1)) {
         if (has_align((uint64_t)dst, cbo_size)) {

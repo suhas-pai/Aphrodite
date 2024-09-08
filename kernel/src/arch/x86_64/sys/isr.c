@@ -33,7 +33,7 @@ static isr_vector_t g_hpet_vector = 0;
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     uint64_t bit_index = 0;
-    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+    with_spinlock_irq_disabled(&g_lock, {
         bit_index = bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
     });
 
@@ -59,7 +59,7 @@ __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
-    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+    with_spinlock_irq_disabled(&g_lock, {
         bitset_unset(g_bitset, vector);
         isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
     });

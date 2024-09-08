@@ -374,14 +374,13 @@ handle_irq_for_port(struct ahci_hba_port *const port,
         port->error.interrupt_status = interrupt_status;
 
         handle_error(port, interrupt_status);
-        spin_acquire(&port->lock);
-
-        finished_cmdhdrs[index] = port->ports_bitset;
-        spin_release(&port->lock);
+        with_spin_acquired(&port->lock, {
+            finished_cmdhdrs[index] = port->ports_bitset;
+        });
     } else {
-        spin_acquire(&port->lock);
-        finished_cmdhdrs[index] = port->ports_bitset & ~ci;
-        spin_release(&port->lock);
+        with_spin_acquired(&port->lock, {
+            finished_cmdhdrs[index] = port->ports_bitset & ~ci;
+        });
     }
 
     return interrupt_status;
@@ -1191,7 +1190,7 @@ send_ata_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-    SPIN_WITH_IRQ_ACQUIRED(&port->lock, {
+    with_spinlock_irq_disabled(&port->lock, {
         port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
     });
 
@@ -1278,7 +1277,7 @@ send_atapi_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-    SPIN_WITH_IRQ_ACQUIRED(&port->lock, {
+    with_spinlock_irq_disabled(&port->lock, {
         port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
     });
 

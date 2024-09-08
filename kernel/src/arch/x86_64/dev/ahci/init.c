@@ -250,7 +250,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     isr_set_vector(g_hba_vector, ahci_port_handle_irq, &ARCH_ISR_INFO_NONE());
     pci_entity_enable_msi(pci_entity);
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         pci_entity_bind_msi_to_vector(pci_entity,
                                       this_cpu(),
                                       g_hba_vector,

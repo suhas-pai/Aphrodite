@@ -38,7 +38,7 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     const isr_vector_t vector = isr_alloc_vector();
     assert(vector != ISR_INVALID_VECTOR);
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         isr_assign_irq_to_cpu(this_cpu(), PIT_IRQ, vector, /*masked=*/false);
     });
 
@@ -70,7 +70,7 @@ __debug_optimize(3) uint16_t pit_get_current_tick() {
     uint8_t low = 0;
     uint8_t high = 0;
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0);
 
         low = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
@@ -81,7 +81,7 @@ __debug_optimize(3) uint16_t pit_get_current_tick() {
 }
 
 __debug_optimize(3) void pit_set_reload_value(const uint16_t count) {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, count & 0xFF);
         pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, (count & 0xFF00) >> 8);
     });

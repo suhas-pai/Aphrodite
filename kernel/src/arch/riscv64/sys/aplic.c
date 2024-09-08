@@ -106,11 +106,12 @@ static void
 init_with_regs(volatile struct aplic_registers *const regs,
                const uint16_t source_count)
 {
-    preempt_disable();
-    volatile void *const imsic_region =
-        imsic_region_for_hartid(this_cpu()->hart_id);
+    uint32_t hart_id = 0;
+    with_preempt_disabled({
+        hart_id = this_cpu()->hart_id;
+    });
 
-    preempt_enable();
+    volatile void *const imsic_region = imsic_region_for_hartid(hart_id);
 
     // DIrect mode must be supported by aplic
     assert(mmio_read(&regs->domain_config) & __APLIC_DOMAIN_CFG_DIRECT_MODE);

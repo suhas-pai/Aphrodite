@@ -229,7 +229,7 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
         return;
     }
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         g_ps2_vector = isr_alloc_vector();
         assert(g_ps2_vector != ISR_INVALID_VECTOR);
 

@@ -32,9 +32,10 @@ __debug_optimize(3) void zero_page(void *page) {
 
     return;
 #elif defined(__riscv64)
-    preempt_disable();
-    const uint16_t cbo_size = this_cpu()->cbo_size;
-    preempt_enable();
+    uint64_t cbo_size = 0;
+    with_preempt_disabled({
+        cbo_size = this_cpu()->cbo_size;
+    });
 
     if (__builtin_expect(cbo_size != 0, 1)) {
         const void *const end = page + PAGE_SIZE;
@@ -71,9 +72,10 @@ __debug_optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
 
     return;
 #elif defined(__riscv64)
-    preempt_disable();
-    const uint16_t cbo_size = this_cpu()->cbo_size;
-    preempt_enable();
+    uint64_t cbo_size = 0;
+    with_preempt_disabled({
+        cbo_size = this_cpu()->cbo_size;
+    });
 
     if (__builtin_expect(cbo_size != 0, 1)) {
         const void *const end = page + full_size;

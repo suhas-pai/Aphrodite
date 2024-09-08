@@ -242,21 +242,20 @@ static bool g_use_split_eoi = false;
 
 static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
-    preempt_disable();
+    with_preempt_disabled({
+        const uint8_t intr_number = this_cpu()->processor_id;
+        for (uint16_t irq = GIC_SPI_INTERRUPT_START;
+             irq < g_dist.interrupt_lines_count;
+             irq++)
+        {
+            gicdv2_mask_irq(irq);
 
-    const uint8_t intr_number = this_cpu()->processor_id;
-    for (uint16_t irq = GIC_SPI_INTERRUPT_START;
-         irq < g_dist.interrupt_lines_count;
-         irq++)
-    {
-        gicdv2_mask_irq(irq);
+            gicdv2_set_irq_priority(irq, GICD_DEFAULT_PRIO);
+            gicdv2_set_irq_affinity(irq, intr_number);
+        }
 
-        gicdv2_set_irq_priority(irq, GICD_DEFAULT_PRIO);
-        gicdv2_set_irq_affinity(irq, intr_number);
-    }
-
-    mmio_write(&g_regs->control, /*value=*/1);
-    preempt_enable();
+        mmio_write(&g_regs->control, /*value=*/1);
+    });
 
     printk(LOGLEVEL_INFO, "gicv2: finished initializing gicd\n");
 }

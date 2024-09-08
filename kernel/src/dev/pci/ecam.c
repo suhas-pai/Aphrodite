@@ -64,7 +64,7 @@ pci_add_ecam_domain(const struct range bus_range,
     ecam_domain->bus_range = bus_range;
 
     bool result = false;
-    SPIN_WITH_IRQ_ACQUIRED(&g_ecam_domain_lock, {
+    with_spinlock_irq_disabled(&g_ecam_domain_lock, {
         list_add(&g_ecam_entity_list, &ecam_domain->list);
         g_ecam_entity_count++;
 
@@ -83,7 +83,7 @@ pci_add_ecam_domain(const struct range bus_range,
 
 __debug_optimize(3)
 bool pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
-    SPIN_WITH_IRQ_ACQUIRED(&g_ecam_domain_lock, {
+    with_spinlock_irq_disabled(&g_ecam_domain_lock, {
         pci_remove_domain(&ecam_domain->domain);
         vunmap_mmio(ecam_domain->mmio);
 

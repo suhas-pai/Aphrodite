@@ -19,21 +19,21 @@ struct spinlock {
         .back = 0 \
     })
 
-#define WITH_SPIN_ACQUIRED(lock, block) \
+#define with_spin_acquired(lock, block) \
     do { \
         spin_acquire((lock)); \
         block; \
         spin_release((lock)); \
     } while (false)
 
-#define SPIN_WITH_IRQ_ACQUIRED(lock, block) \
+#define with_spinlock_irq_disabled(lock, block) \
     do { \
         const int h_var(spin_irq_flag) = spin_acquire_save_irq((lock)); \
         block; \
         spin_release_restore_irq((lock), h_var(spin_irq_flag)); \
     } while (false)
 
-#define SPIN_WITH_PREEMPT_DISABLED(lock, block) \
+#define with_spinlock_preempt_disabled(lock, block) \
     do { \
         spin_acquire_preempt_disable((lock)); \
         block; \

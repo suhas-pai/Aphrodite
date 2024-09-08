@@ -28,7 +28,7 @@ void isr_init() {
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     uint64_t result = 0;
-    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+    with_spinlock_irq_disabled(&g_lock, {
         result = bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
     });
 
@@ -48,7 +48,7 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
-    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+    with_spinlock_irq_disabled(&g_lock, {
         bitset_unset(g_bitset, vector);
         isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
     });

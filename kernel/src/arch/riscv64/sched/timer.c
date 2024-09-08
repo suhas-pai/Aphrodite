@@ -18,9 +18,10 @@ __debug_optimize(3) void sched_timer_stop() {
 }
 
 __debug_optimize(3) usec_t sched_timer_remaining() {
-    preempt_disable();
-    const usec_t remaining = stime_get() - this_cpu()->timer_start;
-    preempt_enable();
+    usec_t remaining = 0;
+    with_preempt_disabled({
+        remaining = stime_get() - this_cpu()->timer_start;
+    });
 
     return remaining;
 }

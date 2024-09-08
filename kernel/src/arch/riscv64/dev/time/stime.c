@@ -26,10 +26,9 @@ __debug_optimize(3) void stimer_oneshot(const usec_t interval) {
     const usec_t time = csr_read(time);
 
     csr_write(stimecmp, time + ticks);
-    preempt_disable();
-
-    this_cpu_mut()->timer_start = time;
-    preempt_enable();
+    with_preempt_disabled({
+        this_cpu_mut()->timer_start = time;
+    });
 
     csr_set(sie, __INTR_SUPERVISOR_TIMER);
 }

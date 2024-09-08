@@ -118,7 +118,7 @@ uart8250_send_char(struct terminal *const term,
                    const uint32_t amount)
 {
     struct uart8250_info *const info = (struct uart8250_info *)term;
-    SPIN_WITH_IRQ_ACQUIRED(&info->lock, {
+    with_spinlock_irq_disabled(&info->lock, {
         for (uint32_t i = 0; i != amount; i++) {
             uart8250_putc(info->base, info, ch);
         }
@@ -128,7 +128,7 @@ uart8250_send_char(struct terminal *const term,
 __debug_optimize(3) static void
 uart8250_send_sv(struct terminal *const term, const struct string_view sv) {
     struct uart8250_info *const info = (struct uart8250_info *)term;
-    SPIN_WITH_IRQ_ACQUIRED(&info->lock, {
+    with_spinlock_irq_disabled(&info->lock, {
         sv_foreach(sv, iter) {
             uart8250_putc(info->base, info, *iter);
         }

@@ -27,7 +27,7 @@ struct thread {
     struct sched_thread_info sched_info;
 };
 
-#define WITH_PREEMPT_DISABLED(block) \
+#define with_preempt_disabled(block) \
     do { \
         preempt_disable(); \
         block; \

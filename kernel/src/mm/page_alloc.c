@@ -1075,7 +1075,7 @@ void free_large_page(struct page *const head) {
     assert(page_get_state(head) == PAGE_STATE_LARGE_HEAD);
 
     struct page_section *const section = page_to_section(head);
-    SPIN_WITH_IRQ_ACQUIRED(&section->lock, {
+    with_spinlock_irq_disabled(&section->lock, {
         const pgt_level_t level = head->largehead.level;
         struct largepage_level_info *const level_info =
             &largepage_level_info_list[level - 1];

@@ -40,7 +40,7 @@ __debug_optimize(3) void isr_init() {
 
 __debug_optimize(3) isr_vector_t isr_alloc_sgi_vector() {
     uint16_t result = 0;
-    SPIN_WITH_IRQ_ACQUIRED(&g_sgi_lock, {
+    with_spinlock_irq_disabled(&g_sgi_lock, {
         result = g_sgi_interrupt;
     });
 

@@ -17,7 +17,7 @@ static struct spinlock g_domain_lock = SPINLOCK_INIT();
 
 __debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
     bool result = false;
-    SPIN_WITH_IRQ_ACQUIRED(&g_domain_lock, {
+    with_spinlock_irq_disabled(&g_domain_lock, {
         result = array_append(&g_domain_list, &domain);
     });
 

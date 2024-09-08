@@ -31,7 +31,7 @@ static int compare(struct list *const theirs, struct list *const ours) {
 
 __debug_optimize(3)
 void alarm_post(struct alarm *const alarm, const bool await) {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         alarm->listener = current_thread();
         list_add_inorder(&this_cpu_mut()->alarm_list, &alarm->list, compare);
     });

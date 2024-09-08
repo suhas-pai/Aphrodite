@@ -75,7 +75,7 @@ __debug_optimize(3) usec_t hpet_read() {
 
 void hpet_oneshot_fsec(const fsec_t fsec) {
     uint64_t index = 0;
-    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+    with_spinlock_irq_disabled(&g_lock, {
         index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
     });
 

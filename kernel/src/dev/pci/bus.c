@@ -35,7 +35,7 @@ pci_bus_create(struct pci_domain *const domain,
 
 __debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
     bool result = false;
-    SPIN_WITH_IRQ_ACQUIRED(&g_root_bus_list_lock, {
+    with_spinlock_irq_disabled(&g_root_bus_list_lock, {
         result = array_append(&g_root_bus_list, &bus);
     });
 

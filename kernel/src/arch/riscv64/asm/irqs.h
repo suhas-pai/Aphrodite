@@ -61,7 +61,7 @@ __debug_optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
     }
 }
 
-#define WITH_IRQS_DISABLED(block) \
+#define with_irqs_disabled(block) \
     do { \
         const bool h_var(irqs_disabled_flag) = disable_irqs_if_enabled(); \
         block; \

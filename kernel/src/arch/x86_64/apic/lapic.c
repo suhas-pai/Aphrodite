@@ -52,7 +52,7 @@ static void calibrate_timer() {
      * obtain the lapic-timer frequency.
      */
 
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         const uint16_t pit_init_tick_number = pit_get_current_tick();
         const uint32_t sample_count = 0xFFFFFF;
         const uint32_t timer_reg =
@@ -183,9 +183,10 @@ __debug_optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_SELF_IPI, vector);
     } else {
-        preempt_disable();
-        const uint32_t lapic_id = this_cpu()->lapic_id;
-        preempt_enable();
+        uint32_t lapic_id = 0;
+        with_preempt_disabled({
+            lapic_id = this_cpu()->lapic_id;
+        });
 
         lapic_send_ipi(lapic_id, vector);
     }
@@ -208,11 +209,12 @@ __debug_optimize(3) void lapic_timer_stop() {
 }
 
 __debug_optimize(3) usec_t lapic_timer_remaining() {
-    preempt_disable();
-    const uint64_t lapic_timer_freq_in_microseconds =
-        this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
+    uint64_t lapic_timer_freq_in_microseconds = 0;
+    with_preempt_disabled({
+        lapic_timer_freq_in_microseconds =
+            this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
+    });
 
-    preempt_enable();
     if (get_acpi_info()->using_x2apic) {
         return x2apic_read(X2APIC_LAPIC_REG_TIMER_INIT_COUNT)
              / lapic_timer_freq_in_microseconds;
@@ -247,7 +249,7 @@ void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
 }
 
 void lapic_init() {
-    WITH_IRQS_DISABLED({
+    with_irqs_disabled({
         lapic_enable();
         lapic_timer_stop();
 

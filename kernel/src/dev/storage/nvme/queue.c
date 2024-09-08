@@ -151,7 +151,7 @@ nvme_queue_create(struct nvme_queue *const queue,
 __debug_optimize(3)
 uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
     uint16_t result = 0;
-    SPIN_WITH_IRQ_ACQUIRED(&queue->lock, {
+    with_spinlock_irq_disabled(&queue->lock, {
         result = queue->cmd_identifier;
         queue->cmd_identifier++;
 
@@ -197,7 +197,7 @@ bool
 nvme_queue_submit_command(struct nvme_queue *const queue,
                           const struct nvme_command *const command)
 {
-    SPIN_WITH_IRQ_ACQUIRED(&queue->lock, {
+    with_spinlock_irq_disabled(&queue->lock, {
         const uint8_t tail = queue->submit_queue_tail;
         volatile struct nvme_command *const submit_queue =
             queue->submit_queue_mmio->base;

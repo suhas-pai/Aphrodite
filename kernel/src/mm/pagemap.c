@@ -156,7 +156,7 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     assert(pagemap->root != NULL);
 #endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
-    SPIN_WITH_IRQ_ACQUIRED(&pagemap->cpu_lock, {
+    with_spinlock_irq_disabled(&pagemap->cpu_lock, {
     #if defined(__x86_64__)
         write_cr3(virt_to_phys(pagemap->root));
     #elif defined(__aarch64__)
