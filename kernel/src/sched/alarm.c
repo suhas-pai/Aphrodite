@@ -31,11 +31,10 @@ static int compare(struct list *const theirs, struct list *const ours) {
 
 __debug_optimize(3)
 void alarm_post(struct alarm *const alarm, const bool await) {
-    const int flag = disable_irqs_if_enabled();
-    alarm->listener = current_thread();
-
-    list_add_inorder(&this_cpu_mut()->alarm_list, &alarm->list, compare);
-    enable_irqs_if_flag(flag);
+    WITH_IRQS_DISABLED({
+        alarm->listener = current_thread();
+        list_add_inorder(&this_cpu_mut()->alarm_list, &alarm->list, compare);
+    });
 
     atomic_store_explicit(&alarm->active, true, memory_order_relaxed);
     if (await) {

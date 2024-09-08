@@ -35,3 +35,10 @@ __debug_optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
         enable_interrupts();
     }
 }
+
+#define WITH_IRQS_DISABLED(block) \
+    do { \
+        const bool h_var(irqs_disabled_flag) = disable_irqs_if_enabled(); \
+        block; \
+        enable_irqs_if_flag(h_var(irqs_disabled_flag)); \
+    } while (false)

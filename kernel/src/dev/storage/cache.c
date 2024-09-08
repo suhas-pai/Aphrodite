@@ -24,11 +24,11 @@ storage_cache_push(struct storage_cache *const cache,
                    const uint64_t lba,
                    void *const block)
 {
-    spin_acquire_preempt_disable(&cache->lock);
-    const bool result =
-        hashmap_add(&cache->items, hashmap_key_create(lba), &block);
+    bool result = false;
+    SPIN_WITH_PREEMPT_DISABLED(&cache->lock, {
+        result = hashmap_add(&cache->items, hashmap_key_create(lba), &block);
+    });
 
-    spin_release_preempt_enable(&cache->lock);
     if (!result) {
         printk(LOGLEVEL_WARN,
                "nvme: attempting to push already-cached item at "

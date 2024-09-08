@@ -32,11 +32,11 @@ static isr_vector_t g_lapic_vector = 0;
 static isr_vector_t g_hpet_vector = 0;
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
-    const int flag = spin_acquire_save_irq(&g_lock);
-    const uint64_t bit_index =
-        bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
+    uint64_t bit_index = 0;
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        bit_index = bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
+    });
 
-    spin_release_restore_irq(&g_lock, flag);
     if (bit_index == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
@@ -59,12 +59,11 @@ __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
-    const int flag = spin_acquire_save_irq(&g_lock);
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        bitset_unset(g_bitset, vector);
+        isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+    });
 
-    bitset_unset(g_bitset, vector);
-    isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
-
-    spin_release_restore_irq(&g_lock, flag);
     printk(LOGLEVEL_INFO, "isr: freed vector " ISR_VECTOR_FMT "\n", vector);
 }
 

@@ -49,10 +49,11 @@ bool thread_enqueued_nolock(const struct thread *const thread) {
 }
 
 __debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
-    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
-    const bool result = thread_enqueued_nolock(thread);
+    bool result = false;
+    SPIN_WITH_IRQ_ACQUIRED(&g_run_queue_lock, {
+        result = thread_enqueued_nolock(thread);
+    });
 
-    spin_release_restore_irq(&g_run_queue_lock, flag);
     return result;
 }
 
@@ -62,10 +63,11 @@ bool thread_running_nolock(const struct thread *const thread) {
 }
 
 __debug_optimize(3) bool thread_running(const struct thread *const thread) {
-    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
-    const bool result = thread_running_nolock(thread);
+    bool result = false;
+    SPIN_WITH_IRQ_ACQUIRED(&g_run_queue_lock, {
+        result = thread_running_nolock(thread);
+    });
 
-    spin_release_restore_irq(&g_run_queue_lock, flag);
     return result;
 }
 
@@ -80,31 +82,29 @@ static void sched_dequeue_thread_for_use(struct thread *const thread) {
 }
 
 __debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
-    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
+    SPIN_WITH_IRQ_ACQUIRED(&g_run_queue_lock, {
+        // sched_enqueue_thread() might be called from a dequeued but running
+        // thread so only enqueue-for-use for threads that are not running and
+        // aren't already enqueued.
 
-    // sched_enqueue_thread() might be called from a dequeued but running thread
-    // so only enqueue-for-use for threads that are not running and aren't
-    // already enqueued.
+        if (!thread_running_nolock(thread) && !thread_enqueued_nolock(thread)) {
+            sched_enqueue_thread_for_use(thread);
+        }
 
-    if (!thread_running_nolock(thread) && !thread_enqueued_nolock(thread)) {
-        sched_enqueue_thread_for_use(thread);
-    }
-
-    atomic_store_explicit(&thread->sched_info.runnable,
-                          true,
-                          memory_order_relaxed);
-
-    spin_release_restore_irq(&g_run_queue_lock, flag);
+        atomic_store_explicit(&thread->sched_info.runnable,
+                              true,
+                              memory_order_relaxed);
+    });
 }
 
 __debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
-    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
-    atomic_store_explicit(&thread->sched_info.runnable,
-                          false,
-                          memory_order_relaxed);
+    SPIN_WITH_IRQ_ACQUIRED(&g_run_queue_lock, {
+        atomic_store_explicit(&thread->sched_info.runnable,
+                               false,
+                               memory_order_relaxed);
 
-    sched_dequeue_thread_for_use(thread);
-    spin_release_restore_irq(&g_run_queue_lock, flag);
+        sched_dequeue_thread_for_use(thread);
+    });
 }
 
 __debug_optimize(3)

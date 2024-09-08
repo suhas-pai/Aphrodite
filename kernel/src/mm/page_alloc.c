@@ -1075,33 +1075,31 @@ void free_large_page(struct page *const head) {
     assert(page_get_state(head) == PAGE_STATE_LARGE_HEAD);
 
     struct page_section *const section = page_to_section(head);
-    const int flag = spin_acquire_save_irq(&section->lock);
+    SPIN_WITH_IRQ_ACQUIRED(&section->lock, {
+        const pgt_level_t level = head->largehead.level;
+        struct largepage_level_info *const level_info =
+            &largepage_level_info_list[level - 1];
 
-    const pgt_level_t level = head->largehead.level;
-    struct largepage_level_info *const level_info =
-        &largepage_level_info_list[level - 1];
+        const uint64_t page_count = 1ull << level_info->order;
+        const struct page *const end = head + page_count;
 
-    const uint64_t page_count = 1ull << level_info->order;
-    const struct page *const end = head + page_count;
-
-    for (struct page *page = head; page < end;) {
-        if (!ref_down(&page->largehead.page_refcount)) {
-            page++;
-            continue;
-        }
-
-        struct page *iter = page + 1;
-        for (; iter != end; iter++) {
-            if (!ref_down(&iter->largehead.page_refcount)) {
-                break;
+        for (struct page *page = head; page < end;) {
+            if (!ref_down(&page->largehead.page_refcount)) {
+                page++;
+                continue;
             }
+
+            struct page *iter = page + 1;
+            for (; iter != end; iter++) {
+                if (!ref_down(&iter->largehead.page_refcount)) {
+                    break;
+                }
+            }
+
+            free_amount_of_pages(page, (uint64_t)(iter - page));
+            page = iter + 1;
         }
-
-        free_amount_of_pages(page, (uint64_t)(iter - page));
-        page = iter + 1;
-    }
-
-    spin_release_restore_irq(&section->lock, flag);
+    });
 }
 
 void free_pages(struct page *page, const uint8_t order) {

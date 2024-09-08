@@ -16,10 +16,11 @@ static struct array g_domain_list = ARRAY_INIT(sizeof(struct pci_domain *));
 static struct spinlock g_domain_lock = SPINLOCK_INIT();
 
 __debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
-    const int flag = spin_acquire_save_irq(&g_domain_lock);
-    const bool result = array_append(&g_domain_list, &domain);
+    bool result = false;
+    SPIN_WITH_IRQ_ACQUIRED(&g_domain_lock, {
+        result = array_append(&g_domain_list, &domain);
+    });
 
-    spin_release_restore_irq(&g_domain_lock, flag);
     return result;
 }
 

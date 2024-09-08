@@ -30,37 +30,37 @@ bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
                    "support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            spin_acquire_preempt_disable(&entity->lock);
-            const uint32_t msg_control =
-                pci_read_from_base(entity,
-                                   entity->msi_pcie_offset,
-                                   struct pci_spec_cap_msi,
-                                   msg_control);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                const uint32_t msg_control =
+                    pci_read_from_base(entity,
+                                       entity->msi_pcie_offset,
+                                       struct pci_spec_cap_msi,
+                                       msg_control);
 
-            pci_write_from_base(entity,
-                                entity->msi_pcie_offset,
-                                struct pci_spec_cap_msi,
-                                msg_control,
-                                msg_control | __PCI_CAP_MSI_CTRL_ENABLE);
+                pci_write_from_base(entity,
+                                    entity->msi_pcie_offset,
+                                    struct pci_spec_cap_msi,
+                                    msg_control,
+                                    msg_control | __PCI_CAP_MSI_CTRL_ENABLE);
+            });
 
-            spin_release_preempt_enable(&entity->lock);
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            spin_acquire_preempt_disable(&entity->lock);
-            const uint32_t msg_control =
-                pci_read_from_base(entity,
-                                   entity->msi_pcie_offset,
-                                   struct pci_spec_cap_msix,
-                                   msg_control);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                const uint32_t msg_control =
+                    pci_read_from_base(entity,
+                                       entity->msi_pcie_offset,
+                                       struct pci_spec_cap_msix,
+                                       msg_control);
 
-            pci_write_from_base(entity,
-                                entity->msi_pcie_offset,
-                                struct pci_spec_cap_msix,
-                                msg_control,
-                                msg_control | __PCI_CAP_MSIX_CTRL_ENABLE);
+                pci_write_from_base(entity,
+                                    entity->msi_pcie_offset,
+                                    struct pci_spec_cap_msix,
+                                    msg_control,
+                                    msg_control | __PCI_CAP_MSIX_CTRL_ENABLE);
+            });
 
-            spin_release_preempt_enable(&entity->lock);
             return true;
         }
     }
@@ -77,41 +77,39 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                    "doesn't support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            spin_acquire_preempt_disable(&entity->lock);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                const uint32_t msg_control =
+                    pci_read_from_base(entity,
+                                       entity->msi_pcie_offset,
+                                       struct pci_spec_cap_msi,
+                                       msg_control);
 
-            const uint32_t msg_control =
-                pci_read_from_base(entity,
-                                   entity->msi_pcie_offset,
-                                   struct pci_spec_cap_msi,
-                                   msg_control);
+                pci_write_from_base(entity,
+                                    entity->msi_pcie_offset,
+                                    struct pci_spec_cap_msi,
+                                    msg_control,
+                                    rm_mask(msg_control,
+                                            __PCI_CAP_MSI_CTRL_ENABLE));
+            });
 
-            pci_write_from_base(entity,
-                                entity->msi_pcie_offset,
-                                struct pci_spec_cap_msi,
-                                msg_control,
-                                rm_mask(msg_control,
-                                        __PCI_CAP_MSI_CTRL_ENABLE));
-
-            spin_release_preempt_enable(&entity->lock);
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            spin_acquire_preempt_disable(&entity->lock);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                const uint32_t msg_control =
+                    pci_read_from_base(entity,
+                                       entity->msi_pcie_offset,
+                                       struct pci_spec_cap_msix,
+                                       msg_control);
 
-            const uint32_t msg_control =
-                pci_read_from_base(entity,
-                                   entity->msi_pcie_offset,
-                                   struct pci_spec_cap_msix,
-                                   msg_control);
+                pci_write_from_base(entity,
+                                    entity->msi_pcie_offset,
+                                    struct pci_spec_cap_msix,
+                                    msg_control,
+                                    rm_mask(msg_control,
+                                            __PCI_CAP_MSIX_CTRL_ENABLE));
+            });
 
-            pci_write_from_base(entity,
-                                entity->msi_pcie_offset,
-                                struct pci_spec_cap_msix,
-                                msg_control,
-                                rm_mask(msg_control,
-                                        __PCI_CAP_MSIX_CTRL_ENABLE));
-
-            spin_release_preempt_enable(&entity->lock);
             return true;
         }
     }
@@ -227,22 +225,21 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
 
             return -1;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            spin_acquire_preempt_disable(&entity->lock);
-            const uint64_t msi_address = isr_get_msi_address(cpu, vector);
-
-            bind_msi_to_vector(entity, msi_address, vector, masked);
-            spin_release_preempt_enable(&entity->lock);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                const uint64_t msi_address = isr_get_msi_address(cpu, vector);
+                bind_msi_to_vector(entity, msi_address, vector, masked);
+            });
 
             return 0;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            spin_acquire_preempt_disable(&entity->lock);
+            uint16_t result = 0;
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                const uint64_t msix_address = isr_get_msix_address(cpu, vector);
+                result =
+                    bind_msix_to_vector(entity, msix_address, vector, masked);
+            });
 
-            const uint64_t msix_address = isr_get_msix_address(cpu, vector);
-            const uint16_t result =
-                bind_msix_to_vector(entity, msix_address, vector, masked);
-
-            spin_release_preempt_enable(&entity->lock);
             return result;
         }
     }
@@ -313,18 +310,16 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
 
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            spin_acquire_preempt_disable(&entity->lock);
-
-            toggle_msi_vector_mask(entity, vector, mask);
-            spin_release_preempt_enable(&entity->lock);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                toggle_msi_vector_mask(entity, vector, mask);
+            });
 
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            spin_acquire_preempt_disable(&entity->lock);
-
-            toggle_msix_vector_mask(entity, vector, mask);
-            spin_release_preempt_enable(&entity->lock);
+            SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+                toggle_msix_vector_mask(entity, vector, mask);
+            });
 
             return true;
         }
@@ -342,41 +337,43 @@ __debug_optimize(3) void
 pci_entity_enable_privls(struct pci_entity_info *const entity,
                          const uint16_t privls)
 {
-    spin_acquire_preempt_disable(&entity->lock);
+    SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+        const uint16_t old_command =
+            pci_read(entity, struct pci_spec_entity_info_base, command);
+        const uint16_t new_command =
+            (old_command | (privls & __PCI_ENTITY_PRIVL_MASK))
+          ^ __PCI_DEVCMDREG_PIN_INTR_DISABLE;
 
-    const uint16_t old_command =
-        pci_read(entity, struct pci_spec_entity_info_base, command);
-    const uint16_t new_command =
-        (old_command | (privls & __PCI_ENTITY_PRIVL_MASK))
-      ^ __PCI_DEVCMDREG_PIN_INTR_DISABLE;
-
-    pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
-    spin_release_preempt_enable(&entity->lock);
+        pci_write(entity,
+                  struct pci_spec_entity_info_base,
+                  command,
+                  new_command);
+    });
 }
 
 __debug_optimize(3)
 void pci_entity_disable_privls(struct pci_entity_info *const entity) {
-    spin_acquire_preempt_disable(&entity->lock);
+    SPIN_WITH_PREEMPT_DISABLED(&entity->lock, {
+        const uint16_t old_command =
+            pci_read(entity, struct pci_spec_entity_info_base, command);
+        const uint16_t new_command =
+            rm_mask(old_command, __PCI_ENTITY_PRIVL_MASK)
+          | __PCI_DEVCMDREG_PIN_INTR_DISABLE;
 
-    const uint16_t old_command =
-        pci_read(entity, struct pci_spec_entity_info_base, command);
-    const uint16_t new_command =
-        rm_mask(old_command, __PCI_ENTITY_PRIVL_MASK)
-      | __PCI_DEVCMDREG_PIN_INTR_DISABLE;
-
-    pci_write(entity, struct pci_spec_entity_info_base, command, new_command);
-    spin_release_preempt_enable(&entity->lock);
+        pci_write(entity,
+                  struct pci_spec_entity_info_base,
+                  command,
+                  new_command);
+    });
 }
 
 __debug_optimize(3)
 void pci_entity_info_destroy(struct pci_entity_info *const entity) {
     spinlock_deinit(&entity->lock);
-    spin_acquire_preempt_disable(&entity->bus->lock);
-
-    list_deinit(&entity->list_in_entities);
-    list_deinit(&entity->list_in_domain);
-
-    spin_release_preempt_enable(&entity->bus->lock);
+    SPIN_WITH_PREEMPT_DISABLED(&entity->bus->lock, {
+        list_deinit(&entity->list_in_entities);
+        list_deinit(&entity->list_in_domain);
+    });
 
     struct pci_entity_bar_info *const bar_list = entity->bar_list;
     const uint8_t bar_count =

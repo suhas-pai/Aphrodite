@@ -229,17 +229,20 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
         return;
     }
 
-    const bool flag = disable_irqs_if_enabled();
-    g_ps2_vector = isr_alloc_vector();
+    WITH_IRQS_DISABLED({
+        g_ps2_vector = isr_alloc_vector();
+        assert(g_ps2_vector != ISR_INVALID_VECTOR);
 
-    assert(g_ps2_vector != ISR_INVALID_VECTOR);
+        isr_set_vector(g_ps2_vector,
+                       ps2_keyboard_interrupt,
+                       &ARCH_ISR_INFO_NONE());
 
-    isr_set_vector(g_ps2_vector, ps2_keyboard_interrupt, &ARCH_ISR_INFO_NONE());
-    isr_assign_irq_to_cpu(this_cpu_mut(),
-                          IRQ_KEYBOARD,
-                          g_ps2_vector,
-                          /*masked=*/false);
+        isr_assign_irq_to_cpu(this_cpu_mut(),
+                              IRQ_KEYBOARD,
+                              g_ps2_vector,
+                              /*masked=*/false);
 
-    enable_irqs_if_flag(flag);
+    });
+
     printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
 }

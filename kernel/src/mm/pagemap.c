@@ -156,38 +156,36 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
     assert(pagemap->root != NULL);
 #endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
-    const int flag = spin_acquire_save_irq(&pagemap->cpu_lock);
+    SPIN_WITH_IRQ_ACQUIRED(&pagemap->cpu_lock, {
+    #if defined(__x86_64__)
+        write_cr3(virt_to_phys(pagemap->root));
+    #elif defined(__aarch64__)
+        write_ttbr0_el1(virt_to_phys(pagemap->lower_root));
+        write_ttbr1_el1(virt_to_phys(pagemap->higher_root));
 
-#if defined(__x86_64__)
-    write_cr3(virt_to_phys(pagemap->root));
-#elif defined(__aarch64__)
-    write_ttbr0_el1(virt_to_phys(pagemap->lower_root));
-    write_ttbr1_el1(virt_to_phys(pagemap->higher_root));
+        #if defined(AARCH64_USE_16K_PAGES)
+            write_tcr_el1(rm_mask(read_tcr_el1(), __TCR_TG1)
+                        | TCR_TG1_16KIB << TCR_TG1_SHIFT);
+        #endif /* defined(AARCH64_USE_16K_PAGES) */
 
-    #if defined(AARCH64_USE_16K_PAGES)
-        write_tcr_el1(rm_mask(read_tcr_el1(), __TCR_TG1)
-                    | TCR_TG1_16KIB << TCR_TG1_SHIFT);
-    #endif /* defined(AARCH64_USE_16K_PAGES) */
+        asm volatile ("dsb sy; isb" ::: "memory");
+    #elif defined(__riscv64)
+        const uint64_t value =
+            (SATP_MODE_39_BIT_PAGING + PAGING_MODE) << SATP_PHYS_MODE_SHIFT
+          | (virt_to_phys(pagemap->root) >> PML1_SHIFT);
 
-    asm volatile ("dsb sy; isb" ::: "memory");
-#elif defined(__riscv64)
-    const uint64_t value =
-        (SATP_MODE_39_BIT_PAGING + PAGING_MODE) << SATP_PHYS_MODE_SHIFT
-      | (virt_to_phys(pagemap->root) >> PML1_SHIFT);
+        csr_write(satp, value);
+        asm volatile ("sfence.vma" ::: "memory");
+    #elif defined(__loongarch64)
+        csr_write(pgdl, virt_to_phys(pagemap->lower_root));
+        csr_write(pgdh, virt_to_phys(pagemap->higher_root));
+    #else
+        verify_not_reached();
+    #endif /* defined(__x86_64__) */
 
-    csr_write(satp, value);
-    asm volatile ("sfence.vma" ::: "memory");
-#elif defined(__loongarch64)
-    csr_write(pgdl, virt_to_phys(pagemap->lower_root));
-    csr_write(pgdh, virt_to_phys(pagemap->higher_root));
-#else
-    verify_not_reached();
-#endif /* defined(__x86_64__) */
-
-    list_remove(&this_cpu_mut()->pagemap_node);
-    list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);
-
-    spin_release_restore_irq(&pagemap->cpu_lock, flag);
+        list_remove(&this_cpu_mut()->pagemap_node);
+        list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);
+    });
 }
 
 __debug_optimize(3) uint64_t

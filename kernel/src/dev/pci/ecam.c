@@ -63,13 +63,13 @@ pci_add_ecam_domain(const struct range bus_range,
     list_init(&ecam_domain->list);
     ecam_domain->bus_range = bus_range;
 
-    const int flag = spin_acquire_save_irq(&g_ecam_domain_lock);
+    bool result = false;
+    SPIN_WITH_IRQ_ACQUIRED(&g_ecam_domain_lock, {
+        list_add(&g_ecam_entity_list, &ecam_domain->list);
+        g_ecam_entity_count++;
 
-    list_add(&g_ecam_entity_list, &ecam_domain->list);
-    g_ecam_entity_count++;
-
-    const bool result = pci_add_domain(&ecam_domain->domain);
-    spin_release_restore_irq(&g_ecam_domain_lock, flag);
+        result = pci_add_domain(&ecam_domain->domain);
+    });
 
     if (!result) {
         vunmap_mmio(ecam_domain->mmio);
@@ -83,17 +83,15 @@ pci_add_ecam_domain(const struct range bus_range,
 
 __debug_optimize(3)
 bool pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
-    const int flag = spin_acquire_save_irq(&g_ecam_domain_lock);
+    SPIN_WITH_IRQ_ACQUIRED(&g_ecam_domain_lock, {
+        pci_remove_domain(&ecam_domain->domain);
+        vunmap_mmio(ecam_domain->mmio);
 
-    pci_remove_domain(&ecam_domain->domain);
-    vunmap_mmio(ecam_domain->mmio);
+        list_deinit(&ecam_domain->list);
+        g_ecam_entity_count--;
+    });
 
-    list_deinit(&ecam_domain->list);
-    g_ecam_entity_count--;
-
-    spin_release_restore_irq(&g_ecam_domain_lock, flag);
     kfree(ecam_domain);
-
     return true;
 }
 

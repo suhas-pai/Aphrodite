@@ -150,15 +150,16 @@ nvme_queue_create(struct nvme_queue *const queue,
 
 __debug_optimize(3)
 uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
-    const int flag = spin_acquire_save_irq(&queue->lock);
-    const uint16_t result = queue->cmd_identifier;
+    uint16_t result = 0;
+    SPIN_WITH_IRQ_ACQUIRED(&queue->lock, {
+        result = queue->cmd_identifier;
+        queue->cmd_identifier++;
 
-    queue->cmd_identifier++;
-    if (queue->cmd_identifier >= queue->entry_count) {
-        queue->cmd_identifier = 0;
-    }
+        if (queue->cmd_identifier >= queue->entry_count) {
+            queue->cmd_identifier = 0;
+        }
+    });
 
-    spin_release_restore_irq(&queue->lock, flag);
     return result;
 }
 
@@ -196,21 +197,20 @@ bool
 nvme_queue_submit_command(struct nvme_queue *const queue,
                           const struct nvme_command *const command)
 {
-    const int flag = spin_acquire_save_irq(&queue->lock);
+    SPIN_WITH_IRQ_ACQUIRED(&queue->lock, {
+        const uint8_t tail = queue->submit_queue_tail;
+        volatile struct nvme_command *const submit_queue =
+            queue->submit_queue_mmio->base;
 
-    const uint8_t tail = queue->submit_queue_tail;
-    volatile struct nvme_command *const submit_queue =
-        queue->submit_queue_mmio->base;
+        submit_queue[tail] = *command;
+        queue->submit_queue_tail++;
 
-    submit_queue[tail] = *command;
-    queue->submit_queue_tail++;
+        if (queue->submit_queue_tail == queue->entry_count) {
+            queue->submit_queue_tail = 0;
+        }
 
-    if (queue->submit_queue_tail == queue->entry_count) {
-        queue->submit_queue_tail = 0;
-    }
-
-    mmio_write(&queue->doorbells->submit, queue->submit_queue_tail);
-    spin_release_restore_irq(&queue->lock, flag);
+        mmio_write(&queue->doorbells->submit, queue->submit_queue_tail);
+    });
 
     struct event *const event = &queue->event;
     events_await(&event,

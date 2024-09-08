@@ -1191,10 +1191,9 @@ send_ata_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-
-    const int flag = spin_acquire_save_irq(&port->lock);
-    port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
-    spin_release_restore_irq(&port->lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&port->lock, {
+        port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
+    });
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);
@@ -1279,10 +1278,9 @@ send_atapi_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-    const int flag = spin_acquire_save_irq(&port->lock);
-
-    port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
-    spin_release_restore_irq(&port->lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&port->lock, {
+        port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
+    });
 
     if (!await_result.result_bool) {
         print_interrupt_status(port->error.interrupt_status);

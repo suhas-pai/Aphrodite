@@ -19,29 +19,26 @@ static inline void select_cmos_register(const enum cmos_register reg) {
      *   a CMOS register on Port 0x70, before reading/writing the value on Port
      *   0x71. "
      */
-
     cpu_pause();
 }
 
 __debug_optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
-    const bool flag = disable_irqs_if_enabled();
+    uint8_t result = 0;
+    WITH_IRQS_DISABLED({
+        // Note: We have to select the cmos register every time as
+        // reading/writing from cmos deselects cmos.
 
-    // Note: We have to select the cmos register every time as reading/writing
-    // from cmos deselects cmos.
+        select_cmos_register(reg);
+        result = pio_read8(PIO_PORT_CMOS_REGISTER_READ);
+    });
 
-    select_cmos_register(reg);
-    const uint8_t result = pio_read8(PIO_PORT_CMOS_REGISTER_READ);
-
-    enable_irqs_if_flag(flag);
     return result;
 }
 
 __debug_optimize(3)
 void cmos_write(const enum cmos_register reg, const uint8_t data) {
-    const bool flag = disable_irqs_if_enabled();
-
-    select_cmos_register((uint8_t)reg);
-    pio_write8((uint8_t)reg, data);
-
-    enable_irqs_if_flag(flag);
+    WITH_IRQS_DISABLED({
+        select_cmos_register((uint8_t)reg);
+        pio_write8((uint8_t)reg, data);
+    });
 }

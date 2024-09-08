@@ -39,10 +39,11 @@ __debug_optimize(3) void isr_init() {
 }
 
 __debug_optimize(3) isr_vector_t isr_alloc_sgi_vector() {
-    const int flag = spin_acquire_save_irq(&g_sgi_lock);
-    const uint16_t result = g_sgi_interrupt;
+    uint16_t result = 0;
+    SPIN_WITH_IRQ_ACQUIRED(&g_sgi_lock, {
+        result = g_sgi_interrupt;
+    });
 
-    spin_release_restore_irq(&g_sgi_lock, flag);
     if (result > GIC_SGI_INTERRUPT_LAST) {
         return ISR_INVALID_VECTOR;
     }

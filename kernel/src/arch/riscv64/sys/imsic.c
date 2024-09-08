@@ -328,13 +328,14 @@ volatile void *imsic_region_for_hartid(const uint64_t hart_id) {
 __debug_optimize(3) uint8_t imsic_alloc_msg(const enum riscv64_privl privl) {
     struct imsic *const imsic = imsic_for_privl(privl);
 
-    const int flag = spin_acquire_save_irq(&imsic->lock);
-    const uint64_t msg =
-        bitset_find_unset(&imsic->bitset,
-                          /*length=*/sizeof_bits(imsic->bitset),
-                          /*invert=*/true);
+    uint64_t msg = 0;
+    SPIN_WITH_IRQ_ACQUIRED(&imsic->lock, {
+        msg =
+            bitset_find_unset(&imsic->bitset,
+                              /*length=*/sizeof_bits(imsic->bitset),
+                              /*invert=*/true);
+    });
 
-    spin_release_restore_irq(&imsic->lock, flag);
     if (msg == BITSET_INVALID) {
         return UINT8_MAX;
     }
@@ -348,13 +349,12 @@ void imsic_free_msg(const enum riscv64_privl privl, const uint8_t msg) {
     assert(index_in_bounds(msg, IMSIC_MSG_COUNT));
 
     struct imsic *const imsic = imsic_for_privl(privl);
-    const int flag = spin_acquire_save_irq(&imsic->lock);
+    SPIN_WITH_IRQ_ACQUIRED(&imsic->lock, {
+        imsic_disable_msg(privl, msg);
+        bitset_unset(&imsic->bitset, msg);
 
-    imsic_disable_msg(privl, msg);
-    bitset_unset(&imsic->bitset, msg);
-
-    imsic->funcs[msg] = NULL;
-    spin_release_restore_irq(&imsic->lock, flag);
+        imsic->funcs[msg] = NULL;
+    });
 }
 
 __debug_optimize(3) void
@@ -363,10 +363,9 @@ imsic_set_msg_handler(const enum riscv64_privl privl,
                       const isr_func_t func)
 {
     struct imsic *const imsic = imsic_for_privl(privl);
-    const int flag = spin_acquire_save_irq(&imsic->lock);
-
-    imsic->funcs[msg] = func;
-    spin_release_restore_irq(&imsic->lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&imsic->lock, {
+        imsic->funcs[msg] = func;
+    });
 }
 
 __debug_optimize(3)

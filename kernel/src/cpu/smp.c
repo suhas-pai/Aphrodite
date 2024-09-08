@@ -63,31 +63,32 @@ void smp_boot_all_cpus() {
     }
 
     printk(LOGLEVEL_INFO, "smp: booting all cpus\n");
+    WITH_IRQS_DISABLED({
+        for (uint64_t i = 0; i != cpu_count; i++) {
+            if (cpu_list[i]->field == smp_resp->bsp_field) {
+                continue;
+            }
 
-    const int flag = disable_irqs_if_enabled();
-    for (uint64_t i = 0; i != cpu_count; i++) {
-        if (cpu_list[i]->field == smp_resp->bsp_field) {
-            continue;
+            struct cpu_info *const cpu =
+                cpu_for_id_mut(cpu_list[i]->processor_id);
+
+            struct smp_boot_info boot_info = SMP_BOOT_INFO_INIT(cpu);
+            assert_msg(cpu != NULL,
+                    "smp: failed to find cpu-info for "
+                    "processor-id %" PRIu32 "\n",
+                    cpu->processor_id);
+
+            sched_init_on_cpu(cpu);
+
+            cpu_list[i]->extra_argument = (uint64_t)&boot_info;
+            cpu_list[i]->goto_address = arch_init_for_smp;
+
+            while (!atomic_load_explicit(&boot_info.booted,
+                                         memory_order_seq_cst))
+            {
+                cpu_pause();
+            }
         }
-
-        struct cpu_info *const cpu = cpu_for_id_mut(cpu_list[i]->processor_id);
-        struct smp_boot_info boot_info = SMP_BOOT_INFO_INIT(cpu);
-
-        assert_msg(cpu != NULL,
-                   "smp: failed to find cpu-info for "
-                   "processor-id %" PRIu32 "\n",
-                   cpu->processor_id);
-
-        sched_init_on_cpu(cpu);
-
-        cpu_list[i]->extra_argument = (uint64_t)&boot_info;
-        cpu_list[i]->goto_address = arch_init_for_smp;
-
-        while (!atomic_load_explicit(&boot_info.booted, memory_order_seq_cst)) {
-            cpu_pause();
-        }
-    }
-
-    enable_irqs_if_flag(flag);
+    });
 #endif /* defined(__x86_64__) || defined(__aarch64__) */
 }

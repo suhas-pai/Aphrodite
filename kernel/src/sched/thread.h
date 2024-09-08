@@ -27,6 +27,13 @@ struct thread {
     struct sched_thread_info sched_info;
 };
 
+#define WITH_PREEMPT_DISABLED(block) \
+    do { \
+        preempt_disable(); \
+        block; \
+        preempt_enable(); \
+    } while (false)
+
 extern struct thread kernel_main_thread;
 
 void

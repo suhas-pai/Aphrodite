@@ -34,16 +34,18 @@ pci_bus_create(struct pci_domain *const domain,
 }
 
 __debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
-    const int flag = spin_acquire_save_irq(&g_root_bus_list_lock);
-    const bool result = array_append(&g_root_bus_list, &bus);
+    bool result = false;
+    SPIN_WITH_IRQ_ACQUIRED(&g_root_bus_list_lock, {
+        result = array_append(&g_root_bus_list, &bus);
+    });
 
-    spin_release_restore_irq(&g_root_bus_list_lock, flag);
     return result;
 }
 
 __debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     const int flag = spin_acquire_save_irq(&g_root_bus_list_lock);
     if (!list_empty(&bus->entity_list)) {
+        spin_release_restore_irq(&g_root_bus_list_lock, flag);
         return false;
     }
 

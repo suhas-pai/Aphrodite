@@ -252,12 +252,10 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
 
 void nvme_namespace_destroy(struct nvme_namespace *const namespace) {
     struct nvme_controller *const controller = namespace->controller;
-    const int flag = spin_acquire_save_irq(&controller->lock);
-
-    nvme_queue_destroy(&namespace->io_queue);
-    list_deinit(&namespace->list);
-
-    spin_release_restore_irq(&controller->lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&controller->lock, {
+        nvme_queue_destroy(&namespace->io_queue);
+        list_deinit(&namespace->list);
+    });
 
     namespace->controller = NULL;
     namespace->nsid = 0;

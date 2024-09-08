@@ -14,10 +14,9 @@ static struct list g_clock_list = LIST_INIT(g_clock_list);
 static struct spinlock g_lock = SPINLOCK_INIT();
 
 void clock_add(struct clock *const clock) {
-    const int flag = spin_acquire_save_irq(&g_lock);
-
-    list_add(&g_clock_list, &clock->list);
-    spin_release_restore_irq(&g_lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        list_add(&g_clock_list, &clock->list);
+    });
 }
 
 bool

@@ -250,13 +250,13 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     isr_set_vector(g_hba_vector, ahci_port_handle_irq, &ARCH_ISR_INFO_NONE());
     pci_entity_enable_msi(pci_entity);
 
-    const bool flag = disable_irqs_if_enabled();
-    pci_entity_bind_msi_to_vector(pci_entity,
-                                  this_cpu(),
-                                  g_hba_vector,
-                                  /*masked=*/false);
+    WITH_IRQS_DISABLED({
+        pci_entity_bind_msi_to_vector(pci_entity,
+                                      this_cpu(),
+                                      g_hba_vector,
+                                      /*masked=*/false);
+    });
 
-    enable_irqs_if_flag(flag);
     volatile struct ahci_spec_hba_regs *const regs =
         pci_entity_bar_get_base(bar);
 

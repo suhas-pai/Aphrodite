@@ -74,10 +74,11 @@ __debug_optimize(3) usec_t hpet_read() {
 }
 
 void hpet_oneshot_fsec(const fsec_t fsec) {
-    const int flag = spin_acquire_save_irq(&g_lock);
-    uint64_t index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+    uint64_t index = 0;
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+    });
 
-    spin_release_restore_irq(&g_lock, flag);
     while (index_in_bounds(index, g_timer_count)) {
         struct event *events = &g_bitset_event;
         events_await(&events,

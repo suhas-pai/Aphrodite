@@ -43,11 +43,12 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     (void)device;
     (void)msi_index;
 
-    const int flag = spin_acquire_save_irq(&g_lock);
-    const uint64_t result =
-        bitset_find_unset(g_msi_bitset, ISR_MSI_COUNT, /*invert=*/true);
+    uint64_t result = 0;
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        result =
+            bitset_find_unset(g_msi_bitset, ISR_MSI_COUNT, /*invert=*/true);
+    });
 
-    spin_release_restore_irq(&g_lock, flag);
     if (result == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
     }
@@ -56,12 +57,10 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
-    const int flag = spin_acquire_save_irq(&g_lock);
-
     assert(vector < 2);
-    g_funcs[vector] = NULL;
-
-    spin_release_restore_irq(&g_lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        g_funcs[vector] = NULL;
+    });
 }
 
 __debug_optimize(3) void
@@ -72,12 +71,10 @@ isr_free_msi_vector(struct device *const device,
     (void)device;
     (void)msi_index;
 
-    const int flag = spin_acquire_save_irq(&g_lock);
-
-    bitset_unset(g_msi_bitset, vector);
-    isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
-
-    spin_release_restore_irq(&g_lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&g_lock, {
+        bitset_unset(g_msi_bitset, vector);
+        isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+    });
 }
 
 void

@@ -15,7 +15,7 @@
 #include "pgmap.h"
 
 static struct address_space mmio_space = ADDRSPACE_INIT(mmio_space);
-static struct spinlock mmio_space_lock = SPINLOCK_INIT();
+static struct spinlock g_mmio_space_lock = SPINLOCK_INIT();
 
 enum prot_fail {
     PROT_FAIL_NONE,
@@ -99,11 +99,11 @@ map_mmio_region(const struct range phys_range,
     mmio->node = ADDRSPACE_NODE_INIT(mmio->node, &mmio_space);
     mmio->node.range.size = phys_range.size + GUARD_PAGE_SIZE;
 
-    const int flag = spin_acquire_save_irq(&mmio_space_lock);
+    const int flag = spin_acquire_save_irq(&g_mmio_space_lock);
     const uint64_t virt_addr = find_virt_addr(phys_range, in_range, mmio);
 
     if (virt_addr == ADDRSPACE_INVALID_ADDR) {
-        spin_release_restore_irq(&mmio_space_lock, flag);
+        spin_release_restore_irq(&g_mmio_space_lock, flag);
         kfree(mmio);
 
         printk(LOGLEVEL_WARN,
@@ -116,7 +116,7 @@ map_mmio_region(const struct range phys_range,
 
     struct range virt_range = RANGE_EMPTY();
     if (!range_create_and_verify(virt_addr, phys_range.size, &virt_range)) {
-        spin_release_restore_irq(&mmio_space_lock, flag);
+        spin_release_restore_irq(&g_mmio_space_lock, flag);
         kfree(mmio);
 
         printk(LOGLEVEL_WARN,
@@ -136,7 +136,7 @@ map_mmio_region(const struct range phys_range,
                             VMA_CACHEKIND_WRITETHROUGH : VMA_CACHEKIND_MMIO,
                           /*is_overwrite=*/false);
 
-    spin_release_restore_irq(&mmio_space_lock, flag);
+    spin_release_restore_irq(&g_mmio_space_lock, flag);
     if (!map_success) {
         kfree(mmio);
         printk(LOGLEVEL_WARN,
@@ -207,7 +207,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
 
     const struct range virt_range = mmio_region_get_range(region);
 
-    const int flag = spin_acquire_save_irq(&mmio_space_lock);
+    const int flag = spin_acquire_save_irq(&g_mmio_space_lock);
     const bool result =
         pgunmap_at(&kernel_process.pagemap,
                    virt_range,
@@ -215,7 +215,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
                    &options);
 
     if (!result) {
-        spin_release_restore_irq(&mmio_space_lock, flag);
+        spin_release_restore_irq(&g_mmio_space_lock, flag);
         printk(LOGLEVEL_WARN,
                "mm: failed to unmap mmio region at " RANGE_FMT "\n",
                RANGE_FMT_ARGS(virt_range));
@@ -224,7 +224,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
     }
 
     addrspace_remove_node(&region->node);
-    spin_release_restore_irq(&mmio_space_lock, flag);
+    spin_release_restore_irq(&g_mmio_space_lock, flag);
     kfree(region);
 
     return true;

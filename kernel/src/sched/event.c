@@ -93,32 +93,33 @@ events_await(struct event *const *const events,
     unlock_events(events, events_count);
     sched_yield();
 
-    flag = disable_irqs_if_enabled();
-    index = thread->event_index;
+    WITH_IRQS_DISABLED({
+        index = thread->event_index;
+        thread->event_index = -1;
 
-    thread->event_index = -1;
-    if (drop_after_recv) {
-        remove_thread_from_listeners(events[index], thread);
-    }
+        if (drop_after_recv) {
+            remove_thread_from_listeners(events[index], thread);
+        }
+    });
 
-    enable_irqs_if_flag(flag);
     return index;
 }
 
 __debug_optimize(3)
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
-    const int flag = spin_acquire_save_irq(&event->lock);
-    if (!array_empty(event->listeners)) {
-        array_foreach(&event->listeners, const struct event_listener, listener)
-        {
-            listener->waiter->event_index = listener->listeners_index;
-            sched_enqueue_thread(listener->waiter);
+    SPIN_WITH_IRQ_ACQUIRED(&event->lock, {
+        if (!array_empty(event->listeners)) {
+            array_foreach(&event->listeners,
+                          const struct event_listener,
+                          listener)
+            {
+                listener->waiter->event_index = listener->listeners_index;
+                sched_enqueue_thread(listener->waiter);
+            }
+        } else {
+            if (!drop_if_no_listeners) {
+                event->pending++;
+            }
         }
-    } else {
-        if (!drop_if_no_listeners) {
-            event->pending++;
-        }
-    }
-
-    spin_release_restore_irq(&event->lock, flag);
+    });
 }

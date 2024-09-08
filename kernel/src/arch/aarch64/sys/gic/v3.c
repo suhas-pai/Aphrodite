@@ -186,25 +186,27 @@ volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
 }
 
 __debug_optimize(3) void gicdv3_mask_irq(const irq_number_t irq) {
-    const bool flag = disable_irqs_if_enabled();
-    volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+    WITH_IRQS_DISABLED({
+        volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+        volatile _Atomic(uint32_t) *const ptr =
+            &dist->irq_clear_enable[irq / sizeof_bits(uint32_t)];
 
-    atomic_store_explicit(&dist->irq_clear_enable[irq / sizeof_bits(uint32_t)],
-                          1ull << (irq % sizeof_bits(uint32_t)),
-                          memory_order_relaxed);
-
-    enable_irqs_if_flag(flag);
+        atomic_store_explicit(ptr,
+                              1ull << (irq % sizeof_bits(uint32_t)),
+                              memory_order_relaxed);
+    });
 }
 
 __debug_optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
-    const bool flag = disable_irqs_if_enabled();
-    volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+    WITH_IRQS_DISABLED({
+        volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+        volatile _Atomic(uint32_t) *const ptr =
+            &dist->irq_set_enable[irq / sizeof_bits(uint32_t)];
 
-    atomic_store_explicit(&dist->irq_set_enable[irq / sizeof_bits(uint32_t)],
-                          1ull << (irq % sizeof_bits(uint32_t)),
-                          memory_order_relaxed);
-
-    enable_irqs_if_flag(flag);
+        atomic_store_explicit(ptr,
+                              1ull << (irq % sizeof_bits(uint32_t)),
+                              memory_order_relaxed);
+    });
 }
 
 __debug_optimize(3) isr_vector_t
@@ -259,57 +261,59 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
         return;
     }
 
-    const bool flag = disable_irqs_if_enabled();
-    volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+    WITH_IRQS_DISABLED({
+        volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
-    const uint32_t bit_offset = (irq % sizeof_bits(uint16_t)) * 2;
-    const uint32_t bit_value = mode == IRQ_TRIGGER_MODE_EDGE ? 0b10 : 0b00;
-    const uint32_t irq_config =
-        atomic_load_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
-                             memory_order_relaxed);
+        const uint32_t bit_offset = (irq % sizeof_bits(uint16_t)) * 2;
+        const uint32_t bit_value = mode == IRQ_TRIGGER_MODE_EDGE ? 0b10 : 0b00;
+        const uint32_t irq_config =
+            atomic_load_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
+                                 memory_order_relaxed);
 
-    atomic_store_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
-                          rm_mask(irq_config, 0b11 << bit_offset)
-                        | bit_value << bit_offset,
-                          memory_order_relaxed);
+        atomic_store_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
+                              rm_mask(irq_config, 0b11 << bit_offset)
+                            | bit_value << bit_offset,
+                              memory_order_relaxed);
 
-    const uint32_t group_bit_offset = irq % sizeof_bits(uint32_t);
-    const uint32_t irq_group =
-        atomic_load_explicit(&dist->irq_group[irq / sizeof_bits(uint32_t)],
-                             memory_order_relaxed);
+        const uint32_t group_bit_offset = irq % sizeof_bits(uint32_t);
+        const uint32_t irq_array_index = irq / sizeof_bits(uint32_t);
 
-    atomic_store_explicit(&dist->irq_group[irq / sizeof_bits(uint32_t)],
-                          irq_group | 1ull << group_bit_offset,
-                          memory_order_relaxed);
+        const uint32_t irq_group =
+            atomic_load_explicit(&dist->irq_group[irq_array_index],
+                                 memory_order_relaxed);
 
-    const uint32_t group_mod =
-        atomic_load_explicit(&dist->irq_group_mod[irq / sizeof_bits(uint32_t)],
-                             memory_order_relaxed);
+        atomic_store_explicit(&dist->irq_group[irq_array_index],
+                              irq_group | 1ull << group_bit_offset,
+                              memory_order_relaxed);
 
-    atomic_store_explicit(&dist->irq_group_mod[irq / sizeof_bits(uint32_t)],
-                          rm_mask(group_mod, 1ull << group_bit_offset),
-                          memory_order_relaxed);
+        const uint32_t group_mod =
+            atomic_load_explicit(&dist->irq_group_mod[irq_array_index],
+                                 memory_order_relaxed);
 
-    enable_irqs_if_flag(flag);
+        atomic_store_explicit(&dist->irq_group_mod[irq_array_index],
+                              rm_mask(group_mod, 1ull << group_bit_offset),
+                              memory_order_relaxed);
+    });
 }
 
 __debug_optimize(3)
 void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
-    const bool flag = disable_irqs_if_enabled();
-    volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+    WITH_IRQS_DISABLED({
+        volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
 
-    const uint8_t index = irq / sizeof(uint32_t);
-    const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
+        const uint8_t index = irq / sizeof(uint32_t);
+        const uint8_t bit_index =
+            (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
 
-    const uint32_t irq_priority =
-        atomic_load_explicit(&dist->irq_priority[index], memory_order_relaxed);
+        const uint32_t irq_priority =
+            atomic_load_explicit(&dist->irq_priority[index],
+                                 memory_order_relaxed);
 
-    atomic_store_explicit(&dist->irq_priority[index],
-                          rm_mask(irq_priority, 0xFFull << bit_index)
-                        | (uint32_t)priority << bit_index,
-                          memory_order_relaxed);
-
-    enable_irqs_if_flag(flag);
+        atomic_store_explicit(&dist->irq_priority[index],
+                              rm_mask(irq_priority, 0xFFull << bit_index)
+                            | (uint32_t)priority << bit_index,
+                              memory_order_relaxed);
+    });
 }
 
 __debug_optimize(3)
@@ -382,75 +386,77 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 }
 
 void gic_redist_init_on_this_cpu() {
-    const bool flag = disable_irqs_if_enabled();
+    WITH_IRQS_DISABLED({
+        volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
+        const uint64_t typer = mmio_read(&redist->typer);
 
-    volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
-    const uint64_t typer = mmio_read(&redist->typer);
+        assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);
+        mmio_write(&redist->waker,
+                   rm_mask(mmio_read(&redist->waker),
+                           __GICV3_REDIST_WAKER_PROCESSOR_ASLEEP));
 
-    assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);
-    mmio_write(&redist->waker,
-               rm_mask(mmio_read(&redist->waker),
-                       __GICV3_REDIST_WAKER_PROCESSOR_ASLEEP));
+        bool cleared = false;
+        for (int i = 0; i != MAX_ATTEMPTS; i++) {
+            if ((mmio_read(&redist->waker)
+                    & __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
+            {
+                cleared = true;
+                break;
+            }
 
-    bool cleared = false;
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&redist->waker)
-                & __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
-        {
-            cleared = true;
-            break;
+            cpu_pause();
         }
 
-        cpu_pause();
-    }
+        if (!cleared) {
+            printk(LOGLEVEL_WARN, "gicv3: child-asleep bit failed to clear\n");
+            return;
+        }
 
-    if (!cleared) {
-        printk(LOGLEVEL_WARN, "gicv3: child-asleep bit failed to clear\n");
-        return;
-    }
+        mmio_write(&redist->dist.irq_group[0], UINT32_MAX);
+        mmio_write(&redist->dist.irq_group_mod[0], 0);
+        mmio_write(&redist->control,
+                   mmio_read(&redist->control)
+                 | __GICV3_REDIST_CONTROL_ENABLE_LPIS);
 
-    mmio_write(&redist->dist.irq_group[0], UINT32_MAX);
-    mmio_write(&redist->dist.irq_group_mod[0], 0);
-    mmio_write(&redist->control,
-               mmio_read(&redist->control)
-             | __GICV3_REDIST_CONTROL_ENABLE_LPIS);
+        // Pending page has to be aligned to 64kib
+        struct page *const pend_page =
+            alloc_pages_at_align(PAGE_STATE_USED,
+                                 __ALLOC_ZERO,
+                                 /*align=*/16,
+                                 GIC_REDIST_PENDING_ALLOC_ORDER);
 
-    // Pending page has to be aligned to 64kib
-    struct page *const pend_page =
-        alloc_pages_at_align(PAGE_STATE_USED,
-                             __ALLOC_ZERO,
-                             /*align=*/16,
-                             GIC_REDIST_PENDING_ALLOC_ORDER);
+        assert_msg(pend_page != NULL,
+                   "gicv3: failed to alloc pending page for redistributor\n");
 
-    assert_msg(pend_page != NULL,
-               "gicv3: failed to alloc pending page for redistributor\n");
+        struct page *const prop_page =
+            alloc_pages(PAGE_STATE_USED,
+                        __ALLOC_ZERO,
+                        GIC_REDIST_PROP_ALLOC_ORDER);
 
-    struct page *const prop_page =
-        alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, GIC_REDIST_PROP_ALLOC_ORDER);
+        assert_msg(prop_page != NULL,
+                   "gicv3: failed to alloc pending page for redistributor\n");
 
-    assert_msg(prop_page != NULL,
-               "gicv3: failed to alloc pending page for redistributor\n");
+        const uint64_t pend_phys = page_to_phys(pend_page);
+        const uint64_t prop_phys = page_to_phys(prop_page);
 
-    const uint64_t pend_phys = page_to_phys(pend_page);
-    const uint64_t prop_phys = page_to_phys(prop_page);
+        mmio_write(&redist->pend_baser,
+                   mmio_read(&redist->pend_baser) | pend_phys);
 
-    mmio_write(&redist->pend_baser, mmio_read(&redist->pend_baser) | pend_phys);
-    mmio_write(&redist->prop_baser,
-               mmio_read(&redist->prop_baser)
-             | prop_phys
-             | (GIC_REDIST_IDBITS - 1));
+        mmio_write(&redist->prop_baser,
+                   mmio_read(&redist->prop_baser)
+                 | prop_phys
+                 | (GIC_REDIST_IDBITS - 1));
 
-    const uint32_t processor_id =
-        (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
-            >> GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
+        const uint32_t processor_id =
+            (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
+                >> GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
 
-    assert_msg(processor_id == this_cpu()->processor_id,
-               "gicv3: processor-id is different than from bootloader");
+        assert_msg(processor_id == this_cpu()->processor_id,
+                   "gicv3: processor-id is different than from bootloader");
 
-    this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
-    this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
-
-    enable_irqs_if_flag(flag);
+        this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
+        this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
+    });
 }
 
 void gicv3_init_on_this_cpu() {

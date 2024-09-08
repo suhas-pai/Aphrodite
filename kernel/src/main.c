@@ -23,7 +23,6 @@
 #include "sched/scheduler.h"
 #include "sched/sleep.h"
 
-#include "sched/thread.h"
 #include "sys/boot.h"
 
 // Set the base revision to 1, this is recommended as this is the latest

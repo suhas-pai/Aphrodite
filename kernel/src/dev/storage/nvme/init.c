@@ -90,13 +90,12 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    const bool flag = disable_irqs_if_enabled();
-    pci_entity_bind_msi_to_vector(pci_entity,
-                                  this_cpu(),
-                                  isr_vector,
-                                  /*masked=*/false);
-
-    enable_irqs_if_flag(flag);
+    WITH_IRQS_DISABLED({
+        pci_entity_bind_msi_to_vector(pci_entity,
+                                      this_cpu(),
+                                      isr_vector,
+                                      /*masked=*/false);
+    });
 
     struct nvme_controller *const controller = kmalloc(sizeof(*controller));
     if (controller == NULL) {

@@ -52,49 +52,48 @@ static void calibrate_timer() {
      * obtain the lapic-timer frequency.
      */
 
-    const bool flag = disable_irqs_if_enabled();
+    WITH_IRQS_DISABLED({
+        const uint16_t pit_init_tick_number = pit_get_current_tick();
+        const uint32_t sample_count = 0xFFFFFF;
+        const uint32_t timer_reg =
+            create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
+                                  /*vector=*/0xFF,
+                                  /*masked=*/true);
 
-    const uint16_t pit_init_tick_number = pit_get_current_tick();
-    const uint32_t sample_count = 0xFFFFFF;
-    const uint32_t timer_reg =
-        create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                              /*vector=*/0xFF,
-                              /*masked=*/true);
+        pit_set_reload_value(0xFFFF);
+        if (get_acpi_info()->using_x2apic) {
+            x2apic_write(X2APIC_LAPIC_REG_TIMER_CURR_COUNT, 0);
+            x2apic_write(X2APIC_LAPIC_REG_TIMER_DIVIDE_CONFIG,
+                         LAPIC_TIMER_DIV_CONFIG_BY_2);
 
-    pit_set_reload_value(0xFFFF);
-    if (get_acpi_info()->using_x2apic) {
-        x2apic_write(X2APIC_LAPIC_REG_TIMER_CURR_COUNT, 0);
-        x2apic_write(X2APIC_LAPIC_REG_TIMER_DIVIDE_CONFIG,
-                     LAPIC_TIMER_DIV_CONFIG_BY_2);
+            x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, sample_count);
+            x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER, timer_reg);
 
-        x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, sample_count);
-        x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER, timer_reg);
+            while (x2apic_read(X2APIC_LAPIC_REG_TIMER_CURR_COUNT) != 0) {}
+        } else {
+            mmio_write(&g_lapic_regs->timer_current_count, 0);
+            mmio_write(&g_lapic_regs->timer_divide_config,
+                       LAPIC_TIMER_DIV_CONFIG_BY_2);
 
-        while (x2apic_read(X2APIC_LAPIC_REG_TIMER_CURR_COUNT) != 0) {}
-    } else {
-        mmio_write(&g_lapic_regs->timer_current_count, 0);
-        mmio_write(&g_lapic_regs->timer_divide_config,
-                   LAPIC_TIMER_DIV_CONFIG_BY_2);
+            mmio_write(&g_lapic_regs->timer_initial_count, sample_count);
+            mmio_write(&g_lapic_regs->lvt_timer, timer_reg);
 
-        mmio_write(&g_lapic_regs->timer_initial_count, sample_count);
-        mmio_write(&g_lapic_regs->lvt_timer, timer_reg);
+            while (mmio_read(&g_lapic_regs->timer_current_count) != 0) {}
+        }
 
-        while (mmio_read(&g_lapic_regs->timer_current_count) != 0) {}
-    }
+        // Because the timer ticks down, init_tick_count > end_tick_count
+        const uint16_t pit_end_tick_number = pit_get_current_tick();
+        const uint16_t pit_tick_count =
+            pit_init_tick_number - pit_end_tick_number;
+        const uint32_t lapic_timer_freq_multiple =
+            sample_count / pit_tick_count;
 
-    // Because the timer ticks down, init_tick_count > end_tick_count
-    const uint16_t pit_end_tick_number = pit_get_current_tick();
-    const uint16_t pit_tick_count = pit_init_tick_number - pit_end_tick_number;
-    const uint32_t lapic_timer_freq_multiple =
-        sample_count / pit_tick_count;
+        this_cpu_mut()->lapic_timer_frequency =
+            lapic_timer_freq_multiple * PIT_FREQUENCY;
 
-    this_cpu_mut()->lapic_timer_frequency =
-        lapic_timer_freq_multiple * PIT_FREQUENCY;
-
-    assert_msg(this_cpu()->lapic_timer_frequency != 0,
-               "lapic: failed to calculate timer frequency");
-
-    enable_irqs_if_flag(flag);
+        assert_msg(this_cpu()->lapic_timer_frequency != 0,
+                   "lapic: failed to calculate timer frequency");
+    });
 }
 
 __debug_optimize(3) uint32_t x2apic_read(const enum x2apic_reg reg) {
@@ -248,21 +247,20 @@ void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
 }
 
 void lapic_init() {
-    const bool flag = disable_irqs_if_enabled();
+    WITH_IRQS_DISABLED({
+        lapic_enable();
+        lapic_timer_stop();
 
-    lapic_enable();
-    lapic_timer_stop();
+        calibrate_timer();
+        lapic_timer_stop();
 
-    calibrate_timer();
-    lapic_timer_stop();
-
-    if (this_cpu() == &g_base_cpu_info) {
-        printk(LOGLEVEL_INFO,
-               "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
-               FREQ_TO_UNIT_FMT_ARGS_ABBREV(this_cpu()->lapic_timer_frequency));
-    }
-
-    enable_irqs_if_flag(flag);
+        if (this_cpu() == &g_base_cpu_info) {
+            printk(LOGLEVEL_INFO,
+                   "lapic: frequency is " FREQ_TO_UNIT_FMT "\n",
+                   FREQ_TO_UNIT_FMT_ARGS_ABBREV(
+                       this_cpu()->lapic_timer_frequency));
+        }
+    });
 }
 
 void lapic_add(const struct lapic_info *const lapic_info) {

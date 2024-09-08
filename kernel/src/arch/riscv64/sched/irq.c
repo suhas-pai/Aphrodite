@@ -21,10 +21,9 @@ void sched_init_irq() {
 }
 
 void sched_self_ipi() {
-    const bool flag = disable_irqs_if_enabled();
-
-    mmio_write(&this_cpu()->imsic_page[0], g_sched_sgi_vector);
-    enable_irqs_if_flag(flag);
+    WITH_IRQS_DISABLED({
+        mmio_write(&this_cpu()->imsic_page[0], g_sched_sgi_vector);
+    });
 }
 
 __debug_optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {

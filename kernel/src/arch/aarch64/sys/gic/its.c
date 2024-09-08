@@ -296,16 +296,17 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
                          struct device *const device,
                          const uint16_t msi_index)
 {
-    const bool flag = disable_irqs_if_enabled();
-    spin_acquire(&its->bitset_lock);
+    uint16_t icid = 0;
+    uint64_t vector = 0;
 
-    const uint64_t vector =
-        bitset_find_unset(its->bitset, /*length=*/1, /*invert=*/true);
+    WITH_IRQS_DISABLED({
+        WITH_SPIN_ACQUIRED(&its->bitset_lock, {
+            vector =
+                bitset_find_unset(its->bitset, /*length=*/1, /*invert=*/true);
+        });
 
-    spin_release(&its->bitset_lock);
-
-    const uint16_t icid = this_cpu()->icid;
-    enable_irqs_if_flag(flag);
+        icid = this_cpu()->icid;
+    });
 
     if (vector == BITSET_INVALID) {
         return ISR_INVALID_VECTOR;
@@ -337,12 +338,10 @@ gic_its_free_msi_vector(struct gic_its_info *const its,
                         const isr_vector_t vector,
                         const uint16_t msi_index)
 {
-    const int flag = spin_acquire_save_irq(&its->bitset_lock);
-
-    bitset_unset(its->bitset, vector);
-    disable_msi_intr(its, device, msi_index);
-
-    spin_release_restore_irq(&its->bitset_lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&its->bitset_lock, {
+        bitset_unset(its->bitset, vector);
+        disable_msi_intr(its, device, msi_index);
+    });
 }
 
 __debug_optimize(3)

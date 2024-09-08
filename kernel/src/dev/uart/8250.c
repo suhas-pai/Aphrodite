@@ -118,25 +118,21 @@ uart8250_send_char(struct terminal *const term,
                    const uint32_t amount)
 {
     struct uart8250_info *const info = (struct uart8250_info *)term;
-    const int flag = spin_acquire_save_irq(&info->lock);
-
-    for (uint32_t i = 0; i != amount; i++) {
-        uart8250_putc(info->base, info, ch);
-    }
-
-    spin_release_restore_irq(&info->lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&info->lock, {
+        for (uint32_t i = 0; i != amount; i++) {
+            uart8250_putc(info->base, info, ch);
+        }
+    });
 }
 
 __debug_optimize(3) static void
 uart8250_send_sv(struct terminal *const term, const struct string_view sv) {
     struct uart8250_info *const info = (struct uart8250_info *)term;
-    const int flag = spin_acquire_save_irq(&info->lock);
-
-    sv_foreach(sv, iter) {
-        uart8250_putc(info->base, info, *iter);
-    }
-
-    spin_release_restore_irq(&info->lock, flag);
+    SPIN_WITH_IRQ_ACQUIRED(&info->lock, {
+        sv_foreach(sv, iter) {
+            uart8250_putc(info->base, info, *iter);
+        }
+    });
 }
 
 bool
