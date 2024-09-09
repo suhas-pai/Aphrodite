@@ -52,15 +52,16 @@ static void calibrate_timer() {
      * obtain the lapic-timer frequency.
      */
 
+    const uint32_t sample_count = 0xFFFFFF;
+    const uint32_t timer_reg =
+        create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
+                              /*vector=*/0xFF,
+                              /*masked=*/true);
+
     with_irqs_disabled({
         const uint16_t pit_init_tick_number = pit_get_current_tick();
-        const uint32_t sample_count = 0xFFFFFF;
-        const uint32_t timer_reg =
-            create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
-                                  /*vector=*/0xFF,
-                                  /*masked=*/true);
-
         pit_set_reload_value(0xFFFF);
+
         if (get_acpi_info()->using_x2apic) {
             x2apic_write(X2APIC_LAPIC_REG_TIMER_CURR_COUNT, 0);
             x2apic_write(X2APIC_LAPIC_REG_TIMER_DIVIDE_CONFIG,

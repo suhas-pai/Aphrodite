@@ -14,7 +14,7 @@ enum irq_number {
 };
 
 __debug_optimize(3) static inline bool are_interrupts_enabled() {
-    return read_rflags() & __RFLAGS_INTERRUPTS_ENABLED;
+    return rflags_read() & __RFLAGS_INTERRUPTS_ENABLED;
 }
 
 __debug_optimize(3) static inline void disable_interrupts() {

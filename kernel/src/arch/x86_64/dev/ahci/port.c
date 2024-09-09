@@ -374,11 +374,11 @@ handle_irq_for_port(struct ahci_hba_port *const port,
         port->error.interrupt_status = interrupt_status;
 
         handle_error(port, interrupt_status);
-        with_spin_acquired(&port->lock, {
+        with_spinlock_acquired(&port->lock, {
             finished_cmdhdrs[index] = port->ports_bitset;
         });
     } else {
-        with_spin_acquired(&port->lock, {
+        with_spinlock_acquired(&port->lock, {
             finished_cmdhdrs[index] = port->ports_bitset & ~ci;
         });
     }

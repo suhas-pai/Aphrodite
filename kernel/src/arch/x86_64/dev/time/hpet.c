@@ -5,6 +5,7 @@
 
 #include "lib/adt/bitset.h"
 
+#include "asm/irqs.h"
 #include "cpu/spinlock.h"
 #include "dev/printk.h"
 
@@ -65,7 +66,9 @@ static uint8_t g_timer_count = 0;
 static struct event g_bitset_event = EVENT_INIT();
 
 __debug_optimize(3) fsec_t hpet_get_femto() {
-    assert_msg(g_addrspace != NULL, "hpet: hpet_get_femto() called before init");
+    assert_msg(g_addrspace != NULL,
+               "hpet: hpet_get_femto() called before init");
+
     return mmio_read(&g_addrspace->main_counter_value);
 }
 
@@ -79,22 +82,26 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
         index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
     });
 
-    while (index_in_bounds(index, g_timer_count)) {
+    while (!index_in_bounds(index, g_timer_count)) {
         struct event *events = &g_bitset_event;
         events_await(&events,
                      /*events_count=*/1,
                      /*block=*/true,
                      /*drop_after_recv=*/true);
 
-        index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+        with_spinlock_irq_disabled(&g_lock, {
+            index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+        });
     }
 
-    mmio_write(&g_addrspace->timers[index].config_and_capability, 0);
-    mmio_write(&g_addrspace->timers[index].comparator_value,
-               check_mul_assert(g_frequency, fsec));
+    with_irqs_disabled({
+        mmio_write(&g_addrspace->timers[index].config_and_capability, 0);
+        mmio_write(&g_addrspace->timers[index].comparator_value,
+                   check_mul_assert(g_frequency, fsec));
 
-    mmio_write(&g_addrspace->timers[index].config_and_capability,
-               __HPET_TIMER_ENABLE_INT);
+        mmio_write(&g_addrspace->timers[index].config_and_capability,
+                   __HPET_TIMER_ENABLE_INT);
+    });
 }
 
 void hpet_init(const struct acpi_hpet *const hpet) {
