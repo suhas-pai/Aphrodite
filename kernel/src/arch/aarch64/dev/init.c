@@ -17,7 +17,7 @@ void arch_init_dev() {
         return;
     }
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         gic_init_from_dtb();
     });
 

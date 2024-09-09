@@ -299,7 +299,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     uint16_t icid = 0;
     uint64_t vector = 0;
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         with_spinlock_acquired(&its->bitset_lock, {
             vector =
                 bitset_find_unset(its->bitset, /*length=*/1, /*invert=*/true);

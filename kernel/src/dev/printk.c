@@ -15,7 +15,7 @@
 static struct terminal *g_first_term = NULL;
 
 __debug_optimize(3) void printk_add_terminal(struct terminal *const term) {
-    with_irqs_disabled({
+    with_interrupts_disabled({
         term->next = g_first_term;
         g_first_term = term;
     });

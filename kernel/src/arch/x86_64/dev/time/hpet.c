@@ -94,7 +94,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
         });
     }
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         mmio_write(&g_addrspace->timers[index].config_and_capability, 0);
         mmio_write(&g_addrspace->timers[index].comparator_value,
                    check_mul_assert(g_frequency, fsec));

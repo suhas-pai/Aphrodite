@@ -58,7 +58,7 @@ static void calibrate_timer() {
                               /*vector=*/0xFF,
                               /*masked=*/true);
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         const uint16_t pit_init_tick_number = pit_get_current_tick();
         pit_set_reload_value(0xFFFF);
 
@@ -250,7 +250,7 @@ void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
 }
 
 void lapic_init() {
-    with_irqs_disabled({
+    with_interrupts_disabled({
         lapic_enable();
         lapic_timer_stop();
 

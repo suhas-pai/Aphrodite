@@ -63,7 +63,7 @@ void smp_boot_all_cpus() {
     }
 
     printk(LOGLEVEL_INFO, "smp: booting all cpus\n");
-    with_irqs_disabled({
+    with_interrupts_disabled({
         for (uint64_t i = 0; i != cpu_count; i++) {
             if (cpu_list[i]->field == smp_resp->bsp_field) {
                 continue;

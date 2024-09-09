@@ -240,7 +240,7 @@ void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
         return;
     }
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         mmio_write(&g_dist_regs->irq_router[irq - GIC_SPI_INTERRUPT_START],
                    (uint32_t)affinity << 24
                  | (uint32_t)affinity << 16
@@ -267,7 +267,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
     const uint32_t group_bit_offset = irq % sizeof_bits(uint32_t);
     const uint32_t irq_array_index = irq / sizeof_bits(uint32_t);
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         const uint32_t irq_config =
             atomic_load_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
                                  memory_order_relaxed);
@@ -302,7 +302,7 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     const uint8_t index = irq / sizeof(uint32_t);
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         const uint32_t irq_priority =
             atomic_load_explicit(&dist->irq_priority[index],
                                  memory_order_relaxed);
@@ -383,7 +383,7 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 
 void gic_redist_init_on_this_cpu() {
     volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
-    with_irqs_disabled({
+    with_interrupts_disabled({
         const uint64_t typer = mmio_read(&redist->typer);
 
         assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);

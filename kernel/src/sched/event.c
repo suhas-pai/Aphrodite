@@ -93,7 +93,7 @@ events_await(struct event *const *const events,
     unlock_events(events, events_count);
     sched_yield();
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         index = thread->event_index;
         thread->event_index = -1;
 

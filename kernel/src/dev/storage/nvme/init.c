@@ -90,7 +90,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         return;
     }
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         pci_entity_bind_msi_to_vector(pci_entity,
                                       this_cpu(),
                                       isr_vector,

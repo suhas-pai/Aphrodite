@@ -24,7 +24,7 @@ static inline void select_cmos_register(const enum cmos_register reg) {
 
 __debug_optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
     uint8_t result = 0;
-    with_irqs_disabled({
+    with_interrupts_disabled({
         // Note: We have to select the cmos register every time as
         // reading/writing from cmos deselects cmos.
 
@@ -37,7 +37,7 @@ __debug_optimize(3) uint8_t cmos_read(const enum cmos_register reg) {
 
 __debug_optimize(3)
 void cmos_write(const enum cmos_register reg, const uint8_t data) {
-    with_irqs_disabled({
+    with_interrupts_disabled({
         select_cmos_register((uint8_t)reg);
         pio_write8((uint8_t)reg, data);
     });

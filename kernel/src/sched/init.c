@@ -16,7 +16,7 @@ void sched_init() {
     sched_init_on_cpu(&g_base_cpu_info);
     sched_init_irq();
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         sched_algo_init();
 
         sched_process_arch_info_init(&kernel_process);
@@ -35,7 +35,7 @@ void sched_init_on_cpu(struct cpu_info *const cpu) {
     struct thread *const idle_thread = kmalloc(sizeof(struct thread));
     assert(idle_thread != NULL);
 
-    with_irqs_disabled({
+    with_interrupts_disabled({
         sched_thread_init(idle_thread, &kernel_process, cpu, cpu_idle);
         cpu->idle_thread = idle_thread;
     });
