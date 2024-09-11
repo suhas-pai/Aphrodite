@@ -9,6 +9,8 @@
 #include "cpu/isr.h"
 #include "dev/printk.h"
 
+#include "sched/thread.h"
+
 #include "pio.h"
 #include "pit.h"
 
@@ -38,7 +40,7 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     const isr_vector_t vector = isr_alloc_vector();
     assert(vector != ISR_INVALID_VECTOR);
 
-    with_interrupts_disabled({
+    with_preempt_disabled({
         isr_assign_irq_to_cpu(this_cpu(), PIT_IRQ, vector, /*masked=*/false);
     });
 
@@ -53,12 +55,17 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
 }
 
 __debug_optimize(3) void pit_sleep_for(const uint32_t ms) {
-    pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0x30);
-    pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, ms);
+    with_interrupts_disabled({
+        pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0x30);
+        pio_write8(PIO_PORT_PIT_CHANNEL_0_DATA, ms);
+    });
 
     do {
-        pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0xE2);
-        const uint8_t status = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
+        uint8_t status = 0;
+        with_interrupts_disabled({
+            pio_write8(PIO_PORT_PIT_MODE_COMMAND, 0xE2);
+            status = pio_read8(PIO_PORT_PIT_CHANNEL_0_DATA);
+        });
 
         if (status & 1 << 7) {
             break;

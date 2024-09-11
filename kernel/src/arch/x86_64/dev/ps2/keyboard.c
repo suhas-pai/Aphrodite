@@ -11,6 +11,7 @@
 
 #include "dev/printk.h"
 #include "lib/util.h"
+#include "sched/thread.h"
 
 #include "keyboard.h"
 
@@ -229,19 +230,15 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
         return;
     }
 
-    with_interrupts_disabled({
-        g_ps2_vector = isr_alloc_vector();
-        assert(g_ps2_vector != ISR_INVALID_VECTOR);
+    g_ps2_vector = isr_alloc_vector();
+    assert(g_ps2_vector != ISR_INVALID_VECTOR);
 
-        isr_set_vector(g_ps2_vector,
-                       ps2_keyboard_interrupt,
-                       &ARCH_ISR_INFO_NONE());
-
+    isr_set_vector(g_ps2_vector, ps2_keyboard_interrupt, &ARCH_ISR_INFO_NONE());
+    with_preempt_disabled({
         isr_assign_irq_to_cpu(this_cpu_mut(),
                               IRQ_KEYBOARD,
                               g_ps2_vector,
                               /*masked=*/false);
-
     });
 
     printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");

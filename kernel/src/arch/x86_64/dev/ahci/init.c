@@ -5,9 +5,7 @@
 
 #include "dev/pci/structs.h"
 
-#include "asm/irqs.h"
 #include "asm/pause.h"
-
 #include "cpu/isr.h"
 
 #include "dev/driver.h"
@@ -250,7 +248,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     isr_set_vector(g_hba_vector, ahci_port_handle_irq, &ARCH_ISR_INFO_NONE());
     pci_entity_enable_msi(pci_entity);
 
-    with_interrupts_disabled({
+    with_preempt_disabled({
         pci_entity_bind_msi_to_vector(pci_entity,
                                       this_cpu(),
                                       g_hba_vector,

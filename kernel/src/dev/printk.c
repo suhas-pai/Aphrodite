@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include <stdatomic.h>
 #include "asm/irqs.h"
 
 #include "cpu/cpu_info.h"

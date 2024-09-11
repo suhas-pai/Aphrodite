@@ -345,7 +345,7 @@ endif
 
 .PHONY: clean
 clean:
-	if test -f kernel-deps; then $(MAKE) -C kernel clean; fi
+	$(MAKE) -C kernel clean
 	rm -rf iso_root-$(KARCH)/boot/limine || true
 	rm iso_root-$(KARCH)/boot/kernel || true
 
@@ -353,7 +353,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	if test -f kernel-deps; then $(MAKE) -C kernel distclean; fi
+	$(MAKE) -C kernel clean
 	rm -rf iso_root-* *.iso *.hdd kernel-deps limine ovmf*
 
 # Try to undo whatever the "install" target did.
