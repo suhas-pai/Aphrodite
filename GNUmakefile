@@ -58,8 +58,6 @@ endif
 
 ifeq ($(CONSOLE),1)
 	EXTRA_QEMU_ARGS += -s -S -monitor stdio -no-reboot -no-shutdown
-else
-	EXTRA_QEMU_ARGS += -serial stdio
 endif
 
 DEFAULT_DRIVE_KIND=nvme
