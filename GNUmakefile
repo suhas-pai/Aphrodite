@@ -60,6 +60,12 @@ ifeq ($(CONSOLE),1)
 	EXTRA_QEMU_ARGS += -s -S -monitor stdio -no-reboot -no-shutdown
 endif
 
+ifneq ($(CONSOLE),1)
+	ifneq ($(DEBUG),1)
+		EXTRA_QEMU_ARGS += -serial stdio
+	endif
+endif
+
 DEFAULT_DRIVE_KIND=nvme
 ifeq ($(KARCH),riscv64)
 	DEFAULT_DRIVE_KIND = scsi
