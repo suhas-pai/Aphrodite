@@ -73,7 +73,7 @@ endif
 $(call USER_VARIABLE,EXTRA_KCFLAGS,$(COMMON_KCFLAGS))
 
 # User controllable C preprocessor flags. We set none by default.
-$(call USER_VARIABLE,EXTRA_KCPPFLAGS,-I..)
+$(call USER_VARIABLE,KCPPFLAGS,-I..)
 
 ifeq ($(KARCH), x86_64)
 # User controllable nasm flags.
@@ -85,7 +85,7 @@ $(call USER_VARIABLE,KLDFLAGS,)
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ) && echo 1),1)
-    ifeq ($(shell ( ! test -d freestanding-headers || ! test -f src/cc-runtime.c || ! test -f src/limine.h ) && echo 1),1)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -f src/cc-runtime.c || ! test -f src/limine.h ) && echo 1),1)
         $(error Please run the ./get-deps script first)
     endif
 endif
@@ -108,8 +108,8 @@ override KCFLAGS += \
 # Internal C preprocessor flags that should not be changed by the user.
 override KCPPFLAGS := \
 	-I src \
-	$(EXTRA_KCPPFLAGS) \
-	-isystem freestanding-headers \
+	-isystem freestnd-c-hdrs-0bsd \
+	$(KCPPFLAGS) \
 	-MMD \
 	-MP
 
@@ -302,7 +302,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -rf bin-* obj-* freestanding-headers
+	rm -rf bin-* obj-* freestnd-c-hdrs-0bsd
 	rm -f src/limine.h
 	rm -f src/dev/pci/vendors.h
 

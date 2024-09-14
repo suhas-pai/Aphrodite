@@ -200,8 +200,8 @@ isr_get_msix_address(const struct cpu_info *const cpu,
 __debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
     if (fadt != NULL) {
-        if (fadt->iapc_boot_arch_flags &
-                __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
+        if (fadt->iapc_boot_arch_flags
+              & __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
         {
             return ISR_MSI_SUPPORT_NONE;
         }
