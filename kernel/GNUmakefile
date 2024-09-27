@@ -12,13 +12,22 @@ override USER_VARIABLE = $(if $(filter $(origin $(1)),default undefined),$(eval 
 # Target architecture to build for. Default to x86_64.
 $(call USER_VARIABLE,KARCH,x86_64)
 
-# It is suggested to use a custom built cross toolchain to build a kernel.
-# We are using the standard "cc" here, it may work by using
-# the host system's toolchain, but this is not guaranteed.
-$(call USER_VARIABLE,KCC,clang)
+# Destination directory on install (should always be empty by default).
+$(call USER_VARIABLE,DESTDIR,)
+
+# Install prefix; /usr/local is a good, standard default pick.
+$(call USER_VARIABLE,PREFIX,/usr/local)
+
+# Check if the architecture is supported.
+ifeq ($(filter $(KARCH),aarch64 loongarch64 riscv64 x86_64),)
+    $(error Architecture $(KARCH) not supported)
+endif
+
+# User controllable C compiler command.
+$(call USER_VARIABLE,KCC,cc)
 
 # Same thing for "ld" (the linker).
-$(call USER_VARIABLE,KLD,ld.lld)
+$(call USER_VARIABLE,KLD,ld)
 
 override KLD_IS_LLD := no
 ifeq ($(shell $(KLD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
@@ -84,11 +93,14 @@ endif
 $(call USER_VARIABLE,KLDFLAGS,)
 
 # Ensure the dependencies have been obtained.
-ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ) && echo 1),1)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -f src/cc-runtime.c || ! test -f src/limine.h ) && echo 1),1)
+ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -f src/cc-runtime.c || ! test -f src/limine.h ); echo $$?),0)
         $(error Please run the ./get-deps script first)
     endif
 endif
+
+# Check if KCC is Clang.
+override KCC_IS_CLANG := $(shell ! $(KCC) --version | grep 'clang' >/dev/null 2>&1; echo $$?)
 
 # Internal C flags that should not be changed by the user.
 override KCFLAGS += \
@@ -120,14 +132,13 @@ ifeq ($(KARCH),x86_64)
 endif
 
 ifeq ($(RELEASE), 1)
-	ifeq ($(KCC),clang)
+	ifeq ($(KCC_IS_CLANG),1)
 		override KCFLAGS += \
 			-mllvm -enable-cond-stores-vec \
 			-mllvm -enable-loopinterchange \
 			-mllvm -enable-loop-distribute \
 			-mllvm -enable-unroll-and-jam \
 			-mllvm -enable-loop-flatten \
-			-mllvm -interleave-small-loop-scalar-reduction \
 			-mllvm -unroll-runtime-multi-exit \
 			-mllvm -aggressive-ext-opt
 	endif
@@ -145,7 +156,7 @@ endif
 
 # Architecture specific internal flags.
 ifeq ($(KARCH),x86_64)
-	ifeq ($(KCC),clang)
+	ifeq ($(KCC_IS_CLANG),1)
 		override KCC += \
 			-target x86_64-unknown-none
 	endif
@@ -164,7 +175,7 @@ ifeq ($(KARCH),x86_64)
 endif
 
 ifeq ($(KARCH),aarch64)
-	ifeq ($(KCC),clang)
+	ifeq ($(KCC_IS_CLANG),1)
 		override KCC += \
 			-target aarch64-unknown-none
 	else
@@ -179,7 +190,7 @@ ifeq ($(KARCH),aarch64)
 endif
 
 ifeq ($(KARCH),riscv64)
-	ifeq ($(KCC),clang)
+	ifeq ($(KCC_IS_CLANG),1)
 		override KCC += \
 			-target riscv64-unknown-none
 		override KCFLAGS += \
@@ -197,7 +208,7 @@ ifeq ($(KARCH),riscv64)
 endif
 
 ifeq ($(KARCH),loongarch64)
-    ifeq ($(KCC),clang)
+    ifeq ($(KCC_IS_CLANG),1)
         override KCC += \
             -target loongarch64-unknown-none
     endif

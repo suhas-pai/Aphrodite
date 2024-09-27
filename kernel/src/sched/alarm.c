@@ -5,7 +5,6 @@
 
 #include <stdatomic.h>
 
-#include "asm/irqs.h"
 #include "mm/kmalloc.h"
 #include "sched/scheduler.h"
 

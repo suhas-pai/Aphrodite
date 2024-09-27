@@ -16,6 +16,7 @@ clone_repo_commit() {
         fi
     else
         if test -d "$2"; then
+            set +x
             echo "error: '$2' is not a Git repository"
             exit 1
         fi
@@ -34,6 +35,7 @@ download_by_hash() {
     if ! command -v $DOWNLOAD_COMMAND >/dev/null 2>&1; then
         DOWNLOAD_COMMAND="wget -O"
         if ! command -v $DOWNLOAD_COMMAND >/dev/null 2>&1; then
+            set +x
             echo "error: Neither curl nor wget found"
             exit 1
         fi
@@ -42,6 +44,7 @@ download_by_hash() {
     if ! command -v $SHA256_COMMAND >/dev/null 2>&1; then
         SHA256_COMMAND="sha256"
         if ! command -v $SHA256_COMMAND >/dev/null 2>&1; then
+            set +x
             echo "error: Cannot find sha256(sum) command"
             exit 1
         fi
@@ -51,6 +54,7 @@ download_by_hash() {
         mkdir -p "$2" && rm -rf "$2"
         $DOWNLOAD_COMMAND "$2" $1
         if ! $SHA256_COMMAND "$2" | grep $3 >/dev/null 2>&1; then
+            set +x
             echo "error: Cannot download file '$2' by hash"
             echo "incorrect hash:"
             $SHA256_COMMAND "$2"
@@ -72,9 +76,9 @@ if ! test -f version; then
         199907f5303ab15a963377fabcc1f2ee736e4ed18d54c59aab08345aa5485e8a
 
     download_by_hash \
-        https://github.com/limine-bootloader/limine/raw/cf501adb63e2d5d7a68911887df6651bde4348aa/limine.h \
+        https://github.com/limine-bootloader/limine/raw/97c31196a9aec28b36ed9ff64d6df77a061c3d9b/limine.h \
         src/limine.h \
-        de2789b4dfceda28a11e98603a302d8d7ebbc2c1f87fa90ea475e37a991b4209
+        3a018a8326adb5e6cff14a8595c775fd88235eb3e5fde4a135132b6398d165d5
 
     download_by_hash \
         https://gist.githubusercontent.com/suhas-pai/2a6c1c4d32491aaf363ee3b1b3884390/raw/541482dbc61862bba8a156edaae57faa2995d791/stdatomic.h \

@@ -18,7 +18,7 @@
 #include "walker.h"
 #include "zone.h"
 
-struct freepages_info {
+struct freepage_list_info {
     struct list list;
     struct list asc_list;
 
@@ -29,8 +29,8 @@ struct freepages_info {
 } __page_aligned;
 
 static inline void
-freepages_info_init(struct freepages_info *const info,
-                    const uint64_t page_count)
+freepage_list_info_init(struct freepage_list_info *const info,
+                        const uint64_t page_count)
 {
     list_init(&info->list);
     list_init(&info->asc_list);
@@ -39,7 +39,7 @@ freepages_info_init(struct freepages_info *const info,
     info->total_page_count = page_count;
 }
 
-_Static_assert(sizeof(struct freepages_info) <= PAGE_SIZE,
+_Static_assert(sizeof(struct freepage_list_info) <= PAGE_SIZE,
                "freepages_info struct must be small enough to store on a "
                "single page");
 
@@ -58,10 +58,10 @@ static uint64_t g_total_free_pages = 0;
 static uint64_t g_total_free_pages_remaining = 0;
 
 __debug_optimize(3)
-static void add_to_asc_list(struct freepages_info *const info) {
-    struct freepages_info *iter = NULL;
-    struct freepages_info *prev =
-        container_of(&g_asc_freelist, struct freepages_info, asc_list);
+static void add_to_asc_list(struct freepage_list_info *const info) {
+    struct freepage_list_info *iter = NULL;
+    struct freepage_list_info *prev =
+        container_of(&g_asc_freelist, struct freepage_list_info, asc_list);
 
     list_foreach(iter, &g_asc_freelist, asc_list) {
         if (info->avail_page_count < iter->avail_page_count) {
@@ -89,16 +89,16 @@ static void claim_pages(const struct mm_memmap *const memmap) {
     const struct range phys_range = memmap->range;
 #endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
 
-    struct freepages_info *const info = phys_to_virt(phys_range.front);
+    struct freepage_list_info *const info = phys_to_virt(phys_range.front);
     const uint64_t page_count = PAGE_COUNT(memmap->range.size);
 
-    freepages_info_init(info, page_count);
+    freepage_list_info_init(info, page_count);
 
     g_total_free_pages += page_count;
     g_total_free_pages_remaining += page_count;
 
-    struct freepages_info *prev =
-        list_tail(&g_freepage_list, struct freepages_info, list);
+    struct freepage_list_info *prev =
+        list_tail(&g_freepage_list, struct freepage_list_info, list);
 
     if (&prev->list != &g_freepage_list) {
         /*
@@ -108,9 +108,10 @@ static void claim_pages(const struct mm_memmap *const memmap) {
          */
 
         if (prev > info) {
-            prev = container_of(&g_freepage_list, struct freepages_info, list);
-            struct freepages_info *iter = NULL;
+            prev =
+                container_of(&g_freepage_list, struct freepage_list_info, list);
 
+            struct freepage_list_info *iter = NULL;
             list_foreach(iter, &g_freepage_list, list) {
                 if (info < iter) {
                     break;
@@ -121,7 +122,7 @@ static void claim_pages(const struct mm_memmap *const memmap) {
 
             // Merge with the memmap after prev if possible.
 
-            struct freepages_info *next = list_next(prev, list);
+            struct freepage_list_info *next = list_next(prev, list);
             const uint64_t info_size = info->avail_page_count << PAGE_SHIFT;
 
             if ((void *)info + info_size == (void *)next) {
@@ -139,7 +140,7 @@ static void claim_pages(const struct mm_memmap *const memmap) {
                 prev->avail_page_count += page_count;
                 prev->total_page_count += page_count;
 
-                struct freepages_info *const prev_next =
+                struct freepage_list_info *const prev_next =
                     list_next_safe(prev, list, &g_freepage_list);
 
                 if (prev_next != NULL
@@ -164,8 +165,8 @@ __debug_optimize(3) uint64_t early_alloc_page() {
         return INVALID_PHYS;
     }
 
-    struct freepages_info *const info =
-        list_head(&g_asc_freelist, struct freepages_info, asc_list);
+    struct freepage_list_info *const info =
+        list_head(&g_asc_freelist, struct freepage_list_info, asc_list);
 
     info->avail_page_count -= 1;
     if (info->avail_page_count == 0) {
@@ -191,7 +192,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
         return INVALID_PHYS;
     }
 
-    struct freepages_info *info = NULL;
+    struct freepage_list_info *info = NULL;
 
     uint64_t free_page = INVALID_PHYS;
     bool is_in_middle = false;
@@ -228,14 +229,14 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
     }
 
     if (is_in_middle) {
-        struct freepages_info *prev = info;
+        struct freepage_list_info *prev = info;
         const uint64_t old_info_count = info->avail_page_count;
 
         info->avail_page_count = PAGE_COUNT(free_page - virt_to_phys(info));
         info->total_page_count = info->avail_page_count + alloc_amount;
 
         if (info->avail_page_count != 0) {
-            struct freepages_info *const info_prev =
+            struct freepage_list_info *const info_prev =
                 list_prev_safe(info, asc_list, &g_asc_freelist);
 
             if (info_prev != NULL) {
@@ -256,8 +257,10 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
             old_info_count - info->avail_page_count - alloc_amount;
 
         if (new_info_count != 0) {
-            struct freepages_info *const new_info = phys_to_virt(new_info_phys);
-            freepages_info_init(new_info, /*page_count=*/new_info_count);
+            struct freepage_list_info *const new_info =
+                phys_to_virt(new_info_phys);
+
+            freepage_list_info_init(new_info, /*page_count=*/new_info_count);
 
             list_add(&prev->list, &new_info->list);
             add_to_asc_list(new_info);
@@ -265,7 +268,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
     } else {
         info->avail_page_count -= alloc_amount;
         if (info->avail_page_count != 0) {
-            const struct freepages_info *const prev =
+            const struct freepage_list_info *const prev =
                 list_prev_safe(info, asc_list, &g_asc_freelist);
 
             if (prev != NULL) {
@@ -606,7 +609,7 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
 
 __debug_optimize(3)
 static void mark_crucial_pages(const struct page_section *const memmap) {
-    struct freepages_info *iter = NULL;
+    struct freepage_list_info *iter = NULL;
     list_foreach(iter, &g_asc_freelist, asc_list) {
         uint64_t iter_phys = virt_to_phys(iter);
         if (!range_has_loc(memmap->range, iter_phys)) {
@@ -691,7 +694,7 @@ __debug_optimize(3) static void
 set_section_for_pages(const struct page_section *const memmap,
                       const page_section_t section)
 {
-    struct freepages_info *iter = NULL;
+    struct freepage_list_info *iter = NULL;
     list_foreach(iter, &g_freepage_list, list) {
         uint64_t iter_phys = virt_to_phys(iter);
         uint64_t back_phys =
@@ -722,8 +725,8 @@ set_section_for_pages(const struct page_section *const memmap,
 }
 
 __debug_optimize(3) static uint64_t free_all_pages() {
-    struct freepages_info *iter = NULL;
-    struct freepages_info *tmp = NULL;
+    struct freepage_list_info *iter = NULL;
+    struct freepage_list_info *tmp = NULL;
 
     /*
      * Free pages into the buddy allocator while ensuring
