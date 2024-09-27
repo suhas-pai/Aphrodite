@@ -78,7 +78,7 @@ Several variables are available to configure how the project is built:
     but also accepts `aarch64`, `riscv64`, `loongarch64` as inputs to run the
     project on the respective architecture.
  * `KCC=`, `KLD=` detail the compiler and linker used to build the *kernel*.
-   Default is `KCC=clang` `KLD=ld.lld`.
+   Default is `KCC=cc` `KLD=ld`.
 
 ## Running
 
