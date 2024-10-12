@@ -22,9 +22,11 @@ struct freepage_list_info {
     struct list list;
     struct list asc_list;
 
-    // Number of available pages in this freepages_info struct.
+    // Number of available pages in this freepage_list_info struct.
     uint64_t avail_page_count;
-    // Count of contiguous pages, starting from this one
+
+    // Count of contiguous pages, starting from this one, including the count of
+    // already allocated pages.
     uint64_t total_page_count;
 } __page_aligned;
 
@@ -40,7 +42,7 @@ freepage_list_info_init(struct freepage_list_info *const info,
 }
 
 _Static_assert(sizeof(struct freepage_list_info) <= PAGE_SIZE,
-               "freepages_info struct must be small enough to store on a "
+               "freepage_list_info struct must be small enough to store on a "
                "single page");
 
 // Use two lists of usuable pages:
@@ -175,7 +177,7 @@ __debug_optimize(3) uint64_t early_alloc_page() {
     }
 
     // Take the last page out of the list, because the first page stores the
-    // freepages_info struct.
+    // freepage_list_info struct.
 
     const uint64_t free_page =
         virt_to_phys(info) + (info->avail_page_count << PAGE_SHIFT);
@@ -679,7 +681,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
         }
     }
 
-    // If we couldn't find a corresponding freepages_info struct, then this
+    // If we couldn't find a corresponding freepage_list_info struct, then this
     // entire memmap has been used, and needs to be marked as such.
 
     const uint64_t memmap_page_count = PAGE_COUNT(memmap->range.size);

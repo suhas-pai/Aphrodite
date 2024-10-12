@@ -31,7 +31,7 @@ static int fdt_rw_probe_(void *fdt)
 
     if (!can_assume(LATEST) && fdt_version(fdt) < 17)
         return -FDT_ERR_BADVERSION;
-    if (fdt_blocks_misordered_(fdt, sizeof(struct fdt_reserve_entry),
+    if ((int)fdt_blocks_misordered_(fdt, sizeof(struct fdt_reserve_entry),
                    (int)fdt_size_dt_struct(fdt)))
         return -FDT_ERR_BADLAYOUT;
     if (!can_assume(LATEST) && fdt_version(fdt) > 17)
@@ -61,9 +61,9 @@ static int fdt_splice_(void *fdt, void *splicepoint, int oldlen, int newlen)
     if ((oldlen < 0) || (soff + (size_t)oldlen < soff) ||
         (soff + (size_t)oldlen > dsize))
         return -FDT_ERR_BADOFFSET;
-    if ((p < (char *)fdt) || (dsize + (unsigned)newlen < (unsigned)oldlen))
+    if ((p < (char *)fdt) || (dsize + (unsigned int)newlen < (unsigned)oldlen))
         return -FDT_ERR_BADOFFSET;
-    if (dsize - (unsigned)oldlen + (unsigned)newlen > fdt_totalsize(fdt))
+    if (dsize - (unsigned)oldlen + (unsigned int)newlen > fdt_totalsize(fdt))
         return -FDT_ERR_NOSPACE;
     memmove(p + newlen, p + oldlen,
             (unsigned long)((char *)fdt + dsize) - (unsigned long)(p + oldlen));
@@ -73,10 +73,10 @@ static int fdt_splice_(void *fdt, void *splicepoint, int oldlen, int newlen)
 static int fdt_splice_mem_rsv_(void *fdt, struct fdt_reserve_entry *p,
                    int oldn, int newn)
 {
-    int delta = (unsigned long)(newn - oldn) * sizeof(*p);
+    int delta = (int)((unsigned long)(newn - oldn) * sizeof(*p));
     int err;
-    err = fdt_splice_(fdt, p, (unsigned long)oldn * sizeof(*p),
-                      (unsigned long)newn * sizeof(*p));
+    err = fdt_splice_(fdt, p, (int)((unsigned long)oldn * sizeof(*p)),
+                      (int)((unsigned long)newn * sizeof(*p)));
     if (err)
         return err;
     fdt_set_off_dt_struct(fdt, fdt_off_dt_struct(fdt) + (uint32_t)delta);
@@ -256,7 +256,7 @@ int fdt_set_name(void *fdt, int nodeoffset, const char *name)
     if (err)
         return err;
 
-    memcpy(namep, name, (unsigned long)newlen+1);
+    memcpy(namep, name, (unsigned long)(newlen+1));
     return 0;
 }
 
@@ -364,7 +364,8 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
     } while ((tag == FDT_PROP) || (tag == FDT_NOP));
 
     nh = fdt_offset_ptr_w_(fdt, offset);
-    nodelen = (int)(sizeof(*nh) + FDT_TAGALIGN((unsigned long)namelen+1) +
+    nodelen =
+        (int)(sizeof(*nh) + FDT_TAGALIGN((unsigned long)namelen+1) +
               FDT_TAGSIZE);
 
     err = fdt_splice_struct_(fdt, nh, 0, nodelen);
@@ -436,8 +437,8 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 
     FDT_RO_PROBE(fdt);
 
-    mem_rsv_size = (unsigned long)(fdt_num_mem_rsv(fdt)+1)
-        * sizeof(struct fdt_reserve_entry);
+    mem_rsv_size = (int)(((unsigned long)(fdt_num_mem_rsv(fdt)+1))
+        * sizeof(struct fdt_reserve_entry));
 
     if (can_assume(LATEST) || fdt_version(fdt) >= 17) {
         struct_size = (int)fdt_size_dt_struct(fdt);
@@ -464,9 +465,8 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
     }
 
     /* Need to reorder */
-    newsize = (int)FDT_ALIGN(sizeof(struct fdt_header), 8u +
-        (unsigned)mem_rsv_size + (unsigned)struct_size +
-        fdt_size_dt_strings(fdt));
+    newsize = (int)FDT_ALIGN(sizeof(struct fdt_header), 8u) + mem_rsv_size
+        + struct_size + (int)fdt_size_dt_strings(fdt);
 
     if (bufsize < newsize)
         return -FDT_ERR_NOSPACE;

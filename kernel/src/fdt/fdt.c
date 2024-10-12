@@ -172,7 +172,7 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
     if (!can_assume(VALID_DTB) && !tagp)
         return FDT_END; /* premature end */
     tag = fdt32_to_cpu(*tagp);
-    offset += (int)FDT_TAGSIZE;
+    offset += FDT_TAGSIZE;
 
     *nextoffset = -FDT_ERR_BADSTRUCTURE;
     switch (tag) {
@@ -197,7 +197,7 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
             return FDT_END; /* premature end */
 
         /* skip-name offset, length and value */
-        offset += (int)(sizeof(struct fdt_property) - FDT_TAGSIZE + len);
+        offset += sizeof(struct fdt_property) - FDT_TAGSIZE + len;
 
         if (!can_assume(LATEST) &&
             fdt_version(fdt) < 0x10 && len >= 8 &&
@@ -217,7 +217,7 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
     if (!fdt_offset_ptr(fdt, startoffset, (unsigned)(offset - startoffset)))
         return FDT_END; /* premature end */
 
-    *nextoffset = FDT_TAGALIGN((unsigned long)offset);
+    *nextoffset = (int)FDT_TAGALIGN((unsigned long)offset);
     return tag;
 }
 

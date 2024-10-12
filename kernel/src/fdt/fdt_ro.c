@@ -68,7 +68,7 @@ const char *fdt_get_string(const void *fdt, int stroffset, int *lenp)
                 len = fdt_size_dt_strings(fdt) - (uint32_t)stroffset;
         }
     } else if (fdt_magic(fdt) == FDT_SW_MAGIC) {
-        unsigned int sw_stroffset = -(unsigned)stroffset;
+        unsigned int sw_stroffset = (unsigned)-stroffset;
 
         if ((stroffset >= 0) ||
             (sw_stroffset > fdt_size_dt_strings(fdt)))
@@ -255,6 +255,9 @@ int fdt_path_offset_namelen(const void *fdt, const char *path, int namelen)
     int offset = 0;
 
     FDT_RO_PROBE(fdt);
+
+    if (!can_assume(VALID_INPUT) && namelen <= 0)
+        return -FDT_ERR_BADPATH;
 
     /* see if we have an alias */
     if (*path != '/') {
@@ -525,21 +528,47 @@ uint32_t fdt_get_phandle(const void *fdt, int nodeoffset)
     return fdt32_ld_(php);
 }
 
+static const void *fdt_path_getprop_namelen(const void *fdt, const char *path,
+                        const char *propname, int propnamelen,
+                        int *lenp)
+{
+    int offset = fdt_path_offset(fdt, path);
+
+    if (offset < 0)
+        return NULL;
+
+    return fdt_getprop_namelen(fdt, offset, propname, propnamelen, lenp);
+}
+
 const char *fdt_get_alias_namelen(const void *fdt,
                   const char *name, int namelen)
 {
-    int aliasoffset;
+    int len;
+    const char *alias;
 
-    aliasoffset = fdt_path_offset(fdt, "/aliases");
-    if (aliasoffset < 0)
+    alias = fdt_path_getprop_namelen(fdt, "/aliases", name, namelen, &len);
+
+    if (!can_assume(VALID_DTB) &&
+        !(alias && len > 0 && alias[len - 1] == '\0' && *alias == '/'))
         return NULL;
 
-    return fdt_getprop_namelen(fdt, aliasoffset, name, namelen, NULL);
+    return alias;
 }
 
 const char *fdt_get_alias(const void *fdt, const char *name)
 {
     return fdt_get_alias_namelen(fdt, name, strlen(name));
+}
+
+const char *fdt_get_symbol_namelen(const void *fdt,
+                   const char *name, int namelen)
+{
+    return fdt_path_getprop_namelen(fdt, "/__symbols__", name, namelen, NULL);
+}
+
+const char *fdt_get_symbol(const void *fdt, const char *name)
+{
+    return fdt_get_symbol_namelen(fdt, name, strlen(name));
 }
 
 int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
@@ -716,7 +745,7 @@ int fdt_stringlist_contains(const char *strlist, int listlen, const char *str)
     const char *p;
 
     while (listlen >= len) {
-        if (memcmp(str, strlist, (size_t)len+1) == 0)
+        if (memcmp(str, strlist, (size_t)(len+1)) == 0)
             return 1;
         p = memchr(strlist, '\0', (size_t)listlen);
         if (!p)

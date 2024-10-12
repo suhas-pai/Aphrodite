@@ -88,11 +88,9 @@ VIRTIO_HDD_QEMU_ARG=""
 
 QEMU_CDROM_ARGS=\
 	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(KARCH).fd,readonly=on \
-	-drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-$(KARCH).fd
 
 QEMU_HDD_ARGS=\
 	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(KARCH).fd,readonly=on \
-	-drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-$(KARCH).fd
 
 ifeq ($(DRIVE_KIND),block)
 	ifeq ($(KARCH),riscv64)
@@ -138,7 +136,7 @@ run: run-$(KARCH)
 run-hdd: run-hdd-$(KARCH)
 
 .PHONY: run-x86_64
-run-x86_64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+run-x86_64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 	qemu-system-$(KARCH) \
 		-cpu max \
 		$(QEMUFLAGS) \
@@ -146,7 +144,7 @@ run-x86_64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-x86_64
-run-hdd-x86_64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+run-hdd-x86_64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
 	qemu-system-$(KARCH) \
 		-cpu max \
 		$(QEMUFLAGS) \
@@ -154,7 +152,7 @@ run-hdd-x86_64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NA
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-aarch64
-run-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+run-aarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
@@ -166,7 +164,7 @@ run-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME)
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-aarch64
-run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
 	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
@@ -178,7 +176,7 @@ run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_N
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-riscv64
-run-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+run-riscv64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
@@ -190,7 +188,7 @@ run-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME)
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-riscv64
-run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
 	qemu-system-$(KARCH) \
 		-cpu max \
 		-device ramfb \
@@ -202,7 +200,7 @@ run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_N
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-loongarch64
-run-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).iso
+run-loongarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 	qemu-system-$(KARCH) \
 		-device ramfb \
 		-device qemu-xhci \
@@ -213,7 +211,7 @@ run-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_N
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-loongarch64
-run-hdd-loongarch64: ovmf/ovmf-code-$(KARCH).fd ovmf/ovmf-vars-$(KARCH).fd $(IMAGE_NAME).hdd
+run-hdd-loongarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
 	qemu-system-$(KARCH) \
 		-device ramfb \
 		-device qemu-xhci \
@@ -243,14 +241,6 @@ run-hdd-bios: $(IMAGE_NAME).hdd
 ovmf/ovmf-code-$(KARCH).fd:
 	mkdir -p ovmf
 	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(KARCH).fd
-	case "$(KARCH)" in \
-		aarch64) dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null;; \
-		riscv64) dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null;; \
-	esac
-
-ovmf/ovmf-vars-$(KARCH).fd:
-	mkdir -p ovmf
-	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-$(KARCH).fd
 	case "$(KARCH)" in \
 		aarch64) dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null;; \
 		riscv64) dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null;; \

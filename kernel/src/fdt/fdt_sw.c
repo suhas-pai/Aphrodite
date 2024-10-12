@@ -132,9 +132,9 @@ int fdt_create_with_flags(void *buf, int bufsize, uint32_t flags)
     fdt_set_version(fdt, FDT_LAST_SUPPORTED_VERSION);
     fdt_set_last_comp_version(fdt, flags);
 
-    fdt_set_totalsize(fdt,  (uint32_t)bufsize);
+    fdt_set_totalsize(fdt, (uint32_t)bufsize);
 
-    fdt_set_off_mem_rsvmap(fdt, (uint32_t)hdrsize);
+    fdt_set_off_mem_rsvmap(fdt, hdrsize);
     fdt_set_off_dt_struct(fdt, fdt_off_mem_rsvmap(fdt));
     fdt_set_off_dt_strings(fdt, 0);
 
@@ -310,7 +310,8 @@ int fdt_property_placeholder(void *fdt, const char *name, int len, void **valp)
     if (nameoff == 0)
         return -FDT_ERR_NOSPACE;
 
-    prop = fdt_grab_space_(fdt, sizeof(*prop) + FDT_TAGALIGN((unsigned long)len));
+    prop = fdt_grab_space_(fdt,
+                           sizeof(*prop) + FDT_TAGALIGN((unsigned long)len));
     if (! prop) {
         if (allocated)
             fdt_del_last_string_(fdt, name);

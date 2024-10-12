@@ -66,7 +66,7 @@ int fdt_nop_property(void *fdt, int nodeoffset, const char *name)
     if (!prop)
         return len;
 
-    fdt_nop_region_(prop, (unsigned long)len + sizeof(*prop));
+    fdt_nop_region_(prop, (int)((unsigned long)len + sizeof(*prop)));
 
     return 0;
 }
