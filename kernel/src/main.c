@@ -30,7 +30,7 @@
 // See specification for further info.
 
 __attribute__((used, section(".requests")))
-static volatile LIMINE_BASE_REVISION(2)
+static volatile LIMINE_BASE_REVISION(3)
 
 static void test_alloc_largepage() {
     struct page *const largepage =
@@ -73,7 +73,6 @@ void kmain(void) {
 
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
     boot_init();
-    acpi_parse_tables();
     setup_flanterm();
 
     mm_early_init();

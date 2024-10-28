@@ -389,7 +389,7 @@ void madt_init(const struct acpi_madt *const madt) {
                     if (gicv2_cpu_intr_phys_addr != cpu->phys_base_address) {
                         printk(LOGLEVEL_WARN,
                                "madt: gic cpu-interface has multiple "
-                               "conflicitng phys-addresses: 0x%" PRIx64 " vs "
+                               "conflicting phys-addresses: 0x%" PRIx64 " vs "
                                "0x%" PRIx64 "\n",
                                gicv2_cpu_intr_phys_addr,
                                cpu->phys_base_address);
@@ -458,14 +458,14 @@ void madt_init(const struct acpi_madt *const madt) {
                        "\tmsi frame id: %" PRIu32 "\n"
                        "\tphys base address: 0x%" PRIx64 "\n"
                        "\tflags: 0x%" PRIx8 "\n"
-                       "\t\toverride msi_typer: %s\n"
+                       "\t\toverride msi-typer: %s\n"
                        "\tspi count: %" PRIu16 "\n"
                        "\tspi base: %" PRIu16 "\n",
                        frame->msi_frame_id,
                        frame->phys_base_address,
                        frame->flags,
                        frame->flags &
-                        __ACPI_MADT_GICMSI_FRAME_OVERR_MSI_TYPERR ?
+                        __ACPI_MADT_GICMSI_FRAME_OVERRIDE_MSI_TYPERR ?
                             "yes" : "no",
                        frame->spi_count,
                        frame->spi_base);
@@ -492,7 +492,7 @@ void madt_init(const struct acpi_madt *const madt) {
 
                 if (!range_create_and_verify(
                         redist->discovery_range_base_address,
-                        redist->dicovery_range_length,
+                        redist->discovery_range_length,
                         &gicv3_redist_discovery_range))
                 {
                     printk(LOGLEVEL_INFO,
@@ -819,7 +819,7 @@ void madt_init(const struct acpi_madt *const madt) {
             if (cpu == NULL) {
                 printk(LOGLEVEL_WARN,
                        "madt: found hart irq controller pointing to unknown "
-                       "cpu, with hartid: %" PRIu64 "\n",
+                       "cpu, with hart-id: %" PRIu64 "\n",
                        ctrlr->hart_id);
 
                 continue;

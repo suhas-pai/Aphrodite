@@ -16,8 +16,8 @@ struct page_zone {
     _Atomic uint64_t total_free;
 };
 
-struct page_zone *page_zone_iterstart();
-struct page_zone *page_zone_iternext(struct page_zone *prev);
+struct page_zone *page_zoneiter_start();
+struct page_zone *page_zoneiter_next(struct page_zone *prev);
 
 struct page_zone *page_to_zone(const struct page *page);
 struct page_zone *phys_to_zone(uint64_t phys);
@@ -26,6 +26,6 @@ struct page_zone *page_zone_default();
 struct page_zone *page_zone_low4g();
 
 #define for_each_page_zone(zone) \
-    for (__auto_type zone = page_zone_iterstart(); \
+    for (__auto_type zone = page_zoneiter_start(); \
          zone != NULL;                             \
-         zone = page_zone_iternext(zone))
+         zone = page_zoneiter_next(zone))

@@ -614,7 +614,7 @@ setup_alloced_page(struct page *const page,
                    const enum page_state state,
                    const uint64_t alloc_flags,
                    const uint8_t order,
-                   const struct largepage_level_info *const largeinfo)
+                   const struct largepage_level_info *const large_info)
 {
     switch (state) {
         case PAGE_STATE_SYSTEM_CRUCIAL:
@@ -667,7 +667,7 @@ setup_alloced_page(struct page *const page,
             refcount_init(&page->largehead.page_refcount);
 
             list_init(&page->largehead.delayed_free_list);
-            page->largehead.level = largeinfo->level;
+            page->largehead.level = large_info->level;
 
             if (alloc_flags & __ALLOC_ZERO) {
                 zero_multiple_pages(page_to_virt(page), 1ull << order);
@@ -701,7 +701,7 @@ alloc_pages(const enum page_state state,
                                       state,
                                       alloc_flags,
                                       order,
-                                      /*largeinfo=*/NULL);
+                                      /*large_info=*/NULL);
         }
 
         zone = zone->fallback_zone;
@@ -729,7 +729,7 @@ alloc_pages_from_zone(struct page_zone *zone,
                                   state,
                                   alloc_flags,
                                   order,
-                                  /*largeinfo=*/NULL);
+                                  /*large_info=*/NULL);
     }
 
     if (!allow_fallback) {
@@ -773,7 +773,7 @@ alloc_pages_at_align(const enum page_state state,
                                       state,
                                       alloc_flags,
                                       order,
-                                      /*largeinfo=*/NULL);
+                                      /*large_info=*/NULL);
         }
 
         zone = zone->fallback_zone;
@@ -804,7 +804,7 @@ alloc_pages_from_zone_at_align(struct page_zone *zone,
                                   state,
                                   alloc_flags,
                                   order,
-                                  /*largeinfo=*/NULL);
+                                  /*large_info=*/NULL);
     }
 
     if (!allow_fallback) {
@@ -865,7 +865,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
 
 struct page *
 alloc_large_page(const pgt_level_t level, const uint64_t alloc_flags) {
-    struct page_zone *zone = page_zone_iterstart();
+    struct page_zone *zone = page_zoneiter_start();
     const struct largepage_level_info *const info =
         &largepage_level_info_list[level - 1];
 

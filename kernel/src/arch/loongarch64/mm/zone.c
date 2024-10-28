@@ -30,12 +30,12 @@ __debug_optimize(3) struct page_zone *phys_to_zone(const uint64_t phys) {
     return &zone_default;
 }
 
-__debug_optimize(3) struct page_zone *page_zone_iterstart() {
+__debug_optimize(3) struct page_zone *page_zoneiter_start() {
     return &zone_default;
 }
 
 __debug_optimize(3)
-struct page_zone *page_zone_iternext(struct page_zone *const zone) {
+struct page_zone *page_zoneiter_next(struct page_zone *const zone) {
     return zone->fallback_zone;
 }
 

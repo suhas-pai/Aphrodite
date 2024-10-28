@@ -167,6 +167,17 @@ void boot_init() {
     assert(memmap_request.response != NULL);
     assert(paging_mode_request.response != NULL);
 
+    HHDM_OFFSET = hhdm_request.response->offset;
+    KERNEL_BASE = kern_addr_request.response->virtual_base;
+    PAGING_MODE = paging_mode_request.response->mode;
+
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv64) \
+ || defined(__loongarch64)
+    g_slide = KERNEL_BASE - 0xffffffff80000000;
+#else
+    #error "Unrecognized architecture when calculating slide"
+#endif
+
     if (framebuffer_request.response != NULL) {
         framebuffer_resp = *framebuffer_request.response;
     }
@@ -178,19 +189,8 @@ void boot_init() {
 
     if (rsdp_request.response != NULL && rsdp_request.response->address != NULL)
     {
-        rsdp = rsdp_request.response->address;
+        rsdp = phys_to_virt((uint64_t)rsdp_request.response->address);
     }
-
-    HHDM_OFFSET = hhdm_request.response->offset;
-    KERNEL_BASE = kern_addr_request.response->virtual_base;
-    PAGING_MODE = paging_mode_request.response->mode;
-
-#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv64) \
- || defined(__loongarch64)
-    g_slide = KERNEL_BASE - 0xffffffff80000000;
-#else
-    #error "Unrecognized architecture when calculating slide"
-#endif
 
     const struct limine_memmap_response *const resp = memmap_request.response;
 
@@ -221,6 +221,14 @@ void boot_init() {
 
         if (!range_align_out(range, /*boundary=*/PAGE_SIZE, &range)) {
             panic("boot: failed to align memmap");
+        }
+
+        if (range.front == 0) {
+            if (range.size == PAGE_SIZE) {
+                continue;
+            }
+
+            range = subrange_from_index(range, PAGE_SIZE);
         }
 
         // If we find overlapping memmaps, try and fix the range of our current
@@ -276,9 +284,11 @@ void boot_post_early_init() {
            "boot: there are %" PRIu8 " usable memmaps\n",
            mm_page_section_count);
 
+#if !defined(__x86_64__)
     if (dtb_request.response == NULL || dtb_request.response->dtb_ptr == NULL) {
         printk(LOGLEVEL_WARN, "boot: device tree is missing\n");
     }
+#endif /* !defined(__x86_64__) */
 
     if (rsdp_request.response == NULL || rsdp_request.response->address == NULL)
     {

@@ -45,7 +45,7 @@ _Static_assert(sizeof(struct freepage_list_info) <= PAGE_SIZE,
                "freepage_list_info struct must be small enough to store on a "
                "single page");
 
-// Use two lists of usuable pages:
+// Use two lists of usable pages:
 //  One that stores pages in ascending address order,
 //  One that stores pages in ascending order of the number of free pages.
 
@@ -491,7 +491,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
             // going down to either a smaller large page or a normal sized leaf
             // page.
 
-            // Initialize the tables inbetween our previous table, and our
+            // Initialize the tables in between our previous table, and our
             // current table.
 
             for (pgt_level_t level = (pgt_level_t)walker.level;

@@ -76,10 +76,12 @@ static inline void acpi_recurse(void (*callback)(const struct acpi_sdt *)) {
 
 __debug_optimize(3)
 static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
+    const struct string_view signature_sv =
+        sv_create_nocheck(sdt->signature, sizeof(sdt->signature));
+
     printk(LOGLEVEL_INFO,
            "acpi: found sdt \"" SV_FMT "\"\n",
-           SV_FMT_ARGS(
-            sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
+           SV_FMT_ARGS(signature_sv));
 
     if (memcmp(sdt->signature, "APIC", sizeof(sdt->signature)) == 0) {
         g_info.madt = (const struct acpi_madt *)sdt;
@@ -109,7 +111,15 @@ static inline void acpi_init_each_sdt(const struct acpi_sdt *const sdt) {
 #endif /* defined(__aarch64__) */
 }
 
-void acpi_parse_tables() {
+__debug_optimize(3)
+static inline void acpi_print_each_sdt(const struct acpi_sdt *const sdt) {
+    printk(LOGLEVEL_INFO,
+           "acpi: found sdt \"" SV_FMT "\"\n",
+           SV_FMT_ARGS(
+            sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
+}
+
+void acpi_init(void) {
     g_info.rsdp = boot_get_rsdp();
     if (g_info.rsdp == NULL) {
         printk(LOGLEVEL_WARN, "acpi: tables are missing\n");
@@ -128,20 +138,6 @@ void acpi_parse_tables() {
     }
 
     acpi_recurse(acpi_init_each_sdt);
-}
-
-__debug_optimize(3)
-static inline void acpi_print_each_sdt(const struct acpi_sdt *const sdt) {
-    printk(LOGLEVEL_INFO,
-           "acpi: found sdt \"" SV_FMT "\"\n",
-           SV_FMT_ARGS(
-            sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
-}
-
-void acpi_init(void) {
-    if (g_info.rsdp == NULL) {
-        return;
-    }
 
     const uint64_t oem_id_length =
         strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));

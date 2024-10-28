@@ -210,7 +210,7 @@ struct acpi_madt_entry_gic_distributor {
 } __packed;
 
 enum acpi_madt_entry_gic_msi_frame_flags {
-    __ACPI_MADT_GICMSI_FRAME_OVERR_MSI_TYPERR = 1 << 0,
+    __ACPI_MADT_GICMSI_FRAME_OVERRIDE_MSI_TYPERR = 1 << 0,
 };
 
 struct acpi_madt_entry_gic_msi_frame {
@@ -229,7 +229,7 @@ struct acpi_madt_entry_gicv3_redistributor {
     uint16_t reserved;
 
     uint64_t discovery_range_base_address;
-    uint32_t dicovery_range_length;
+    uint32_t discovery_range_length;
 } __packed;
 
 struct acpi_madt_entry_gic_its {
@@ -605,7 +605,7 @@ struct acpi_fadt {
     uint8_t preferred_power_management_profile;
 
     uint16_t sci_interrupt;
-    uint32_t smi_commandport;
+    uint32_t smi_command_port;
 
     uint8_t acpi_enable;
     uint8_t acpi_disable;
@@ -1005,7 +1005,7 @@ enum acpi_spcr_terminal_kind {
 };
 
 enum acpi_spcr_pci_flags {
-    __ACPI_SPCR_PCI_DONT_SUPRESS_PNP = 1 << 0
+    __ACPI_SPCR_PCI_DONT_SUPPRESS_PNP = 1 << 0
 };
 
 struct acpi_spcr {
