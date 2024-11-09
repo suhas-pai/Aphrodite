@@ -4,6 +4,8 @@
  */
 
 #include "asm/irqs.h"
+#include "sched/scheduler.h"
+
 #include "event.h"
 
 __debug_optimize(3) static inline void

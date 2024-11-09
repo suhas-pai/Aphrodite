@@ -4,9 +4,7 @@
  */
 
 #include "dev/dtb/init.h"
-
 #include "asm/irqs.h"
-#include "acpi/api.h"
 
 #include "cpu/init.h"
 #include "cpu/isr.h"
@@ -25,7 +23,7 @@
 
 #include "sys/boot.h"
 
-// Set the base revision to 1, this is recommended as this is the latest
+// Set the base revision to 3, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
 // See specification for further info.
 

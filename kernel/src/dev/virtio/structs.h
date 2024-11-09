@@ -50,7 +50,7 @@ enum virtio_device_kind {
     VIRTIO_DEVICE_KIND_VIDEO_ENCODER_DEVICE,
     VIRTIO_DEVICE_KIND_VIDEO_DECODER_DEVICE,
     VIRTIO_DEVICE_KIND_SCMI_DEVICE,
-    VIRTIO_DEVICE_KIND_NITRO_SECURE_MDOEL,
+    VIRTIO_DEVICE_KIND_NITRO_SECURE_MODEL,
     VIRTIO_DEVICE_KIND_I2C_ADAPTER,
     VIRTIO_DEVICE_KIND_WATCHDOG,
     VIRTIO_DEVICE_KIND_CAN_DEVICE,
@@ -264,7 +264,7 @@ enum virtio_device_feature_bits {
      * translates bus addresses from the device into physical addresses in
      * memory, if the device can be limited to only access certain memory
      * addresses or if special commands such as a cache flush can be needed to
-     * synchronise data in memory with the device.
+     * synchronize data in memory with the device.
      *
      * Whether accesses are actually limited or translated is described by
      * platform-specific means.
@@ -595,7 +595,7 @@ enum virtio_scsi_cmd_response {
     /*
      * If the content of the CDB (such as the allocation length, parameter
      * length or transfer size) requires more data than is available in the
-     * datain and dataout buffers.
+     * data-in and data-out buffers.
      */
     VIRTIO_SCSI_CMDRESP_OVERRUN,
 
@@ -608,7 +608,7 @@ enum virtio_scsi_cmd_response {
     VIRTIO_SCSI_CMDRESP_BAD_TARGET,
 
     // If the request was cancelled due to a bus or device reset (including a
-    // task man- agement function)
+    // task management function)
     VIRTIO_SCSI_CMDRESP_RESET,
 
     // If the request failed but retrying on the same path is likely to work
@@ -627,8 +627,8 @@ enum virtio_scsi_cmd_response {
     VIRTIO_SCSI_CMDRESP_NEXUS_FAILURE,
 
     /*
-     * For other host or driver error. In particular, if neither dataout nor
-     * datain is empty, and the VIRTIO_SCSI_F_INOUT feature has not been
+     * For other host or driver error. In particular, if neither data-out nor
+     * data-in is empty, and the VIRTIO_SCSI_F_INOUT feature has not been
      * negotiated, the request will be immediately returned with a response
      * equal to VIRTIO_SCSI_S_FAILURE
      */
@@ -637,7 +637,7 @@ enum virtio_scsi_cmd_response {
     VIRTIO_SCSI_CMDRESP_INCORRECT_LUN = 12
 };
 
-enum virtio_scsci_task_attr {
+enum virtio_scsi_task_attr {
     VIRTIO_SCSI_TASK_ATTR_SIMPLE,
     VIRTIO_SCSI_TASK_ATTR_ORDERED,
     VIRTIO_SCSI_TASK_ATTR_HEAD,

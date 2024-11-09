@@ -9,7 +9,7 @@
 enum ahci_hba_port_interface_comm_ctrl {
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_IDLE,
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE,
-    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_PATRIAL,
+    AHCI_HBA_PORT_INTERFACE_COMM_CTRL_PARTIAL,
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_SLUMBER = 6,
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_DEV_SLEEP = 8
 };
@@ -54,8 +54,8 @@ enum ahci_hba_port_cmd_status_flags {
     __AHCI_HBA_PORT_CMDSTATUS_AUTO_PARTIAL_TO_SLUMBER_ENABLED = 1ull << 23,
     __AHCI_HBA_PORT_CMDSTATUS_ATAPI_DEVICE = 1ull << 24,
     __AHCI_HBA_PORT_CMDSTATUS_DRIVE_LED_ACTIVE_ON_ATAPI_ENABLE = 1ull << 25,
-    __AHCI_HBA_PORT_CMDSTATUS_AGGRESIVE_LINK_PWR_MGMT_ENABLE = 1ull << 26,
-    __AHCI_HBA_PORT_CMDSTATUS_AGGRESIVE_SLUMBER_PARTIAL = 1ull << 27,
+    __AHCI_HBA_PORT_CMDSTATUS_AGGRESSIVE_LINK_PWR_MGMT_ENABLE = 1ull << 26,
+    __AHCI_HBA_PORT_CMDSTATUS_AGGRESSIVE_SLUMBER_PARTIAL = 1ull << 27,
     __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL =
         0b11111ull << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT,
 };
@@ -226,7 +226,7 @@ enum ahci_hba_host_capability_shifts {
 };
 
 enum ahci_hba_host_capability_flags {
-    __AHCI_HBA_HOST_CAP_PORTS_IMPLED = 0b11111,
+    __AHCI_HBA_HOST_CAP_PORTS_IMPLEMENTED = 0b11111,
     __AHCI_HBA_HOST_CAP_SUPPORTS_EXT_SATA = 1ull << 5,
     __AHCI_HBA_HOST_CAP_SUPPORTS_EMS = 1ull << 6,
     __AHCI_HBA_HOST_CAP_SUPPORTS_CCCS = 1ull << 7,
@@ -537,10 +537,10 @@ struct ahci_spec_fis_dma_setup {
     uint8_t reserved_1[2];
 
     uint64_t dma_buffer_id;
-    uint32_t rsvd;
+    uint32_t reserved_2;
     uint32_t dma_buffer_offset;
     uint32_t transfer_count;
-    uint32_t reserved_2;
+    uint32_t reserved_3;
 } __packed;
 
 struct ahci_spec_hba_fis {
@@ -553,7 +553,7 @@ struct ahci_spec_hba_fis {
     struct ahci_spec_fis_reg_d2h reg_d2g;
     uint8_t reserved_2[4];
 
-    uint32_t sdbfis;
+    uint32_t sdb_fis;
 
     uint8_t ufis[64];
     uint8_t reserved_4[0x100-0xA0];

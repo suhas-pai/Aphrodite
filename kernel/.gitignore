@@ -1,5 +1,5 @@
 /freestnd-c-hdrs-0bsd
-/src/cc-runtime.c
+/cc-runtime*
 /src/limine.h
 /bin-*
 /obj-*

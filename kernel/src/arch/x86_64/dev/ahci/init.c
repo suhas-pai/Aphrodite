@@ -15,6 +15,7 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
+#include "sched/thread.h"
 #include "sys/mmio.h"
 
 #include "device.h"
@@ -80,22 +81,24 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
     // register. This bit map value will aid software in determining how many
     // ports are available and which port registers need to be initialized.
 
-    const uint32_t ports_impled = mmio_read(&regs->ports_implemented);
-    const uint8_t ports_impled_count =
-        count_all_one_bits(ports_impled,
+    const uint32_t ports_implemented = mmio_read(&regs->ports_implemented);
+    const uint8_t ports_implemented_count =
+        count_all_one_bits(ports_implemented,
                            /*start_index=*/0,
-                           /*end_index=*/sizeof_bits(ports_impled));
+                           /*end_index=*/sizeof_bits(ports_implemented));
 
-    if (__builtin_expect(ports_impled_count == 0, 0)) {
+    if (__builtin_expect(ports_implemented_count == 0, 0)) {
         printk(LOGLEVEL_WARN, "ahci: no ports are implemented\n");
         return false;
     }
 
     printk(LOGLEVEL_INFO,
            "ahci: has %" PRIu32 " ports implemented\n",
-           ports_impled_count);
+           ports_implemented_count);
 
-    hba->port_list = kmalloc(sizeof(struct ahci_hba_port) * ports_impled_count);
+    hba->port_list =
+        kmalloc(sizeof(struct ahci_hba_port) * ports_implemented_count);
+
     if (hba->port_list == NULL) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to allocate memory for port list\n");
@@ -105,7 +108,7 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
 
     uint8_t usable_port_count = 0;
     for (uint8_t index = 0; index != AHCI_HBA_MAX_PORT_COUNT; index++) {
-        if ((ports_impled & 1ull << index) == 0) {
+        if ((ports_implemented & 1ull << index) == 0) {
             continue;
         }
 

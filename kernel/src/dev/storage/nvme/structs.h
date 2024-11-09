@@ -42,7 +42,7 @@ enum nvme_capabilities {
 
     __NVME_CAP_PERSISTENT_MEM_REGION_SUPPORTED = 1ull << 56,
     __NVME_CAP_CNTLR_MEM_BUFFER_SUPPORTED = 1ull << 57,
-    __NVME_CAP_NVM_SUBSYSTEM_SHUTDOWN_SUPPPORTED = 1ull << 58,
+    __NVME_CAP_NVM_SUBSYSTEM_SHUTDOWN_SUPPORTED = 1ull << 58,
     __NVME_CAP_CNTLR_READY_MODES_SUPPORTED =
         0b11ull << NVME_CAP_CNTLR_READY_MODES_SUPPORTED_SHIFT
 };
@@ -458,7 +458,7 @@ struct nvme_identity {
     uint16_t atomic_write_unit_normal;
     uint16_t atomic_write_unit_power_fail;
 
-    uint8_t io_cmdset_vendor_specifc_cmd_cfg;
+    uint8_t io_cmdset_vendor_specific_cmd_cfg;
     uint8_t namespace_write_protection_cap;
 
     uint16_t atomic_compare_write_unit;

@@ -11,6 +11,7 @@
 
 #include "lib/util.h"
 #include "mm/kmalloc.h"
+#include "sched/thread.h"
 
 #include "controller.h"
 

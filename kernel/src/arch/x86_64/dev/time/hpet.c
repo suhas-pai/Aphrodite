@@ -112,7 +112,7 @@ void hpet_init(const struct acpi_hpet *const hpet) {
     }
 
     const bool has_64bit_counter =
-        hpet->event_timer_block_id & __HPET_EVENTTIMER_BLOCKID_64BIT_COUNTER;
+        hpet->event_timer_block_id & __HPET_EVENT_TIMER_BLOCKID_64BIT_COUNTER;
 
     if (!has_64bit_counter) {
         printk(LOGLEVEL_WARN,
@@ -129,7 +129,7 @@ void hpet_init(const struct acpi_hpet *const hpet) {
     struct range range = RANGE_EMPTY();
     if (!range_create_and_verify(hpet->base_address.address, PAGE_SIZE, &range))
     {
-        printk(LOGLEVEL_WARN, "hpet: address-space's range oveflows\n");
+        printk(LOGLEVEL_WARN, "hpet: address-space's range overflows\n");
         return;
     }
 

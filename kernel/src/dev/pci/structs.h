@@ -401,7 +401,7 @@ enum pcie_spec_cap_pcie_capability_flags {
      * this Port is connected to a slot (as compared to being connected to an
      * integrated component or being disabled)
      */
-    __PCIE_SPEC_CAP_PCIE_CAP_SLOT_IMPLED = 1 << 8,
+    __PCIE_SPEC_CAP_PCIE_CAP_SLOT_IMPLEMENTED = 1 << 8,
 
     /*
      * When Set, this bit indicates that the PCI Express Switch or Root Port

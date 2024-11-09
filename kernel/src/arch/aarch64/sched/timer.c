@@ -9,15 +9,15 @@
 #include "cpu/info.h"
 #include "sched/irq.h"
 
-void sched_timer_oneshot(const usec_t usec) {
+__debug_optimize(3) void sched_timer_oneshot(const usec_t usec) {
     system_timer_oneshot_ns(micro_to_nano(usec));
 }
 
-void sched_timer_stop() {
+__debug_optimize(3) void sched_timer_stop() {
     system_timer_stop_alarm();
 }
 
-void sched_irq_eoi(const irq_number_t irq) {
+__debug_optimize(3) void sched_irq_eoi(const irq_number_t irq) {
     gic_cpu_eoi(this_cpu()->processor_id, irq);
 }
 

@@ -32,7 +32,7 @@ struct fat32_bootrecord {
     uint16_t backup_boot_sector;
     uint32_t reserved[3];
     uint8_t drive;
-    uint8_t flagsnt;
+    uint8_t flags_nt;
     uint8_t signature;
     uint32_t volume_id;
 

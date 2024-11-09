@@ -49,11 +49,11 @@ static const struct string_view virtio_device_kind_string[] = {
     [VIRTIO_DEVICE_KIND_MAC_80211_WLAN] = SV_STATIC("mac80211-wlan"),
     [VIRTIO_DEVICE_KIND_RPROC_SERIAL] = SV_STATIC("rproc-serial"),
     [VIRTIO_DEVICE_KIND_VIRTIO_CAIF] = SV_STATIC("virtio-caif"),
-    [VIRTIO_DEVICE_KIND_MEM_BALLOON] = SV_STATIC("mem-baloon"),
+    [VIRTIO_DEVICE_KIND_MEM_BALLOON] = SV_STATIC("mem-balloon"),
     [VIRTIO_DEVICE_KIND_GPU_DEVICE] = SV_STATIC("gpu-device"),
     [VIRTIO_DEVICE_KIND_TIMER_OR_CLOCK] = SV_STATIC("timer-or-clock"),
     [VIRTIO_DEVICE_KIND_INPUT_DEVICE] = SV_STATIC("input-device"),
-    [VIRTIO_DEVICE_KIND_SOCKET_DEVICE] = SV_STATIC("socker-device"),
+    [VIRTIO_DEVICE_KIND_SOCKET_DEVICE] = SV_STATIC("socket-device"),
     [VIRTIO_DEVICE_KIND_CRYPTO_DEVICE] = SV_STATIC("crypto-device"),
     [VIRTIO_DEVICE_KIND_SIGNAL_DISTR_NODULE] =
         SV_STATIC("signal-distribution-module"),
@@ -70,7 +70,7 @@ static const struct string_view virtio_device_kind_string[] = {
     [VIRTIO_DEVICE_KIND_VIDEO_DECODER_DEVICE] =
         SV_STATIC("video-decoder-device"),
     [VIRTIO_DEVICE_KIND_SCMI_DEVICE] = SV_STATIC("scmi-device"),
-    [VIRTIO_DEVICE_KIND_NITRO_SECURE_MDOEL] = SV_STATIC("nitro-secure-model"),
+    [VIRTIO_DEVICE_KIND_NITRO_SECURE_MODEL] = SV_STATIC("nitro-secure-model"),
     [VIRTIO_DEVICE_KIND_I2C_ADAPTER] = SV_STATIC("i2c-adapter"),
     [VIRTIO_DEVICE_KIND_WATCHDOG] = SV_STATIC("watchdog"),
     [VIRTIO_DEVICE_KIND_CAN_DEVICE] = SV_STATIC("can-device"),

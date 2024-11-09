@@ -6,7 +6,7 @@
 #pragma once
 #include <stddef.h>
 
-#define c_string_foreach(c_str, name) \
+#define cstring_foreach(c_str, name) \
     for (typeof(*c_str) *name = c_str; *name != '\0'; name++)
 
 #if !defined(BUILD_TEST)

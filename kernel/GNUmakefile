@@ -26,6 +26,9 @@ endif
 # User controllable C compiler command.
 $(call USER_VARIABLE,KCC,cc)
 
+# User controllable archiver command.
+$(call USER_VARIABLE,KAR,ar)
+
 # Same thing for "ld" (the linker).
 $(call USER_VARIABLE,KLD,ld)
 
@@ -94,7 +97,7 @@ $(call USER_VARIABLE,KLDFLAGS,)
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -f src/cc-runtime.c || ! test -f src/limine.h ); echo $$?),0)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -d cc-runtime || ! test -f src/limine.h ); echo $$?),0)
         $(error Please run the ./get-deps script first)
     endif
 endif
@@ -258,6 +261,16 @@ override HEADER_DEPS := $(addprefix obj-$(KARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S
 .PHONY: all
 all: bin-$(KARCH)/$(KERNEL)
 
+# Link rules for building the C compiler runtime.
+cc-runtime-$(KARCH)/cc-runtime.a: cc-runtime/*
+	rm -rf cc-runtime-$(KARCH)
+	cp -r cc-runtime cc-runtime-$(KARCH)
+	$(MAKE) -C cc-runtime-$(KARCH) -f cc-runtime.mk \
+		CC="$(KCC)" \
+		AR="$(KAR)" \
+		CFLAGS="$(filter-out -Wsign-conversion -Wundef,$(KCFLAGS))" \
+		CPPFLAGS='-isystem ../freestnd-c-hdrs-0bsd -DCC_RUNTIME_NO_FLOAT'
+
 src/dev/pci/vendors.h:
 	curl -Lo src/dev/pci/pci.ids https://pci-ids.ucw.cz/v2.2/pci.ids
 	awk '/^[^#[:blank:]C]/ { num=""$$1; name=$$0; sub("^"num, "", name); sub("[[:blank:]]+", "", name); print "PCI_VENDOR(0x"num",\""name"\")" }' src/dev/pci/pci.ids > $@
@@ -271,9 +284,9 @@ src/dev/pci/vendors.h:
 # GNU binutils, for silly reasons, forces the ELF type to ET_EXEC even for
 # relocatable PIEs, if the base load address is non-0.
 # See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
-bin-$(KARCH)/$(KERNEL): GNUmakefile src/arch/$(KARCH)/linker.ld $(OBJ)
+bin-$(KARCH)/$(KERNEL): GNUmakefile src/arch/$(KARCH)/linker.ld $(OBJ) cc-runtime-$(KARCH)/cc-runtime.a
 	mkdir -p "$$(dirname $@)"
-	$(KLD) $(OBJ) $(KLDFLAGS) -o $@
+	$(KLD) $(OBJ) cc-runtime-$(KARCH)/cc-runtime.a $(KLDFLAGS) -o $@
 	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
 
 # Include header dependencies.
@@ -309,13 +322,11 @@ obj-$(KARCH)/%.asm.o: src/%.asm GNUmakefile
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf bin-$(KARCH) obj-$(KARCH)
+	rm -rf bin-$(KARCH) obj-$(KARCH) cc-runtime-$(KARCH)
 
 .PHONY: distclean
 distclean:
-	rm -rf bin-* obj-* freestnd-c-hdrs-0bsd
-	rm -f src/limine.h
-	rm -f src/dev/pci/vendors.h
+	rm -rf bin-* obj-* freestnd-c-hdrs-0bsd cc-runtime* src/limine.h
 
 .PHONY: install
 install: all

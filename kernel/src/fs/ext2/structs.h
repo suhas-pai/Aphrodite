@@ -95,9 +95,9 @@ struct ext2fs_superblock {
 
         char uuid[16];
         char volume_name[16];
-        char lastmountedpath[64]; // last path we had when mounted
+        char last_mounted_path[64]; // last path we had when mounted
 
-        uint32_t compresion_algos;
+        uint32_t compression_kinds;
 
         uint8_t file_prealloc_block_count;
         uint8_t directory_prealloc_block_count;

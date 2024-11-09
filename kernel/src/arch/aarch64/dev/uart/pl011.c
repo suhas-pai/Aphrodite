@@ -146,7 +146,7 @@ pl011_init(const port_t base,
     // Flush FIFOs
     mmio_write(&device->lcr_offset, rm_mask(lcr, __LCR_FEN));
 
-    // Set frequency divisors (UARTIBRD and UARTFBRD) to configure the speed
+    // Set frequency divisors (ibrd and fbrd) to configure the speed
     const uint32_t div = 4 * PL011_BASE_CLOCK / baudrate;
 
     const uint32_t ibrd = div & 0x3f;
@@ -155,11 +155,11 @@ pl011_init(const port_t base,
     mmio_write(&device->ibrd_offset, ibrd);
     mmio_write(&device->fbrd_offset, fbrd);
 
-    // Configure data frame format according to the parameters (UARTLCR_H).
+    // Configure data frame format according to the parameters (lcr_h).
     // We don't actually use all the possibilities, so this part of the code
     // can be simplified.
     lcr = 0x0;
-    // WLEN part of UARTLCR_H, you can check that this calculation does the
+    // WLEN part of lcr_h, you can check that this calculation does the
     // right thing for yourself
     lcr |= ((data_bits - 1) & 0x3) << 5;
 

@@ -33,7 +33,7 @@ enum virtio_scsi_status {
     /*
      * If the content of the CDB (such as the allocation length, parameter
      * length or transfer size) requires more data than is available in the
-     * datain and dataout buffers.
+     * data-in and data-out buffers.
      */
     __VIRTIO_SCSI_S_OVERRUN = 1 << 1,
 
@@ -65,8 +65,8 @@ enum virtio_scsi_status {
     __VIRTIO_SCSI_S_NEXUS_FAILURE = 1 << 8,
 
     /*
-     * For other host or driver error. In particular, if neither dataout nor
-     * datain is empty, and the VIRTIO_SCSI_F_INOUT feature has not been
+     * For other host or driver error. In particular, if neither data-out nor
+     * data-in is empty, and the VIRTIO_SCSI_F_INOUT feature has not been
      * negotiated, the request will be immediately returned with a response
      * equal to VIRTIO_SCSI_S_FAILURE.
      */

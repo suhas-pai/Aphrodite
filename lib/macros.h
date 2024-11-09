@@ -136,28 +136,28 @@
     for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
 
 #define swap(a, b) ({ \
-    const __auto_type __swaptmp = (b); \
+    const __auto_type __swap_tmp = (b); \
     b = a; \
-    a = __swaptmp; \
+    a = __swap_tmp; \
 })
 
 #define max(a, b) ({ \
-    const __auto_type __maxa = (a); \
-    const __auto_type __maxb = (b); \
-    __maxa > __maxb ? __maxa : __maxb; \
+    const __auto_type __max_a = (a); \
+    const __auto_type __max_b = (b); \
+    __max_a > __max_b ? __max_a : __max_b; \
 })
 
 #define min(a, b) ({ \
-    const __auto_type __mina = (a); \
-    const __auto_type __minb = (b); \
-    __mina < __minb ? __mina : __minb; \
+    const __auto_type __min_a = (a); \
+    const __auto_type __min_b = (b); \
+    __min_a < __min_b ? __min_a : __min_b; \
 })
 
 #define twovar_cmp(a, b) ({ \
-    const __auto_type __twovarcmpa = (a); \
-    const __auto_type __twovarcmpb = (b); \
-    __twovarcmpa < __twovarcmpb ? -1 \
-        : __twovarcmpa > __twovarcmpb ? 1 : 0; \
+    const __auto_type __twovarcmp_a = (a); \
+    const __auto_type __twovarcmp_b = (b); \
+    __twovarcmp_a < __twovarcmp_b ? -1 \
+        : __twovarcmp_a > __twovarcmp_b ? 1 : 0; \
 })
 
 #define reg_to_ptr(type, base, reg) ((type *)((uint64_t)(base) + (reg)))
@@ -170,10 +170,10 @@
 
 #define RAND_VAR_NAME() VAR_CONCAT(__random__, __LINE__)
 #define bits_to_bytes_roundup(bits) ({ \
-        const __auto_type __bitstobytesbits__ = (bits); \
-        __bitstobytesbits__ % sizeof_bits(uint8_t) ? \
-            bits_to_bytes_noround(__bitstobytesbits__) + 1 : \
-            bits_to_bytes_noround(__bitstobytesbits__); \
+        const __auto_type __bits_to_bytes_bits__ = (bits); \
+        __bits_to_bytes_bits__ % sizeof_bits(uint8_t) ? \
+            bits_to_bytes_noround(__bits_to_bytes_bits__) + 1 : \
+            bits_to_bytes_noround(__bits_to_bytes_bits__); \
     })
 
 #define bits_to_bytes_noround(bits) ((bits) / 8)
@@ -185,38 +185,39 @@
         ~0ull : ~0ull >> (sizeof_bits(uint64_t) - (n)))
 
 #define has_mask(num, mask) ({ \
-    __auto_type __hasmaskmask__ = (mask); \
-    ((num) & __hasmaskmask__) == __hasmaskmask__; \
+    __auto_type __has_mask_mask__ = (mask); \
+    ((num) & __has_mask_mask__) == __has_mask_mask__; \
 })
 
 #define rm_mask(num, mask) ((num) & ((typeof(num))~(mask)))
 #define set_bits_for_mask(ptr, mask, value) ({ \
-    __auto_type __setbitsptr__ = (ptr);  \
+    __auto_type __set_bits_ptr__ = (ptr);  \
     if (value) {                         \
-        *__setbitsptr__ |= (mask);       \
+        *__set_bits_ptr__ |= (mask);       \
     } else {                             \
-        *__setbitsptr__ = rm_mask(*__setbitsptr__, (mask)); \
+        *__set_bits_ptr__ = rm_mask(*__set_bits_ptr__, (mask)); \
     } \
 })
 
 #define div_round_up(a, b) ({\
-    const __auto_type __divrounda = (a); \
-    const __auto_type __divroundb = (b); \
-    __divrounda % __divroundb != 0 ? \
-        (__divrounda / __divroundb) + 1 : (__divrounda / __divroundb); \
+    const __auto_type __div_round_a = (a); \
+    const __auto_type __div_round_b = (b); \
+    __div_round_a % __div_round_b != 0 ? \
+        (__div_round_a / __div_round_b) + 1 : (__div_round_a / __div_round_b); \
 })
 
 #define sign_extend_from_index(num, index) ({ \
-    const __auto_type __signextendnum__ = (num); \
-    const __auto_type __signextendindex__ = (index); \
+    const __auto_type __sign_extend_num__ = (num); \
+    const __auto_type __sign_extend_index__ = (index); \
     \
-    __auto_type __signextendresult__ = __signextendnum__; \
-    __auto_type __signextendmask__ = \
-        mask_for_n_bits(sizeof_bits(__signextendnum__) - __signextendindex__) \
-            << __signextendindex__; \
+    __auto_type __sign_extend_result__ = __sign_extend_num__; \
+    __auto_type __sign_extend_mask__ = \
+        mask_for_n_bits(sizeof_bits(__sign_extend_num__) \
+                      - __sign_extend_index__) \
+            << __sign_extend_index__; \
     \
-    set_bits_for_mask(&__signextendresult__, \
-                      __signextendmask__, \
-                      __signextendnum__ & 1ull << __signextendindex__); \
-    __signextendresult__; \
+    set_bits_for_mask(&__sign_extend_result__, \
+                      __sign_extend_mask__, \
+                      __sign_extend_num__ & 1ull << __sign_extend_index__); \
+    __sign_extend_result__; \
 })
