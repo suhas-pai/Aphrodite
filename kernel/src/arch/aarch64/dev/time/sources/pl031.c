@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/dev/time/soureces/pl031.c
+ * kernel/src/arch/aarch64/dev/time/sources/pl031.c
  * © suhas pai
  */
 

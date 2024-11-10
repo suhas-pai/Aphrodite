@@ -360,7 +360,7 @@ void handle_sync_exception(struct thread_context *const context) {
             printk(LOGLEVEL_WARN, "kind: breakpoint from the same el\n");
             cpu_halt();
         case ESR_ERROR_CODE_SOFTWARE_STEP_LOWER_EL:
-            printk(LOGLEVEL_WARN, "kind: software step from a lowerl el\n");
+            printk(LOGLEVEL_WARN, "kind: software step from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_SOFTWARE_STEP_SAME_EL:
             printk(LOGLEVEL_WARN, "kind: software step from the same el\n");
@@ -373,11 +373,11 @@ void handle_sync_exception(struct thread_context *const context) {
             cpu_halt();
         case ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH32:
             printk(LOGLEVEL_WARN,
-                   "kind: bkpt instrunction exec on aarch32 fault\n");
+                   "kind: bkpt instruction exec on aarch32 fault\n");
             cpu_halt();
         case ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH64:
             printk(LOGLEVEL_WARN,
-                   "kind: bkpt instrunction exec on aarch64 fault\n");
+                   "kind: bkpt instruction exec on aarch64 fault\n");
             cpu_halt();
     }
 
@@ -392,7 +392,7 @@ void handle_sync_exception(struct thread_context *const context) {
 __debug_optimize(3)
 static const char *aet_get_cstr(const enum esr_serror_aet_kind kind) {
     switch (kind) {
-        case ESR_SERROR_AET_KIND_UNCONTAINBLE:
+        case ESR_SERROR_AET_KIND_UNCONTAINABLE:
             return "uncontainable";
         case ESR_SERROR_AET_KIND_UNRECOVERABLE:
             return "unrecoverable";
@@ -437,7 +437,7 @@ void handle_async_exception(struct thread_context *const context) {
     printk(LOGLEVEL_INFO,
            "isr: received async exception: %s%sserror\n"
            "\text-abort? %s\n"
-           "\timplicit error sychronized? %s\n"
+           "\timplicit error synchronized? %s\n"
            "\tdata fault status code: 0x%" PRIx16 "\n",
            dfsc == ESR_SERROR_DFSC_KIND_ASYNC_ERROR ? aet_get_cstr(aet) : "",
            dfsc == ESR_SERROR_DFSC_KIND_ASYNC_ERROR ? " " : "",

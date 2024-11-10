@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-__debug_optimize(3) static inline void dsbisht() {
+__debug_optimize(3) static inline void dsb_isht() {
     asm volatile("dsb ishst");
 }
 

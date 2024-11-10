@@ -323,7 +323,7 @@ void gicdv3_send_ipi(const struct cpu_info *const cpu, const uint8_t int_no) {
       | (uint64_t)int_no << ICC_SGI1R_INTR_ID_SHIFT
       | 1 << (uint8_t)cpu->affinity;
 
-    dsbisht();
+    dsb_isht();
     asm volatile("msr icc_sgi1r_el1, %0" :: "r"(value));
     isb();
 }

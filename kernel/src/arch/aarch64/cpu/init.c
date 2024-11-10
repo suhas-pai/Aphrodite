@@ -298,11 +298,11 @@ void collect_cpu_features() {
             break;
     }
 
-    const enum id_aa64pfr0_el1_adv_simd_support advsimd_support =
+    const enum id_aa64pfr0_el1_adv_simd_support adv_simd_support =
         (id_aa64pfr0 & __ID_AA64PFR0_EL1_ADV_SIMD) >>
             ID_AA64PFR0_EL1_ADV_SIMD_SUPPORT_SHIFT;
 
-    switch (advsimd_support) {
+    switch (adv_simd_support) {
         case ID_AA64PFR0_EL1_ADV_SIMD_SUPPORT_PARTIAL:
             g_cpu_features.adv_simd = CPU_FEAT_ADV_SIMD_PARTIAL;
             break;

@@ -101,7 +101,7 @@ struct gic_its_registers {
     volatile uint64_t table_address[8];
 
     volatile const char reserved_3[65280];
-    volatile uint64_t translater;
+    volatile uint64_t translator;
 };
 
 enum gic_its_command_kind {
@@ -349,7 +349,7 @@ volatile uint64_t *gic_its_get_msi_address(struct gic_its_info *const its) {
     volatile struct gic_its_registers *const regs =
         (volatile struct gic_its_registers *)its->phys_addr;
 
-    return &regs->translater;
+    return &regs->translator;
 }
 
 struct gic_its_info *

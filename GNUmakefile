@@ -6,7 +6,7 @@ MAKEFLAGS += -rR
 override USER_VARIABLE = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
 
 # Target architecture to build for. Default to x86_64.
-$(call USER_VARIABLE,KARCH,x86_64)
+$(call USER_VARIABLE,ARCH,x86_64)
 
 # Destination directory on install (should always be empty by default).
 $(call USER_VARIABLE,DESTDIR,)
@@ -15,22 +15,22 @@ $(call USER_VARIABLE,DESTDIR,)
 $(call USER_VARIABLE,PREFIX,/usr/local)
 
 # Check if the architecture is supported.
-ifeq ($(filter $(KARCH),aarch64 loongarch64 riscv64 x86_64),)
-    $(error Architecture $(KARCH) not supported)
+ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
+    $(error Architecture $(ARCH) not supported)
 endif
 
 $(call USER_VARIABLE,MEM,4G)
 $(call USER_VARIABLE,SMP,4)
 
-override IMAGE_NAME := template-$(KARCH)
+override IMAGE_NAME := template-$(ARCH)
 
 DEFAULT_MACHINE=virt
-ifeq ($(KARCH),x86_64)
+ifeq ($(ARCH),x86_64)
 	DEFAULT_MACHINE=q35
 endif
 
 MACHINE=$(DEFAULT_MACHINE)
-ifeq ($(KARCH),x86_64)
+ifeq ($(ARCH),x86_64)
 ifeq ($(DISABLE_ACPI),1)
 $(error ACPI cannot be disabled on x86_64)
 endif
@@ -40,11 +40,11 @@ else
 	endif
 endif
 
-ifeq ($(KARCH),aarch64)
+ifeq ($(ARCH),aarch64)
 	MACHINE := $(MACHINE),gic-version=max
 endif
 
-ifeq ($(KARCH),riscv64)
+ifeq ($(ARCH),riscv64)
 	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
 endif
 
@@ -67,7 +67,7 @@ ifneq ($(CONSOLE),1)
 endif
 
 DEFAULT_DRIVE_KIND=nvme
-ifeq ($(KARCH),riscv64)
+ifeq ($(ARCH),riscv64)
 	DEFAULT_DRIVE_KIND = scsi
 endif
 
@@ -87,13 +87,13 @@ VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
 
 QEMU_CDROM_ARGS=\
-	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(KARCH).fd,readonly=on \
+	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
 
 QEMU_HDD_ARGS=\
-	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(KARCH).fd,readonly=on \
+	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
 
 ifeq ($(DRIVE_KIND),block)
-	ifeq ($(KARCH),riscv64)
+	ifeq ($(ARCH),riscv64)
 $(error "block device not supported on riscv64")
 	endif
 
@@ -130,30 +130,30 @@ all: $(IMAGE_NAME).iso
 all-hdd: $(IMAGE_NAME).hdd
 
 .PHONY: run
-run: run-$(KARCH)
+run: run-$(ARCH)
 
 .PHONY: run-hdd
-run-hdd: run-hdd-$(KARCH)
+run-hdd: run-hdd-$(ARCH)
 
 .PHONY: run-x86_64
-run-x86_64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(KARCH) \
+run-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+	qemu-system-$(ARCH) \
 		-cpu max \
 		$(QEMUFLAGS) \
 		$(QEMU_CDROM_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-x86_64
-run-hdd-x86_64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(KARCH) \
+run-hdd-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-$(ARCH) \
 		-cpu max \
 		$(QEMUFLAGS) \
 		$(QEMU_HDD_ARGS) \
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-aarch64
-run-aarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(KARCH) \
+run-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
@@ -164,8 +164,8 @@ run-aarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-aarch64
-run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(KARCH) \
+run-hdd-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
@@ -176,8 +176,8 @@ run-hdd-aarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-riscv64
-run-riscv64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(KARCH) \
+run-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
@@ -188,8 +188,8 @@ run-riscv64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-riscv64
-run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(KARCH) \
+run-hdd-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
 		-device qemu-xhci \
@@ -200,8 +200,8 @@ run-hdd-riscv64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-loongarch64
-run-loongarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
-	qemu-system-$(KARCH) \
+run-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+	qemu-system-$(ARCH) \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
@@ -211,8 +211,8 @@ run-loongarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-loongarch64
-run-hdd-loongarch64: ovmf/ovmf-code-$(KARCH).fd $(IMAGE_NAME).hdd
-	qemu-system-$(KARCH) \
+run-hdd-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+	qemu-system-$(ARCH) \
 		-device ramfb \
 		-device qemu-xhci \
 		-device usb-kbd \
@@ -238,10 +238,10 @@ run-hdd-bios: $(IMAGE_NAME).hdd
 		$(QEMUFLAGS) \
 		$(EXTRA_QEMU_ARGS)
 
-ovmf/ovmf-code-$(KARCH).fd:
+ovmf/ovmf-code-$(ARCH).fd:
 	mkdir -p ovmf
-	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(KARCH).fd
-	case "$(KARCH)" in \
+	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(ARCH).fd
+	case "$(ARCH)" in \
 		aarch64) dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null;; \
 		riscv64) dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null;; \
 	esac
@@ -262,11 +262,11 @@ kernel: kernel-deps
 $(IMAGE_NAME).iso: limine/limine kernel
 	rm -rf iso_root
 	mkdir -p iso_root/boot
-	cp -v kernel/bin-$(KARCH)/kernel iso_root/boot/
+	cp -v kernel/bin-$(ARCH)/kernel iso_root/boot/
 	mkdir -p iso_root/boot/limine
 	cp -v limine.conf iso_root/boot/limine/
 	mkdir -p iso_root/EFI/BOOT
-ifeq ($(KARCH),x86_64)
+ifeq ($(ARCH),x86_64)
 	cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
 	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
 	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
@@ -277,7 +277,7 @@ ifeq ($(KARCH),x86_64)
 		iso_root -o $(IMAGE_NAME).iso
 	./limine/limine bios-install $(IMAGE_NAME).iso
 endif
-ifeq ($(KARCH),aarch64)
+ifeq ($(ARCH),aarch64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
 	cp -v limine/BOOTAA64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs -R -r -J \
@@ -286,7 +286,7 @@ ifeq ($(KARCH),aarch64)
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 endif
-ifeq ($(KARCH),riscv64)
+ifeq ($(ARCH),riscv64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
 	cp -v limine/BOOTRISCV64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs -R -r -J \
@@ -295,7 +295,7 @@ ifeq ($(KARCH),riscv64)
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 endif
-ifeq ($(KARCH),loongarch64)
+ifeq ($(ARCH),loongarch64)
 	cp -v limine/limine-uefi-cd.bin iso_root/boot/limine/
 	cp -v limine/BOOTLOONGARCH64.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs -R -r -J \
@@ -310,36 +310,36 @@ $(IMAGE_NAME).hdd: limine/limine kernel
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
-ifeq ($(KARCH),x86_64)
+ifeq ($(ARCH),x86_64)
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 endif
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT ::/boot ::/boot/limine
-	mcopy -i $(IMAGE_NAME).hdd@@1M kernel/bin-$(KARCH)/kernel ::/boot
+	mcopy -i $(IMAGE_NAME).hdd@@1M kernel/bin-$(ARCH)/kernel ::/boot
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine.conf ::/boot/limine
-ifeq ($(KARCH),x86_64)
+ifeq ($(ARCH),x86_64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/limine-bios.sys ::/boot/limine
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTIA32.EFI ::/EFI/BOOT
 endif
 
-ifeq ($(KARCH),aarch64)
+ifeq ($(ARCH),aarch64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTAA64.EFI ::/EFI/BOOT
 endif
 
-ifeq ($(KARCH),riscv64)
+ifeq ($(ARCH),riscv64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTRISCV64.EFI ::/EFI/BOOT
 endif
 
-ifeq ($(KARCH),loongarch64)
+ifeq ($(ARCH),loongarch64)
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTLOONGARCH64.EFI ::/EFI/BOOT
 endif
 
 .PHONY: clean
 clean:
 	$(MAKE) -C kernel clean
-	rm -rf iso_root-$(KARCH)/boot/limine || true
-	rm iso_root-$(KARCH)/boot/kernel || true
+	rm -rf iso_root-$(ARCH)/boot/limine || true
+	rm iso_root-$(ARCH)/boot/kernel || true
 
 	rm $(IMAGE_NAME).iso $(IMAGE_NAME).hdd || true
 
@@ -351,5 +351,5 @@ distclean:
 # Try to undo whatever the "install" target did.
 .PHONY: uninstall
 uninstall:
-	rm -f "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/$(OUTPUT)-$(KARCH)"
+	rm -f "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/$(OUTPUT)-$(ARCH)"
 	-rmdir "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)"

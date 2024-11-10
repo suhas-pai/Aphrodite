@@ -769,7 +769,7 @@ enum id_aa64mmfr1_flags {
     __ID_AA64MMFR1_CMOW = 0b1111ull << 56,
     // The branch history information created in a context before an exception
     // to a higher Exception level using AArch64 cannot be used by code before
-    // that exception to exploitatively control the execution of any indirect
+    // that exception to exploit control of the execution of any indirect
     // branches in code in a different context after the exception.
     __ID_AA64MMFR1_ECBHB = 0b1111ull << 60,
 };
@@ -937,7 +937,7 @@ enum id_aa64mmfr3_flags {
     __ID_AA64MMFR3_SDERR = 0b1111ull << 52,
     __ID_AA64MMFR3_ADERR = 0b1111ull << 56,
     // The speculative use of pointers processed by a PAC Authentication is not
-    // materially different in terms of the impact on cached microarchitectural
+    // materially different in terms of the impact on cached micro-architectural
     // state between passing and failing of the PAC Authentication.
     __ID_AA64MMFR3_SPEC_FPACC = 0b1111ull << 60,
 };
@@ -1261,10 +1261,10 @@ enum id_aa64dfr1_el1_flags {
     // The largest supported value that can be written to SPMSELR_EL0.SYSPMUSEL.
     __ID_AA64DFR1_EL1_SYSPMUID = 0xffull << 0,
     // If 0, ID_AA64DFR0_EL1.BRPs is the number of breakpoints, minus 1,
-    // othewise number of breakpoints minus 1.
+    // otherwise number of breakpoints minus 1.
     __ID_AA64DFR1_EL1_BRPS = 0xffull << __ID_AA64DFR1_EL1_BRPS_SHIFT,
     // If 0, ID_AA64DFR0_EL1.WRPs is the number of watchpoints, minus 1,
-    // othewise number of watchpoints minus 1.
+    // otherwise number of watchpoints minus 1.
     __ID_AA64DFR1_EL1_WRPS = 0xffull << __ID_AA64DFR1_EL1_WRPS_SHIFT,
     // If 0, ID_AA64DFR0_EL1.CTX_CMPs is the number of context-aware
     // breakpoints, minus 1, otherwise, number of context-aware breakpoints

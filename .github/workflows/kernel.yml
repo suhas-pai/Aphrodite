@@ -25,9 +25,9 @@ jobs:
         submodules: 'recursive'
     - name: make
       run: |
-        make KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
-        make clean KARCH=${{ matrix.arch }}
-        make all-hdd KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
+        make ARCH=${{ matrix.arch }} CC=clang LD=ld.lld
+        make clean ARCH=${{ matrix.arch }}
+        make all-hdd ARCH=${{ matrix.arch }} CC=clang LD=ld.lld
     - name: Run Tests
       working-directory: tests/
       run: |
@@ -50,9 +50,9 @@ jobs:
         submodules: 'recursive'
     - name: make
       run: |
-        make KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
-        make clean KARCH=${{ matrix.arch }}
-        make all-hdd KARCH=${{ matrix.arch }} KCC=clang KLD=ld.lld
+        make ARCH=${{ matrix.arch }} CC=clang LD=ld.lld
+        make clean ARCH=${{ matrix.arch }}
+        make all-hdd ARCH=${{ matrix.arch }} CC=clang LD=ld.lld
     - name: Run Tests
       working-directory: tests/
       run: |

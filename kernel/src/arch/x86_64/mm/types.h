@@ -68,27 +68,27 @@ struct largepage_level_info {
 extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
 
 #define PAGE_SIZE_AT_LEVEL(level) ({ \
-    __auto_type __pagesizelevelresult__ = (uint64_t)0; \
+    __auto_type __page_size_level_result__ = (uint64_t)0; \
     switch (level) { \
         case 1: \
-            __pagesizelevelresult__ = PAGE_SIZE; \
+            __page_size_level_result__ = PAGE_SIZE; \
             break; \
         case 2: \
-            __pagesizelevelresult__ = PAGE_SIZE_2MIB; \
+            __page_size_level_result__ = PAGE_SIZE_2MIB; \
             break; \
         case 3: \
-            __pagesizelevelresult__ = PAGE_SIZE_1GIB; \
+            __page_size_level_result__ = PAGE_SIZE_1GIB; \
             break; \
         case 4: \
-            __pagesizelevelresult__ = 1ull << PML4_SHIFT; \
+            __page_size_level_result__ = 1ull << PML4_SHIFT; \
             break; \
         case 5: \
-            __pagesizelevelresult__ = 1ull << PML5_SHIFT; \
+            __page_size_level_result__ = 1ull << PML5_SHIFT; \
             break; \
         default: \
             verify_not_reached(); \
     } \
-    __pagesizelevelresult__; \
+    __page_size_level_result__; \
 })
 
 enum pte_flags {

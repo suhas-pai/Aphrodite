@@ -58,7 +58,7 @@ Install the latest version of LLVM available. The best option is from llvm.org.
 The llvm version available in your system's package manager may be too old to
 build this project.
 
-This project also requires installing `nasm`, `xorisso`, `sgdisk`, and `mtools`.
+This project also requires installing `nasm`, `xorriso`, `sgdisk`, and `mtools`.
 Make sure to add llvm's installation folder to your `$PATH` environment variable.
 
 Note that `mtools` and `sgdisk` are only required to build the `hdd` targets.
@@ -66,7 +66,7 @@ Note that `mtools` and `sgdisk` are only required to build the `hdd` targets.
 #### Targets
 
 The GNUmakefile provides the following targets to use with `make` for building:
- * `all` target builds the system for the given architecture in `KARCH`, creating
+ * `all` target builds the system for the given architecture in `ARCH`, creating
    a bootable .iso image containing the built system.
  * `all-hdd` target builds a flat hard disk/USB image instead.
  * `install` target can install the system into a directory provided by the variable `DESTDIR`.
@@ -74,23 +74,23 @@ The GNUmakefile provides the following targets to use with `make` for building:
 #### Variables
 
 Several variables are available to configure how the project is built:
- * `KARCH=` specifies the architecture the project is built for. Default is `x86_64`,
+ * `ARCH=` specifies the architecture the project is built for. Default is `x86_64`,
     but also accepts `aarch64`, `riscv64`, `loongarch64` as inputs to run the
     project on the respective architecture.
- * `KCC=`, `KLD=` detail the compiler and linker used to build the *kernel*.
-   Default is `KCC=cc` `KLD=ld`.
+ * `CC=`, `LD=` detail the compiler and linker used to build the *kernel*.
+   Default is `CC=cc` `LD=ld`.
 
 ## Running
 
 This project uses the Makefile build system. To run the project (In QEMU), use
 the following command:
 
-``` make run KARCH=x86_64 KCC=clang KLD=ld.lld```
+``` make run ARCH=x86_64 CC=clang LD=ld.lld```
 
 To run from a built raw HDD image (creating if necessary), rather than a
 bootable ISO, run the following command instead:
 
-``` make run-hdd KARCH=x86_64 KCC=clang KLD=ld.lld```
+``` make run-hdd ARCH=x86_64 CC=clang LD=ld.lld```
 
 On `x86_64`, additional options are available:
  * `run-bios`, `run-hdd-bios` Makefile targets are equivalent to their non `-bios` counterparts
@@ -112,7 +112,7 @@ If not provided, they are given a default value that is detailed below:
     Available options are:
      * `block` which provides the default `cdrom`/`hda` access from QEMU
      * `scsi` which provides `VirtIO` to access drives through the `virtio-scsi` interface
-     * `nvme` which provides nvme drives instread
+     * `nvme` which provides nvme drives instead
   * `NVME_MAX_QUEUE_COUNT=` to set nvme's max queue count. Only available when `DRIVE_KIND` is nvme. Default is `64`
   * `TRACE=` to trace certain logs in qemu to `log.txt`. Takes a space separated string and provides qemu
     with the list in the correct format. Default is `""`

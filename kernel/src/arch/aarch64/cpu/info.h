@@ -9,13 +9,13 @@
 struct process;
 struct cpu_info {
     struct cpu_info_base;
-    uint64_t mpidr;
 
-    uint32_t processor_id;
+    uint64_t mpidr;
     uint64_t affinity;
 
     uint16_t spe_overflow_interrupt;
     uint16_t icid;
+    uint32_t processor_id;
 
     void *gic_its_pend_page;
     void *gic_its_prop_page;

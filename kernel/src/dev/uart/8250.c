@@ -11,7 +11,7 @@
 #include "mm/kmalloc.h"
 #include "8250.h"
 
-#define UART_RBR_OFFSET 0  // In:  Recieve Buffer Register
+#define UART_RBR_OFFSET 0  // In:  Receive Buffer Register
 #define UART_THR_OFFSET 0  // Out: Transmitter Holding Register
 #define UART_DLL_OFFSET 0  // Out: Divisor Latch Low
 #define UART_IER_OFFSET 1  // I/O: Interrupt Enable Register

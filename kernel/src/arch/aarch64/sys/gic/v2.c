@@ -54,18 +54,18 @@ struct gic_v2_msi_info {
 struct gic_cpu_interface;
 
 enum gicdv2_type_shifts {
-    GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT = 5,
-    GICDV2_MAX_IMPLD_LOCKABLE_SPIS_SHIFT = 11
+    GICDV2_CPU_IMPLED_COUNT_MINUS_ONE_SHIFT = 5,
+    GICDV2_MAX_IMPLED_LOCKABLE_SPIS_SHIFT = 11
 };
 
 enum gicdv2_type_flags {
     __GICDV2_TYPE_INTR_LINES = 0b11111ull,
-    __GICDV2_CPU_IMPLD_COUNT_MINUS_ONE =
-        0b111ull << GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT,
+    __GICDV2_CPU_IMPLED_COUNT_MINUS_ONE =
+        0b111ull << GICDV2_CPU_IMPLED_COUNT_MINUS_ONE_SHIFT,
 
     __GICDV2_IMPLS_SECURITY_EXTENSIONS = 1ull << 10,
-    __GICDV2_MAX_IMPLD_LOCKABLE_SPIS =
-        0b11111ull << GICDV2_MAX_IMPLD_LOCKABLE_SPIS_SHIFT
+    __GICDV2_MAX_IMPLED_LOCKABLE_SPIS =
+        0b11111ull << GICDV2_MAX_IMPLED_LOCKABLE_SPIS_SHIFT
 };
 
 struct gicdv2_registers {
@@ -323,11 +323,11 @@ gicv2_init_from_info(const struct range cpu_range,
     g_dist.interrupt_lines_count =
         min(((type & __GICDV2_TYPE_INTR_LINES) + 1) * 32, 1020);
     g_dist.impl_cpu_count =
-        ((type & __GICDV2_CPU_IMPLD_COUNT_MINUS_ONE) >>
-            GICDV2_CPU_IMPLD_COUNT_MINUS_ONE_SHIFT) + 1;
+        ((type & __GICDV2_CPU_IMPLED_COUNT_MINUS_ONE) >>
+            GICDV2_CPU_IMPLED_COUNT_MINUS_ONE_SHIFT) + 1;
     g_dist.max_impl_lockable_spis =
-        (type & __GICDV2_MAX_IMPLD_LOCKABLE_SPIS) >>
-            GICDV2_MAX_IMPLD_LOCKABLE_SPIS_SHIFT;
+        (type & __GICDV2_MAX_IMPLED_LOCKABLE_SPIS) >>
+            GICDV2_MAX_IMPLED_LOCKABLE_SPIS_SHIFT;
     g_dist.supports_security_extensions =
         type & __GICDV2_IMPLS_SECURITY_EXTENSIONS;
 
