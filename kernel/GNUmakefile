@@ -6,17 +6,11 @@ MAKEFLAGS += -rR
 # Change as needed.
 override KERNEL := kernel
 
-# Convenience macro to reliably declare user overridable variables.
-override USER_VARIABLE = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
-
 # Target architecture to build for. Default to x86_64.
-$(call USER_VARIABLE,ARCH,x86_64)
-
-# Destination directory on install (should always be empty by default).
-$(call USER_VARIABLE,DESTDIR,)
+ARCH := x86_64
 
 # Install prefix; /usr/local is a good, standard default pick.
-$(call USER_VARIABLE,PREFIX,/usr/local)
+PREFIX := /usr/local
 
 # Check if the architecture is supported.
 ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
@@ -24,13 +18,13 @@ ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
 endif
 
 # User controllable C compiler command.
-$(call USER_VARIABLE,CC,cc)
+CC := cc
 
 # User controllable archiver command.
-$(call USER_VARIABLE,AR,ar)
+AR := ar
 
 # Same thing for "ld" (the linker).
-$(call USER_VARIABLE,LD,ld)
+LD := ld
 
 override LD_IS_LLD := no
 ifeq ($(shell $(LD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
@@ -82,18 +76,18 @@ ifeq ($(CHECK_SLABS), 1)
 endif
 
 # User controllable C flags.
-$(call USER_VARIABLE,EXTRA_CFLAGS,$(COMMON_CFLAGS))
+EXTRA_CFLAGS := $(COMMON_CFLAGS)
 
 # User controllable C preprocessor flags. We set none by default.
-$(call USER_VARIABLE,CPPFLAGS,-I..)
+CPPFLAGS := -I..
 
 ifeq ($(ARCH), x86_64)
 # User controllable nasm flags.
-$(call USER_VARIABLE,NASMFLAGS,-F dwarf -g)
+NASMFLAGS := -F dwarf -g
 endif
 
 # User controllable linker flags. We set none by default.
-$(call USER_VARIABLE,LDFLAGS,)
+LDFLAGS :=
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
@@ -125,6 +119,7 @@ override CPPFLAGS := \
 	-I src \
 	-isystem freestnd-c-hdrs-0bsd \
 	$(CPPFLAGS) \
+	-DLIMINE_API_REVISION=2 \
 	-MMD \
 	-MP
 
@@ -232,17 +227,14 @@ override LDFLAGS += \
 	-gc-sections \
 	-T src/arch/$(ARCH)/linker.ld
 
-define FIND_FILES
-	override $(1) += $(addprefix src/,$(shell cd src && find -L * -type f -name $(2) -not -path "arch/*"))
-	override $(1) += $(addprefix src/arch/$(ARCH)/,$(shell cd src/arch/$(ARCH) && find -L * -type f -name $(2)))
-endef
+SRCFILES := $(shell find -L src -type f -not -path "src/arch/*" -not -path "*/.*" | LC_ALL=C sort)
+SRCFILES += $(shell find -L src/arch/$(ARCH) -type f | LC_ALL=C sort)
 
-# Use "find" to glob all *.c, *.S, and *.asm files in the tree and obtain the
-# object and header dependency file names.
-
-$(eval $(call FIND_FILES,CFILES, "*.c"))
-$(eval $(call FIND_FILES,ASFILES, "*.S"))
-$(eval $(call FIND_FILES,NASMFILES, "*.asm"))
+override CFILES := $(filter %.c,$(SRCFILES))
+override ASFILES := $(filter %.S,$(SRCFILES))
+ifeq ($(ARCH),x86_64)
+override NASMFILES := $(filter %.asm,$(SRCFILES))
+endif
 
 LIBFILES += \
 	../lib/convert.c ../lib/ctype.c ../lib/parse_printf.c ../lib/align.c \
@@ -257,12 +249,15 @@ LIBFILES += \
 override OBJ := $(addprefix obj-$(ARCH)/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(LIBFILES:../lib/%.c=lib/%.c.o) $(NASMFILES:src/%.asm=%.asm.o))
 override HEADER_DEPS := $(addprefix obj-$(ARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
-# Default target.
+# Default target. This must come first, before header dependencies.
 .PHONY: all
 all: bin-$(ARCH)/$(KERNEL)
 
+# Include header dependencies.
+-include $(HEADER_DEPS)
+
 # Link rules for building the C compiler runtime.
-cc-runtime-$(ARCH)/cc-runtime.a: cc-runtime/*
+cc-runtime-$(ARCH)/cc-runtime.a: GNUmakefile cc-runtime/*
 	rm -rf cc-runtime-$(ARCH)
 	cp -r cc-runtime cc-runtime-$(ARCH)
 	$(MAKE) -C cc-runtime-$(ARCH) -f cc-runtime.mk \
@@ -285,24 +280,21 @@ src/dev/pci/vendors.h:
 # relocatable PIEs, if the base load address is non-0.
 # See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
 bin-$(ARCH)/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ) cc-runtime-$(ARCH)/cc-runtime.a
-	mkdir -p "$$(dirname $@)"
+	@mkdir -p "$$(dirname $@)"
 	$(LD) $(OBJ) cc-runtime-$(ARCH)/cc-runtime.a $(LDFLAGS) -o $@
 	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
 
-# Include header dependencies.
--include $(HEADER_DEPS)
-
 # Compilation rules for *.c files.
 obj-$(ARCH)/%.c.o: src/%.c GNUmakefile src/dev/pci/vendors.h
-	mkdir -p "$$(dirname $@)"
+	@mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/cc-runtime.c.o: src/cc-runtime.c GNUmakefile
-	mkdir -p "$$(dirname $@)"
+	@mkdir -p "$$(dirname $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wundef,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/flanterm/%.c.o: src/flanterm/%.c GNUmakefile
-	mkdir -p "$$(dirname $@)"
+	@mkdir -p "$$(dirname $@)"
 	$(CC) $(filter-out -fsanitize=undefined,$(CFLAGS)) -O3 $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/lib/%.c.o: ../lib/%.c GNUmakefile
@@ -332,3 +324,6 @@ distclean:
 install: all
 	install -d "$(DESTDIR)$(PREFIX)/share/$(KERNEL)"
 	install -m 644 bin-$(ARCH)/$(KERNEL) "$(DESTDIR)$(PREFIX)/share/$(KERNEL)/$(KERNEL)-$(ARCH)"
+
+print:
+	@echo $(CFILES)

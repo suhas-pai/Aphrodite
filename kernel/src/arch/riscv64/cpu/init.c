@@ -84,6 +84,6 @@ __debug_optimize(3) void cpu_early_init() {
 }
 
 __debug_optimize(3) void cpu_init_from_dtb() {
-    const struct limine_smp_response *const smp_resp = boot_get_smp();
-    setup_from_dtb(smp_resp->bsp_hartid);
+    const struct limine_mp_response *const mp_resp = boot_get_mp();
+    setup_from_dtb(mp_resp->bsp_hartid);
 }

@@ -142,7 +142,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
             continue;
         }
 
-        if (memmap->kind == MM_MEMMAP_KIND_KERNEL_AND_MODULES) {
+        if (memmap->kind == MM_MEMMAP_KIND_EXEC_AND_MODULES) {
             kernel_memmap_size = memmap->range.size;
             map_into_kernel_pagemap(/*phys_range=*/memmap->range,
                                     /*virt_addr=*/KERNEL_BASE,
@@ -175,7 +175,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
         }
 
         uint64_t virt_addr = 0;
-        if (memmap->kind != MM_MEMMAP_KIND_KERNEL_AND_MODULES) {
+        if (memmap->kind != MM_MEMMAP_KIND_EXEC_AND_MODULES) {
             virt_addr = (uint64_t)phys_to_virt(memmap->range.front);
         } else {
             virt_addr = KERNEL_BASE;

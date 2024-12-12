@@ -25,19 +25,19 @@ extern void arch_init_for_smp();
 #elif defined(__loongarch64)
     #define field
 #else
-    #error "Unkonwn architecture"
+    #error "Unknown architecture"
 #endif
 
 #define bsp_field VAR_CONCAT(bsp_, field)
 
 void smp_init() {
-    const struct limine_smp_response *const smp_resp = boot_get_smp();
+    const struct limine_mp_response *const smp_resp = boot_get_mp();
     if (smp_resp == NULL) {
         return;
     }
 
 #if !defined(__loongarch64)
-    struct limine_smp_info *const *const cpu_list = smp_resp->cpus;
+    struct limine_mp_info *const *const cpu_list = smp_resp->cpus;
     const uint64_t cpu_count = smp_resp->cpu_count;
 
     for (uint64_t i = 0; i != cpu_count; i++) {
@@ -50,13 +50,13 @@ void smp_init() {
 
 void smp_boot_all_cpus() {
 #if defined(__x86_64__) || defined(__aarch64__)
-    const struct limine_smp_response *const smp_resp = boot_get_smp();
-    if (smp_resp == NULL) {
+    const struct limine_mp_response *const mp_resp = boot_get_mp();
+    if (mp_resp == NULL) {
         return;
     }
 
-    struct limine_smp_info *const *const cpu_list = smp_resp->cpus;
-    const uint64_t cpu_count = smp_resp->cpu_count;
+    struct limine_mp_info *const *const cpu_list = mp_resp->cpus;
+    const uint64_t cpu_count = mp_resp->cpu_count;
 
     if (cpu_count == 1) {
         return;
@@ -64,7 +64,7 @@ void smp_boot_all_cpus() {
 
     printk(LOGLEVEL_INFO, "smp: booting all cpus\n");
     for (uint64_t i = 0; i != cpu_count; i++) {
-        if (cpu_list[i]->field == smp_resp->bsp_field) {
+        if (cpu_list[i]->field == mp_resp->bsp_field) {
             continue;
         }
 
@@ -79,7 +79,10 @@ void smp_boot_all_cpus() {
         sched_init_on_cpu(cpu);
         with_interrupts_disabled({
             cpu_list[i]->extra_argument = (uint64_t)&boot_info;
-            cpu_list[i]->goto_address = arch_init_for_smp;
+            atomic_store_explicit(
+                (_Atomic uint64_t *)&cpu_list[i]->goto_address,
+                (uint64_t)arch_init_for_smp,
+                memory_order_seq_cst);
 
             while (!atomic_load_explicit(&boot_info.booted,
                                          memory_order_seq_cst))
@@ -89,4 +92,6 @@ void smp_boot_all_cpus() {
         });
     }
 #endif /* defined(__x86_64__) || defined(__aarch64__) */
+
+    printk(LOGLEVEL_INFO, "smp: finished booting all cpus\n");
 }

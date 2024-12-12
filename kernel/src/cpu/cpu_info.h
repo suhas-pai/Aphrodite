@@ -40,7 +40,7 @@ const struct cpu_info *this_cpu();
 struct list *cpus_get_list();
 
 struct cpu_info *this_cpu_mut();
-struct cpu_info *cpu_add(const struct limine_smp_info *info);
+struct cpu_info *cpu_add(const struct limine_mp_info *info);
 
 bool cpu_in_bad_state();
 

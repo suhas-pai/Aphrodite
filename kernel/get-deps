@@ -72,12 +72,12 @@ clone_repo_commit \
 clone_repo_commit \
     https://github.com/osdev0/cc-runtime.git \
     cc-runtime \
-    13fe6383470f0e4982d926472448d6d3b80a851f
+    9c281448fe40498a6341d74f55c9af4f642c0b1d
 
 download_by_hash \
-    https://github.com/limine-bootloader/limine/raw/c171e847d5dc1448722506c00a7217c9e199f8dc/limine.h \
+    https://github.com/limine-bootloader/limine/raw/7cddb61183685d9bddd2eb13d42223d929c2abe6/limine.h \
     src/limine.h \
-    a8a38dd0a2c3174708ecccede6cc7ed31d5f450c0601ddbd2e2246d155868856
+    c00e7d4cd6e2674eca481f978b64a7fb8c8479cc32c466ec35aad2207761bf01
 
 download_by_hash \
     https://gist.githubusercontent.com/suhas-pai/2a6c1c4d32491aaf363ee3b1b3884390/raw/541482dbc61862bba8a156edaae57faa2995d791/stdatomic.h \

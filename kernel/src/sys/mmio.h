@@ -16,42 +16,36 @@ void mmio_write_16(volatile void *ptr, uint16_t value);
 void mmio_write_32(volatile void *ptr, uint32_t value);
 void mmio_write_64(volatile void *ptr, uint64_t value);
 
-#define mmio_read(ptr) ({ \
-    __auto_type __result__ = (typeof(*(ptr)))0; \
-    switch (sizeof(*(ptr))) { \
-        case sizeof(uint8_t): \
-            __result__ = mmio_read_8(ptr); \
-            break; \
-        case sizeof(uint16_t): \
-            __result__ = mmio_read_16(ptr); \
-            break; \
-        case sizeof(uint32_t): \
-            __result__ = mmio_read_32(ptr); \
-            break; \
-        case sizeof(uint64_t): \
-            __result__ = mmio_read_64(ptr); \
-            break; \
-        default: \
-            verify_not_reached(); \
-    } \
-    __result__; \
-})
+#define mmio_read(ptr) _Generic((ptr), \
+    volatile uint8_t *: mmio_read_8, \
+    volatile uint16_t *: mmio_read_16, \
+    volatile uint32_t *: mmio_read_32, \
+    volatile uint64_t *: mmio_read_64, \
+    volatile const uint8_t *: mmio_read_8, \
+    volatile const uint16_t *: mmio_read_16, \
+    volatile const uint32_t *: mmio_read_32, \
+    volatile const uint64_t *: mmio_read_64, \
+    volatile _Atomic(uint8_t) *: mmio_read_8, \
+    volatile _Atomic(uint16_t) *: mmio_read_16, \
+    volatile _Atomic(uint32_t) *: mmio_read_32, \
+    volatile _Atomic(uint64_t) *: mmio_read_64, \
+    volatile const _Atomic(uint8_t) *: mmio_read_8, \
+    volatile const _Atomic(uint16_t) *: mmio_read_16, \
+    volatile const _Atomic(uint32_t) *: mmio_read_32, \
+    volatile const _Atomic(uint64_t) *: mmio_read_64 \
+)(ptr)
 
-#define mmio_write(ptr, value) ({ \
-    switch (sizeof(*(ptr))) { \
-        case sizeof(uint8_t): \
-            mmio_write_8((ptr), (uint8_t)(value)); \
-            break; \
-        case sizeof(uint16_t): \
-            mmio_write_16((ptr), (uint16_t)(value)); \
-            break; \
-        case sizeof(uint32_t): \
-            mmio_write_32((ptr), (uint32_t)(value)); \
-            break; \
-        case sizeof(uint64_t): \
-            mmio_write_64((ptr), (uint64_t)(value)); \
-            break; \
-        default: \
-            verify_not_reached(); \
-    } \
-})
+#define mmio_write(ptr, value) _Generic((ptr), \
+    volatile uint8_t *: mmio_write_8, \
+    volatile uint16_t *: mmio_write_16, \
+    volatile uint32_t *: mmio_write_32, \
+    volatile uint64_t *: mmio_write_64, \
+    _Atomic uint8_t *: mmio_write_8, \
+    _Atomic uint16_t *: mmio_write_16, \
+    _Atomic uint32_t *: mmio_write_32, \
+    _Atomic uint64_t *: mmio_write_64, \
+    volatile _Atomic(uint8_t) *: mmio_write_8, \
+    volatile _Atomic(uint16_t) *: mmio_write_16, \
+    volatile _Atomic(uint32_t) *: mmio_write_32, \
+    volatile _Atomic(uint64_t) *: mmio_write_64 \
+)(ptr, value)

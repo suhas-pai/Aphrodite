@@ -73,7 +73,7 @@ static void calibrate_timer() {
             while (x2apic_read(X2APIC_LAPIC_REG_TIMER_CURR_COUNT) != 0) {}
         } else {
             mmio_write(&g_lapic_regs->timer_current_count, 0);
-            mmio_write(&g_lapic_regs->timer_divide_config,
+            mmio_write((volatile uint8_t *)&g_lapic_regs->timer_divide_config,
                        LAPIC_TIMER_DIV_CONFIG_BY_2);
 
             mmio_write(&g_lapic_regs->timer_initial_count, sample_count);

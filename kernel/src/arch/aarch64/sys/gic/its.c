@@ -323,7 +323,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     }
 
     with_preempt_disabled({
-        mmio_write(&((uint8_t *)this_cpu()->gic_its_prop_page)[vector],
+        mmio_write(&((volatile uint32_t *)this_cpu()->gic_its_prop_page)[vector],
                    __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
                  | GICD_DEFAULT_PRIO <<
                     GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);

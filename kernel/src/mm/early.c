@@ -321,7 +321,7 @@ __debug_optimize(3) void mm_early_init() {
 
                 //structpage_page_count += PAGE_COUNT(memmap->range.size);
                 break;
-            case MM_MEMMAP_KIND_KERNEL_AND_MODULES:
+            case MM_MEMMAP_KIND_EXEC_AND_MODULES:
             case MM_MEMMAP_KIND_FRAMEBUFFER:
                 break;
         }
@@ -363,7 +363,7 @@ __debug_optimize(3) void mm_init() {
 
                 type_desc = "bootloader-reclaimable";
                 break;
-            case MM_MEMMAP_KIND_KERNEL_AND_MODULES:
+            case MM_MEMMAP_KIND_EXEC_AND_MODULES:
                 type_desc = "kernel-and-modules";
                 break;
             case MM_MEMMAP_KIND_FRAMEBUFFER:

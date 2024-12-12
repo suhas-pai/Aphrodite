@@ -2,34 +2,33 @@
 MAKEFLAGS += -rR
 .SUFFIXES:
 
-# Convenience macro to reliably declare user overridable variables.
-override USER_VARIABLE = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
+DEFAULT_MACHINE=virt
+ifeq ($(ARCH),x86_64)
+	DEFAULT_MACHINE=q35
+endif
+
+MACHINE := $(DEFAULT_MACHINE)
 
 # Target architecture to build for. Default to x86_64.
-$(call USER_VARIABLE,ARCH,x86_64)
+ARCH := x86_64
 
-# Destination directory on install (should always be empty by default).
-$(call USER_VARIABLE,DESTDIR,)
-
-# Install prefix; /usr/local is a good, standard default pick.
-$(call USER_VARIABLE,PREFIX,/usr/local)
+# Default user QEMU flags. These are appended to the QEMU command calls.
+QEMUFLAGS := -M $(MACHINE) -m 4G -smp 4
 
 # Check if the architecture is supported.
 ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
     $(error Architecture $(ARCH) not supported)
 endif
 
-$(call USER_VARIABLE,MEM,4G)
-$(call USER_VARIABLE,SMP,4)
-
 override IMAGE_NAME := template-$(ARCH)
 
-DEFAULT_MACHINE=virt
-ifeq ($(ARCH),x86_64)
-	DEFAULT_MACHINE=q35
-endif
+# Toolchain for building the 'limine' executable for the host.
+HOST_CC := cc
+HOST_CFLAGS := -g -O2 -pipe
+HOST_CPPFLAGS :=
+HOST_LDFLAGS :=
+HOST_LIBS :=
 
-MACHINE=$(DEFAULT_MACHINE)
 ifeq ($(ARCH),x86_64)
 ifeq ($(DISABLE_ACPI),1)
 $(error ACPI cannot be disabled on x86_64)
@@ -47,9 +46,6 @@ endif
 ifeq ($(ARCH),riscv64)
 	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
 endif
-
-# Default user QEMU flags. These are appended to the QEMU command calls.
-$(call USER_VARIABLE,QEMUFLAGS,-M $(MACHINE) -m $(MEM) -smp $(SMP))
 
 EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime
 ifeq ($(DEBUG),1)
@@ -71,17 +67,17 @@ ifeq ($(ARCH),riscv64)
 	DEFAULT_DRIVE_KIND = scsi
 endif
 
-$(call USER_VARIABLE,DRIVE_KIND,$(DEFAULT_DRIVE_KIND))
-$(call USER_VARIABLE,TRACE,)
+DRIVE_KIND := $(DEFAULT_DRIVE_KIND)
+TRACE :=
 
 ifneq ($(TRACE),)
 	TRACE_LIST=$(wordlist 1, 2147483647, $(TRACE))
 	EXTRA_QEMU_ARGS += $(foreach trace_var,$(TRACE_LIST),$(addprefix -trace , $(trace_var)))
 endif
 
-$(call USER_VARIABLE,DISABLE_FLANTERM,0)
-$(call USER_VARIABLE,DEBUG_LOCKS,0)
-$(call USER_VARIABLE,CHECK_SLABS,0)
+DISABLE_FLANTERM := 0
+DEBUG_LOCKS := 0
+CHECK_SLABS := 0
 
 VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
@@ -113,7 +109,7 @@ ifeq ($(DRIVE_KIND),scsi)
 endif
 
 ifeq ($(DRIVE_KIND),nvme)
-$(call USER_VARIABLE,NVME_MAX_QUEUE_COUNT,64)
+	NVME_MAX_QUEUE_COUNT := 64
 
 	QEMU_CDROM_ARGS += \
 		-drive file=$(IMAGE_NAME).iso,if=none,id=osdrive,format=raw \
@@ -249,7 +245,12 @@ ovmf/ovmf-code-$(ARCH).fd:
 limine/limine:
 	rm -rf limine
 	git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
-	$(MAKE) -C limine
+	$(MAKE) -C limine \
+		CC="$(HOST_CC)" \
+		CFLAGS="$(HOST_CFLAGS)" \
+		CPPFLAGS="$(HOST_CPPFLAGS)" \
+		LDFLAGS="$(HOST_LDFLAGS)" \
+		LIBS="$(HOST_LIBS)"
 
 kernel-deps:
 	./kernel/get-deps
@@ -309,7 +310,7 @@ endif
 $(IMAGE_NAME).hdd: limine/limine kernel
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
-	sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
+	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
 ifeq ($(ARCH),x86_64)
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 endif

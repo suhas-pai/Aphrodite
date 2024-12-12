@@ -25,7 +25,7 @@ struct cpus_info g_cpus_info = {
 };
 
 __debug_optimize(3) void cpu_init() {
-    this_cpu_mut()->hart_id = boot_get_smp()->bsp_hartid;
+    this_cpu_mut()->hart_id = boot_get_mp()->bsp_hartid;
     list_add(cpus_get_list(), &this_cpu_mut()->cpu_list);
 }
 
@@ -60,7 +60,7 @@ __debug_optimize(3) struct cpu_info *cpu_for_id_mut(const cpu_id_t hart_id) {
 }
 
 __debug_optimize(3)
-struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
+struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc cpu info");
 

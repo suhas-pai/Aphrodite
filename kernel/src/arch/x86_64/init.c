@@ -26,7 +26,7 @@ void arch_post_mm_init() {
 
 void sched_set_current_thread(struct thread *thread);
 
-__debug_optimize(3) void arch_init_for_smp(struct limine_smp_info *const info) {
+__debug_optimize(3) void arch_init_for_smp(struct limine_mp_info *const info) {
     cpu_init_for_smp();
 
     gdt_load();

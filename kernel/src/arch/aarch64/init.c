@@ -51,7 +51,7 @@ __debug_optimize(3) void arch_post_mm_init() {
 void arch_init_time();
 void sched_set_current_thread(struct thread *thread);
 
-__debug_optimize(3) void arch_init_for_smp(struct limine_smp_info *const info) {
+__debug_optimize(3) void arch_init_for_smp(struct limine_mp_info *const info) {
     struct smp_boot_info *const boot_info =
         (struct smp_boot_info *)info->extra_argument;
 

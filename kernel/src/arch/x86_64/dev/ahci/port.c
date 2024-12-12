@@ -839,7 +839,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
            "\t\tdma supported: %s\n"
            "\t\tlba supported: %s\n"
            "\t\tiordy supported: %s\n"
-           "\t\tstandy timer supported: %s\n",
+           "\t\tstandby timer supported: %s\n",
            ident->device_type,
            SV_FMT_ARGS(sv_of_carr(ident->serial)),
            SV_FMT_ARGS(sv_of_carr(ident->model)),

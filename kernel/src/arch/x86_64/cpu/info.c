@@ -50,7 +50,7 @@ __debug_optimize(3) struct cpu_info *cpu_for_id_mut(const cpu_id_t id) {
 }
 
 __debug_optimize(3)
-struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
+struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu_add(): failed to alloc cpu");
 

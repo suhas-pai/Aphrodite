@@ -31,8 +31,8 @@ static volatile struct limine_hhdm_request hhdm_request = {
 };
 
 __attribute__((section(".requests")))
-static volatile struct limine_kernel_address_request kern_addr_request = {
-    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+static volatile struct limine_executable_address_request exec_addr_request = {
+    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
     .revision = 0,
     .response = NULL
 };
@@ -73,8 +73,8 @@ static volatile struct limine_boot_time_request boot_time_request = {
 };
 
 __attribute__((section(".requests")))
-static volatile struct limine_smp_request smp_request = {
-    .id = LIMINE_SMP_REQUEST,
+static volatile struct limine_mp_request mp_request = {
+    .id = LIMINE_MP_REQUEST,
     .revision = 0,
     .response = NULL,
 #if defined(__x86_64__)
@@ -96,7 +96,7 @@ __attribute__((used, section(".requests_end_marker")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
 static struct limine_framebuffer_response framebuffer_resp = {0};
-static struct limine_smp_response *smp_response = NULL;
+static struct limine_mp_response *mp_response = NULL;
 
 static struct mm_memmap mm_memmap_list[255] = {0};
 static uint8_t mm_memmap_count = 0;
@@ -137,8 +137,8 @@ __debug_optimize(3) const struct limine_framebuffer_response *boot_get_fb() {
     return &framebuffer_resp;
 }
 
-__debug_optimize(3) const struct limine_smp_response *boot_get_smp() {
-    return smp_response;
+__debug_optimize(3) const struct limine_mp_response *boot_get_mp() {
+    return mp_response;
 }
 
 __debug_optimize(3) const void *boot_get_rsdp() {
@@ -163,16 +163,16 @@ __debug_optimize(3) uint64_t mm_get_full_section_mask() {
 
 void boot_init() {
     assert(hhdm_request.response != NULL);
-    assert(kern_addr_request.response != NULL);
+    assert(exec_addr_request.response != NULL);
     assert(memmap_request.response != NULL);
     assert(paging_mode_request.response != NULL);
 
     HHDM_OFFSET = hhdm_request.response->offset;
-    KERNEL_BASE = kern_addr_request.response->virtual_base;
+    KERNEL_BASE = exec_addr_request.response->virtual_base;
     PAGING_MODE = paging_mode_request.response->mode;
 
-#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv64) \
- || defined(__loongarch64)
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv64) || \
+    defined(__loongarch64)
     g_slide = KERNEL_BASE - 0xffffffff80000000;
 #else
     #error "Unrecognized architecture when calculating slide"
@@ -182,13 +182,12 @@ void boot_init() {
         framebuffer_resp = *framebuffer_request.response;
     }
 
-    smp_response = smp_request.response;
+    mp_response = mp_request.response;
     if (dtb_request.response != NULL && dtb_request.response->dtb_ptr != NULL) {
         dtb = dtb_request.response->dtb_ptr;
     }
 
-    if (rsdp_request.response != NULL && rsdp_request.response->address != NULL)
-    {
+    if (rsdp_request.response != NULL && rsdp_request.response->address != 0) {
         rsdp = phys_to_virt((uint64_t)rsdp_request.response->address);
     }
 
@@ -290,7 +289,7 @@ void boot_post_early_init() {
     }
 #endif /* !defined(__x86_64__) */
 
-    if (rsdp_request.response == NULL || rsdp_request.response->address == NULL)
+    if (rsdp_request.response == NULL || rsdp_request.response->address == 0)
     {
     #if !defined(__riscv64) && !defined(__aarch64__)
         panic("boot: acpi not found\n");
@@ -299,10 +298,10 @@ void boot_post_early_init() {
     #endif /* !defined(__riscv64) */
     }
 
-    if (smp_response != NULL) {
+    if (mp_response != NULL) {
         printk(LOGLEVEL_WARN,
                "boot: found %" PRIu64 " cpus\n",
-               smp_response->cpu_count);
+               mp_response->cpu_count);
     }
 
     if (boot_time_request.response == NULL) {

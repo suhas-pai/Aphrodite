@@ -32,7 +32,7 @@ void cpu_reboot() {
     panic("kernel: cpu_reboot() failed with result=%d\n", result);
 }
 
-struct cpu_info *cpu_add(const struct limine_smp_info *const info) {
+struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
     assert_msg(cpu != NULL, "cpu: failed to alloc info");
 
