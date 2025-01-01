@@ -72,7 +72,7 @@ clone_repo_commit \
 clone_repo_commit \
     https://github.com/osdev0/cc-runtime.git \
     cc-runtime \
-    9c281448fe40498a6341d74f55c9af4f642c0b1d
+    576a01179f3298a4795b92f42c088f9f8800b56b
 
 download_by_hash \
     https://github.com/limine-bootloader/limine/raw/7cddb61183685d9bddd2eb13d42223d929c2abe6/limine.h \

@@ -61,8 +61,10 @@ __debug_optimize(3) void syscon_poweroff() {
         cpu_idle();
     }
 
-    mmio_write((volatile uint32_t *)(g_mmio->base + meth_info->offset),
-               meth_info->value);
+    volatile uint32_t *const reg =
+        (volatile uint32_t *)(g_mmio->base + meth_info->offset);
+
+    mmio_write(reg, meth_info->value);
 }
 
 __debug_optimize(3) void syscon_reboot() {

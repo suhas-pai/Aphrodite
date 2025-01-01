@@ -220,6 +220,7 @@ endif
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS += \
+	--build-id=none \
 	-nostdlib \
 	-pie \
 	-z text \

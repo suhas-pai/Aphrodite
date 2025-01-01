@@ -346,7 +346,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	$(MAKE) -C kernel clean
+	$(MAKE) -C kernel distclean
 	rm -rf iso_root-* *.iso *.hdd kernel-deps limine ovmf*
 
 # Try to undo whatever the "install" target did.
