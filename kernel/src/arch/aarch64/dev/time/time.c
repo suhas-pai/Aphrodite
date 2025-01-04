@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "asm/pause.h"
 #include "dev/dtb/tree.h"
 #include "sys/gic/api.h"
 
@@ -31,6 +32,10 @@ __debug_optimize(3) nsec_t system_timer_get_count_ns() {
     asm volatile ("mrs %0, cntpct_el0" : "=r"(timestamp));
 
     return timestamp;
+}
+
+__debug_optimize(3) usec_t system_timer_get_count_usec() {
+    return nano_to_micro(system_timer_get_count_ns());
 }
 
 __debug_optimize(3) nsec_t nsec_since_boot() {
@@ -72,8 +77,19 @@ __debug_optimize(3) void system_timer_stop_alarm() {
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
 }
 
+void stall_for_usec(const usec_t usec) {
+    const usec_t current = system_timer_get_count_usec() / g_frequency;
+    while (system_timer_get_count_usec() / g_frequency < current + usec) {
+        cpu_pause();
+    }
+}
+
 __debug_optimize(3) static void
-interrupt_handler(const uint64_t intr_no, struct thread_context *const frame) {
+interrupt_handler(const uint64_t intr_no,
+                  struct thread_context *const frame,
+                  void *const ctx)
+{
+    (void)ctx;
     sched_next(intr_no, frame);
 }
 
@@ -107,14 +123,17 @@ static void enable_dtb_timer_irqs() {
             continue;
         }
 
-        if (!range_has_loc(GIC_PPI_IRQ_RANGE, iter->num)) {
+        if (!range_has_loc(GIC_PPI_INTR_RANGE, iter->num)) {
             printk(LOGLEVEL_WARN,
                    "time: irq %" PRIu8 " is not a ppi interrupt\n",
                    index);
             continue;
         }
 
-        isr_set_vector(iter->num, interrupt_handler, &ARCH_ISR_INFO_NONE());
+        isr_set_vector(iter->num,
+                       interrupt_handler,
+                       /*ctx=*/NULL,
+                       &ARCH_ISR_INFO_NONE());
 
         gicd_set_irq_trigger_mode(iter->num, iter->trigger_mode);
         gicd_unmask_irq(iter->num);
@@ -142,13 +161,16 @@ enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
 
     isr_set_vector(secure_el1_timer_gsiv,
                    interrupt_handler,
+                   /*ctx=*/NULL,
                    &ARCH_ISR_INFO_NONE());
 
     isr_set_vector(non_secure_el1_timer_gsiv,
                    interrupt_handler,
+                   /*ctx=*/NULL,
                    &ARCH_ISR_INFO_NONE());
     isr_set_vector(virtual_el1_timer_gsiv,
                    interrupt_handler,
+                   /*ctx=*/NULL,
                    &ARCH_ISR_INFO_NONE());
 
     gicd_set_irq_trigger_mode(secure_el1_timer_gsiv, secure_el1_trigger_mode);

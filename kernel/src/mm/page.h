@@ -98,7 +98,7 @@ struct page {
             struct list delayed_free_list;
 
             struct refcount refcount;
-            pgt_level_t level;
+            pg_level_t level;
         } largehead;
         struct {
             struct refcount refcount;

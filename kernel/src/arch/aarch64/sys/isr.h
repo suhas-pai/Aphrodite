@@ -15,7 +15,9 @@ typedef uint16_t isr_vector_t;
 #define ISR_VECTOR_FMT "%" PRIu16
 #define ISR_INVALID_VECTOR UINT16_MAX
 
-typedef void (*isr_func_t)(uint64_t intr_info, struct thread_context *frame);
+typedef void
+(*isr_func_t)(uint64_t intr_no, struct thread_context *frame, void *ctx);
+
 void isr_reserve_msi_irqs(uint16_t base, uint16_t count);
 
 isr_vector_t isr_alloc_sgi_vector();

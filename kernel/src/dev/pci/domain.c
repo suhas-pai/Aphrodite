@@ -17,7 +17,7 @@ static struct spinlock g_domain_lock = SPINLOCK_INIT();
 
 __debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
     bool result = false;
-    with_spinlock_irq_disabled(&g_domain_lock, {
+    with_spinlock_intr_disabled(&g_domain_lock, {
         result = array_append(&g_domain_list, &domain);
     });
 
@@ -26,12 +26,12 @@ __debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
 
 __debug_optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
     uint32_t index = 0;
-    const int flag = spin_acquire_save_irq(&g_domain_lock);
+    const int flag = spin_acquire_save_intr(&g_domain_lock);
 
     array_foreach(&g_domain_list, const struct pci_domain *, iter) {
         if (*iter == domain) {
             array_remove_index(&g_domain_list, index);
-            spin_release_restore_irq(&g_domain_lock, flag);
+            spin_release_restore_intr(&g_domain_lock, flag);
 
             return true;
         }
@@ -39,18 +39,18 @@ __debug_optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
         index++;
     }
 
-    spin_release_restore_irq(&g_domain_lock, flag);
+    spin_release_restore_intr(&g_domain_lock, flag);
     return false;
 }
 
 __debug_optimize(3)
 const struct array *pci_get_domain_list_locked(int *const flag_out) {
-    *flag_out = spin_acquire_save_irq(&g_domain_lock);
+    *flag_out = spin_acquire_save_intr(&g_domain_lock);
     return &g_domain_list;
 }
 
 __debug_optimize(3) void pci_release_domain_list_lock(const int flag) {
-    spin_release_restore_irq(&g_domain_lock, flag);
+    spin_release_restore_intr(&g_domain_lock, flag);
 }
 
 __debug_optimize(3) uint8_t

@@ -15,6 +15,7 @@ __hidden struct thread kernel_main_thread = {
     .preemption_disabled = 0,
     .signal_enqueued = false,
 
+    .id = 0,
     .event_index = -1,
 };
 

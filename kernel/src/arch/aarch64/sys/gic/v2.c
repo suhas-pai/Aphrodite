@@ -217,7 +217,7 @@ static struct gic_distributor g_dist = {
     .max_impl_lockable_spis = 0
 };
 
-struct irq_info {
+struct intr_info {
     isr_func_t handler;
 
     bool alloced_in_msi : 1;
@@ -226,7 +226,7 @@ struct irq_info {
 
 #define ISR_IRQ_COUNT 1020
 
-static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
+static struct intr_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 
 static struct mmio_region *g_dist_mmio = NULL;
 static volatile struct gicdv2_registers *g_regs = NULL;
@@ -244,7 +244,7 @@ static void init_with_regs() {
     mmio_write(&g_regs->control, /*value=*/0);
     with_preempt_disabled({
         const uint8_t intr_number = this_cpu()->processor_id;
-        for (uint16_t irq = GIC_SPI_INTERRUPT_START;
+        for (uint16_t irq = GIC_SPI_INTR_START;
              irq < g_dist.interrupt_lines_count;
              irq++)
         {
@@ -279,12 +279,16 @@ static uint8_t get_cpu_iface_number() {
         return count_lsb_zero_bits(mask, /*start_index=*/0);
     }
 
-    verify_not_reached();
+    printk(LOGLEVEL_WARN,
+           "gicv2: failed to find cpu interface iface number. defaulting "
+           "to 0\n");
+
+    return 0;
 }
 
 void gicv2_init_on_this_cpu() {
-    for (uint8_t irq = GIC_SGI_INTERRUPT_START;
-         irq <= GIC_PPI_INTERRUPT_LAST;
+    for (uint8_t irq = GIC_SGI_INTR_START;
+         irq <= GIC_PPI_INTR_LAST;
          irq++)
     {
         gicdv2_mask_irq(irq);
@@ -333,10 +337,10 @@ gicv2_init_from_info(const struct range cpu_range,
 
     printk(LOGLEVEL_INFO,
            "gic initialized\n"
-           "\tinterrupt line count: %" PRIu16 "\n"
-           "\timplemented cpu count: %" PRIu32 "\n"
-           "\tmax implemented lockable sets: %" PRIu32 "\n"
-           "\tsupports security extensions: %s\n",
+           "\t\tinterrupt line count: %" PRIu16 "\n"
+           "\t\timplemented cpu count: %" PRIu32 "\n"
+           "\t\tmax implemented lockable sets: %" PRIu32 "\n"
+           "\t\tsupports security extensions: %s\n",
            g_dist.interrupt_lines_count,
            g_dist.impl_cpu_count,
            g_dist.max_impl_lockable_spis,
@@ -436,9 +440,9 @@ bool init_msi_frame(const uint64_t phys_addr, struct mmio_region *const mmio) {
            spi_count);
 
     const uint16_t gic_spi_count =
-        distance_incl(GIC_SPI_INTERRUPT_START, GIC_SPI_INTERRUPT_LAST);
+        distance_incl(GIC_SPI_INTR_START, GIC_SPI_INTR_LAST);
     const struct range gic_spi_range =
-        RANGE_INIT(GIC_SPI_INTERRUPT_START, gic_spi_count);
+        RANGE_INIT(GIC_SPI_INTR_START, gic_spi_count);
 
     const struct range spi_range = RANGE_INIT(spi_base, spi_count);
     if (!range_has(gic_spi_range, spi_range)) {
@@ -522,7 +526,7 @@ void gicdv2_free_msi_vector(const isr_vector_t vector) {
 }
 
 __debug_optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
-    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+    assert_msg(irq <= GIC_SPI_INTR_LAST,
                "gicdv2_mask_irq() called on invalid interrupt");
 
     const uint8_t index = irq / sizeof_bits(uint32_t);
@@ -532,7 +536,7 @@ __debug_optimize(3) void gicdv2_mask_irq(const irq_number_t irq) {
 }
 
 __debug_optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
-    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+    assert_msg(irq <= GIC_SPI_INTR_LAST,
                "gicdv2_unmask_irq() called on invalid interrupt");
 
     const uint8_t index = irq / sizeof_bits(uint32_t);
@@ -543,7 +547,7 @@ __debug_optimize(3) void gicdv2_unmask_irq(const irq_number_t irq) {
 
 __debug_optimize(3)
 void gicdv2_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
-    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+    assert_msg(irq <= GIC_SPI_INTR_LAST,
                "gicdv2_set_irq_affinity() called on invalid interrupt");
 
     const uint8_t index = irq / sizeof(uint32_t);
@@ -565,9 +569,9 @@ __debug_optimize(3) void
 gicdv2_set_irq_trigger_mode(const irq_number_t irq,
                             const enum irq_trigger_mode mode)
 {
-    assert_msg(irq > GIC_SGI_INTERRUPT_LAST,
+    assert_msg(irq > GIC_SGI_INTR_LAST,
                "gicdv2_set_irq_trigger_mode() called on sgi interrupt");
-    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+    assert_msg(irq <= GIC_SPI_INTR_LAST,
                "gicdv2_set_irq_trigger_mode() called on invalid interrupt");
 
     const uint8_t config_index = irq / 16;
@@ -596,7 +600,7 @@ gicdv2_set_irq_trigger_mode(const irq_number_t irq,
 
 __debug_optimize(3)
 void gicdv2_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
-    assert_msg(irq <= GIC_SPI_INTERRUPT_LAST,
+    assert_msg(irq <= GIC_SPI_INTR_LAST,
                "gicdv2_set_irq_priority() called on invalid interrupt");
 
     const uint16_t index = irq / sizeof(uint32_t);

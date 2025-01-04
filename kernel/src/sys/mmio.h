@@ -11,10 +11,14 @@ uint16_t mmio_read_16(volatile const void *ptr);
 uint32_t mmio_read_32(volatile const void *ptr);
 uint64_t mmio_read_64(volatile const void *ptr);
 
+uint64_t mmio_read_size(volatile const void *ptr, size_t size);
+
 void mmio_write_8(volatile void *ptr, uint8_t value);
 void mmio_write_16(volatile void *ptr, uint16_t value);
 void mmio_write_32(volatile void *ptr, uint32_t value);
 void mmio_write_64(volatile void *ptr, uint64_t value);
+
+void mmio_write_size(volatile void *ptr, size_t size, uint64_t value);
 
 #define mmio_read(ptr) _Generic((ptr), \
     volatile uint8_t *: mmio_read_8, \

@@ -11,17 +11,24 @@
 __hidden isr_vector_t g_sched_sgi_vector = 0;
 
 __debug_optimize(3) static void
-ipi_handler(const uint64_t intr_no, struct thread_context *const context) {
+ipi_handler(const uint64_t intr_no,
+            struct thread_context *const context,
+            void *const ctx)
+{
+    (void)ctx;
     sched_next(intr_no, context);
 }
 
 void sched_init_irq() {
     g_sched_sgi_vector = isr_alloc_msi_vector(/*device=*/NULL, /*msi_index=*/0);
-    isr_set_msi_vector(g_sched_sgi_vector, ipi_handler, &ARCH_ISR_INFO_NONE());
+    isr_set_msi_vector(g_sched_sgi_vector,
+                       ipi_handler,
+                       /*ctx=*/NULL,
+                       &ARCH_ISR_INFO_NONE());
 }
 
 void sched_self_ipi() {
-    with_interrupts_disabled({
+    with_intr_disabled({
         mmio_write(&this_cpu()->imsic_page[0], g_sched_sgi_vector);
     });
 }

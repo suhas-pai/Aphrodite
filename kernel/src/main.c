@@ -89,7 +89,7 @@ void kmain(void) {
     dtb_parse_main_tree();
 
     isr_init();
-    enable_interrupts();
+    intr_enable();
 
     dev_init();
     sched_init();
@@ -103,7 +103,7 @@ void kmain(void) {
     sched_sleep_us(seconds_to_micro(5));
     printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 
-    disable_interrupts();
+    intr_disable();
 
     sched_dequeue_thread(current_thread());
     sched_yield();

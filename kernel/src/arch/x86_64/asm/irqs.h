@@ -13,34 +13,34 @@ enum irq_number {
     IRQ_KEYBOARD = 1,
 };
 
-__debug_optimize(3) static inline bool are_interrupts_enabled() {
+__debug_optimize(3) static inline bool intr_are_enabled() {
     return rflags_read() & __RFLAGS_INTERRUPTS_ENABLED;
 }
 
-__debug_optimize(3) static inline void disable_interrupts() {
+__debug_optimize(3) static inline void intr_disable() {
     asm volatile ("cli");
 }
 
-__debug_optimize(3) static inline void enable_interrupts() {
+__debug_optimize(3) static inline void intr_enable() {
     asm volatile ("sti");
 }
 
-__debug_optimize(3) static inline bool disable_irqs_if_enabled() {
-    const bool result = are_interrupts_enabled();
-    disable_interrupts();
+__debug_optimize(3) static inline bool intr_save() {
+    const bool result = intr_are_enabled();
+    intr_disable();
 
     return result;
 }
 
-__debug_optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
+__debug_optimize(3) static inline void intr_restore(const bool flag) {
     if (flag) {
-        enable_interrupts();
+        intr_enable();
     }
 }
 
-#define with_interrupts_disabled(block) \
+#define with_intr_disabled(block) \
     do { \
-        const bool h_var(irqs_disabled_flag) = disable_irqs_if_enabled(); \
+        const bool h_var(intr_is_disabled) = intr_save(); \
         block; \
-        enable_irqs_if_flag(h_var(irqs_disabled_flag)); \
+        intr_restore(h_var(intr_is_disabled)); \
     } while (false)

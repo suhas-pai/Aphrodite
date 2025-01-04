@@ -19,22 +19,63 @@
 #include "lib/align.h"
 #include "lib/util.h"
 
+#include "sched/thread.h"
+#include "sys/irq.h"
+
 #define ISR_EXCEPTION_COUNT 32
-#define ISR_IRQ_COUNT 256
+#define ISR_INT_COUNT 256
+
+#define ISR_IRQ_COUNT (ISR_INT_COUNT - ISR_EXCEPTION_COUNT)
+
+struct isr_func_info {
+    isr_func_t handler;
+    void *ctx;
+
+    bool masked : 1;
+};
 
 static struct spinlock g_lock = SPINLOCK_INIT();
+static bitset_decl(g_vector_bitset, ISR_INT_COUNT);
 
-static bitset_decl(g_bitset, ISR_IRQ_COUNT);
-static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
+static struct isr_func_info g_funcs[ISR_INT_COUNT] = {0};
+static struct irq_pin g_irq_pin_list[ISR_IRQ_COUNT] = {0};
 
 static isr_vector_t g_spur_vector = 0;
 static isr_vector_t g_lapic_vector = 0;
 static isr_vector_t g_hpet_vector = 0;
 
+void isr_setup_irq_pins() {
+    array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, iso) {
+        const enum irq_polarity polarity =
+            iso->flags & __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW ?
+                IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
+
+        const enum irq_trigger_mode trigger_mode =
+            iso->flags & __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER ?
+                IRQ_TRIGGER_MODE_LEVEL : IRQ_TRIGGER_MODE_EDGE;
+
+        printk(LOGLEVEL_INFO,
+               "isr: setting up irq pin for apic iso:\n"
+               "\tirq %d -> %d\n"
+               "\tbus: %d\n"
+               "\tpolarity: %s\n"
+               "\ttrigger mode: %s\n",
+               iso->irq_src,
+               iso->gsi,
+               iso->bus_src,
+               polarity == IRQ_POLARITY_LOW ? "low" : "high",
+               trigger_mode == IRQ_TRIGGER_MODE_LEVEL ? "level" : "edge");
+
+        g_irq_pin_list[iso->irq_src].polarity = polarity;
+        g_irq_pin_list[iso->irq_src].trigger_mode = trigger_mode;
+    }
+}
+
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     uint64_t bit_index = 0;
-    with_spinlock_irq_disabled(&g_lock, {
-        bit_index = bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
+    with_spinlock_intr_disabled(&g_lock, {
+        bit_index =
+            bitset_find_unset(g_vector_bitset, ISR_INT_COUNT, /*invert=*/true);
     });
 
     if (bit_index == BITSET_INVALID) {
@@ -59,9 +100,12 @@ __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert_msg(vector > ISR_EXCEPTION_COUNT,
                "isr_free_vector() called on x86 exception vector");
 
-    with_spinlock_irq_disabled(&g_lock, {
-        bitset_unset(g_bitset, vector);
-        isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+    with_spinlock_intr_disabled(&g_lock, {
+        bitset_unset(g_vector_bitset, vector);
+        isr_set_vector(vector,
+                       /*handler=*/NULL,
+                       /*ctx=*/NULL,
+                       &ARCH_ISR_INFO_NONE());
     });
 
     printk(LOGLEVEL_INFO, "isr: freed vector " ISR_VECTOR_FMT "\n", vector);
@@ -90,12 +134,20 @@ __debug_optimize(3) isr_vector_t isr_get_spur_vector() {
     return g_spur_vector;
 }
 
-__debug_optimize(3) void isr_mask_irq(const isr_vector_t irq) {
-    (void)irq;
+__debug_optimize(3) void isr_mask_irq(struct irq_pin *const pin) {
+    ioapic_toggle_irq_mask(pin->irq, /*masked=*/true);
 }
 
-__debug_optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
-    (void)irq;
+__debug_optimize(3) void isr_unmask_irq(struct irq_pin *const pin) {
+    ioapic_toggle_irq_mask(pin->irq, /*masked=*/false);
+}
+
+__debug_optimize(3) void isr_mask_intr(const isr_vector_t vector) {
+    g_funcs[vector].masked = true;
+}
+
+__debug_optimize(3) void isr_unmask_intr(const isr_vector_t vector) {
+    g_funcs[vector].masked = false;
 }
 
 extern void
@@ -104,8 +156,14 @@ handle_exception(const uint64_t vector, struct thread_context *const frame);
 __debug_optimize(3) void
 isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
 {
-    if (__builtin_expect(g_funcs[vector] != NULL, 1)) {
-        g_funcs[vector](vector, frame);
+    struct isr_func_info *const info = &g_funcs[vector];
+    if (info->masked) {
+        lapic_eoi();
+        return;
+    }
+
+    if (__builtin_expect(info->handler != NULL, 1)) {
+        info->handler(vector, frame, info->ctx);
         return;
     }
 
@@ -114,14 +172,21 @@ isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
         return;
     }
 
-    printk(LOGLEVEL_INFO, "isr: got unhandled interrupt %" PRIu64 "\n", vector);
+    printk(LOGLEVEL_WARN,
+           "isr: got unhandled interrupt " ISR_VECTOR_FMT "\n",
+           (isr_vector_t)vector);
+
     lapic_eoi();
 }
 
-__debug_optimize(3) static
-void spur_tick(const uint64_t intr_no, struct thread_context *const frame) {
+__debug_optimize(3) static void
+spur_tick(const uint64_t intr_no,
+          struct thread_context *const frame,
+          void *const ctx)
+{
     (void)intr_no;
     (void)frame;
+    (void)ctx;
 
     this_cpu_mut()->spur_intr_count++;
     lapic_eoi();
@@ -129,7 +194,7 @@ void spur_tick(const uint64_t intr_no, struct thread_context *const frame) {
 
 void isr_init() {
     // Set first 32 exception interrupts as allocated.
-    g_bitset[0] = mask_for_n_bits(ISR_EXCEPTION_COUNT);
+    g_vector_bitset[0] = mask_for_n_bits(ISR_EXCEPTION_COUNT);
 
     // Setup LAPIC Interrupt
     g_lapic_vector = isr_alloc_vector();
@@ -143,34 +208,63 @@ void isr_init() {
     g_hpet_vector = isr_alloc_vector();
     assert(g_hpet_vector != ISR_INVALID_VECTOR);
 
-    isr_set_vector(g_spur_vector, spur_tick, &ARCH_ISR_INFO_NONE());
+    isr_set_vector(g_spur_vector,
+                   spur_tick,
+                   /*ctx=*/NULL,
+                   &ARCH_ISR_INFO_NONE());
+
     idt_register_exception_handlers();
 }
 
 __debug_optimize(3) void
 isr_set_vector(const isr_vector_t vector,
                const isr_func_t handler,
+               void *const ctx,
                struct arch_isr_info *const info)
 {
-    g_funcs[vector] = handler;
+    g_funcs[vector].handler = handler;
+    g_funcs[vector].ctx = ctx;
+
     idt_set_vector(vector, info->ist, IDT_DEFAULT_FLAGS);
 }
 
 __debug_optimize(3) void
 isr_set_msi_vector(const isr_vector_t vector,
                    const isr_func_t handler,
+                   void *const ctx,
                    struct arch_isr_info *const info)
 {
-    isr_set_vector(vector, handler, info);
+    isr_set_vector(vector, handler, ctx, info);
 }
 
-__debug_optimize(3) void
-isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
-                      const uint8_t irq,
-                      const isr_vector_t vector,
-                      const bool masked)
+struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
+    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+    return &g_irq_pin_list[irq];
+}
+
+bool
+isr_install_irq(struct irq_pin *const pin,
+                const isr_func_t handler,
+                void *const ctx,
+                const bool masked)
 {
-    ioapic_redirect_irq(cpu->lapic_id, irq, vector, masked);
+    const isr_vector_t vector = isr_alloc_vector();
+    if (vector == ISR_INVALID_VECTOR) {
+        return false;
+    }
+
+    with_preempt_disabled({
+        const struct cpu_info *const cpu = this_cpu();
+        ioapic_redirect_irq(cpu->lapic_id, pin->irq, vector, masked);
+    });
+
+    isr_set_vector(vector, handler, ctx, &ARCH_ISR_INFO_NONE());
+    return true;
+}
+
+void isr_uninstall_irq(struct irq_pin *const pin) {
+    isr_free_vector(pin->vector);
+    pin->vector = ISR_INVALID_VECTOR;
 }
 
 __debug_optimize(3) void isr_eoi(const uint64_t intr_no) {

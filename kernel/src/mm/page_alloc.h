@@ -27,7 +27,7 @@ struct page *deref_page(struct page *page, struct pageop *pageop);
 // pages mapped as a large page.
 
 struct page *
-deref_large_page(struct page *page, struct pageop *pageop, pgt_level_t level);
+deref_large_page(struct page *page, struct pageop *pageop, pg_level_t level);
 
 struct page *
 alloc_pages(enum page_state state, uint64_t alloc_flags, uint8_t order);
@@ -55,11 +55,11 @@ alloc_pages_from_zone_at_align(struct page_zone *zone,
                                uint8_t align,
                                bool fallback);
 
-struct page *alloc_large_page(pgt_level_t level, uint64_t flags);
+struct page *alloc_large_page(pg_level_t level, uint64_t flags);
 struct page *
 alloc_large_page_in_zone(struct page_zone *zone,
                          uint64_t alloc_flags,
-                         pgt_level_t level,
+                         pg_level_t level,
                          bool allow_fallback);
 
 struct page *alloc_table();

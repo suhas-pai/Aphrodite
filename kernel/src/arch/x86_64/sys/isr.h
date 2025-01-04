@@ -23,7 +23,10 @@ typedef idt_vector_t isr_vector_t;
 #define ISR_VECTOR_FMT "%" PRIu8
 #define ISR_INVALID_VECTOR UINT8_MAX
 
-typedef void (*isr_func_t)(uint64_t intr_no, struct thread_context *frame);
+typedef void
+(*isr_func_t)(uint64_t intr_no, struct thread_context *frame, void *ctx);
+
+void isr_setup_irq_pins();
 
 isr_vector_t isr_get_spur_vector();
 isr_vector_t isr_get_lapic_vector();

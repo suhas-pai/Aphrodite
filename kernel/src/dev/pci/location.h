@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 struct pci_location {
-    uint8_t segment;
+    uint16_t segment;
     uint8_t bus;
     uint8_t slot;
     uint8_t function;

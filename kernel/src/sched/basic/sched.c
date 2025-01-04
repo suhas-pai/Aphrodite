@@ -8,6 +8,7 @@
 #include "asm/irqs.h"
 #include "asm/pause.h"
 
+#include "dev/printk.h"
 #include "mm/kmalloc.h"
 
 #include "sched/alarm.h"
@@ -50,7 +51,7 @@ bool thread_enqueued_nolock(const struct thread *const thread) {
 
 __debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
     bool result = false;
-    with_spinlock_irq_disabled(&g_run_queue_lock, {
+    with_spinlock_intr_disabled(&g_run_queue_lock, {
         result = thread_enqueued_nolock(thread);
     });
 
@@ -64,7 +65,7 @@ bool thread_running_nolock(const struct thread *const thread) {
 
 __debug_optimize(3) bool thread_running(const struct thread *const thread) {
     bool result = false;
-    with_spinlock_irq_disabled(&g_run_queue_lock, {
+    with_spinlock_intr_disabled(&g_run_queue_lock, {
         result = thread_running_nolock(thread);
     });
 
@@ -81,8 +82,8 @@ static void sched_dequeue_thread_for_use(struct thread *const thread) {
     list_remove(&thread->sched_info.list);
 }
 
-__debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
-    with_spinlock_irq_disabled(&g_run_queue_lock, {
+__debug_optimize(3) void sched_wake(struct thread *const thread) {
+    with_spinlock_intr_disabled(&g_run_queue_lock, {
         // sched_enqueue_thread() might be called from a dequeued but running
         // thread so only enqueue-for-use for threads that are not running and
         // aren't already enqueued.
@@ -98,7 +99,7 @@ __debug_optimize(3) void sched_enqueue_thread(struct thread *const thread) {
 }
 
 __debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
-    with_spinlock_irq_disabled(&g_run_queue_lock, {
+    with_spinlock_intr_disabled(&g_run_queue_lock, {
         atomic_store_explicit(&thread->sched_info.runnable,
                                false,
                                memory_order_relaxed);
@@ -109,7 +110,7 @@ __debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
 
 __debug_optimize(3)
 static struct thread *get_next_thread(struct thread *const prev) {
-    const int flag = spin_acquire_save_irq(&g_run_queue_lock);
+    const int flag = spin_acquire_save_intr(&g_run_queue_lock);
     struct thread *next = NULL;
 
     list_foreach(next, &g_run_queue, sched_info.list) {
@@ -122,20 +123,20 @@ static struct thread *get_next_thread(struct thread *const prev) {
         }
 
         sched_dequeue_thread_for_use(next);
-        spin_release_restore_irq(&g_run_queue_lock, flag);
+        spin_release_restore_intr(&g_run_queue_lock, flag);
 
         return next;
     }
 
     if (thread_runnable(prev)) {
-        spin_release_restore_irq(&g_run_queue_lock, flag);
+        spin_release_restore_intr(&g_run_queue_lock, flag);
         return prev;
     }
 
     struct cpu_info *const cpu = prev->cpu;
     struct thread *const result = cpu->idle_thread;
 
-    spin_release_restore_irq(&g_run_queue_lock, flag);
+    spin_release_restore_intr(&g_run_queue_lock, flag);
     return result;
 }
 
@@ -156,11 +157,12 @@ static void update_alarm_list(struct thread *const current_thread) {
             continue;
         }
 
-        atomic_store_explicit(&iter->active, false, memory_order_relaxed);
+        iter->callback(iter, iter->ctx);
 
-        sched_enqueue_thread(iter->listener);
+        atomic_store_explicit(&iter->triggered, true, memory_order_relaxed);
+        atomic_store_explicit(&iter->posted, true, memory_order_relaxed);
+
         list_remove(&iter->list);
-
         kfree(iter);
     }
 }
@@ -220,7 +222,7 @@ void sched_next(const irq_number_t irq, struct thread_context *const context) {
 }
 
 void sched_yield() {
-    disable_interrupts();
+    intr_disable();
     assert(preemption_enabled());
 
     struct thread *const curr_thread = current_thread();
@@ -231,12 +233,18 @@ void sched_yield() {
     curr_thread->sched_info.remaining = sched_timer_remaining();
 
     sched_timer_stop();
-    sched_send_ipi(this_cpu());
+    sched_self_ipi();
 
-    enable_interrupts();
+    intr_enable();
+
     do {
         cpu_pause();
     } while (
         atomic_load_explicit(&curr_thread->sched_info.awaiting,
                              memory_order_relaxed));
+}
+
+void sched_await() {
+    sched_dequeue_thread(current_thread());
+    sched_yield();
 }

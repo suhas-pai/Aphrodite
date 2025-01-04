@@ -95,7 +95,7 @@
 
 #define SECTOR_SIZE 512
 
-#define container_of(ptr, type, name) \
+#define parent_of(ptr, type, name) \
     ((type *)(uint64_t)((const void *)ptr - offsetof(type, name)))
 
 #define h_var(token) VAR_CONCAT(VAR_CONCAT_3(__, token, __), __LINE__)

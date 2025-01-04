@@ -4,6 +4,7 @@
  */
 
 #include "acpi/api.h"
+#include "sys/isr.h"
 
 #if defined(__x86_64__)
     #include "apic/ioapic.h"
@@ -339,23 +340,23 @@ void madt_init(const struct acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gic cpu-interface:\n"
-                       "\tinterface number: %" PRIu32 "\n"
-                       "\tacpi processor id: %" PRIu32 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\t\tcpu enabled: %s\n"
-                       "\t\tperf interrupt edge-triggered: %s\n"
-                       "\t\tvgic maintenance intr edge-triggered: %s\n"
-                       "\tparking protocol version: %" PRIu32 "\n"
-                       "\tperformance interrupt gsiv: %" PRIu32 "\n"
-                       "\tparked address: 0x%" PRIx64 "\n"
-                       "\tphys base address: 0x%" PRIx64 "\n"
-                       "\tgic virt cpu reg address: 0x%" PRIx64 "\n"
-                       "\tgic virt ctrl block address: 0x%" PRIx64 "\n"
-                       "\tvgic maintenance interrupt: %" PRIu32 "\n"
-                       "\tgicr phys base address: 0x%" PRIx64 "\n"
-                       "\tmpidr: %" PRIu64 "\n"
-                       "\tprocessor power efficiency class: %" PRIu8 "\n"
-                       "\tspe overflow interrupt: %" PRIu16 "\n",
+                       "\t\tinterface number: %" PRIu32 "\n"
+                       "\t\tacpi processor id: %" PRIu32 "\n"
+                       "\t\tflags: 0x%" PRIx32 "\n"
+                       "\t\t\tcpu enabled: %s\n"
+                       "\t\t\tperf interrupt edge-triggered: %s\n"
+                       "\t\t\tvgic maintenance intr edge-triggered: %s\n"
+                       "\t\tparking protocol version: %" PRIu32 "\n"
+                       "\t\tperformance interrupt gsiv: %" PRIu32 "\n"
+                       "\t\tparked address: 0x%" PRIx64 "\n"
+                       "\t\tphys base address: 0x%" PRIx64 "\n"
+                       "\t\tgic virt cpu reg address: 0x%" PRIx64 "\n"
+                       "\t\tgic virt ctrl block address: 0x%" PRIx64 "\n"
+                       "\t\tvgic maintenance interrupt: %" PRIu32 "\n"
+                       "\t\tgicr phys base address: 0x%" PRIx64 "\n"
+                       "\t\tmpidr: %" PRIu64 "\n"
+                       "\t\tprocessor power efficiency class: %" PRIu8 "\n"
+                       "\t\tspe overflow interrupt: %" PRIu16 "\n",
                        cpu->cpu_interface_number,
                        cpu->acpi_processor_id,
                        cpu->flags,
@@ -455,12 +456,12 @@ void madt_init(const struct acpi_madt *const madt) {
                 assert (array_append(&msi_frame_list, &frame));
                 printk(LOGLEVEL_INFO,
                        "madt: found msi-frame\n"
-                       "\tmsi frame id: %" PRIu32 "\n"
-                       "\tphys base address: 0x%" PRIx64 "\n"
-                       "\tflags: 0x%" PRIx8 "\n"
-                       "\t\toverride msi-typer: %s\n"
-                       "\tspi count: %" PRIu16 "\n"
-                       "\tspi base: %" PRIu16 "\n",
+                       "\t\tmsi frame id: %" PRIu32 "\n"
+                       "\t\tphys base address: 0x%" PRIx64 "\n"
+                       "\t\tflags: 0x%" PRIx8 "\n"
+                       "\t\t\toverride msi-typer: %s\n"
+                       "\t\tspi count: %" PRIu16 "\n"
+                       "\t\tspi base: %" PRIu16 "\n",
                        frame->msi_frame_id,
                        frame->phys_base_address,
                        frame->flags,
@@ -738,6 +739,7 @@ void madt_init(const struct acpi_madt *const madt) {
                "madt: failed to find local-apic registers");
 
     apic_init(local_apic_base);
+    isr_setup_irq_pins();
 #elif defined(__aarch64__)
     assert_msg(gic_dist != NULL, "madt: failed to find gic-distributor");
     gic_set_version(gic_dist->gic_version);
@@ -860,5 +862,5 @@ void madt_init(const struct acpi_madt *const madt) {
     array_destroy(&aplic_list);
     array_destroy(&plic_list);
     array_destroy(&hart_irq_ctlr_list);
-#endif /* defined(__x86_64__) */
+#endif /* defined(__riscv64) */
 }

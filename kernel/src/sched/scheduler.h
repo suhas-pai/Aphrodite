@@ -18,11 +18,12 @@ struct thread_context;
 void sched_next(irq_number_t irq, struct thread_context *context);
 
 void sched_yield();
+void sched_await();
 
 void
 sched_save_restore_context(struct thread *prev,
                            struct thread *next,
                            struct thread_context *context);
 
-void sched_enqueue_thread(struct thread *thread);
+void sched_wake(struct thread *thread);
 void sched_dequeue_thread(struct thread *thread);

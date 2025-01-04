@@ -17,8 +17,9 @@ struct thread {
     struct cpu_info *cpu;
 
     _Atomic uint16_t preemption_disabled;
-
     bool signal_enqueued : 1;
+
+    uint32_t id;
     int64_t event_index;
 
     struct thread_context context;

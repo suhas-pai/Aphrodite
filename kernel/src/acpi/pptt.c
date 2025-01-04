@@ -29,16 +29,16 @@ void pptt_init(const struct acpi_pptt *const pptt) {
 
                 printk(LOGLEVEL_INFO,
                        "pptt: processor-hierarchy node\n"
-                       "\tlength: %" PRIu32 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\t\tphysical package: %s\n"
-                       "\t\tacpi id valid: %s\n"
-                       "\t\tprocessor is thread: %s\n"
-                       "\t\tnode is leaf: %s\n"
-                       "\t\tidentical implementation: %s\n"
-                       "\tparent-offset: 0x%" PRIx32 "\n"
-                       "\tacpi processor-id: %" PRIu32 "\n"
-                       "\tprivate resource count: %" PRIu32 "\n",
+                       "\t\tlength: %" PRIu32 "\n"
+                       "\t\tflags: 0x%" PRIx32 "\n"
+                       "\t\t\tphysical package: %s\n"
+                       "\t\t\tacpi id valid: %s\n"
+                       "\t\t\tprocessor is thread: %s\n"
+                       "\t\t\tnode is leaf: %s\n"
+                       "\t\t\tidentical implementation: %s\n"
+                       "\t\tparent-offset: 0x%" PRIx32 "\n"
+                       "\t\tacpi processor-id: %" PRIu32 "\n"
+                       "\t\tprivate resource count: %" PRIu32 "\n",
                        node->length,
                        node->flags,
                        node->flags &
@@ -139,26 +139,26 @@ void pptt_init(const struct acpi_pptt *const pptt) {
 
                 printk(LOGLEVEL_INFO,
                        "pptt: cache-type node\n"
-                       "\tlength: %" PRIu32 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\t\tsize valid: %s\n"
-                       "\t\tset-count valid: %s\n"
-                       "\t\tassociativity valid: %s\n"
-                       "\t\talloc-kind valid: %s\n"
-                       "\t\tcache-kind valid: %s\n"
-                       "\t\twrite-policy valid: %s\n"
-                       "\t\tline-size valid: %s\n"
-                       "\t\tcache-id valid: %s\n"
-                       "\tcache next level: %" PRIu32 "\n"
-                       "\tsize: %" PRIu32 " bytes\n"
-                       "\tset-count: %" PRIu32 "\n"
-                       "\tassociativity: %" PRIu8 "\n"
-                       "\tattributes: 0x%" PRIx8 "\n"
-                       "\t\talloc-kind: %s\n"
-                       "\t\tcache-kind: %s\n"
-                       "\t\twrite-policy: %s\n"
-                       "\tline-size: %" PRIu16 " bytes\n"
-                       "\tcache-id: %" PRIu32 "\n",
+                       "\t\tlength: %" PRIu32 "\n"
+                       "\t\tflags: 0x%" PRIx32 "\n"
+                       "\t\t\tsize valid: %s\n"
+                       "\t\t\tset-count valid: %s\n"
+                       "\t\t\tassociativity valid: %s\n"
+                       "\t\t\talloc-kind valid: %s\n"
+                       "\t\t\tcache-kind valid: %s\n"
+                       "\t\t\twrite-policy valid: %s\n"
+                       "\t\t\tline-size valid: %s\n"
+                       "\t\t\tcache-id valid: %s\n"
+                       "\t\tcache next level: %" PRIu32 "\n"
+                       "\t\tsize: %" PRIu32 " bytes\n"
+                       "\t\tset-count: %" PRIu32 "\n"
+                       "\t\tassociativity: %" PRIu8 "\n"
+                       "\t\tattributes: 0x%" PRIx8 "\n"
+                       "\t\t\talloc-kind: %s\n"
+                       "\t\t\tcache-kind: %s\n"
+                       "\t\t\twrite-policy: %s\n"
+                       "\t\tline-size: %" PRIu16 " bytes\n"
+                       "\t\tcache-id: %" PRIu32 "\n",
                        node->length,
                        node->flags,
                        node->flags &

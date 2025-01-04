@@ -146,10 +146,10 @@ void acpi_init(void) {
 
     printk(LOGLEVEL_INFO,
            "acpi:\n"
-           "\toem is \"" SV_FMT "\"\n"
-           "\trevision: %" PRIu8 "\n"
-           "\tuses xsdt? %s\n"
-           "\trsdt at %p\n",
+           "\t\toem is \"" SV_FMT "\"\n"
+           "\t\trevision: %" PRIu8 "\n"
+           "\t\tuses xsdt? %s\n"
+           "\t\trsdt at %p\n",
            SV_FMT_ARGS(oem_id),
            g_info.rsdp->revision,
            has_xsdt() ? "yes" : "no",

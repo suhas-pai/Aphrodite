@@ -28,4 +28,4 @@ struct sched_percpu_info {
 
 };
 
-#define SCHED_PERCPU_INFO_INIT() (struct sched_percpu_info){}
+#define SCHED_PERCPU_INFO_INIT(name) (struct sched_percpu_info){}

@@ -64,7 +64,7 @@ pci_add_ecam_domain(const struct range bus_range,
     ecam_domain->bus_range = bus_range;
 
     bool result = false;
-    with_spinlock_irq_disabled(&g_ecam_domain_lock, {
+    with_spinlock_intr_disabled(&g_ecam_domain_lock, {
         list_add(&g_ecam_entity_list, &ecam_domain->list);
         g_ecam_entity_count++;
 
@@ -83,7 +83,7 @@ pci_add_ecam_domain(const struct range bus_range,
 
 __debug_optimize(3)
 bool pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
-    with_spinlock_irq_disabled(&g_ecam_domain_lock, {
+    with_spinlock_intr_disabled(&g_ecam_domain_lock, {
         pci_remove_domain(&ecam_domain->domain);
         vunmap_mmio(ecam_domain->mmio);
 
@@ -96,8 +96,8 @@ bool pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
 }
 
 __debug_optimize(3) uint64_t
-pci_ecam_domain_loc_get_offset(const struct pci_domain_ecam *const domain,
-                               const struct pci_location *const loc)
+pci_ecam_domain_loc_get_base(const struct pci_domain_ecam *const domain,
+                             const struct pci_location *const loc)
 {
     return
         range_index_for_loc(domain->bus_range, loc->bus) << 20
@@ -108,53 +108,53 @@ pci_ecam_domain_loc_get_offset(const struct pci_domain_ecam *const domain,
 __debug_optimize(3) uint8_t
 pci_ecam_read_8(const struct pci_domain_ecam *const domain,
                 const struct pci_location *const loc,
-                const uint16_t off)
+                const uint16_t offset)
 {
     assert(
-        index_range_in_bounds(RANGE_INIT(off, sizeof(uint8_t)),
+        index_range_in_bounds(RANGE_INIT(offset, sizeof(uint8_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
-    return mmio_read_8(domain->mmio->base + offset);
+    const uint64_t full = pci_ecam_domain_loc_get_base(domain, loc) + offset;
+    return mmio_read_8(domain->mmio->base + full);
 }
 
 __debug_optimize(3) uint16_t
 pci_ecam_read_16(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
-                 const uint16_t off)
+                 const uint16_t offset)
 {
     assert(
-        index_range_in_bounds(RANGE_INIT(off, sizeof(uint16_t)),
+        index_range_in_bounds(RANGE_INIT(offset, sizeof(uint16_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
-    return mmio_read_16(domain->mmio->base + offset);
+    const uint64_t full = pci_ecam_domain_loc_get_base(domain, loc) + offset;
+    return mmio_read_16(domain->mmio->base + full);
 }
 
 __debug_optimize(3) uint32_t
 pci_ecam_read_32(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
-                 const uint16_t off)
+                 const uint16_t offset)
 {
     assert(
-        index_range_in_bounds(RANGE_INIT(off, sizeof(uint32_t)),
+        index_range_in_bounds(RANGE_INIT(offset, sizeof(uint32_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
-    return mmio_read_32(domain->mmio->base + offset);
+    const uint64_t full = pci_ecam_domain_loc_get_base(domain, loc) + offset;
+    return mmio_read_32(domain->mmio->base + full);
 }
 
 __debug_optimize(3) uint64_t
 pci_ecam_read_64(const struct pci_domain_ecam *const domain,
                  const struct pci_location *const loc,
-                 const uint16_t off)
+                 const uint16_t offset)
 {
     assert(
-        index_range_in_bounds(RANGE_INIT(off, sizeof(uint64_t)),
+        index_range_in_bounds(RANGE_INIT(offset, sizeof(uint64_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
-    return mmio_read_64(domain->mmio->base + offset);
+    const uint64_t full = pci_ecam_domain_loc_get_base(domain, loc) + offset;
+    return mmio_read_64(domain->mmio->base + full);
 }
 
 __debug_optimize(3) void
@@ -167,7 +167,7 @@ pci_ecam_write_8(const struct pci_domain_ecam *const domain,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint8_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    const uint64_t offset = pci_ecam_domain_loc_get_base(domain, loc) + off;
     mmio_write_8(domain->mmio->base + offset, value);
 }
 
@@ -181,7 +181,7 @@ pci_ecam_write_16(const struct pci_domain_ecam *const domain,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint16_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    const uint64_t offset = pci_ecam_domain_loc_get_base(domain, loc) + off;
     mmio_write_16(domain->mmio->base + offset, value);
 }
 
@@ -195,7 +195,7 @@ pci_ecam_write_32(const struct pci_domain_ecam *const domain,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint32_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    const uint64_t offset = pci_ecam_domain_loc_get_base(domain, loc) + off;
     mmio_write_32(domain->mmio->base + offset, value);
 }
 
@@ -209,7 +209,7 @@ pci_ecam_write_64(const struct pci_domain_ecam *const domain,
         index_range_in_bounds(RANGE_INIT(off, sizeof(uint64_t)),
                               PCI_SPACE_MAX_OFFSET));
 
-    const uint64_t offset = pci_ecam_domain_loc_get_offset(domain, loc) + off;
+    const uint64_t offset = pci_ecam_domain_loc_get_base(domain, loc) + off;
     mmio_write_64(domain->mmio->base + offset, value);
 }
 

@@ -31,7 +31,7 @@ pageop_init(struct pageop *const pageop,
 void
 pageop_flush_pte_in_current_range(struct pageop *const pageop,
                                   const pte_t pte,
-                                  const pgt_level_t level,
+                                  const pg_level_t level,
                                   const bool should_free_pages)
 {
     const uint64_t pte_phys = pte_to_phys(pte, level);
@@ -42,8 +42,8 @@ pageop_flush_pte_in_current_range(struct pageop *const pageop,
         return;
     }
 
-    struct pt_walker walker;
-    ptwalker_create_from_toplevel(&walker,
+    struct pg_walker walker;
+    pgwalker_create_from_toplevel(&walker,
                                   pte_phys,
                                   level,
                                   /*root_index=*/0,
@@ -68,14 +68,14 @@ pageop_flush_pte_in_current_range(struct pageop *const pageop,
             }
         }
 
-        ptwalker_deref_from_level(&walker, walker.level, pageop);
+        pgwalker_deref_from_level(&walker, walker.level, pageop);
 
-        const enum pt_walker_result result = ptwalker_next(&walker);
-        if (__builtin_expect(result == E_PT_WALKER_OK, 1)) {
+        const enum pgwalker_result result = pgwalker_next(&walker);
+        if (__builtin_expect(result == E_PGWALKER_OK, 1)) {
             continue;
         }
 
-        if (result == E_PT_WALKER_REACHED_END) {
+        if (result == E_PGWALKER_REACHED_END) {
             break;
         }
 
@@ -145,7 +145,7 @@ __debug_optimize(3) void pageop_finish(struct pageop *const pageop) {
         return;
     }
 
-    assert(!are_interrupts_enabled());
+    assert(!intr_are_enabled());
     if (&current_thread()->process->pagemap == pageop->pagemap) {
     #if defined(__x86_64__)
         tlb_flush_pageop(pageop);

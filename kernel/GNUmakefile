@@ -116,6 +116,7 @@ override CFLAGS += \
 
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
+	-I include \
 	-I src \
 	-isystem freestnd-c-hdrs-0bsd \
 	$(CPPFLAGS) \
@@ -294,9 +295,13 @@ obj-$(ARCH)/cc-runtime.c.o: src/cc-runtime.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wundef,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
-obj-$(ARCH)/flanterm/%.c.o: src/flanterm/%.c GNUmakefile
+obj-$(ARCH)/extern/flanterm/%.c.o: src/extern/flanterm/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
-	$(CC) $(filter-out -fsanitize=undefined,$(CFLAGS)) -O3 $(CPPFLAGS) -c $< -o $@
+	$(CC) $(filter-out "-Wsign-conversion -fsanitize=undefined",$(CFLAGS)) -O3 $(CPPFLAGS) -c $< -o $@
+
+obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
+	@mkdir -p "$$(dirname $@)"
+	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -fsanitize=undefined,$(CFLAGS)) -O3 $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)

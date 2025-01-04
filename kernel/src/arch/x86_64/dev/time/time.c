@@ -4,6 +4,8 @@
  */
 
 #include "dev/time/hpet.h"
+
+#include "asm/pause.h"
 #include "dev/pit.h"
 
 #include "lib/time.h"
@@ -12,6 +14,13 @@
 __debug_optimize(3) nsec_t nsec_since_boot() {
     return seconds_to_nano((sec_t)boot_get_time())
          + femto_to_nano(hpet_get_femto());
+}
+
+__debug_optimize(3) void stall_for_usec(const usec_t usec) {
+    const usec_t current = hpet_get_femto();
+    while (femto_to_micro(hpet_get_femto() - current) < usec) {
+        cpu_pause();
+    }
 }
 
 void arch_init_time() {

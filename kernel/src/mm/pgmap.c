@@ -32,10 +32,10 @@ struct current_split_info {
     })
 
 static void
-split_large_page(struct pt_walker *const walker,
+split_large_page(struct pg_walker *const walker,
                  struct pageop *const pageop,
                  struct current_split_info *const curr_split,
-                 const pgt_level_t level,
+                 const pg_level_t level,
                  const struct pgmap_options *const options)
 {
     assert(!curr_split->is_active);
@@ -46,9 +46,9 @@ split_large_page(struct pt_walker *const walker,
     const pte_t entry = pte_read(pte);
 
     pte_write(pte, /*value=*/0);
-    ptwalker_deref_from_level(walker, walker->level, pageop);
+    pgwalker_deref_from_level(walker, walker->level, pageop);
 
-    curr_split->virt_addr = ptwalker_get_virt_addr(walker);
+    curr_split->virt_addr = pgwalker_get_virt_addr(walker);
     curr_split->phys_range =
         RANGE_INIT(pte_to_phys(entry, level),
                    PAGE_SIZE_AT_LEVEL(walker->level));
@@ -60,7 +60,7 @@ split_large_page(struct pt_walker *const walker,
                                           options->free_pages);
     }
 
-    for (pgt_level_t i = 1; i <= level; i++) {
+    for (pg_level_t i = 1; i <= level; i++) {
         walker->tables[i - 1] = NULL;
         walker->indices[i - 1] = 0;
     }
@@ -69,7 +69,7 @@ split_large_page(struct pt_walker *const walker,
 }
 
 static bool
-pgmap_with_ptwalker(struct pt_walker *const walker,
+pgmap_with_pgwalker(struct pg_walker *const walker,
                     struct current_split_info *const curr_split,
                     struct pageop *const pageop,
                     const struct range phys_range,
@@ -77,7 +77,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
                     const struct pgmap_options *options);
 
 __debug_optimize(3) static void
-finish_split_info(struct pt_walker *const walker,
+finish_split_info(struct pg_walker *const walker,
                   struct current_split_info *const curr_split,
                   struct pageop *const pageop,
                   const uint64_t virt,
@@ -90,7 +90,7 @@ finish_split_info(struct pt_walker *const walker,
     const uint64_t virt_end =
         check_add_assert(curr_split->virt_addr, curr_split->phys_range.size);
 
-    const uint64_t walker_virt_addr = ptwalker_get_virt_addr(walker);
+    const uint64_t walker_virt_addr = pgwalker_get_virt_addr(walker);
     if (walker_virt_addr >= virt_end) {
         if (options->free_pages) {
             deref_page(phys_to_page(curr_split->phys_range.front), pageop);
@@ -113,7 +113,7 @@ finish_split_info(struct pt_walker *const walker,
         range_from_index(curr_split->phys_range, offset);
 
     struct current_split_info new_curr_split = CURRENT_SPLIT_INFO_INIT();
-    pgmap_with_ptwalker(walker,
+    pgmap_with_pgwalker(walker,
                         &new_curr_split,
                         pageop,
                         phys_range,
@@ -129,14 +129,14 @@ enum override_result {
 };
 
 __unused static enum override_result
-override_pte(struct pt_walker *const walker,
+override_pte(struct pg_walker *const walker,
              struct current_split_info *const curr_split,
              struct pageop *const pageop,
              const uint64_t phys_begin,
              const uint64_t virt_begin,
              uint64_t *const offset_in,
              const uint64_t size,
-             const pgt_level_t level,
+             const pg_level_t level,
              const pte_t new_pte_value,
              const struct pgmap_options *const options,
              const bool is_alloc_mapping)
@@ -159,16 +159,16 @@ override_pte(struct pt_walker *const walker,
 
     pte_t entry = 0;
     if (level < walker->level) {
-        if (!ptwalker_points_to_largepage(walker)) {
-            const enum pt_walker_result ptwalker_result =
-                ptwalker_fill_in_to(walker,
+        if (!pgwalker_points_to_largepage(walker)) {
+            const enum pgwalker_result pgwalker_result =
+                pgwalker_fill_in_to(walker,
                                     level,
                                     /*should_ref=*/!options->is_in_early,
                                     options->alloc_pgtable_cb_info,
                                     options->free_pgtable_cb_info);
 
-            if (__builtin_expect(ptwalker_result != E_PT_WALKER_OK, 0)) {
-                panic("mm: failed to pgmap, result=%d\n", ptwalker_result);
+            if (__builtin_expect(pgwalker_result != E_PGWALKER_OK, 0)) {
+                panic("mm: failed to pgmap, result=%d\n", pgwalker_result);
             }
 
             pte_t *const pte =
@@ -178,7 +178,7 @@ override_pte(struct pt_walker *const walker,
             return OVERRIDE_OK;
         }
 
-        const pgt_index_t index = walker->indices[walker->level - 1];
+        const pg_index_t index = walker->indices[walker->level - 1];
         entry = pte_read(&walker->tables[walker->level - 1][index]);
     } else {
         pte_t *const pte =
@@ -206,7 +206,7 @@ override_pte(struct pt_walker *const walker,
             return OVERRIDE_DONE;
         }
 
-        const struct ptwalker_iterate_options iterate_options = {
+        const struct pgwalker_iterate_options iterate_options = {
             .alloc_pgtable_cb_info = NULL,
             .free_pgtable_cb_info = NULL,
 
@@ -215,10 +215,10 @@ override_pte(struct pt_walker *const walker,
             .should_ref = !options->is_in_early,
         };
 
-        const enum pt_walker_result result =
-            ptwalker_next_with_options(walker, walker->level, &iterate_options);
+        const enum pgwalker_result result =
+            pgwalker_next_with_options(walker, walker->level, &iterate_options);
 
-        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(result != E_PGWALKER_OK, 0)) {
             panic("mm: failed to pgmap, result=%d", result);
         }
 
@@ -252,7 +252,7 @@ get_leaf_pte_count_until_next_large(
     const uint64_t addr,
     const uint64_t virt_begin,
     const bool check_virt,
-    const pgt_level_t level,
+    const pg_level_t level,
     const uint64_t supports_largepage_at_level_mask)
 {
     struct largepage_level_info *next_level_info = NULL;
@@ -326,15 +326,15 @@ get_leaf_pte_count_until_next_large(
     return PAGE_COUNT(largepage_addr - addr);
 }
 
-__debug_optimize(3) static pgt_level_t
-find_highest_possible_level(struct pt_walker *const walker,
+__debug_optimize(3) static pg_level_t
+find_highest_possible_level(struct pg_walker *const walker,
                             const uint64_t supports_largepage_at_level_mask,
                             const struct range addr_range,
                             const uint64_t offset)
 {
     // Find the largest page-size we can use.
     uint16_t highest_possible_level = 0;
-    for (pgt_level_t level = 1; level <= walker->top_level; level++) {
+    for (pg_level_t level = 1; level <= walker->top_level; level++) {
         if (walker->indices[level - 1] != 0) {
             // If we don't have a zero at this level, but had one at all
             // the preceding levels, then this present level is the
@@ -354,7 +354,7 @@ find_highest_possible_level(struct pt_walker *const walker,
         &largepage_level_info_list[highest_possible_level - 1];
 
     carr_foreach_rev_from_iter(largepage_level_info_list, iter, highest_large) {
-        const pgt_level_t level = iter->level;
+        const pg_level_t level = iter->level;
         if (level == 1) {
             break;
         }
@@ -389,13 +389,13 @@ find_highest_possible_level(struct pt_walker *const walker,
 
 __debug_optimize(3) static inline uint64_t
 write_ptes_at_level(
-    struct pt_walker *const walker,
-    pgt_level_t level,
+    struct pg_walker *const walker,
+    pg_level_t level,
     const uint64_t leaf_pte_flags,
     const uint64_t large_pte_flags,
     uint64_t phys_addr,
     uint64_t write_leaf_pte_count,
-    const struct ptwalker_iterate_options *const iterate_options,
+    const struct pgwalker_iterate_options *const iterate_options,
     uint64_t *const leaf_ptes_remaining_out)
 {
     const uint64_t level_page_size = PAGE_SIZE_AT_LEVEL(level);
@@ -415,14 +415,14 @@ write_ptes_at_level(
         write_leaf_pte_count / leaf_pte_count_per_single_pte;
 
     do {
-        enum pt_walker_result result =
-            ptwalker_fill_in_to(walker,
+        enum pgwalker_result result =
+            pgwalker_fill_in_to(walker,
                                 level,
                                 iterate_options->should_ref,
                                 iterate_options->alloc_pgtable_cb_info,
                                 iterate_options->free_pgtable_cb_info);
 
-        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(result != E_PGWALKER_OK, 0)) {
             return UINT64_MAX;
         }
 
@@ -445,9 +445,9 @@ write_ptes_at_level(
         }
 
         walker->indices[level - 1] += count - 1;
-        result = ptwalker_next_with_options(walker, level, iterate_options);
+        result = pgwalker_next_with_options(walker, level, iterate_options);
 
-        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(result != E_PGWALKER_OK, 0)) {
             return UINT64_MAX;
         }
 
@@ -462,14 +462,14 @@ write_ptes_at_level(
 
 __debug_optimize(3) static inline uint64_t
 write_ptes_down_from_level(
-    struct pt_walker *const walker,
-    pgt_level_t level,
+    struct pg_walker *const walker,
+    pg_level_t level,
     const uint64_t leaf_pte_flags,
     const uint64_t large_pte_flags,
     uint64_t phys_addr,
     uint64_t leaf_ptes_remaining,
     const uint64_t supports_largepage_at_level_mask,
-    const struct ptwalker_iterate_options *const iterate_options)
+    const struct pgwalker_iterate_options *const iterate_options)
 {
     phys_addr =
         write_ptes_at_level(walker,
@@ -533,7 +533,7 @@ write_ptes_down_from_level(
 }
 
 static bool
-pgmap_with_ptwalker(struct pt_walker *const walker,
+pgmap_with_pgwalker(struct pg_walker *const walker,
                     struct current_split_info *const curr_split,
                     struct pageop *const pageop,
                     const struct range phys_range,
@@ -546,7 +546,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
     uint64_t phys_addr = phys_range.front;
     uint64_t total_remaining_leaf_pte = PAGE_COUNT(phys_range.size);
 
-    const struct ptwalker_iterate_options iterate_options = {
+    const struct pgwalker_iterate_options iterate_options = {
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,
 
@@ -555,7 +555,7 @@ pgmap_with_ptwalker(struct pt_walker *const walker,
         .should_ref = !options->is_in_early,
     };
 
-    pgt_level_t level = 1;
+    pg_level_t level = 1;
     do {
         level =
             find_highest_possible_level(walker,
@@ -649,17 +649,17 @@ pgmap_at(struct pagemap *const pagemap,
         return false;
     }
 
-    const bool flag = disable_irqs_if_enabled();
-    struct pt_walker walker;
+    const bool flag = intr_save();
+    struct pg_walker walker;
 
     if (options->is_in_early) {
-        ptwalker_create_for_pagemap(&walker,
+        pgwalker_create_for_pagemap(&walker,
                                     pagemap,
                                     virt_addr,
-                                    ptwalker_early_alloc_pgtable_cb,
+                                    pgwalker_early_alloc_pgtable_cb,
                                     /*free_pgtable=*/NULL);
     } else {
-        ptwalker_default_for_pagemap(&walker, pagemap, virt_addr);
+        pgwalker_default_for_pagemap(&walker, pagemap, virt_addr);
     }
 
     struct current_split_info curr_split = CURRENT_SPLIT_INFO_INIT();
@@ -676,8 +676,8 @@ pgmap_at(struct pagemap *const pagemap,
      * needs to be replaced (has a different phys-addr or different flags).
      */
 
-    if (options->is_overwrite && ptwalker_points_to_largepage(&walker)) {
-        const uint64_t walker_virt_addr = ptwalker_get_virt_addr(&walker);
+    if (options->is_overwrite && pgwalker_points_to_largepage(&walker)) {
+        const uint64_t walker_virt_addr = pgwalker_get_virt_addr(&walker);
         if (walker_virt_addr < virt_addr) {
             uint64_t offset = virt_addr - walker_virt_addr;
             pte_t *const pte =
@@ -694,7 +694,7 @@ pgmap_at(struct pagemap *const pagemap,
                   - virt_addr;
 
                 if (!range_has_index(phys_range, offset)) {
-                    enable_irqs_if_flag(flag);
+                    intr_restore(flag);
                     return OVERRIDE_DONE;
                 }
 
@@ -710,7 +710,7 @@ pgmap_at(struct pagemap *const pagemap,
                 const struct range largepage_phys_range =
                     RANGE_INIT(curr_split.phys_range.front, offset);
                 const bool result =
-                    pgmap_with_ptwalker(&walker,
+                    pgmap_with_pgwalker(&walker,
                                         /*curr_split=*/NULL,
                                         &pageop,
                                         largepage_phys_range,
@@ -719,7 +719,7 @@ pgmap_at(struct pagemap *const pagemap,
 
                 if (!result) {
                     pageop_finish(&pageop);
-                    enable_irqs_if_flag(flag);
+                    intr_restore(flag);
 
                     return result;
                 }
@@ -732,7 +732,7 @@ pgmap_at(struct pagemap *const pagemap,
     }
 
     const bool result =
-        pgmap_with_ptwalker(&walker,
+        pgmap_with_pgwalker(&walker,
                             &curr_split,
                             &pageop,
                             phys_range,
@@ -743,19 +743,19 @@ pgmap_at(struct pagemap *const pagemap,
         pageop_finish(&pageop);
     }
 
-    enable_irqs_if_flag(flag);
+    intr_restore(flag);
     return result;
 }
 
 __debug_optimize(3) static inline enum pgmap_alloc_result
 alloc_ptes_at_level(
-    struct pt_walker *const walker,
-    pgt_level_t level,
+    struct pg_walker *const walker,
+    pg_level_t level,
     const uint64_t leaf_pte_flags,
     const uint64_t large_pte_flags,
     const uint64_t write_leaf_pte_count,
     const struct pgmap_alloc_options *const alloc_options,
-    const struct ptwalker_iterate_options *const iterate_options,
+    const struct pgwalker_iterate_options *const iterate_options,
     uint64_t *const leaf_ptes_remaining_out)
 {
     const uint64_t leaf_pte_count_per_single_pte =
@@ -783,14 +783,14 @@ alloc_ptes_at_level(
         write_leaf_pte_count / leaf_pte_count_per_single_pte;
 
     do {
-        enum pt_walker_result result =
-            ptwalker_fill_in_to(walker,
+        enum pgwalker_result result =
+            pgwalker_fill_in_to(walker,
                                 level,
                                 iterate_options->should_ref,
                                 iterate_options->alloc_pgtable_cb_info,
                                 iterate_options->free_pgtable_cb_info);
 
-        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(result != E_PGWALKER_OK, 0)) {
             return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
         }
 
@@ -830,9 +830,9 @@ alloc_ptes_at_level(
         }
 
         walker->indices[level - 1] += count - 1;
-        result = ptwalker_next_with_options(walker, level, iterate_options);
+        result = pgwalker_next_with_options(walker, level, iterate_options);
 
-        if (__builtin_expect(result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(result != E_PGWALKER_OK, 0)) {
             return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
         }
 
@@ -847,14 +847,14 @@ alloc_ptes_at_level(
 
 __debug_optimize(3) static inline bool
 alloc_ptes_down_from_level(
-    struct pt_walker *const walker,
-    pgt_level_t level,
+    struct pg_walker *const walker,
+    pg_level_t level,
     const uint64_t leaf_pte_flags,
     const uint64_t large_pte_flags,
     uint64_t leaf_ptes_remaining,
     const uint64_t supports_largepage_at_level_mask,
     const struct pgmap_alloc_options *const alloc_options,
-    const struct ptwalker_iterate_options *const iterate_options)
+    const struct pgwalker_iterate_options *const iterate_options)
 {
     enum pgmap_alloc_result result =
         alloc_ptes_at_level(walker,
@@ -918,7 +918,7 @@ alloc_ptes_down_from_level(
 }
 
 static enum pgmap_alloc_result
-pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
+pgmap_alloc_with_pgwalker(struct pg_walker *const walker,
                           struct current_split_info *const curr_split,
                           struct pageop *const pageop,
                           const struct range virt_range,
@@ -928,7 +928,7 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
     const uint64_t supports_largepage_at_level_mask =
         options->supports_largepage_at_level_mask;
 
-    const struct ptwalker_iterate_options iterate_options = {
+    const struct pgwalker_iterate_options iterate_options = {
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,
 
@@ -940,7 +940,7 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
     uint64_t total_remaining_leaf_pte = PAGE_COUNT(virt_range.size);
     uint64_t virt_addr = virt_range.front;
 
-    pgt_level_t highest_possible_level = 1;
+    pg_level_t highest_possible_level = 1;
     do {
         highest_possible_level =
             find_highest_possible_level(walker,
@@ -1006,14 +1006,14 @@ pgmap_alloc_with_ptwalker(struct pt_walker *const walker,
 
 static inline bool
 split_initial_large_page_if_necessary(
-    struct pt_walker *const walker,
+    struct pg_walker *const walker,
     struct pageop *const pageop,
     struct current_split_info *const curr_split,
     struct range *const virt_range_in,
     const struct pgmap_options *const options,
     const bool calculate_phys)
 {
-    const uint64_t walker_virt_addr = ptwalker_get_virt_addr(walker);
+    const uint64_t walker_virt_addr = pgwalker_get_virt_addr(walker);
     const struct range virt_range = *virt_range_in;
 
     if (walker_virt_addr >= virt_range.front) {
@@ -1029,13 +1029,13 @@ split_initial_large_page_if_necessary(
 
     uint64_t phys_front = curr_split->phys_range.front;
     if (calculate_phys) {
-        phys_front = ptwalker_get_phys_addr(walker);
+        phys_front = pgwalker_get_phys_addr(walker);
         assert(phys_front != INVALID_PHYS);
     }
 
     const struct range largepage_phys_range = RANGE_INIT(phys_front, offset);
     const bool result =
-        pgmap_with_ptwalker(walker,
+        pgmap_with_pgwalker(walker,
                             /*curr_split=*/NULL,
                             pageop,
                             largepage_phys_range,
@@ -1077,17 +1077,17 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         return false;
     }
 
-    const bool flag = disable_irqs_if_enabled();
-    struct pt_walker walker;
+    const bool flag = intr_save();
+    struct pg_walker walker;
 
     if (options->is_in_early) {
-        ptwalker_create_for_pagemap(&walker,
+        pgwalker_create_for_pagemap(&walker,
                                     pagemap,
                                     virt_range.front,
-                                    ptwalker_early_alloc_pgtable_cb,
+                                    pgwalker_early_alloc_pgtable_cb,
                                     /*free_pgtable=*/NULL);
     } else {
-        ptwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
+        pgwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
     }
 
     /*
@@ -1104,7 +1104,7 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         pageop_init(&pageop, pagemap, virt_range);
     }
 
-    if (options->is_overwrite && ptwalker_points_to_largepage(&walker)) {
+    if (options->is_overwrite && pgwalker_points_to_largepage(&walker)) {
         if (!split_initial_large_page_if_necessary(&walker,
                                                    &pageop,
                                                    &curr_split,
@@ -1113,14 +1113,14 @@ pgmap_alloc_at(struct pagemap *const pagemap,
                                                    /*calculate_phys=*/false))
         {
             pageop_finish(&pageop);
-            enable_irqs_if_flag(flag);
+            intr_restore(flag);
 
             return E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL;
         }
     }
 
     const enum pgmap_alloc_result result =
-        pgmap_alloc_with_ptwalker(&walker,
+        pgmap_alloc_with_pgwalker(&walker,
                                   &curr_split,
                                   &pageop,
                                   virt_range,
@@ -1131,7 +1131,7 @@ pgmap_alloc_at(struct pagemap *const pagemap,
         pageop_finish(&pageop);
     }
 
-    enable_irqs_if_flag(flag);
+    intr_restore(flag);
     return result;
 }
 
@@ -1147,20 +1147,20 @@ pgunmap_at(struct pagemap *const pagemap,
         return false;
     }
 
-    struct pt_walker walker;
+    struct pg_walker walker;
     struct pageop pageop;
 
-    const bool flag = disable_irqs_if_enabled();
+    const bool flag = intr_save();
 
-    ptwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
+    pgwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
     pageop_init(&pageop, pagemap, virt_range);
 
     const bool should_free_pages = unmap_options->free_pages;
     const bool dont_split_large_pages = unmap_options->dont_split_large_pages;
 
     // Try flushing entire tables if we can.
-    pgt_level_t level = walker.level;
-    for (pgt_level_t iter = level + 1; iter <= walker.top_level; iter++) {
+    pg_level_t level = walker.level;
+    for (pg_level_t iter = level + 1; iter <= walker.top_level; iter++) {
         if (virt_range.size < PAGE_SIZE_AT_LEVEL(iter)) {
             level = iter - 1;
             break;
@@ -1177,7 +1177,7 @@ pgunmap_at(struct pagemap *const pagemap,
                                                /*calculate_phys=*/true))
     {
         pageop_finish(&pageop);
-        enable_irqs_if_flag(flag);
+        intr_restore(flag);
 
         printk(LOGLEVEL_WARN, "mm: pgunmap_at() failed to split large page\n");
         return false;
@@ -1193,7 +1193,7 @@ pgunmap_at(struct pagemap *const pagemap,
                 walker.level > 1 && !pte_level_can_have_large(walker.level), 0))
         {
             pageop_finish(&pageop);
-            enable_irqs_if_flag(flag);
+            intr_restore(flag);
 
             printk(LOGLEVEL_WARN,
                    "mm: pgunmap_at() encountered a table with a missing "
@@ -1208,7 +1208,7 @@ pgunmap_at(struct pagemap *const pagemap,
 
             if (dont_split_large_pages) {
                 pageop_finish(&pageop);
-                enable_irqs_if_flag(flag);
+                intr_restore(flag);
 
                 return false;
             }
@@ -1222,7 +1222,7 @@ pgunmap_at(struct pagemap *const pagemap,
             const pte_t entry = pte_read(pte);
             if (__builtin_expect(!pte_is_large(entry), 0)) {
                 pageop_finish(&pageop);
-                enable_irqs_if_flag(flag);
+                intr_restore(flag);
 
                 printk(LOGLEVEL_WARN,
                        "mm: pgunmap_at() encountered a pte that isn't large "
@@ -1240,11 +1240,11 @@ pgunmap_at(struct pagemap *const pagemap,
                                 PAGE_COUNT(PAGE_SIZE_AT_LEVEL(level)));
             }
 
-            ptwalker_deref_from_level(&walker, level, &pageop);
+            pgwalker_deref_from_level(&walker, level, &pageop);
 
             const uint64_t map_size = remaining;
             const bool map_result =
-                pgmap_with_ptwalker(&walker,
+                pgmap_with_pgwalker(&walker,
                                     /*curr_split=*/NULL,
                                     &pageop,
                                     RANGE_INIT(pte_phys, map_size),
@@ -1254,7 +1254,7 @@ pgunmap_at(struct pagemap *const pagemap,
 
             if (!map_result) {
                 pageop_finish(&pageop);
-                enable_irqs_if_flag(flag);
+                intr_restore(flag);
 
                 return false;
             }
@@ -1277,7 +1277,7 @@ pgunmap_at(struct pagemap *const pagemap,
             pte_write(pte, /*value=*/0);
         }
 
-        ptwalker_deref_from_level(&walker, walker.level, &pageop);
+        pgwalker_deref_from_level(&walker, walker.level, &pageop);
         remaining -= PAGE_SIZE_AT_LEVEL(level);
 
         if (remaining == 0) {
@@ -1285,11 +1285,11 @@ pgunmap_at(struct pagemap *const pagemap,
         }
 
         walker.level = level;
-        const enum pt_walker_result walker_result = ptwalker_next(&walker);
+        const enum pgwalker_result walker_result = pgwalker_next(&walker);
 
-        if (__builtin_expect(walker_result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(walker_result != E_PGWALKER_OK, 0)) {
             pageop_finish(&pageop);
-            enable_irqs_if_flag(flag);
+            intr_restore(flag);
 
             return false;
         }
@@ -1300,7 +1300,7 @@ pgunmap_at(struct pagemap *const pagemap,
     } while (true);
 
     pageop_finish(&pageop);
-    enable_irqs_if_flag(flag);
+    intr_restore(flag);
 
     return true;
 }

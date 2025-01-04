@@ -12,6 +12,16 @@
 
 static struct array g_ioapic_list = ARRAY_INIT(sizeof(struct ioapic_info));
 
+enum ioapic_redir_reg_shifts {
+    IOAPIC_REDIRECT_REG_VECTOR_SHIFT = 0,
+    IOAPIC_REDIRECT_REG_DELIVERY_MODE_SHIFT = 8,
+    IOAPIC_REDIRECT_REG_DEST_MODE_SHIFT = 11,
+    IOAPIC_REDIRECT_REG_POLARITY_SHIFT = 13,
+    IOAPIC_REDIRECT_REG_TRIGGER_MODE_SHIFT = 15,
+    IOAPIC_REDIRECT_REG_MASKED_SHIFT = 16,
+    IOAPIC_REDIRECT_REG_LAPIC_ID_SHIFT = 56
+};
+
 __debug_optimize(3) uint64_t
 create_ioapic_redirect_request(
     const uint8_t vector,
@@ -26,12 +36,12 @@ create_ioapic_redirect_request(
 
     const uint64_t result =
         vector
-      | delivery_mode << 8
-      | dest_mode << 11
-      | (uint32_t)is_active_low << 13
-      | (uint32_t)is_level_triggered << 15
-      | (uint32_t)masked << 16
-      | (uint64_t)lapic_id << 56;
+      | delivery_mode << IOAPIC_REDIRECT_REG_DELIVERY_MODE_SHIFT
+      | dest_mode << IOAPIC_REDIRECT_REG_DEST_MODE_SHIFT
+      | (uint32_t)is_active_low << IOAPIC_REDIRECT_REG_POLARITY_SHIFT
+      | (uint32_t)is_level_triggered << IOAPIC_REDIRECT_REG_TRIGGER_MODE_SHIFT
+      | (uint32_t)masked << IOAPIC_REDIRECT_REG_MASKED_SHIFT
+      | (uint64_t)lapic_id << IOAPIC_REDIRECT_REG_LAPIC_ID_SHIFT;
 
     return result;
 }
@@ -79,6 +89,29 @@ redirect_irq(const uint8_t lapic_id,
     ioapic_write(ioapic, reg + 1, req_value >> 32);
 }
 
+static void toggle_irq_mask(const uint8_t irq, const bool masked) {
+    const struct ioapic_info *const ioapic = ioapic_info_for_gsi(/*gsi=*/irq);
+    assert_msg(ioapic != NULL,
+               "ioapic: failed to find i/o apic for requested IRQ: %" PRIu8,
+               irq);
+
+    const uint8_t redirect_table_index = irq - ioapic->gsi_base;
+    const uint32_t reg =
+        ioapic_redirect_table_get_reg_for_n(redirect_table_index);
+
+    uint64_t reg_value =
+        ioapic_read(ioapic, reg) | (uint64_t)ioapic_read(ioapic, reg + 1) << 32;
+
+    if (masked) {
+        reg_value |= 1 << IOAPIC_REDIRECT_REG_MASKED_SHIFT;
+    } else {
+        reg_value = rm_mask(reg_value, IOAPIC_REDIRECT_REG_MASKED_SHIFT);
+    }
+
+    ioapic_write(ioapic, reg, reg_value);
+    ioapic_write(ioapic, reg + 1, reg_value >> 32);
+}
+
 void
 ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
     if (!has_align(base, PAGE_SIZE)) {
@@ -124,9 +157,9 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
     const struct range mmio_range = mmio_region_get_range(info.regs_mmio);
     printk(LOGLEVEL_INFO,
            "ioapic: added ioapic\n"
-           "\tversion: %" PRIu8 "\n"
-           "\tmax redirect-count: %" PRIu8 "\n"
-           "\tmmio: " RANGE_FMT "\n",
+           "\t\tversion: %" PRIu8 "\n"
+           "\t\tmax redirect-count: %" PRIu8 "\n"
+           "\t\tmmio: " RANGE_FMT "\n",
            info.version,
            info.max_redirect_count,
            RANGE_FMT_ARGS(mmio_range));
@@ -160,19 +193,15 @@ ioapic_redirect_irq(const uint8_t lapic_id,
                     const uint8_t vector,
                     const bool masked)
 {
-    // First check if the IOAPIC already directs this IRQ to the requested
-    // vector. If so, we don't need to do anything.
-
-    array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, item)
-    {
-        if (item->irq_src != irq) {
+    array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, iso) {
+        if (iso->irq_src != irq) {
             continue;
         }
 
         // Don't fill up the redirection-table if the iso already directs the
         // irq to the requested irq.
 
-        const uint8_t gsi = item->gsi;
+        const uint8_t gsi = iso->gsi;
         if (gsi == vector) {
             return;
         }
@@ -180,7 +209,7 @@ ioapic_redirect_irq(const uint8_t lapic_id,
         // Create a redirection-request for the requested vector with an iso
         // (Interrupt Source Override) entry.
 
-        redirect_irq(lapic_id, gsi, vector, item->flags, masked);
+        redirect_irq(lapic_id, gsi, vector, iso->flags, masked);
         return;
     }
 
@@ -188,4 +217,16 @@ ioapic_redirect_irq(const uint8_t lapic_id,
     // were given.
 
     redirect_irq(lapic_id, irq, vector, /*flags=*/0, masked);
+}
+
+void ioapic_toggle_irq_mask(uint8_t irq, bool masked) {
+    array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, iso) {
+        if (iso->irq_src != irq) {
+            continue;
+        }
+
+        toggle_irq_mask(iso->gsi, masked);
+    }
+
+    toggle_irq_mask(irq, masked);
 }

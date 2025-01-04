@@ -11,7 +11,7 @@
 #include "lib/assert.h"
 
 __noreturn void cpu_idle() {
-    assert(are_interrupts_enabled());
+    assert(intr_are_enabled());
     cpu_halt();
 }
 

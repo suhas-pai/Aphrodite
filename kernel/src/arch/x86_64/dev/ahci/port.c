@@ -35,9 +35,9 @@ _Static_assert(
 
 __debug_optimize(3)
 static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
-    const int flag = spin_acquire_save_irq(&port->lock);
+    const int flag = spin_acquire_save_intr(&port->lock);
     if (port->ports_bitset == UINT32_MAX) {
-        spin_release_restore_irq(&port->lock, flag);
+        spin_release_restore_intr(&port->lock, flag);
         return UINT8_MAX;
     }
 
@@ -45,12 +45,12 @@ static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
        find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
 
     if (!index_in_bounds(slot, sizeof_bits(uint32_t))) {
-        spin_release_restore_irq(&port->lock, flag);
+        spin_release_restore_intr(&port->lock, flag);
         return UINT8_MAX;
     }
 
     port->ports_bitset |= 1ul << slot;
-    spin_release_restore_irq(&port->lock, flag);
+    spin_release_restore_intr(&port->lock, flag);
 
     return slot;
 }
@@ -379,7 +379,7 @@ handle_irq_for_port(struct ahci_hba_port *const port,
         });
     } else {
         with_spinlock_acquired(&port->lock, {
-            finished_cmdhdrs[index] = port->ports_bitset & ~ci;
+            finished_cmdhdrs[index] = rm_mask(port->ports_bitset, ci);
         });
     }
 
@@ -388,10 +388,12 @@ handle_irq_for_port(struct ahci_hba_port *const port,
 
 __debug_optimize(3) void
 ahci_port_handle_irq(const uint64_t vector,
-                     struct thread_context *const context)
+                     struct thread_context *const context,
+                     void *const ctx)
 {
     (void)vector;
     (void)context;
+    (void)ctx;
 
     struct ahci_hba_port *ports_with_results[AHCI_HBA_MAX_PORT_COUNT] = {0};
     uint8_t port_count = 0;
@@ -608,7 +610,7 @@ ahci_hba_port_read(struct storage_device *const device,
                    const struct range lba_range)
 {
     struct ahci_hba_port *const port =
-        container_of(device, struct ahci_hba_port, device);
+        parent_of(device, struct ahci_hba_port, device);
     const struct scsi_request request =
         SCSI_REQUEST_READ(lba_range.front, lba_range.size);
 
@@ -625,7 +627,7 @@ ahci_hba_port_write(struct storage_device *const device,
                     const struct range lba_range)
 {
     struct ahci_hba_port *const port =
-        container_of(device, struct ahci_hba_port, device);
+        parent_of(device, struct ahci_hba_port, device);
     const struct scsi_request request =
         SCSI_REQUEST_WRITE(lba_range.front, lba_range.size);
 
@@ -1190,7 +1192,7 @@ send_ata_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-    with_spinlock_irq_disabled(&port->lock, {
+    with_spinlock_intr_disabled(&port->lock, {
         port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
     });
 
@@ -1277,7 +1279,7 @@ send_atapi_command(struct ahci_hba_port *const port,
                      /*drop_after_recv=*/true) == 0);
 
     struct await_result await_result = port->cmdhdr_info_list[slot].result;
-    with_spinlock_irq_disabled(&port->lock, {
+    with_spinlock_intr_disabled(&port->lock, {
         port->ports_bitset = rm_mask(port->ports_bitset, 1ull << slot);
     });
 

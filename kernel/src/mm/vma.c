@@ -12,7 +12,7 @@ __debug_optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
         return NULL;
     }
 
-    return container_of(node, struct vm_area, node);
+    return parent_of(node, struct vm_area, node);
 }
 
 __debug_optimize(3) struct vm_area *vma_next(struct vm_area *const vma) {
@@ -21,7 +21,7 @@ __debug_optimize(3) struct vm_area *vma_next(struct vm_area *const vma) {
         return NULL;
     }
 
-    return container_of(node, struct vm_area, node);
+    return parent_of(node, struct vm_area, node);
 }
 
 struct vm_area *
@@ -92,5 +92,5 @@ vma_create_at(struct pagemap *const pagemap,
 }
 
 __debug_optimize(3) struct pagemap *vma_pagemap(struct vm_area *const vma) {
-    return container_of(vma->node.addrspace, struct pagemap, addrspace);
+    return parent_of(vma->node.addrspace, struct pagemap, addrspace);
 }

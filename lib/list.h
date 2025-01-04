@@ -127,12 +127,12 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
 }
 
 #define list_rm(type, elem, field) \
-    ({ list_remove(elem); container_of(elem, type, field); })
+    ({ list_remove(elem); parent_of(elem, type, field); })
 #define list_del(type, elem, field) \
-    ({ list_delete(elem); container_of(elem, type, field); })
+    ({ list_delete(elem); parent_of(elem, type, field); })
 
-#define list_prev(ob, field) container_of(ob->field.prev, typeof(*(ob)), field)
-#define list_next(ob, field) container_of(ob->field.next, typeof(*(ob)), field)
+#define list_prev(ob, field) parent_of(ob->field.prev, typeof(*(ob)), field)
+#define list_next(ob, field) parent_of(ob->field.next, typeof(*(ob)), field)
 
 #define list_prev_safe(ob, field, list) \
     (ob->field.prev != (list) ? list_prev(ob, field) : NULL)

@@ -4,6 +4,8 @@
  */
 
 #pragma once
+
+#include "cpu/isr.h"
 #include "sys/irqdef.h"
 
 enum irq_polarity {
@@ -14,4 +16,12 @@ enum irq_polarity {
 enum irq_trigger_mode {
     IRQ_TRIGGER_MODE_EDGE,
     IRQ_TRIGGER_MODE_LEVEL,
+};
+
+struct irq_pin {
+    uint16_t irq;
+    isr_vector_t vector;
+
+    enum irq_polarity polarity : 1;
+    enum irq_trigger_mode trigger_mode : 1;
 };

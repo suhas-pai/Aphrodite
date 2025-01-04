@@ -31,16 +31,6 @@ enum ioapic_redirect_req_dest_mode {
     IOAPIC_REDIRECT_REQ_DEST_MODE_LOGICAL,
 };
 
-enum ioapic_redirect_req_pin_polarity {
-    IOAPIC_REDIRECT_REQ_PIN_POLARITY_ACTIVE_HIGH,
-    IOAPIC_REDIRECT_REQ_PIN_POLARITY_ACTIVE_LOW
-};
-
-enum ioapic_redirect_req_trigger_mode {
-    IOAPIC_REDIRECT_REQ_PIN_TRIGGER_MODE_EDGE,
-    IOAPIC_REDIRECT_REQ_PIN_TRIGGER_MODE_LEVEL
-};
-
 enum ioapic_reg {
     IOAPIC_REG_ID,
     IOAPIC_REG_VERSION,
@@ -70,6 +60,8 @@ ioapic_write(const struct ioapic_info *ioapic,
 
 void
 ioapic_redirect_irq(uint8_t lapic_id, uint8_t irq, uint8_t vector, bool masked);
+
+void ioapic_toggle_irq_mask(uint8_t irq, bool masked);
 
 __debug_optimize(3)
 static inline uint8_t ioapic_id_reg_get_arbid(const uint32_t version) {

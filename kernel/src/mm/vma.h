@@ -20,7 +20,7 @@ struct vm_area {
     enum vma_cachekind cachekind;
 };
 
-#define vma_of(obj) container_of((obj), struct vm_area, node.avlnode)
+#define vma_of(obj) parent_of((obj), struct vm_area, node.avlnode)
 
 struct vm_area *vma_prev(struct vm_area *vma);
 struct vm_area *vma_next(struct vm_area *vma);

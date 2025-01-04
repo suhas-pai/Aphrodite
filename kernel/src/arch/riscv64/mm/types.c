@@ -47,7 +47,7 @@ struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
     }
 };
 
-__debug_optimize(3) pgt_level_t pgt_get_top_level() {
+__debug_optimize(3) pg_level_t pgt_get_top_level() {
     switch (PAGING_MODE) {
         case LIMINE_PAGING_MODE_RISCV_SV39:
             return 3;
@@ -77,7 +77,7 @@ __debug_optimize(3) bool pte_is_present(const pte_t pte) {
     return pte & __PTE_VALID;
 }
 
-__debug_optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
+__debug_optimize(3) bool pte_level_can_have_large(const pg_level_t level) {
     return level > 1;
 }
 
@@ -99,7 +99,7 @@ __debug_optimize(3) void pte_write(pte_t *const pte, const pte_t value) {
 }
 
 __debug_optimize(3) bool
-pte_flags_equal(const pte_t pte, const pgt_level_t level, const uint64_t flags)
+pte_flags_equal(const pte_t pte, const pg_level_t level, const uint64_t flags)
 {
     (void)level;
     const uint64_t mask =

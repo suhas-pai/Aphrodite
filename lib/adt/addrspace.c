@@ -20,7 +20,7 @@ struct addrspace_node *addrspace_node_prev(struct addrspace_node *const node) {
         return NULL;
     }
 
-    return container_of(node->list.prev, struct addrspace_node, list);
+    return parent_of(node->list.prev, struct addrspace_node, list);
 }
 
 __debug_optimize(3)
@@ -29,7 +29,7 @@ struct addrspace_node *addrspace_node_next(struct addrspace_node *const node) {
         return NULL;
     }
 
-    return container_of(node->list.next, struct addrspace_node, list);
+    return parent_of(node->list.next, struct addrspace_node, list);
 }
 
 enum traversal_result {
@@ -103,9 +103,9 @@ traverse_tree(const struct address_space *const addrspace,
                 // our right.
 
                 struct addrspace_node *const rightmost =
-                    container_of(addrspace->list.prev,
-                                 struct addrspace_node,
-                                 list);
+                    parent_of(addrspace->list.prev,
+                              struct addrspace_node,
+                              list);
 
                 uint64_t aligned_result =
                     range_get_end_assert(rightmost->range);

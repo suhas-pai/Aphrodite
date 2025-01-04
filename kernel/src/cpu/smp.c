@@ -77,7 +77,7 @@ void smp_boot_all_cpus() {
                    cpu->processor_id);
 
         sched_init_on_cpu(cpu);
-        with_interrupts_disabled({
+        with_intr_disabled({
             cpu_list[i]->extra_argument = (uint64_t)&boot_info;
             atomic_store_explicit(
                 (_Atomic uint64_t *)&cpu_list[i]->goto_address,

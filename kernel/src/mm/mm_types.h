@@ -84,17 +84,17 @@ struct page;
         }) \
     )
 
-typedef uint8_t pgt_level_t;
-typedef uint16_t pgt_index_t;
+typedef uint8_t pg_level_t;
+typedef uint16_t pg_index_t;
 
 #define PGT_LEVEL_FMT "%" PRIu8
 #define PGT_INDEX_FMT "%" PRIu16
 
-pgt_level_t pgt_get_top_level();
+pg_level_t pgt_get_top_level();
 uint64_t sign_extend_virt_addr(uint64_t virt);
 
 bool pte_is_present(pte_t pte);
-bool pte_level_can_have_large(pgt_level_t level);
+bool pte_level_can_have_large(pg_level_t level);
 bool pte_is_large(pte_t pte);
 bool pte_is_dirty(pte_t pte);
 
@@ -111,7 +111,7 @@ extern uint64_t HHDM_OFFSET;
 void pagezones_init();
 
 __debug_optimize(3) static inline
-uint16_t virt_to_pt_index(const uint64_t virt, const pgt_level_t level) {
+uint16_t virt_to_pt_index(const uint64_t virt, const pg_level_t level) {
     return (virt >> PAGE_SHIFTS[level - 1]) & PT_LEVEL_MASKS[level];
 }
 
@@ -163,7 +163,7 @@ enum vma_cachekind {
 pte_t pte_read(const pte_t *pte);
 void pte_write(pte_t *pte, pte_t value);
 
-bool pte_flags_equal(pte_t pte, pgt_level_t level, uint64_t flags);
+bool pte_flags_equal(pte_t pte, pg_level_t level, uint64_t flags);
 
 void zero_page(void *page);
 void zero_multiple_pages(void *page, uint64_t count);

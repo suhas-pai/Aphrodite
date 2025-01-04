@@ -26,8 +26,8 @@ pci_add_ecam_domain(struct range bus_range,
 bool pci_remove_ecam_domain(struct pci_domain_ecam *ecam_domain);
 
 uint64_t
-pci_ecam_domain_loc_get_offset(const struct pci_domain_ecam *domain,
-                               const struct pci_location *loc);
+pci_ecam_domain_loc_get_base(const struct pci_domain_ecam *domain,
+                             const struct pci_location *loc);
 
 uint8_t
 pci_ecam_read_8(const struct pci_domain_ecam *domain,

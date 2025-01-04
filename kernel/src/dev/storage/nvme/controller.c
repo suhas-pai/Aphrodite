@@ -70,9 +70,13 @@ static bool notify_queue_if_done(struct nvme_queue *const queue) {
     return true;
 }
 
-__debug_optimize(3)
-void handle_irq(const uint64_t int_no, struct thread_context *const context) {
+__debug_optimize(3) void
+handle_irq(const uint64_t int_no,
+           struct thread_context *const context,
+           void *const ctx)
+{
     (void)context;
+    (void)ctx;
 
     struct nvme_controller *iter = NULL;
     bool found = false;
@@ -345,6 +349,7 @@ nvme_controller_create(struct nvme_controller *const controller,
 
     isr_set_msi_vector(controller->isr_vector,
                        handle_irq,
+                       /*ctx=*/NULL,
                        &ARCH_ISR_INFO_NONE());
 
     list_add(&g_controller_list, &controller->list);

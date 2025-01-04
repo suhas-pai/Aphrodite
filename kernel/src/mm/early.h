@@ -23,7 +23,7 @@ void mm_remove_early_identity_map();
 uint64_t mm_get_total_page_count();
 
 uint64_t early_alloc_page();
-uint64_t early_alloc_large_page(pgt_level_t level);
+uint64_t early_alloc_large_page(pg_level_t level);
 
 void
 early_free_pages_from_section(struct page *page,

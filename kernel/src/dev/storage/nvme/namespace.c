@@ -21,7 +21,7 @@ nvme_read(struct storage_device *const device,
           const struct range lba_range)
 {
     struct nvme_namespace *const namespace =
-        container_of(device, struct nvme_namespace, device);
+        parent_of(device, struct nvme_namespace, device);
 
     if (nvme_namespace_rwlba(namespace, lba_range, /*write=*/false, phys)) {
         return lba_range.size;
@@ -36,7 +36,7 @@ nvme_write(struct storage_device *const device,
            const struct range lba_range)
 {
     struct nvme_namespace *const namespace =
-        container_of(device, struct nvme_namespace, device);
+        parent_of(device, struct nvme_namespace, device);
 
     if (nvme_namespace_rwlba(namespace, lba_range, /*write=*/true, phys)) {
         return lba_range.size;
@@ -252,7 +252,7 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
 
 void nvme_namespace_destroy(struct nvme_namespace *const namespace) {
     struct nvme_controller *const controller = namespace->controller;
-    with_spinlock_irq_disabled(&controller->lock, {
+    with_spinlock_intr_disabled(&controller->lock, {
         nvme_queue_destroy(&namespace->io_queue);
         list_deinit(&namespace->list);
     });

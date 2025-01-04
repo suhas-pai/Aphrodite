@@ -23,7 +23,7 @@ __debug_optimize(3) static uint64_t alloc_page(void *const info) {
 }
 
 __debug_optimize(3)
-static uint64_t alloc_large_page(const pgt_level_t level, void *const cb_info) {
+static uint64_t alloc_large_page(const pg_level_t level, void *const cb_info) {
     (void)cb_info;
     return early_alloc_large_page(level);
 }
@@ -225,9 +225,9 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 
     printk(LOGLEVEL_INFO,
            "mm: kernel pagemap ranges:\n"
-           "\tmmio: " RANGE_FMT "\n"
-           "\tkernel: " RANGE_FMT "\n"
-           "\thhdm: " RANGE_FMT "\n",
+           "\t\tmmio: " RANGE_FMT "\n"
+           "\t\tkernel: " RANGE_FMT "\n"
+           "\t\thhdm: " RANGE_FMT "\n",
            RANGE_FMT_ARGS(mmio->node.range),
            RANGE_FMT_ARGS(kernel->node.range),
            RANGE_FMT_ARGS(hhdm->node.range));

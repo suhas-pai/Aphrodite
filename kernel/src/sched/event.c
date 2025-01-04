@@ -69,20 +69,20 @@ events_await(struct event *const *const events,
              const bool block,
              const bool drop_after_recv)
 {
-    bool flag = disable_irqs_if_enabled();
+    bool flag = intr_save();
     lock_events(events, events_count);
 
     int64_t index = find_pending(events, events_count);
     if (index != -1) {
         unlock_events(events, events_count);
-        enable_irqs_if_flag(flag);
+        intr_restore(flag);
 
         return index;
     }
 
     if (!block) {
         unlock_events(events, events_count);
-        enable_irqs_if_flag(flag);
+        intr_restore(flag);
 
         return -1;
     }
@@ -95,7 +95,7 @@ events_await(struct event *const *const events,
     unlock_events(events, events_count);
     sched_yield();
 
-    with_interrupts_disabled({
+    with_intr_disabled({
         index = thread->event_index;
         thread->event_index = -1;
 
@@ -109,14 +109,14 @@ events_await(struct event *const *const events,
 
 __debug_optimize(3)
 void event_trigger(struct event *const event, const bool drop_if_no_listeners) {
-    with_spinlock_irq_disabled(&event->lock, {
+    with_spinlock_intr_disabled(&event->lock, {
         if (!array_empty(event->listeners)) {
             array_foreach(&event->listeners,
                           const struct event_listener,
                           listener)
             {
                 listener->waiter->event_index = listener->listeners_index;
-                sched_enqueue_thread(listener->waiter);
+                sched_wake(listener->waiter);
             }
         } else {
             if (!drop_if_no_listeners) {

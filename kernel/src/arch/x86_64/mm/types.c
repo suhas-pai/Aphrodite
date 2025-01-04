@@ -44,7 +44,7 @@ __debug_optimize(3) static inline bool uses_5_level_paging() {
     return PAGING_MODE == LIMINE_PAGING_MODE_X86_64_5LVL;
 }
 
-__debug_optimize(3) pgt_level_t pgt_get_top_level() {
+__debug_optimize(3) pg_level_t pgt_get_top_level() {
     return uses_5_level_paging() ? 5 : 4;
 }
 
@@ -60,7 +60,7 @@ __debug_optimize(3) bool pte_is_present(const pte_t pte) {
     return pte & __PTE_PRESENT;
 }
 
-__debug_optimize(3) bool pte_level_can_have_large(const pgt_level_t level) {
+__debug_optimize(3) bool pte_level_can_have_large(const pg_level_t level) {
     return largepage_level_info_list[level - 1].is_supported;
 }
 
@@ -81,7 +81,7 @@ __debug_optimize(3) void pte_write(pte_t *const pte, const pte_t value) {
 }
 
 __debug_optimize(3)
-bool pte_flags_equal(pte_t pte, const pgt_level_t level, const uint64_t flags) {
+bool pte_flags_equal(pte_t pte, const pg_level_t level, const uint64_t flags) {
     (void)level;
     const uint64_t mask =
         __PTE_PRESENT | __PTE_WRITE | __PTE_USER | __PTE_PWT | __PTE_PCD

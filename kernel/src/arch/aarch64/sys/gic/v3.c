@@ -175,7 +175,7 @@ _Static_assert((PAGE_SIZE << GIC_REDIST_PENDING_ALLOC_ORDER)
 
 static
 volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
-    if (irq < GIC_SPI_INTERRUPT_START) {
+    if (irq < GIC_SPI_INTR_START) {
         volatile struct gicv3_redist_registers *const redist_regs =
             g_redist_mmio->base;
 
@@ -212,7 +212,9 @@ gicdv3_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
         const isr_vector_t vector =
             gic_its_alloc_msi_vector(its, device, msi_index);
 
-        return vector;
+        if (vector != ISR_INVALID_VECTOR) {
+            return vector;
+        }
     }
 
     return ISR_INVALID_VECTOR;
@@ -231,7 +233,7 @@ gicdv3_free_msi_vector(struct device *const device,
 
 __debug_optimize(3)
 void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
-    if (irq < GIC_SPI_INTERRUPT_START) {
+    if (irq < GIC_SPI_INTR_START) {
         printk(LOGLEVEL_WARN,
                "gicv3: gicd_set_irq_affinity() called on sgi/ppi "
                "interrupt " IRQ_NUMBER_FMT "\n",
@@ -240,8 +242,8 @@ void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
         return;
     }
 
-    with_interrupts_disabled({
-        mmio_write(&g_dist_regs->irq_router[irq - GIC_SPI_INTERRUPT_START],
+    with_intr_disabled({
+        mmio_write(&g_dist_regs->irq_router[irq - GIC_SPI_INTR_START],
                    (uint32_t)affinity << 24
                  | (uint32_t)affinity << 16
                  | (uint32_t)affinity << 8
@@ -253,7 +255,7 @@ __debug_optimize(3) void
 gicdv3_set_irq_trigger_mode(const irq_number_t irq,
                             const enum irq_trigger_mode mode)
 {
-    if (irq < GIC_PPI_INTERRUPT_START) {
+    if (irq < GIC_PPI_INTR_START) {
         printk(LOGLEVEL_WARN,
                "gicdv3_set_irq_trigger_mode() called on sgi interrupt\n");
         return;
@@ -267,7 +269,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
     const uint32_t group_bit_offset = irq % sizeof_bits(uint32_t);
     const uint32_t irq_array_index = irq / sizeof_bits(uint32_t);
 
-    with_interrupts_disabled({
+    with_intr_disabled({
         const uint32_t irq_config =
             atomic_load_explicit(&dist->irq_config[irq / sizeof_bits(uint16_t)],
                                  memory_order_relaxed);
@@ -302,7 +304,7 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
     const uint8_t index = irq / sizeof(uint32_t);
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
 
-    with_interrupts_disabled({
+    with_intr_disabled({
         const uint32_t irq_priority =
             atomic_load_explicit(&dist->irq_priority[index],
                                  memory_order_relaxed);
@@ -357,7 +359,7 @@ gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     asm volatile("mrs %0, icc_iar1_el1" : "=r"(iar1));
 
     const uint64_t irq = iar1 & 0xFFFFFF;
-    if (irq < GIC_SPI_INTERRUPT_START || irq >= GIC_ITS_LPI_INTERRUPT_START) {
+    if (irq < GIC_SPI_INTR_START || irq >= GIC_ITS_LPI_INTERRUPT_START) {
         asm volatile("msr icc_eoir1_el1, %0" :: "r"(irq));
     }
 
@@ -383,7 +385,7 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 
 void gic_redist_init_on_this_cpu() {
     volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
-    with_interrupts_disabled({
+    with_intr_disabled({
         const uint64_t typer = mmio_read(&redist->typer);
 
         assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);
@@ -439,16 +441,20 @@ void gic_redist_init_on_this_cpu() {
                    mmio_read(&redist->pend_baser) | pend_phys);
 
         mmio_write(&redist->prop_baser,
-                   mmio_read(&redist->prop_baser)
-                 | prop_phys
-                 | (GIC_REDIST_IDBITS - 1));
+                   mmio_read(&redist->prop_baser) |
+                   prop_phys | (GIC_REDIST_IDBITS - 1));
 
         const uint32_t processor_id =
-            (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER)
-                >> GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
+            (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER) >>
+                GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
 
-        assert_msg(processor_id == this_cpu()->processor_id,
-                   "gicv3: processor-id is different than from bootloader");
+        if (processor_id != this_cpu()->processor_id) {
+            printk(LOGLEVEL_WARN,
+                   "gicv3: processor-id %" PRIu32 " is different than from id "
+                   "from bootloader: %" PRIu32 "\n",
+                   processor_id,
+                   this_cpu()->processor_id);
+        }
 
         this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
         this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
@@ -480,8 +486,8 @@ void gicv3_init_on_this_cpu() {
     isb();
     dsb();
 
-    for (irq_number_t irq = GIC_SGI_INTERRUPT_START;
-         irq <= GIC_SGI_INTERRUPT_LAST;
+    for (irq_number_t irq = GIC_SGI_INTR_START;
+         irq <= GIC_SGI_INTR_LAST;
          irq++)
     {
         gicdv3_mask_irq(irq);
@@ -489,8 +495,8 @@ void gicv3_init_on_this_cpu() {
         gicdv3_unmask_irq(irq);
     }
 
-    for (irq_number_t irq = GIC_PPI_INTERRUPT_START;
-         irq <= GIC_PPI_INTERRUPT_LAST;
+    for (irq_number_t irq = GIC_PPI_INTR_START;
+         irq <= GIC_PPI_INTR_LAST;
          irq++)
     {
         gicdv3_mask_irq(irq);

@@ -8,39 +8,39 @@
 #include <stdbool.h>
 #include "lib/macros.h"
 
-__debug_optimize(3) static inline void disable_interrupts(void) {
+__debug_optimize(3) static inline void intr_disable(void) {
     asm volatile ("msr daifset, #15");
 }
 
-__debug_optimize(3) static inline void enable_interrupts(void) {
+__debug_optimize(3) static inline void intr_enable(void) {
     asm volatile ("msr daifclr, #15");
 }
 
-__debug_optimize(3) static inline bool are_interrupts_enabled() {
+__debug_optimize(3) static inline bool intr_are_enabled() {
     uint64_t value = 0;
     asm volatile ("mrs %0, daif" : "=r"(value));
 
     return value == 0;
 }
 
-__debug_optimize(3) static inline bool disable_irqs_if_enabled() {
-    const bool result = are_interrupts_enabled();
+__debug_optimize(3) static inline bool intr_save() {
+    const bool result = intr_are_enabled();
     if (result) {
-        disable_interrupts();
+        intr_disable();
     }
 
     return result;
 }
 
-__debug_optimize(3) static inline void enable_irqs_if_flag(const bool flag) {
+__debug_optimize(3) static inline void intr_restore(const bool flag) {
     if (flag) {
-        enable_interrupts();
+        intr_enable();
     }
 }
 
-#define with_interrupts_disabled(block) \
+#define with_intr_disabled(block) \
     do { \
-        const bool h_var(irqs_disabled_flag) = disable_irqs_if_enabled(); \
+        const bool h_var(irqs_disabled_flag) = intr_save(); \
         block; \
-        enable_irqs_if_flag(h_var(irqs_disabled_flag)); \
+        intr_restore(h_var(irqs_disabled_flag)); \
     } while (false)

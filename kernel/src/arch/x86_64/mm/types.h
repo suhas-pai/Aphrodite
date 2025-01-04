@@ -59,7 +59,7 @@ static const uint8_t LARGEPAGE_SHIFTS[] = { PML2_SHIFT, PML3_SHIFT };
 struct largepage_level_info {
     uint8_t order;
     uint8_t largepage_order;
-    uint8_t level; // should be pgt_level_t
+    uint8_t level; // should be pg_level_t
 
     bool is_supported : 1;
     uint64_t size;

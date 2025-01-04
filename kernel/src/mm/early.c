@@ -63,7 +63,7 @@ __debug_optimize(3)
 static void add_to_asc_list(struct freepage_list_info *const info) {
     struct freepage_list_info *iter = NULL;
     struct freepage_list_info *prev =
-        container_of(&g_asc_freelist, struct freepage_list_info, asc_list);
+        parent_of(&g_asc_freelist, struct freepage_list_info, asc_list);
 
     list_foreach(iter, &g_asc_freelist, asc_list) {
         if (info->avail_page_count < iter->avail_page_count) {
@@ -111,7 +111,7 @@ static void claim_pages(const struct mm_memmap *const memmap) {
 
         if (prev > info) {
             prev =
-                container_of(&g_freepage_list, struct freepage_list_info, list);
+                parent_of(&g_freepage_list, struct freepage_list_info, list);
 
             struct freepage_list_info *iter = NULL;
             list_foreach(iter, &g_freepage_list, list) {
@@ -188,7 +188,7 @@ __debug_optimize(3) uint64_t early_alloc_page() {
     return free_page;
 }
 
-__debug_optimize(3) uint64_t early_alloc_large_page(const pgt_level_t level) {
+__debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");
         return INVALID_PHYS;
@@ -402,13 +402,13 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     init_table_page(virt_to_page(kernel_process.pagemap.root));
 #endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
-    struct pt_walker walker;
-    ptwalker_create(&walker,
+    struct pg_walker walker;
+    pgwalker_create(&walker,
                     virt_addr,
                     /*alloc_pgtable=*/NULL,
                     /*free_pgtable=*/NULL);
 
-    for (pgt_level_t level = (uint8_t)walker.level;
+    for (pg_level_t level = (uint8_t)walker.level;
          level <= walker.top_level;
          level++)
     {
@@ -430,7 +430,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     bool prev_was_at_end =
         walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
 
-    const struct ptwalker_iterate_options iterate_options = {
+    const struct pgwalker_iterate_options iterate_options = {
         .alloc_pgtable_cb_info = NULL,
         .free_pgtable_cb_info = NULL,
 
@@ -439,10 +439,10 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         .should_ref = false,
     };
 
-    enum pt_walker_result advance_result =
-        ptwalker_next_with_options(&walker, walker.level, &iterate_options);
+    enum pgwalker_result advance_result =
+        pgwalker_next_with_options(&walker, walker.level, &iterate_options);
 
-    if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
+    if (__builtin_expect(advance_result != E_PGWALKER_OK, 0)) {
     fail:
         panic("mm: failed to setup kernel pagemap, result=%d\n",
               advance_result);
@@ -462,7 +462,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
             // such a page exists is the highest level where the corresponding
             // index is also zero.
 
-            for (pgt_level_t level = (pgt_level_t)walker.level + 1;
+            for (pg_level_t level = (pg_level_t)walker.level + 1;
                  level <= walker.top_level;
                  level++)
             {
@@ -494,7 +494,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
             // Initialize the tables in between our previous table, and our
             // current table.
 
-            for (pgt_level_t level = (pgt_level_t)walker.level;
+            for (pg_level_t level = (pg_level_t)walker.level;
                  level < prev_level;
                  level++)
             {
@@ -531,16 +531,16 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         }
 
         advance_result =
-            ptwalker_next_with_options(&walker, walker.level, &iterate_options);
+            pgwalker_next_with_options(&walker, walker.level, &iterate_options);
 
-        if (__builtin_expect(advance_result != E_PT_WALKER_OK, 0)) {
+        if (__builtin_expect(advance_result != E_PGWALKER_OK, 0)) {
             goto fail;
         }
     }
 }
 
 static bool g_mapped_early_identity = false;
-static pgt_level_t g_mapped_early_top_level = 0;
+static pg_level_t g_mapped_early_top_level = 0;
 
 static uint64_t g_mapped_early_phys = 0;
 static uint64_t g_mapped_early_root_phys = 0;
@@ -554,22 +554,22 @@ mm_early_identity_map_phys(const uint64_t root_phys,
                "mm: mm_early_identity_map_phys() only supports identity "
                "mapping early a single page");
 
-    struct pt_walker walker;
-    ptwalker_create_from_root_phys(&walker,
+    struct pg_walker walker;
+    pgwalker_create_from_root_phys(&walker,
                                    root_phys,
                                    /*virt_addr=*/phys,
-                                   ptwalker_early_alloc_pgtable_cb,
+                                   pgwalker_early_alloc_pgtable_cb,
                                    /*free_pgtable=*/NULL);
 
     g_mapped_early_top_level = walker.level - 1;
-    const enum pt_walker_result walker_result =
-        ptwalker_fill_in_to(&walker,
+    const enum pgwalker_result walker_result =
+        pgwalker_fill_in_to(&walker,
                             /*level=*/1,
                             /*should_ref=*/false,
                             /*alloc_pgtable_cb_info=*/NULL,
                             /*free_pgtable_cb_info=*/NULL);
 
-    assert_msg(walker_result == E_PT_WALKER_OK,
+    assert_msg(walker_result == E_PGWALKER_OK,
                "mm: failed to fill out pagemap in "
                "mm_early_identity_map_phys()");
 
@@ -586,14 +586,14 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
         return;
     }
 
-    struct pt_walker walker;
-    ptwalker_create_from_root_phys(&walker,
+    struct pg_walker walker;
+    pgwalker_create_from_root_phys(&walker,
                                    g_mapped_early_root_phys,
                                    /*virt_addr=*/g_mapped_early_phys,
-                                   ptwalker_early_alloc_pgtable_cb,
+                                   pgwalker_early_alloc_pgtable_cb,
                                    /*free_pgtable=*/NULL);
 
-    for (pgt_level_t level = 1; level <= g_mapped_early_top_level; level++) {
+    for (pg_level_t level = 1; level <= g_mapped_early_top_level; level++) {
         pte_t *const table = walker.tables[level - 1];
 
         const uint64_t phys = virt_to_phys(table);

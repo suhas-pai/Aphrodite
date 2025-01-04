@@ -14,14 +14,14 @@ struct node {
 };
 
 static int compare(struct avlnode *const ours, struct avlnode *const theirs) {
-    struct node *const our_node = container_of(ours, struct node, info);
-    struct node *const their_node = container_of(theirs, struct node, info);
+    struct node *const our_node = parent_of(ours, struct node, info);
+    struct node *const their_node = parent_of(theirs, struct node, info);
 
     return (int64_t)our_node->number - their_node->number;
 }
 
 static int identify(struct avlnode *const theirs, void *const key) {
-    struct node *const their_node = container_of(theirs, struct node, info);
+    struct node *const their_node = parent_of(theirs, struct node, info);
     return (int64_t)key - (int64_t)their_node->number;
 }
 
@@ -46,7 +46,7 @@ void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
         return;
     }
 
-    struct node *const node = container_of(avlnode, struct node, info);
+    struct node *const node = parent_of(avlnode, struct node, info);
 
     printf("%" PRIu32, node->number);
     fflush(stdout);

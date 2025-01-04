@@ -78,7 +78,7 @@ __debug_optimize(3) usec_t hpet_read() {
 
 void hpet_oneshot_fsec(const fsec_t fsec) {
     uint64_t index = 0;
-    with_spinlock_irq_disabled(&g_lock, {
+    with_spinlock_intr_disabled(&g_lock, {
         index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
     });
 
@@ -89,12 +89,12 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
                      /*block=*/true,
                      /*drop_after_recv=*/true);
 
-        with_spinlock_irq_disabled(&g_lock, {
+        with_spinlock_intr_disabled(&g_lock, {
             index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
         });
     }
 
-    with_interrupts_disabled({
+    with_intr_disabled({
         mmio_write(&g_addrspace->timers[index].config_and_capability, 0);
         mmio_write(&g_addrspace->timers[index].comparator_value,
                    check_mul_assert(g_frequency, fsec));

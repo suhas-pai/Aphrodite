@@ -14,7 +14,7 @@
 static struct terminal *g_first_term = NULL;
 
 __debug_optimize(3) void printk_add_terminal(struct terminal *const term) {
-    with_interrupts_disabled({
+    with_intr_disabled({
         term->next = g_first_term;
         g_first_term = term;
     });
@@ -72,7 +72,7 @@ static struct spinlock g_print_lock = SPINLOCK_INIT();
 
 __debug_optimize(3)
 void putk(const enum log_level level, const char *const string) {
-    with_spinlock_irq_disabled(&g_print_lock, {
+    with_spinlock_intr_disabled(&g_print_lock, {
         putk_sv(level, sv_create_length(string, strlen(string)));
     });
 }
@@ -81,7 +81,7 @@ __debug_optimize(3)
 void putk_sv(const enum log_level level, const struct string_view sv) {
     (void)level;
 
-    with_spinlock_irq_disabled(&g_print_lock, {
+    with_spinlock_intr_disabled(&g_print_lock, {
         write_sv(/*spec_info=*/NULL, /*cb_info=*/NULL, sv, /*cont_out=*/NULL);
     });
 }
@@ -107,7 +107,7 @@ __debug_optimize(3) static void printk_internal(const char *const string, ...) {
 __debug_optimize(3) void
 vprintk(const enum log_level loglevel, const char *const string, va_list list) {
     (void)loglevel;
-    with_spinlock_irq_disabled(&g_print_lock, {
+    with_spinlock_intr_disabled(&g_print_lock, {
         printk_internal("[cpu %" PRIu32 "] ", cpu_get_id(this_cpu()));
         parse_printf(string,
                      write_char,

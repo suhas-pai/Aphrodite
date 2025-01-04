@@ -6,13 +6,14 @@
 #include "asm/irqs.h"
 #include "cpu/util.h"
 
+#include "dev/printk.h"
 #include "dev/psci.h"
 #include "mm/kmalloc.h"
 
 #include "sched/scheduler.h"
 
 __noreturn void cpu_idle() {
-    assert(are_interrupts_enabled());
+    assert(intr_are_enabled());
     cpu_halt();
 }
 
@@ -40,8 +41,7 @@ struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
 
     cpu->mpidr = info->mpidr;
     cpu->processor_id = info->processor_id;
-    cpu->affinity =
-        ((cpu->mpidr >> 32) & 0xFF) << 24 | (cpu->mpidr & 0xFFFFFF);
+    cpu->affinity = ((cpu->mpidr >> 32) & 0xFF) << 24 | (cpu->mpidr & 0xFFFFFF);
 
     cpu->spe_overflow_interrupt = 0;
     cpu->icid = 0;

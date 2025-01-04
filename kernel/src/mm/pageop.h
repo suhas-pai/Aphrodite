@@ -30,7 +30,7 @@ pageop_init(struct pageop *pageop, struct pagemap *pagemap, struct range range);
 void
 pageop_flush_pte_in_current_range(struct pageop *pageop,
                                   pte_t pte,
-                                  pgt_level_t level,
+                                  pg_level_t level,
                                   bool should_free_pages);
 
 void pageop_setup_for_address(struct pageop *pageop, uint64_t virt);

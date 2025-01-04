@@ -44,7 +44,7 @@ struct addrspace_node {
     })
 
 #define addrspace_node_of(obj) \
-    container_of((obj), struct addrspace_node, avlnode)
+    parent_of((obj), struct addrspace_node, avlnode)
 
 #define addrspace_foreach_node(addrspace, node) \
     list_foreach(node, &addrspace->list, list)

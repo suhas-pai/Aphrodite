@@ -30,7 +30,7 @@ struct cpu_info_base {
     .pagemap_node = LIST_INIT(name.pagemap_node), \
     .idle_thread = NULL, \
     .spur_intr_count = 0, \
-    .sched_info = SCHED_PERCPU_INFO_INIT()
+    .sched_info = SCHED_PERCPU_INFO_INIT(name.sched_info)
 
 void cpu_info_base_init(struct cpu_info *cpu);
 

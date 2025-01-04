@@ -12,7 +12,7 @@
 #include "dev/printk.h"
 
 __debug_optimize(3) void panic(const char *const fmt, ...) {
-    disable_interrupts();
+    intr_disable();
 
     va_list list;
     va_start(list, fmt);

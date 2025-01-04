@@ -239,7 +239,7 @@ fill_out_device_table(struct gic_its_info *const its,
     if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
         const uint64_t alloc_size =
             sizeof(struct gic_its_intr_table_entry)
-            * GIC_MAX_ITS_INTR_TABLE_ENTRIES;
+          * GIC_MAX_ITS_INTR_TABLE_ENTRIES;
 
         phys = phalloc(alloc_size);
         if (phys == INVALID_PHYS) {
@@ -299,7 +299,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     uint16_t icid = 0;
     uint64_t vector = 0;
 
-    with_interrupts_disabled({
+    with_intr_disabled({
         with_spinlock_acquired(&its->bitset_lock, {
             vector =
                 bitset_find_unset(its->bitset, /*length=*/1, /*invert=*/true);
@@ -323,7 +323,10 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     }
 
     with_preempt_disabled({
-        mmio_write(&((volatile uint32_t *)this_cpu()->gic_its_prop_page)[vector],
+        volatile uint32_t *const prop_page =
+            ((volatile uint32_t *)this_cpu()->gic_its_prop_page);
+
+        mmio_write(&prop_page[vector],
                    __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
                  | GICD_DEFAULT_PRIO <<
                     GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
@@ -338,7 +341,7 @@ gic_its_free_msi_vector(struct gic_its_info *const its,
                         const isr_vector_t vector,
                         const uint16_t msi_index)
 {
-    with_spinlock_irq_disabled(&its->bitset_lock, {
+    with_spinlock_intr_disabled(&its->bitset_lock, {
         bitset_unset(its->bitset, vector);
         disable_msi_intr(its, device, msi_index);
     });

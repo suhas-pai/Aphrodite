@@ -7,8 +7,6 @@
 #include "asm/xsave.h"
 
 #include "cpu/info.h"
-#include "lib/assert.h"
-
 #include "sched/thread.h"
 
 __debug_optimize(3) struct thread *current_thread() {

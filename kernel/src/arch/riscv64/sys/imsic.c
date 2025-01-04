@@ -32,6 +32,11 @@ struct imsic_region {
     struct mmio_region *mmio;
 };
 
+struct isr_callback {
+    isr_func_t func;
+    void *ctx;
+};
+
 struct imsic {
     uint8_t guest_index_bits;
     uint32_t interrupt_id_count;
@@ -39,7 +44,7 @@ struct imsic {
     struct spinlock lock;
     uint64_t bitset;
 
-    isr_func_t funcs[IMSIC_MSG_COUNT];
+    struct isr_callback funcs[IMSIC_MSG_COUNT];
 };
 
 static struct imsic *g_machine_imsic = NULL;
@@ -329,7 +334,7 @@ __debug_optimize(3) uint8_t imsic_alloc_msg(const enum riscv64_privl privl) {
     struct imsic *const imsic = imsic_for_privl(privl);
 
     uint64_t msg = 0;
-    with_spinlock_irq_disabled(&imsic->lock, {
+    with_spinlock_intr_disabled(&imsic->lock, {
         msg =
             bitset_find_unset(&imsic->bitset,
                               /*length=*/sizeof_bits(imsic->bitset),
@@ -349,22 +354,25 @@ void imsic_free_msg(const enum riscv64_privl privl, const uint8_t msg) {
     assert(index_in_bounds(msg, IMSIC_MSG_COUNT));
 
     struct imsic *const imsic = imsic_for_privl(privl);
-    with_spinlock_irq_disabled(&imsic->lock, {
+    with_spinlock_intr_disabled(&imsic->lock, {
         imsic_disable_msg(privl, msg);
         bitset_unset(&imsic->bitset, msg);
 
-        imsic->funcs[msg] = NULL;
+        imsic->funcs[msg].func = NULL;
+        imsic->funcs[msg].ctx = NULL;
     });
 }
 
 __debug_optimize(3) void
 imsic_set_msg_handler(const enum riscv64_privl privl,
                       const uint8_t msg,
-                      const isr_func_t func)
+                      const isr_func_t func,
+                      void *const ctx)
 {
     struct imsic *const imsic = imsic_for_privl(privl);
-    with_spinlock_irq_disabled(&imsic->lock, {
-        imsic->funcs[msg] = func;
+    with_spinlock_intr_disabled(&imsic->lock, {
+        imsic->funcs[msg].func = func;
+        imsic->funcs[msg].ctx = ctx;
     });
 }
 
@@ -436,14 +444,14 @@ imsic_handle(const enum riscv64_privl privl,
     }
 
     struct imsic *const imsic = imsic_for_privl(privl);
-    if (imsic->funcs[code] == NULL) {
+    if (imsic->funcs[code].func == NULL) {
         printk(LOGLEVEL_WARN,
                "imsic: got interrupt %" PRIu32 " w/o a handler\n",
                code);
         return;
     }
 
-    imsic->funcs[code](code, context);
+    imsic->funcs[code].func(code, context, imsic->funcs[code].ctx);
     return;
 }
 

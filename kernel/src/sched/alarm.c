@@ -4,26 +4,39 @@
  */
 
 #include <stdatomic.h>
-
-#include "mm/kmalloc.h"
 #include "sched/scheduler.h"
 
 #include "alarm.h"
 
-struct alarm *alarm_create(const usec_t time) {
-    struct alarm *const alarm = kmalloc(sizeof(*alarm));
-    if (alarm == NULL) {
-        return NULL;
-    }
+void
+alarm_create(struct alarm *const alarm,
+             const usec_t time,
+             const alarm_callback callback,
+             void *const ctx)
+{
+    list_init(&alarm->list);
 
+    alarm->callback = callback;
+    alarm->ctx = ctx;
     alarm->remaining = time;
-    return alarm;
+    alarm->triggered = false;
+}
+
+static void alarm_self_callback(struct alarm *const alarm, void *const ctx) {
+    (void)alarm;
+
+    struct thread *const thread = (struct thread *)ctx;
+    sched_wake(thread);
+}
+
+void alarm_create_for_self(struct alarm *const alarm, const usec_t time) {
+    alarm_create(alarm, time, alarm_self_callback, current_thread());
 }
 
 __debug_optimize(3)
 static int compare(struct list *const theirs, struct list *const ours) {
-    struct alarm *const their_alarm = container_of(theirs, struct alarm, list);
-    struct alarm *const our_alarm = container_of(ours, struct alarm, list);
+    struct alarm *const their_alarm = parent_of(theirs, struct alarm, list);
+    struct alarm *const our_alarm = parent_of(ours, struct alarm, list);
 
     return twovar_cmp(their_alarm->remaining, our_alarm->remaining);
 }
@@ -31,22 +44,21 @@ static int compare(struct list *const theirs, struct list *const ours) {
 __debug_optimize(3)
 void alarm_post(struct alarm *const alarm, const bool await) {
     with_preempt_disabled({
-        alarm->listener = current_thread();
+        alarm->cpu = this_cpu();
         list_add_inorder(&this_cpu_mut()->alarm_list, &alarm->list, compare);
     });
 
-    atomic_store_explicit(&alarm->active, true, memory_order_relaxed);
+    atomic_store_explicit(&alarm->posted, true, memory_order_relaxed);
     if (await) {
-        sched_dequeue_thread(current_thread());
-        sched_yield();
+        sched_await();
     }
 }
 
 __debug_optimize(3) void alarm_clear(struct alarm *const alarm) {
     list_remove(&alarm->list);
-    atomic_store_explicit(&alarm->active, false, memory_order_relaxed);
+    atomic_store_explicit(&alarm->posted, false, memory_order_relaxed);
 }
 
-__debug_optimize(3) bool alarm_cleared(const struct alarm *const alarm) {
-    return !atomic_load_explicit(&alarm->active, memory_order_relaxed);
+__debug_optimize(3) bool alarm_triggered(const struct alarm *const alarm) {
+    return atomic_load_explicit(&alarm->triggered, memory_order_relaxed);
 }

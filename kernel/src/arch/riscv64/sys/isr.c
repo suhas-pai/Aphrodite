@@ -14,13 +14,22 @@
 
 #include "dev/printk.h"
 #include "sched/scheduler.h"
+
 #include "sys/imsic.h"
+#include "sys/irq.h"
 
 #define ISR_IRQ_COUNT 240
-static bitset_decl(g_bitset, ISR_IRQ_COUNT);
+
+static bitset_decl(g_vector_bitset, ISR_IRQ_COUNT);
+static struct irq_pin g_irq_pin_list[ISR_IRQ_COUNT];
+
+struct intr_callback {
+    isr_func_t handler;
+    void *ctx;
+};
 
 static struct spinlock g_lock = SPINLOCK_INIT();
-static isr_func_t g_funcs[ISR_IRQ_COUNT] = {0};
+static struct intr_callback g_callbacks[ISR_IRQ_COUNT] = {0};
 
 void isr_init() {
 
@@ -28,8 +37,9 @@ void isr_init() {
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     uint64_t result = 0;
-    with_spinlock_irq_disabled(&g_lock, {
-        result = bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
+    with_spinlock_intr_disabled(&g_lock, {
+        result =
+            bitset_find_unset(g_vector_bitset, ISR_IRQ_COUNT, /*invert=*/true);
     });
 
     if (result == BITSET_INVALID) {
@@ -48,9 +58,12 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
-    with_spinlock_irq_disabled(&g_lock, {
-        bitset_unset(g_bitset, vector);
-        isr_set_vector(vector, /*handler=*/NULL, &ARCH_ISR_INFO_NONE());
+    with_spinlock_intr_disabled(&g_lock, {
+        bitset_unset(g_vector_bitset, vector);
+        isr_set_vector(vector,
+                       /*handler=*/NULL,
+                       /*ctx=*/NULL,
+                       &ARCH_ISR_INFO_NONE());
     });
 }
 
@@ -65,12 +78,20 @@ isr_free_msi_vector(struct device *const device,
     imsic_free_msg(RISCV64_PRIVL_SUPERVISOR, vector);
 }
 
-__debug_optimize(3) void isr_mask_irq(const isr_vector_t irq) {
-    (void)irq;
+__debug_optimize(3) void isr_mask_intr(const isr_vector_t intr) {
+    (void)intr;
 }
 
-__debug_optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
-    (void)irq;
+__debug_optimize(3) void isr_unmask_intr(const isr_vector_t intr) {
+    (void)intr;
+}
+
+__debug_optimize(3) void isr_mask_irq(struct irq_pin *const pin) {
+    isr_mask_intr(pin->irq);
+}
+
+__debug_optimize(3) void isr_unmask_irq(struct irq_pin *const pin) {
+    isr_mask_intr(pin->irq);
 }
 
 void isr_eoi(const uint64_t int_no) {
@@ -131,8 +152,8 @@ isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
             panic("Got machine external interrupt");
     }
 
-    if (g_funcs[code] != NULL) {
-        g_funcs[code](code, context);
+    if (g_callbacks[code].handler != NULL) {
+        g_callbacks[code].handler(code, context, g_callbacks[code].ctx);
         return;
     }
 
@@ -146,33 +167,47 @@ isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
 void
 isr_set_vector(const isr_vector_t vector,
                const isr_func_t handler,
+               void *const ctx,
                struct arch_isr_info *const info)
 {
     (void)info;
-    imsic_set_msg_handler(RISCV64_PRIVL_SUPERVISOR, vector, handler);
+    imsic_set_msg_handler(RISCV64_PRIVL_SUPERVISOR, vector, handler, ctx);
 }
 
 void
 isr_set_msi_vector(const isr_vector_t vector,
                    const isr_func_t handler,
+                   void *const ctx,
                    struct arch_isr_info *const info)
 {
     (void)info;
 
-    imsic_set_msg_handler(RISCV64_PRIVL_SUPERVISOR, vector, handler);
+    imsic_set_msg_handler(RISCV64_PRIVL_SUPERVISOR, vector, handler, ctx);
     imsic_enable_msg(RISCV64_PRIVL_SUPERVISOR, vector);
 }
 
-void
-isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
-                      const uint8_t irq,
-                      const isr_vector_t vector,
-                      const bool masked)
+struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
+    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+    return &g_irq_pin_list[irq];
+}
+
+bool
+isr_install_irq(struct irq_pin *const pin,
+                const isr_func_t handler,
+                void *const ctx,
+                const bool masked)
 {
-    (void)cpu;
-    (void)irq;
-    (void)vector;
-    (void)masked;
+    isr_set_vector(pin->irq, handler, ctx, &ARCH_ISR_INFO_NONE());
+    if (masked) {
+        isr_mask_irq(pin);
+    }
+
+    return true;
+}
+
+void isr_uninstall_irq(struct irq_pin *const pin) {
+    isr_free_vector(pin->vector);
+    pin->vector = ISR_INVALID_VECTOR;
 }
 
 __debug_optimize(3) uint64_t

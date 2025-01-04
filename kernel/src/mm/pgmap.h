@@ -27,7 +27,7 @@ pgmap_at(struct pagemap *pagemap,
          const struct pgmap_options *options);
 
 typedef uint64_t (*pgmap_alloc_page_t)(void *cb_info);
-typedef uint64_t (*pgmap_alloc_large_page_t)(pgt_level_t level, void *cb_info);
+typedef uint64_t (*pgmap_alloc_large_page_t)(pg_level_t level, void *cb_info);
 
 struct pgmap_alloc_options {
     pgmap_alloc_page_t alloc_page;

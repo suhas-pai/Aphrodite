@@ -35,7 +35,7 @@ pci_bus_create(struct pci_domain *const domain,
 
 __debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
     bool result = false;
-    with_spinlock_irq_disabled(&g_root_bus_list_lock, {
+    with_spinlock_intr_disabled(&g_root_bus_list_lock, {
         result = array_append(&g_root_bus_list, &bus);
     });
 
@@ -43,9 +43,9 @@ __debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
 }
 
 __debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
-    const int flag = spin_acquire_save_irq(&g_root_bus_list_lock);
+    const int flag = spin_acquire_save_intr(&g_root_bus_list_lock);
     if (!list_empty(&bus->entity_list)) {
-        spin_release_restore_irq(&g_root_bus_list_lock, flag);
+        spin_release_restore_intr(&g_root_bus_list_lock, flag);
         return false;
     }
 
@@ -53,7 +53,7 @@ __debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
     array_foreach(&g_root_bus_list, const struct pci_bus *, iter) {
         if (*iter == bus) {
             array_remove_index(&g_root_bus_list, index);
-            spin_release_restore_irq(&g_root_bus_list_lock, flag);
+            spin_release_restore_intr(&g_root_bus_list_lock, flag);
 
             return true;
         }
@@ -61,7 +61,7 @@ __debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
         index++;
     }
 
-    spin_release_restore_irq(&g_root_bus_list_lock, flag);
+    spin_release_restore_intr(&g_root_bus_list_lock, flag);
     kfree(bus);
 
     return false;
@@ -69,10 +69,10 @@ __debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
 
 __debug_optimize(3)
 const struct array *pci_get_root_bus_list_locked(int *const flag_out) {
-    *flag_out = spin_acquire_save_irq(&g_root_bus_list_lock);
+    *flag_out = spin_acquire_save_intr(&g_root_bus_list_lock);
     return &g_root_bus_list;
 }
 
 __debug_optimize(3) void pci_release_root_bus_list_lock(const int flag) {
-    spin_release_restore_irq(&g_root_bus_list_lock, flag);
+    spin_release_restore_intr(&g_root_bus_list_lock, flag);
 }

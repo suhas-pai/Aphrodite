@@ -8,12 +8,19 @@ ifeq ($(ARCH),x86_64)
 endif
 
 MACHINE := $(DEFAULT_MACHINE)
+ifeq ($(ARCH),aarch64)
+	MACHINE := $(MACHINE),gic-version=max
+endif
+
+ifeq ($(ARCH),riscv64)
+	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
+endif
 
 # Target architecture to build for. Default to x86_64.
 ARCH := x86_64
 
 # Default user QEMU flags. These are appended to the QEMU command calls.
-QEMUFLAGS := -M $(MACHINE) -m 4G -smp 4
+QEMUFLAGS := -M $(MACHINE) -m 4G -smp $(SMP)
 
 # Check if the architecture is supported.
 ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
@@ -37,14 +44,6 @@ else
 	ifeq ($(DISABLE_ACPI),1)
 		MACHINE := $(MACHINE),acpi=off
 	endif
-endif
-
-ifeq ($(ARCH),aarch64)
-	MACHINE := $(MACHINE),gic-version=max
-endif
-
-ifeq ($(ARCH),riscv64)
-	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
 endif
 
 EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime

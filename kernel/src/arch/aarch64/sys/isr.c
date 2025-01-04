@@ -18,18 +18,24 @@
 
 #define ISR_IRQ_COUNT 1020
 
-struct irq_info {
+struct intr_info {
     isr_func_t handler;
+    void *ctx;
 
     bool alloced_in_msi : 1;
     bool for_msi : 1;
 };
 
 extern void *const ivt_el1;
-static bitset_decl(g_bitset, ISR_IRQ_COUNT - GIC_SPI_INTERRUPT_START);
+static bitset_decl(g_vector_bitset, ISR_IRQ_COUNT - GIC_SPI_INTR_START);
 
-static struct irq_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
-static struct irq_info g_lpi_irq_info_list[GIC_ITS_MAX_LPIS_SUPPORTED] = {0};
+// irqs correspond to spi intrs on arm
+
+static struct irq_pin
+g_irq_pin_list[GIC_SPI_INTR_LAST - GIC_SPI_INTR_START] = {0};
+
+static struct intr_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
+static struct intr_info g_lpi_irq_info_list[GIC_ITS_MAX_LPIS_SUPPORTED] = {0};
 
 static struct spinlock g_sgi_lock = SPINLOCK_INIT();
 static uint16_t g_sgi_interrupt = 0;
@@ -40,11 +46,11 @@ __debug_optimize(3) void isr_init() {
 
 __debug_optimize(3) isr_vector_t isr_alloc_sgi_vector() {
     uint16_t result = 0;
-    with_spinlock_irq_disabled(&g_sgi_lock, {
+    with_spinlock_intr_disabled(&g_sgi_lock, {
         result = g_sgi_interrupt;
     });
 
-    if (result > GIC_SGI_INTERRUPT_LAST) {
+    if (result > GIC_SGI_INTR_LAST) {
         return ISR_INVALID_VECTOR;
     }
 
@@ -60,7 +66,7 @@ void isr_reserve_msi_irqs(const uint16_t base, const uint16_t count) {
         gicd_set_irq_priority(irq, IRQ_POLARITY_HIGH);
         gicd_set_irq_trigger_mode(irq, IRQ_TRIGGER_MODE_EDGE);
 
-        bitset_set(g_bitset, irq);
+        bitset_set(g_vector_bitset, irq);
     }
 }
 
@@ -71,10 +77,10 @@ void isr_install_vbar() {
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const uint64_t result =
-        bitset_find_unset(g_bitset, ISR_IRQ_COUNT, /*invert=*/true);
+        bitset_find_unset(g_vector_bitset, ISR_IRQ_COUNT, /*invert=*/true);
 
     if (result != BITSET_INVALID) {
-        return GIC_SPI_INTERRUPT_START + result;
+        return GIC_SPI_INTR_START + result;
     }
 
     return ISR_INVALID_VECTOR;
@@ -86,10 +92,10 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 }
 
 __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
-    assert_msg(bitset_has(g_bitset, vector),
+    assert_msg(bitset_has(g_vector_bitset, vector),
                "isr: isr_free_vector() called on unallocated vector");
 
-    bitset_unset(g_bitset, /*invert=*/true);
+    bitset_unset(g_vector_bitset, /*invert=*/true);
 }
 
 __debug_optimize(3) void
@@ -103,6 +109,7 @@ isr_free_msi_vector(struct device *const device,
 __debug_optimize(3) void
 isr_set_vector(const isr_vector_t vector,
                const isr_func_t handler,
+               void *const ctx,
                struct arch_isr_info *const info)
 {
     (void)info;
@@ -116,8 +123,10 @@ isr_set_vector(const isr_vector_t vector,
         }
 
         g_lpi_irq_info_list[index].handler = handler;
+        g_lpi_irq_info_list[index].ctx = ctx;
     } else {
         g_irq_info_list[vector].handler = handler;
+        g_irq_info_list[vector].ctx = ctx;
     }
 
     printk(LOGLEVEL_INFO,
@@ -128,6 +137,7 @@ isr_set_vector(const isr_vector_t vector,
 __debug_optimize(3) void
 isr_set_msi_vector(const isr_vector_t vector,
                    const isr_func_t handler,
+                   void *const ctx,
                    struct arch_isr_info *const info)
 {
     (void)info;
@@ -138,31 +148,51 @@ isr_set_msi_vector(const isr_vector_t vector,
     }
 
     g_lpi_irq_info_list[vector].handler = handler;
+    g_lpi_irq_info_list[vector].ctx = ctx;
+
     printk(LOGLEVEL_INFO,
            "isr: registered handler for vector %" PRIu8 "\n",
            vector);
 }
 
-void
-isr_assign_irq_to_cpu(const struct cpu_info *const cpu,
-                      const uint8_t irq,
-                      const isr_vector_t vector,
-                      const bool masked)
+struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
+    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+    return &g_irq_pin_list[irq];
+}
+
+bool
+isr_install_irq(struct irq_pin *const pin,
+                const isr_func_t handler,
+                void *const ctx,
+                const bool masked)
 {
-    (void)cpu;
-    (void)irq;
-    (void)vector;
-    (void)masked;
+    isr_set_vector(pin->irq, handler, ctx, &ARCH_ISR_INFO_NONE());
+    if (masked) {
+        isr_mask_irq(pin);
+    }
 
-    verify_not_reached();
+    return true;
 }
 
-__debug_optimize(3) void isr_mask_irq(const isr_vector_t irq) {
-    gicd_mask_irq(irq);
+void isr_uninstall_irq(struct irq_pin *const pin) {
+    isr_free_vector(pin->vector);
+    pin->vector = ISR_INVALID_VECTOR;
 }
 
-__debug_optimize(3) void isr_unmask_irq(const isr_vector_t irq) {
-    gicd_unmask_irq(irq);
+__debug_optimize(3) void isr_mask_intr(const isr_vector_t intr) {
+    gicd_mask_irq(intr);
+}
+
+__debug_optimize(3) void isr_unmask_intr(const isr_vector_t intr) {
+    gicd_unmask_irq(intr);
+}
+
+__debug_optimize(3) void isr_mask_irq(struct irq_pin *const pin) {
+    isr_unmask_intr(pin->irq);
+}
+
+__debug_optimize(3) void isr_unmask_irq(struct irq_pin *const pin) {
+    isr_unmask_intr(pin->irq);
 }
 
 __debug_optimize(3) void isr_eoi(const uint64_t intr_info) {
@@ -206,8 +236,10 @@ void handle_interrupt(struct thread_context *const context) {
         }
 
         const isr_func_t handler = g_lpi_irq_info_list[index].handler;
+        void *const ctx = g_lpi_irq_info_list[index].ctx;
+
         if (handler != NULL) {
-            handler((uint64_t)cpu_id << 16 | index, context);
+            handler((uint64_t)cpu_id << 16 | index, context, ctx);
         } else {
             printk(LOGLEVEL_WARN,
                    "isr: got unhandled lpi interrupt " ISR_VECTOR_FMT " on "
@@ -235,8 +267,10 @@ void handle_interrupt(struct thread_context *const context) {
     }
 
     const isr_func_t handler = g_irq_info_list[irq].handler;
+    void *const ctx = g_irq_info_list[irq].ctx;
+
     if (handler != NULL) {
-        handler((uint64_t)cpu_id << 16 | irq, context);
+        handler((uint64_t)cpu_id << 16 | irq, context, ctx);
     } else {
         printk(LOGLEVEL_WARN,
                "isr: got unhandled interrupt " ISR_VECTOR_FMT " on "
@@ -409,7 +443,7 @@ static const char *aet_get_cstr(const enum esr_serror_aet_kind kind) {
 
 void handle_async_exception(struct thread_context *const context) {
     const uint64_t esr = context->esr_el1;
-    disable_interrupts();
+    intr_disable();
 
     const enum esr_error_code error_code =
         (esr & __ESR_ERROR_CODE) >> ESR_ERROR_CODE_SHIFT;

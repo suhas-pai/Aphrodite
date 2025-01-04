@@ -29,7 +29,10 @@ uint8_t imsic_alloc_msg(enum riscv64_privl privl);
 void imsic_free_msg(enum riscv64_privl privl, uint8_t msg);
 
 void
-imsic_set_msg_handler(enum riscv64_privl privl, uint8_t msg, isr_func_t func);
+imsic_set_msg_handler(enum riscv64_privl privl,
+                      uint8_t msg,
+                      isr_func_t func,
+                      void *ctx);
 
 void imsic_enable_msg(enum riscv64_privl privl, uint16_t message);
 void imsic_disable_msg(enum riscv64_privl privl, uint16_t message);

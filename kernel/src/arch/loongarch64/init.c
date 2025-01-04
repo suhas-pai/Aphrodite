@@ -14,7 +14,7 @@
 
 __debug_optimize(3) void arch_early_init() {
     cpu_init();
-    disable_interrupts();
+    intr_disable();
 
     const uint64_t pte_flags = PTE_LEAF_FLAGS | __PTE_WRITE;
     const uint64_t root_phys = csr_read(pgdh);

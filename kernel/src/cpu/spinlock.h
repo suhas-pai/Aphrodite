@@ -26,11 +26,11 @@ struct spinlock {
         spin_release(lock); \
     } while (false)
 
-#define with_spinlock_irq_disabled(lock, block) \
+#define with_spinlock_intr_disabled(lock, block) \
     do { \
-        const int h_var(spin_irq_flag) = spin_acquire_save_irq(lock); \
+        const int h_var(spin_irq_flag) = spin_acquire_save_intr(lock); \
         block; \
-        spin_release_restore_irq((lock), h_var(spin_irq_flag)); \
+        spin_release_restore_intr((lock), h_var(spin_irq_flag)); \
     } while (false)
 
 #define with_spinlock_preempt_disabled(lock, block) \
@@ -43,13 +43,13 @@ struct spinlock {
 void spin_acquire(struct spinlock *lock);
 void spin_release(struct spinlock *lock);
 
-int spin_acquire_save_irq(struct spinlock *lock);
+int spin_acquire_save_intr(struct spinlock *lock);
 void spin_acquire_preempt_disable(struct spinlock *lock);
 
-void spin_release_restore_irq(struct spinlock *lock, int flag);
+void spin_release_restore_intr(struct spinlock *lock, int flag);
 void spin_release_preempt_enable(struct spinlock *lock);
 
 bool spin_try_acquire(struct spinlock *lock);
-bool spin_try_acquire_save_irq(struct spinlock *lock, int *flag_out);
+bool spin_try_acquire_save_intr(struct spinlock *lock, int *flag_out);
 
 void spinlock_deinit(struct spinlock *lock);

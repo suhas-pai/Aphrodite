@@ -248,9 +248,12 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     g_hba_vector = isr_alloc_msi_vector(&pci_entity->device, /*msi_index=*/0);
     assert(g_hba_vector != ISR_INVALID_VECTOR);
 
-    isr_set_vector(g_hba_vector, ahci_port_handle_irq, &ARCH_ISR_INFO_NONE());
-    pci_entity_enable_msi(pci_entity);
+    isr_set_vector(g_hba_vector,
+                   ahci_port_handle_irq,
+                   /*ctx=*/NULL,
+                   &ARCH_ISR_INFO_NONE());
 
+    pci_entity_enable_msi(pci_entity);
     with_preempt_disabled({
         pci_entity_bind_msi_to_vector(pci_entity,
                                       this_cpu(),

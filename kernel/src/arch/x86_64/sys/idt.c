@@ -115,7 +115,11 @@ void idt_init() {
 }
 
 void
-handle_exception(const uint64_t intr_no, struct thread_context *const context) {
+handle_exception(const uint64_t intr_no,
+                 struct thread_context *const context,
+                 void *const ctx)
+{
+    (void)ctx;
     this_cpu_mut()->in_exception = true;
 
     const char *except_str = "<unknown>";
@@ -238,6 +242,9 @@ handle_exception(const uint64_t intr_no, struct thread_context *const context) {
 
 void idt_register_exception_handlers() {
     for (idt_vector_t vector = 0; vector != 0x20; vector++) {
-        isr_set_vector(vector, handle_exception, &ARCH_ISR_INFO_NONE());
+        isr_set_vector(vector,
+                       handle_exception,
+                       /*ctx=*/NULL,
+                       &ARCH_ISR_INFO_NONE());
     }
 }

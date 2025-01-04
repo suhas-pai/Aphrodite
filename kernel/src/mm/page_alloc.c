@@ -449,9 +449,9 @@ get_large_from_freelist_order(struct page_section *const section,
             }
 
             head =
-                container_of(head->freelist_head.freelist.next,
-                             struct page,
-                             freelist_head.freelist);
+                parent_of(head->freelist_head.freelist.next,
+                          struct page,
+                          freelist_head.freelist);
 
             if (&head->freelist_head.freelist == &freelist->page_list) {
                 return NULL;
@@ -490,7 +490,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
         list_head(&zone->section_list, typeof(*iter), zone_list);
 
     do {
-        if (!spin_try_acquire_save_irq(&iter->lock, &flag)) {
+        if (!spin_try_acquire_save_intr(&iter->lock, &flag)) {
             iter = list_next(iter, zone_list);
             if (&iter->zone_list == &zone->section_list) {
                 if (locked_section_mask == mm_get_full_section_mask()) {
@@ -514,7 +514,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
             }
         }
 
-        spin_release_restore_irq(&iter->lock, flag);
+        spin_release_restore_intr(&iter->lock, flag);
 
         iter = list_next(iter, zone_list);
         if (&iter->zone_list == &zone->section_list) {
@@ -530,7 +530,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
 done:
     free_extra_pages_if_from_higher_order(page, iter, alloced_order, order);
 
-    spin_release_restore_irq(&iter->lock, flag);
+    spin_release_restore_intr(&iter->lock, flag);
     setup_pages_off_freelist(page, order, state);
 
     return page;
@@ -560,7 +560,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
         list_head(&zone->section_list, typeof(*iter), zone_list);
 
     do {
-        if (!spin_try_acquire_save_irq(&iter->lock, &flag)) {
+        if (!spin_try_acquire_save_intr(&iter->lock, &flag)) {
             iter = list_next(iter, zone_list);
             if (&iter->zone_list == &zone->section_list) {
                 if (locked_section_mask == mm_get_full_section_mask()) {
@@ -589,7 +589,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
             }
         }
 
-        spin_release_restore_irq(&iter->lock, flag);
+        spin_release_restore_intr(&iter->lock, flag);
 
         iter = list_next(iter, zone_list);
         if (&iter->zone_list == &zone->section_list) {
@@ -603,7 +603,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
     return NULL;
 
 done:
-    spin_release_restore_irq(&iter->lock, flag);
+    spin_release_restore_intr(&iter->lock, flag);
     setup_pages_off_freelist(page, order, state);
 
     return page;
@@ -838,7 +838,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
     struct page_section *iter = NULL;
     list_foreach(iter, &zone->section_list, zone_list) {
         int flag = 0;
-        if (!spin_try_acquire_save_irq(&iter->lock, &flag)) {
+        if (!spin_try_acquire_save_intr(&iter->lock, &flag)) {
             continue;
         }
 
@@ -852,19 +852,19 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
                                               /*largepage_order=*/order);
 
             if (page != NULL) {
-                spin_release_restore_irq(&iter->lock, flag);
+                spin_release_restore_intr(&iter->lock, flag);
                 return page;
             }
         }
 
-        spin_release_restore_irq(&iter->lock, flag);
+        spin_release_restore_intr(&iter->lock, flag);
     }
 
     return NULL;
 }
 
 struct page *
-alloc_large_page(const pgt_level_t level, const uint64_t alloc_flags) {
+alloc_large_page(const pg_level_t level, const uint64_t alloc_flags) {
     struct page_zone *zone = page_zoneiter_start();
     const struct largepage_level_info *const info =
         &largepage_level_info_list[level - 1];
@@ -904,7 +904,7 @@ alloc_large_page(const pgt_level_t level, const uint64_t alloc_flags) {
 struct page *
 alloc_large_page_from_zone(struct page_zone *zone,
                            const uint64_t alloc_flags,
-                           const pgt_level_t level,
+                           const pg_level_t level,
                            const bool fallback)
 {
     const struct largepage_level_info *const info =
@@ -1075,8 +1075,8 @@ void free_large_page(struct page *const head) {
     assert(page_get_state(head) == PAGE_STATE_LARGE_HEAD);
 
     struct page_section *const section = page_to_section(head);
-    with_spinlock_irq_disabled(&section->lock, {
-        const pgt_level_t level = head->largehead.level;
+    with_spinlock_intr_disabled(&section->lock, {
+        const pg_level_t level = head->largehead.level;
         struct largepage_level_info *const level_info =
             &largepage_level_info_list[level - 1];
 
@@ -1141,7 +1141,7 @@ struct page *deref_page(struct page *page, struct pageop *const pageop) {
 struct page *
 deref_large_page(struct page *const page,
                  struct pageop *const pageop,
-                 const pgt_level_t level)
+                 const pg_level_t level)
 {
     if (page_get_state(page) == PAGE_STATE_LARGE_HEAD) {
         if (ref_down(&page->largehead.refcount)) {

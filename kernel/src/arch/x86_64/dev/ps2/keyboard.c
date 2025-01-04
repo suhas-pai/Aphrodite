@@ -11,7 +11,6 @@
 
 #include "dev/printk.h"
 #include "lib/util.h"
-#include "sched/thread.h"
 
 #include "keyboard.h"
 
@@ -54,7 +53,6 @@ struct ps2_keyboard_state {
     bool in_e0 : 1;
 };
 
-static isr_vector_t g_ps2_vector = 0;
 static struct ps2_keyboard_state g_kbd_state = {
     .shift = 0,
     .cmd = 0,
@@ -78,12 +76,16 @@ __debug_optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
 
 void
 ps2_keyboard_interrupt(const uint64_t intr_no,
-                       struct thread_context *const context)
+                       struct thread_context *const context,
+                       void *const ctx)
 {
     (void)intr_no;
     (void)context;
+    (void)ctx;
 
     const uint8_t scan_code = ps2_read_input_byte();
+    isr_eoi(intr_no);
+
     if (g_kbd_state.in_e0) {
         g_kbd_state.in_e0 = false;
         switch ((enum ps2_scancode_e0_keys)scan_code) {
@@ -230,16 +232,11 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
         return;
     }
 
-    g_ps2_vector = isr_alloc_vector();
-    assert(g_ps2_vector != ISR_INVALID_VECTOR);
-
-    isr_set_vector(g_ps2_vector, ps2_keyboard_interrupt, &ARCH_ISR_INFO_NONE());
-    with_preempt_disabled({
-        isr_assign_irq_to_cpu(this_cpu_mut(),
-                              IRQ_KEYBOARD,
-                              g_ps2_vector,
-                              /*masked=*/false);
-    });
+    struct irq_pin *const pin = isr_get_irq_pin(IRQ_KEYBOARD);
+    if (!isr_install_irq(pin, ps2_keyboard_interrupt, NULL, /*masked=*/false)) {
+        printk(LOGLEVEL_WARN, "ps2: failed to install keyboard irq\n");
+        return;
+    }
 
     printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
 }
