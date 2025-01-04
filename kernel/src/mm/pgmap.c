@@ -88,7 +88,7 @@ finish_split_info(struct pg_walker *const walker,
     }
 
     const uint64_t virt_end =
-        check_add_assert(curr_split->virt_addr, curr_split->phys_range.size);
+        ckd_add_assert(curr_split->virt_addr, curr_split->phys_range.size);
 
     const uint64_t walker_virt_addr = pgwalker_get_virt_addr(walker);
     if (walker_virt_addr >= virt_end) {
@@ -453,7 +453,7 @@ write_ptes_at_level(
 
         write_pte_count -= count;
         leaf_ptes_remaining -=
-            check_mul_assert(leaf_pte_count_per_single_pte, count);
+            ckd_mul_assert(leaf_pte_count_per_single_pte, count);
     } while (write_pte_count != 0);
 
     *leaf_ptes_remaining_out = leaf_ptes_remaining;
@@ -490,7 +490,7 @@ write_ptes_down_from_level(
     }
 
     const uint64_t size_remaining =
-        check_mul_assert(leaf_ptes_remaining, PAGE_SIZE);
+        ckd_mul_assert(leaf_ptes_remaining, PAGE_SIZE);
 
     do {
         while (true) {
@@ -838,7 +838,7 @@ alloc_ptes_at_level(
 
         write_pte_count -= count;
         leaf_ptes_remaining -=
-            check_mul_assert(leaf_pte_count_per_single_pte, count);
+            ckd_mul_assert(leaf_pte_count_per_single_pte, count);
     } while (write_pte_count != 0);
 
     *leaf_ptes_remaining_out = leaf_ptes_remaining;
@@ -875,7 +875,7 @@ alloc_ptes_down_from_level(
     }
 
     const uint64_t size_remaining =
-        check_mul_assert(leaf_ptes_remaining, PAGE_SIZE);
+        ckd_mul_assert(leaf_ptes_remaining, PAGE_SIZE);
 
     do {
         while (true) {

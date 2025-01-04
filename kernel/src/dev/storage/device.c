@@ -223,7 +223,7 @@ find_in_cache_or_read_block(struct storage_device *const device,
         return block;
     }
 
-    const uint64_t phys = physalloc(device->lba_size);
+    const uint64_t phys = phys_alloc(device->lba_size);
     if (phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc phys-memory while reading\n");
@@ -288,7 +288,7 @@ storage_device_write(struct storage_device *const device,
     uint64_t copy_size = device->lba_size - lba_offset;
     uint64_t offset = 0;
 
-    const uint64_t phys = physalloc(SECTOR_SIZE);
+    const uint64_t phys = phys_alloc(SECTOR_SIZE);
     if (phys == INVALID_PHYS) {
         return UINT64_MAX;
     }

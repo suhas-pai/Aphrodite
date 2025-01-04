@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
-
 #include "lib/macros.h"
 
 struct source_location {

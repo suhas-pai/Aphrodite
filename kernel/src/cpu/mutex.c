@@ -4,7 +4,6 @@
  */
 
 #include <stdatomic.h>
-#include <stdbool.h>
 
 #include "asm/irqs.h"
 #include "asm/pause.h"

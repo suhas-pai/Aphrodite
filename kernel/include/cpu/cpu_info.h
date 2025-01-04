@@ -4,7 +4,6 @@
  */
 
 #pragma once
-#include <stdbool.h>
 
 #include "lib/list.h"
 #include "sched/info.h"

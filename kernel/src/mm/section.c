@@ -78,7 +78,7 @@ __debug_optimize(3) uint64_t page_to_phys(const struct page *const page) {
     const struct page_section *const section = page_to_section(page);
 
     const uint64_t page_pfn = page_to_pfn(page);
-    const uint64_t relative_pfn = check_sub_assert(page_pfn, section->pfn);
+    const uint64_t relative_pfn = ckd_sub_assert(page_pfn, section->pfn);
 
     return section->range.front + (relative_pfn << PAGE_SHIFT);
 }

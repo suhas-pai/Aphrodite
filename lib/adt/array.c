@@ -31,7 +31,7 @@ bool array_append(struct array *const array, const void *const item) {
 
 __debug_optimize(3)
 void array_remove_index(struct array *const array, const uint32_t index) {
-    const uint32_t byte_index = check_mul_assert(index, array->object_size);
+    const uint32_t byte_index = ckd_mul_assert(index, array->object_size);
     gbuffer_remove_range(&array->gbuffer,
                          RANGE_INIT(byte_index, array->object_size));
 }
@@ -59,7 +59,7 @@ __debug_optimize(3)
 void *array_at(const struct array array, const uint32_t index) {
     assert(index_in_bounds(index, array_item_count(array)));
 
-    const uint32_t byte_index = check_mul_assert(index, array.object_size);
+    const uint32_t byte_index = ckd_mul_assert(index, array.object_size);
     return array.gbuffer.begin + byte_index;
 }
 
@@ -93,7 +93,7 @@ array_take_item(struct array *const array,
     assert(index_in_bounds(index, array_item_count(*array)));
 
     const uint32_t object_size = array->object_size;
-    const uint32_t byte_index = check_mul_assert(object_size, index);
+    const uint32_t byte_index = ckd_mul_assert(object_size, index);
 
     const void *const src = gbuffer_at(array->gbuffer, byte_index);
     __builtin_memcpy(item, src, object_size);
@@ -110,8 +110,8 @@ array_take_range(struct array *const array,
     assert(index_range_in_bounds(range, array_item_count(*array)));
 
     const uint32_t object_size = array->object_size;
-    const uint32_t byte_index = check_mul_assert(object_size, range.front);
-    const uint32_t range_size = check_mul_assert(object_size, range.size);
+    const uint32_t byte_index = ckd_mul_assert(object_size, range.front);
+    const uint32_t range_size = ckd_mul_assert(object_size, range.size);
 
     const void *const src = gbuffer_at(array->gbuffer, byte_index);
 
@@ -121,7 +121,7 @@ array_take_range(struct array *const array,
 
 __debug_optimize(3)
 void array_reserve(struct array *const array, const uint32_t amount) {
-    const uint32_t byte_count = check_mul_assert(amount, array->object_size);
+    const uint32_t byte_count = ckd_mul_assert(amount, array->object_size);
     gbuffer_ensure_can_add_capacity(&array->gbuffer, byte_count);
 }
 
@@ -130,7 +130,7 @@ array_reserve_and_set_item_count(struct array *const array,
                                  const uint32_t amount)
 {
     array_reserve(array, amount);
-    array->gbuffer.index = check_mul_assert(amount, array->object_size);
+    array->gbuffer.index = ckd_mul_assert(amount, array->object_size);
 }
 
 __debug_optimize(3) bool array_empty(const struct array array) {

@@ -1074,7 +1074,7 @@ setup_prdt_table(volatile struct ahci_spec_port_cmdhdr *const cmd_header,
     volatile struct ahci_spec_hba_prdt_entry *const entries =
         cmd_table->prdt_entries;
 
-    const uint32_t byte_count = check_mul_assert(sector_count, SECTOR_SIZE);
+    const uint32_t byte_count = ckd_mul_assert(sector_count, SECTOR_SIZE);
     const uint32_t prdt_count =
         div_round_up(byte_count, AHCI_HBA_PORT_MAX_COUNT);
 

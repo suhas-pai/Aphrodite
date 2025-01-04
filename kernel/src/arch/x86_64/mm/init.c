@@ -73,7 +73,7 @@ alloc_region(const uint64_t virt_addr,
 
 static void setup_pagestructs_table() {
     const uint64_t table_size =
-        check_mul_assert(mm_get_total_page_count(), SIZEOF_STRUCTPAGE);
+        ckd_mul_assert(mm_get_total_page_count(), SIZEOF_STRUCTPAGE);
 
     uint64_t map_size = table_size;
     if (!align_up(map_size, PAGE_SIZE, &map_size)) {

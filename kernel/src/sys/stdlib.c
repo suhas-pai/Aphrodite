@@ -3,9 +3,7 @@
  * © suhas pai
  */
 
-#include <stdbool.h>
 #include <stdint.h>
-
 #include "lib/alloc.h"
 
 #if defined(__riscv64)

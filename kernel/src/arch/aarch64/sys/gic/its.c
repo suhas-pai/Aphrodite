@@ -240,7 +240,7 @@ fill_out_device_table(struct gic_its_info *const its,
             sizeof(struct gic_its_intr_table_entry)
           * GIC_MAX_ITS_INTR_TABLE_ENTRIES;
 
-        phys = physalloc(alloc_size);
+        phys = phys_alloc(alloc_size);
         if (phys == INVALID_PHYS) {
             return false;
         }

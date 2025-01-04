@@ -45,7 +45,7 @@ void physalloc_init() {
     physalloc_is_initialized = true;
 }
 
-__debug_optimize(3) uint64_t physalloc(const uint32_t size) {
+__debug_optimize(3) uint64_t phys_alloc(const uint32_t size) {
     assert_msg(physalloc_is_initialized,
                "mm: physalloc() called before physalloc_init()");
 
@@ -79,7 +79,7 @@ __debug_optimize(3) uint64_t physalloc(const uint32_t size) {
 }
 
 __debug_optimize(3)
-uint64_t physalloc_size(const uint32_t size, uint32_t *const size_out) {
+uint64_t phys_alloc_size(const uint32_t size, uint32_t *const size_out) {
     assert_msg(physalloc_is_initialized,
                "mm: physalloc() called before physalloc_init()");
 
@@ -114,7 +114,7 @@ uint64_t physalloc_size(const uint32_t size, uint32_t *const size_out) {
 }
 
 __debug_optimize(3)
-uint64_t physrealloc(const uint64_t buffer, const uint32_t size) {
+uint64_t phys_realloc(const uint64_t buffer, const uint32_t size) {
     assert_msg(physalloc_is_initialized,
                "mm: physrealloc() called before physalloc_init()");
 
@@ -124,7 +124,7 @@ uint64_t physrealloc(const uint64_t buffer, const uint32_t size) {
             return INVALID_PHYS;
         }
 
-        return physalloc(size);
+        return phys_alloc(size);
     }
 
     if (__builtin_expect(size == 0, 0)) {
@@ -140,7 +140,7 @@ uint64_t physrealloc(const uint64_t buffer, const uint32_t size) {
         return buffer;
     }
 
-    const uint64_t ret = physalloc(size);
+    const uint64_t ret = phys_alloc(size);
     if (__builtin_expect(ret == INVALID_PHYS, 0)) {
         return INVALID_PHYS;
     }

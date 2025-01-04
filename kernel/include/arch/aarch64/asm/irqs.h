@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "lib/macros.h"
 
 __debug_optimize(3) static inline void intr_disable(void) {

@@ -990,7 +990,7 @@ find_nearby_free_pages(struct page *const page,
     struct page_section *const section = page_to_section(page);
 
     uint64_t page_pfn = page_to_pfn(page);
-    page_pfn = check_sub_assert(page_pfn, section->pfn);
+    page_pfn = ckd_sub_assert(page_pfn, section->pfn);
 
     struct page *free_page = page;
     bool merged_range = false;

@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "dev/pci/location.h"
 
 uint64_t

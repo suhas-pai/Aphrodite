@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include <stdbool.h>
 #include <stddef.h>
 
 #include "asm/irqs.h"

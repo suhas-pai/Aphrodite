@@ -10,14 +10,14 @@
     #include "overflow.h"
 
     #define malloc(size) kmalloc(size)
-    #define calloc(amt, size) kmalloc(check_mul_assert((uint32_t)(amt), (size)))
+    #define calloc(amt, size) kmalloc(ckd_mul_assert((uint32_t)(amt), (size)))
     #define calloc_size(amt, size, out) ({ \
         uint32_t __calloc_new_size__ = 0; \
         uint32_t __calloc_obj_size__ = (size); \
         __auto_type __calloc_result__ = \
-            kmalloc_size(check_mul_assert((uint32_t)(amt), \
-                                          __calloc_obj_size__), \
-                         &__calloc_new_size__); \
+            kmalloc_size( \
+                ckd_mul_assert((uint32_t)(amt), __calloc_obj_size__), \
+                &__calloc_new_size__); \
         *(out) = __calloc_new_size__ / __calloc_obj_size__; \
         __calloc_result__; \
     })

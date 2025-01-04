@@ -60,6 +60,8 @@ uint16_t nvme_queue_get_cmdid(struct nvme_queue *queue);
 
 bool
 nvme_queue_submit_command(struct nvme_queue *queue,
-                          const struct nvme_command *command);
+                          const struct nvme_command *command,
+                          bool await);
 
+void nvme_queue_await(struct nvme_queue *queue);
 void nvme_queue_destroy(struct nvme_queue *queue);

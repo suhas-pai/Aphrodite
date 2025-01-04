@@ -51,7 +51,7 @@
 #define NVME_SET_FEATURES_CMD(fid_, dword_, prp1_, prp2_) \
     ((struct nvme_command){ \
         .features = { \
-            .opcode = NVME_CMD_ADMIN_OPCODE_SETFT, \
+            .opcode = NVME_CMD_ADMIN_OPCODE_SET_FEATURES, \
             .fid = (fid_), \
             .prp1 = (prp1_), \
             .prp2 = (prp2_), \

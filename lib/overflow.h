@@ -27,20 +27,20 @@
 #define check_ptr_sub(lhs, rhs, result) \
     (!__builtin_sub_overflow((uint64_t)lhs, rhs, (uint64_t *)result))
 
-#define check_add_assert(lhs, rhs) ({ \
-    __auto_type __check_add_assert_result__ = lhs; \
-    assert(ckd_add(&__check_add_assert_result__, lhs, rhs)); \
-    __check_add_assert_result__; \
+#define ckd_add_assert(lhs, rhs) ({ \
+    __auto_type __ckd_add_assert_result__ = lhs; \
+    assert(ckd_add(&__ckd_add_assert_result__, lhs, rhs)); \
+    __ckd_add_assert_result__; \
 })
 
-#define check_sub_assert(lhs, rhs) ({ \
-    __auto_type __check_sub_assert_result__ = lhs; \
-    assert(ckd_sub(&__check_sub_assert_result__, lhs, rhs)); \
-    __check_sub_assert_result__; \
+#define ckd_sub_assert(lhs, rhs) ({ \
+    __auto_type __ckd_sub_assert_result__ = lhs; \
+    assert(ckd_sub(&__ckd_sub_assert_result__, lhs, rhs)); \
+    __ckd_sub_assert_result__; \
 })
 
-#define check_mul_assert(lhs, rhs) ({ \
-    __auto_type __check_mul_assert_result__ = lhs; \
-    assert(ckd_mul(&__check_mul_assert_result__, lhs, rhs)); \
-    __check_mul_assert_result__; \
+#define ckd_mul_assert(lhs, rhs) ({ \
+    __auto_type __ckd_mul_assert_result__ = lhs; \
+    assert(ckd_mul(&__ckd_mul_assert_result__, lhs, rhs)); \
+    __ckd_mul_assert_result__; \
 })

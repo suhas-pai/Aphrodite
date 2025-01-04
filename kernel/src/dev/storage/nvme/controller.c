@@ -160,7 +160,7 @@ identify_namespaces(struct nvme_controller *const controller,
                     const uint16_t max_queue_cmd_count)
 {
     volatile struct nvme_registers *const regs = controller->regs;
-    const uint64_t identity_phys = physalloc(sizeof(struct nvme_identity));
+    const uint64_t identity_phys = phys_alloc(sizeof(struct nvme_identity));
 
     if (identity_phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN, "nvme: failed to alloc page for identity cmd\n");

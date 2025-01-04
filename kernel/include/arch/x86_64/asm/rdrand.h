@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
-
 #include "lib/macros.h"
 
 __debug_optimize(3) static inline bool rdrand(uint64_t *const dest) {

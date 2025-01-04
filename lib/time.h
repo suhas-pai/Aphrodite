@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "adt/string_view.h"
 
 #include "lib/macros.h"

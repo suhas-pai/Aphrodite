@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "lib/macros.h"
 
 [[noreturn]] void syscon_poweroff();

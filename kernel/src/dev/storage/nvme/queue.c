@@ -59,11 +59,12 @@ nvme_queue_create(struct nvme_queue *const queue,
     }
 
     const uint64_t completion_queue_phys = page_to_phys(completion_queue_page);
+    const struct range submit_queue_range =
+        RANGE_INIT(submit_queue_phys,
+                   align_up_assert(submit_alloc_size, PAGE_SIZE));
+
     struct mmio_region *const submit_queue_mmio =
-        vmap_mmio(RANGE_INIT(submit_queue_phys,
-                             align_up_assert(submit_alloc_size, PAGE_SIZE)),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
+        vmap_mmio(submit_queue_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
     if (submit_queue_mmio == nullptr) {
         free_pages(submit_queue_page, submit_order);
@@ -74,11 +75,11 @@ nvme_queue_create(struct nvme_queue *const queue,
         return false;
     }
 
+    const struct range completion_queue_range =
+        RANGE_INIT(completion_queue_phys,
+                   align_up_assert(completion_alloc_size, PAGE_SIZE));
     struct mmio_region *const completion_queue_mmio =
-        vmap_mmio(RANGE_INIT(completion_queue_phys,
-                             align_up_assert(completion_alloc_size, PAGE_SIZE)),
-                  PROT_READ | PROT_WRITE,
-                  /*flags=*/0);
+        vmap_mmio(completion_queue_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
     if (completion_queue_mmio == nullptr) {
         vunmap_mmio(submit_queue_mmio);
@@ -110,7 +111,7 @@ nvme_queue_create(struct nvme_queue *const queue,
     queue->doorbells =
         reg_to_ptr(struct nvme_queue_doorbells,
                    device->regs->doorbell,
-                   device->stride * id);
+                   (uint16_t)device->stride * id);
 
     queue->entry_count = entry_count;
     queue->cmd_identifier = 0;
@@ -124,11 +125,11 @@ nvme_queue_create(struct nvme_queue *const queue,
             div_round_up(1ull << max_transfer_shift, PAGE_SIZE);
 
         const uint64_t phys_region_page_list_size =
-            queue->phys_region_pages_count
-          * queue->entry_count
-          * sizeof(uint64_t);
+            queue->phys_region_pages_count *
+            queue->entry_count *
+            sizeof(uint64_t);
 
-        const uint64_t prp_phys = physalloc(phys_region_page_list_size);
+        const uint64_t prp_phys = phys_alloc(phys_region_page_list_size);
         if (prp_phys == INVALID_PHYS) {
             vunmap_mmio(submit_queue_mmio);
 
@@ -196,7 +197,8 @@ __debug_optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
 
 bool
 nvme_queue_submit_command(struct nvme_queue *const queue,
-                          const struct nvme_command *const command)
+                          const struct nvme_command *const command,
+                          const bool await)
 {
     with_spinlock_intr_disabled(&queue->lock, {
         const uint8_t tail = queue->submit_queue_tail;
@@ -213,11 +215,17 @@ nvme_queue_submit_command(struct nvme_queue *const queue,
         mmio_write(&queue->doorbells->submit, queue->submit_queue_tail);
     });
 
-    struct event *const event = &queue->event;
-    events_await(&event,
-                 /*events_count=*/1,
-                 /*block=*/true,
-                 /*drop_after_recv=*/true);
+    if (await) {
+        nvme_queue_await(queue);
+    }
 
     return true;
+}
+
+void nvme_queue_await(struct nvme_queue *const queue) {
+    struct event *const event = &queue->event;
+    events_await(&event,
+                    /*events_count=*/1,
+                    /*block=*/true,
+                    /*drop_after_recv=*/true);
 }

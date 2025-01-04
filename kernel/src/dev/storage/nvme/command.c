@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "dev/storage/nvme/controller.h"
 #include "dev/storage/nvme/command.h"
 #include "dev/storage/nvme/namespace.h"
 
@@ -16,7 +15,9 @@ nvme_identify(struct nvme_controller *const controller,
     const struct nvme_command command =
         NVME_IDENTIFY_CMD(&controller->admin_queue, nsid, cns, out);
 
-    return nvme_queue_submit_command(&controller->admin_queue, &command);
+    return nvme_queue_submit_command(&controller->admin_queue,
+                                     &command,
+                                     /*await=*/true);
 }
 
 bool
@@ -26,7 +27,9 @@ nvme_create_submit_queue(struct nvme_controller *const controller,
     const struct nvme_command submit_command =
         NVME_CREATE_SUBMIT_QUEUE_CMD(controller, &namespace->io_queue);
 
-    return nvme_queue_submit_command(&controller->admin_queue, &submit_command);
+    return nvme_queue_submit_command(&controller->admin_queue,
+                                     &submit_command,
+                                     /*await=*/true);
 }
 
 bool
@@ -38,7 +41,9 @@ nvme_create_completion_queue(struct nvme_controller *const controller,
                                          &namespace->io_queue,
                                          controller->msix_vector);
 
-    return nvme_queue_submit_command(&controller->admin_queue, &comp_command);
+    return nvme_queue_submit_command(&controller->admin_queue,
+                                     &comp_command,
+                                     /*await=*/true);
 }
 
 bool
@@ -51,5 +56,7 @@ nvme_set_number_of_queues(struct nvme_controller *const controller,
                               /*prp1=*/0,
                               /*prp2=*/0);
 
-    return nvme_queue_submit_command(&controller->admin_queue, &setft_command);
+    return nvme_queue_submit_command(&controller->admin_queue,
+                                     &setft_command,
+                                     /*await=*/true);
 }

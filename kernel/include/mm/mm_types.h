@@ -37,7 +37,7 @@ struct page;
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))
 #define pfn_to_page(pfn) ({ \
     __auto_type h_var(page) = \
-        PAGE_OFFSET + check_mul_assert(SIZEOF_STRUCTPAGE, (pfn)); \
+        PAGE_OFFSET + ckd_mul_assert(SIZEOF_STRUCTPAGE, (pfn)); \
     assert_msg(verify_page_pointer(h_var(page)), \
                "pfn_to_page(): pfn %" PRIu64 " reaches outside range of page " \
                "range", \
@@ -52,14 +52,14 @@ struct page;
             assert_msg(verify_page_pointer(h_var(page)), \
                        "page_to_pfn(): page %p is invalid", \
                        p); \
-            check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
+            ckd_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
         }), \
         struct page *: ({ \
             const uint64_t h_var(page) = (uint64_t)(p); \
             assert_msg(verify_page_pointer(h_var(page)), \
                        "page_to_pfn(): page %p is invalid", \
                        p); \
-            check_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
+            ckd_sub_assert(h_var(page), PAGE_OFFSET) / SIZEOF_STRUCTPAGE; \
         }) \
     )
 

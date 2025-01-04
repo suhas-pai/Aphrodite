@@ -52,7 +52,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
                       const uint16_t max_queue_entry_count,
                       const uint32_t max_transfer_shift)
 {
-    const uint64_t identity_phys = physalloc(sizeof(struct nvme_nsidentity));
+    const uint64_t identity_phys = phys_alloc(sizeof(struct nvme_nsidentity));
     if (identity_phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc page for identify-namespace command\n");
@@ -247,7 +247,9 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
         }
     }
 
-    return nvme_queue_submit_command(&namespace->io_queue, &command);
+    return nvme_queue_submit_command(&namespace->io_queue,
+                                     &command,
+                                     /*await=*/true);
 }
 
 void nvme_namespace_destroy(struct nvme_namespace *const namespace) {

@@ -27,7 +27,7 @@ preprocess_for_append(struct mutable_buffer *const mbuffer,
 __debug_optimize(3) struct mutable_buffer
 mbuffer_open(void *const buffer, const uint32_t used, const uint32_t capacity) {
     assert(used <= capacity);
-    check_add_assert((uint64_t)buffer, used);
+    ckd_add_assert((uint64_t)buffer, used);
 
     return mbuffer_open_static(buffer, used, capacity);
 }

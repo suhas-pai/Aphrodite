@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "location.h"
 
 enum pci_domain_kind : uint8_t {

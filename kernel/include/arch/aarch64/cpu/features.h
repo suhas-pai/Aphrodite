@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "asm/id_regs.h"
 
 #define CPU_FEAT_NONE 0

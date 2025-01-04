@@ -242,7 +242,7 @@ void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
     const uint64_t lapic_timer_freq_in_us =
         this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
 
-    const uint64_t count = check_mul_assert(lapic_timer_freq_in_us, usec);
+    const uint64_t count = ckd_mul_assert(lapic_timer_freq_in_us, usec);
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, count);
         x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER,

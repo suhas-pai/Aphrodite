@@ -1,10 +1,9 @@
 /*
  * kernel/src/arch/loongarch64/cpu/info.h
- * © suha spai
+ * © suhas pai
  */
 
 #pragma once
-#include <stdbool.h>
 
 #include "cpu/cpu_info.h"
 #include "lib/list.h"

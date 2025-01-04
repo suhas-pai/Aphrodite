@@ -4,7 +4,6 @@
  */
 
 #pragma once
-#include <stdbool.h>
 
 struct smp_boot_info {
     struct cpu_info *cpu;

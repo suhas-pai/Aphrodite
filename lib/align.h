@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
-
 #include "assert.h"
 
 __debug_optimize(3) static inline

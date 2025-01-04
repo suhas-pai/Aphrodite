@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include <stdbool.h>
-
 #include "asm/pause.h"
 #include "lib/macros.h"
 #include "sys/pio.h"

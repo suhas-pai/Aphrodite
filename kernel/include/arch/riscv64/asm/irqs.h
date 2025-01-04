@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include "status.h"
 
 // ie = "Interrupt Enable"

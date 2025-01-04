@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include <stdbool.h>
-
 #include "ctype.h"
 #include "macros.h"
 

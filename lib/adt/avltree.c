@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include <stdbool.h>
 #include "avltree.h"
 
 __debug_optimize(3) static inline

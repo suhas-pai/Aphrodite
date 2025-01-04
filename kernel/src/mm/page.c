@@ -54,7 +54,7 @@ __debug_optimize(3) void zero_page(void *page) {
 }
 
 __debug_optimize(3) void zero_multiple_pages(void *page, const uint64_t count) {
-    const uint64_t full_size = check_mul_assert(PAGE_SIZE, count);
+    const uint64_t full_size = ckd_mul_assert(PAGE_SIZE, count);
 #if defined(__x86_64__)
     uint64_t qword_count = full_size / sizeof(uint64_t);
     asm volatile ("cld;\n"

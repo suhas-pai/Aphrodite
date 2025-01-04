@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "lib/overflow.h"
@@ -54,13 +52,13 @@ sv_create_end(const char *const c_str, const char *const end) {
 
 __debug_optimize(3) static inline struct string_view
 sv_create_length(const char *const c_str, const uint32_t length) {
-    check_add_assert((uint64_t)c_str, length);
+    ckd_add_assert((uint64_t)c_str, length);
     return sv_create_nocheck(c_str, length);
 }
 
 __debug_optimize(3) static inline struct string_view
 sv_create_upto_length(const char *const c_str, const uint32_t length) {
-    check_add_assert((uint64_t)c_str, length);
+    ckd_add_assert((uint64_t)c_str, length);
     return sv_create_nocheck(c_str, strnlen(c_str, length));
 }
 

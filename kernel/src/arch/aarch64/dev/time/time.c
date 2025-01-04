@@ -69,7 +69,7 @@ __debug_optimize(3) nsec_t system_timer_get_remaining_ns() {
 }
 
 __debug_optimize(3) void system_timer_oneshot_ns(const nsec_t nano) {
-    const usec_t tval = nano_to_seconds(check_mul_assert(g_frequency, nano));
+    const usec_t tval = nano_to_seconds(ckd_mul_assert(g_frequency, nano));
     asm volatile ("msr cntp_tval_el0, %0" :: "r"(tval));
 }
 

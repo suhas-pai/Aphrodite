@@ -96,7 +96,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
     with_intr_disabled({
         mmio_write(&g_addrspace->timers[index].config_and_capability, 0);
         mmio_write(&g_addrspace->timers[index].comparator_value,
-                   check_mul_assert(g_frequency, fsec));
+                   ckd_mul_assert(g_frequency, fsec));
 
         mmio_write(&g_addrspace->timers[index].config_and_capability,
                    __HPET_TIMER_ENABLE_INT);

@@ -22,7 +22,7 @@ __debug_optimize(3) void stimer_oneshot(const usec_t interval) {
     const usec_t ticks_per_micro =
         get_cpus_info()->timebase_frequency / MICRO_IN_SECONDS;
 
-    const uint64_t ticks = check_mul_assert(interval, ticks_per_micro);
+    const uint64_t ticks = ckd_mul_assert(interval, ticks_per_micro);
     const usec_t time = csr_read(time);
 
     csr_write(stimecmp, time + ticks);

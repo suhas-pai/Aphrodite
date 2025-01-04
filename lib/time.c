@@ -75,7 +75,7 @@ get_week_count_at_day(const enum weekday weekday,
             ((weekday != WEEKDAY_SUNDAY) ? (WEEKDAY_COUNT + 1) : 1) :
             WEEKDAY_COUNT);
 
-    return (days_since_jan_1 - (unsigned)weekday + delta) / WEEKDAY_COUNT;
+    return (days_since_jan_1 + delta - (unsigned)weekday) / WEEKDAY_COUNT;
 }
 
 __debug_optimize(3) int month_to_tm_mon(const enum month month) {
@@ -148,7 +148,7 @@ __debug_optimize(3) struct tm tm_from_stamp(const timestamp_t timestamp) {
 }
 
 __debug_optimize(3) uint64_t tm_year_to_year(const int tm_year) {
-    return check_add_assert((uint64_t)tm_year, 1900);
+    return ckd_add_assert((uint64_t)tm_year, 1900);
 }
 
 __debug_optimize(3) enum weekday weekday_prev(const enum weekday weekday) {

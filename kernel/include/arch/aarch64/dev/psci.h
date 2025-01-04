@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 #include <stdint.h>
 
 enum psci_function : uint8_t {

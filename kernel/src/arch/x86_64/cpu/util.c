@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include <stdbool.h>
-
 #include "asm/irqs.h"
 #include "cpu/util.h"
 #include "lib/assert.h"

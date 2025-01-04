@@ -57,7 +57,7 @@ __debug_optimize(3) static uint64_t
 get_free_obj_byte_index(struct slab_allocator *const alloc,
                         const uint32_t index)
 {
-    return check_mul_assert(index, alloc->object_size);
+    return ckd_mul_assert(index, alloc->object_size);
 }
 
 __debug_optimize(3) static inline struct free_slab_object *
