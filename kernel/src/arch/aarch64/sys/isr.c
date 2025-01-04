@@ -188,7 +188,7 @@ __debug_optimize(3) void isr_unmask_intr(const isr_vector_t intr) {
 }
 
 __debug_optimize(3) void isr_mask_irq(struct irq_pin *const pin) {
-    isr_unmask_intr(pin->irq);
+    isr_mask_intr(pin->irq);
 }
 
 __debug_optimize(3) void isr_unmask_irq(struct irq_pin *const pin) {
