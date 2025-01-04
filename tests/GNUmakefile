@@ -41,7 +41,7 @@ override CFLAGS += -g3 -DBUILD_TEST -I../ -fsanitize=undefined -fsanitize=addres
 
 all: test
 test: $(CFILES)
-	$(CC) -std=gnu17 $(CFLAGS) $(LDFLAGS) $(CFILES) -o $@
+	$(CC) -std=gnu23 $(CFLAGS) $(LDFLAGS) $(CFILES) -o $@
 
 clean:
 	rm -rf $(OBJ)
