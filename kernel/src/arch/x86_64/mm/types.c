@@ -60,7 +60,7 @@ __debug_optimize(3) bool pte_is_present(const pte_t pte) {
     return pte & __PTE_PRESENT;
 }
 
-__debug_optimize(3) bool pte_level_can_have_large(const pg_level_t level) {
+__debug_optimize(3) bool pte_level_can_have_lg_page(const pg_level_t level) {
     return largepage_level_info_list[level - 1].is_supported;
 }
 

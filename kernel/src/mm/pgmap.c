@@ -1021,11 +1021,7 @@ split_initial_large_page_if_necessary(
     }
 
     const uint64_t offset = virt_range.front - walker_virt_addr;
-    split_large_page(walker,
-                     pageop,
-                     curr_split,
-                     walker->level,
-                     options);
+    split_large_page(walker, pageop, curr_split, walker->level, options);
 
     uint64_t phys_front = curr_split->phys_range.front;
     if (calculate_phys) {
@@ -1190,7 +1186,7 @@ pgunmap_at(struct pagemap *const pagemap,
         // unmap.
 
         if (__builtin_expect(
-                walker.level > 1 && !pte_level_can_have_large(walker.level), 0))
+                walker.level > 1 && !pte_level_can_have_lg_page(walker.level), 0))
         {
             pageop_finish(&pageop);
             intr_restore(flag);
@@ -1248,8 +1244,8 @@ pgunmap_at(struct pagemap *const pagemap,
                                     /*curr_split=*/nullptr,
                                     &pageop,
                                     RANGE_INIT(pte_phys, map_size),
-                                    virt_range.front
-                                        + (virt_range.size - remaining),
+                                    virt_range.front +
+                                        (virt_range.size - remaining),
                                     map_options);
 
             if (!map_result) {

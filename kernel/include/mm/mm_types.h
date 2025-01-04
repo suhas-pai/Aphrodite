@@ -94,7 +94,7 @@ pg_level_t pgt_get_top_level();
 uint64_t sign_extend_virt_addr(uint64_t virt);
 
 bool pte_is_present(pte_t pte);
-bool pte_level_can_have_large(pg_level_t level);
+bool pte_level_can_have_lg_page(pg_level_t level);
 bool pte_is_large(pte_t pte);
 bool pte_is_dirty(pte_t pte);
 

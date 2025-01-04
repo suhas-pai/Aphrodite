@@ -91,7 +91,7 @@ __debug_optimize(3) bool pte_is_present(const pte_t pte) {
     return pte & __PTE_VALID;
 }
 
-__debug_optimize(3) bool pte_level_can_have_large(const pg_level_t level) {
+__debug_optimize(3) bool pte_level_can_have_lg_page(const pg_level_t level) {
     return level == 2 || level == 3 || level == 4;
 }
 

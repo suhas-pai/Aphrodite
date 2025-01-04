@@ -5,9 +5,10 @@
  */
 
 #include "dev/storage/nvme/controller.h"
-
 #include "dev/printk.h"
+
 #include "lib/align.h"
+#include "lib/util.h"
 
 #include "mm/page_alloc.h"
 #include "mm/physalloc.h"
@@ -155,11 +156,8 @@ uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
     uint16_t result = 0;
     with_spinlock_intr_disabled(&queue->lock, {
         result = queue->cmd_identifier;
-        queue->cmd_identifier++;
-
-        if (queue->cmd_identifier >= queue->entry_count) {
-            queue->cmd_identifier = 0;
-        }
+        queue->cmd_identifier =
+            circular_index_get_next(queue->cmd_identifier, queue->entry_count);
     });
 
     return result;

@@ -26,6 +26,16 @@ bool index_range_in_bounds(const struct range range, const uint64_t bounds) {
     return end <= bounds;
 }
 
+__debug_optimize(3)
+uint32_t circular_index_get_next(const uint32_t index, const uint32_t bounds) {
+    return (index + 1) % bounds;
+}
+
+__debug_optimize(3)
+uint32_t circular_index_get_prev(const uint32_t index, const uint32_t bounds) {
+    return (index + bounds - 1) % bounds;
+}
+
 __debug_optimize(3) const char *get_alphanumeric_upper_string() {
     return "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 }
