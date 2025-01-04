@@ -223,6 +223,7 @@ void handle_interrupt(struct thread_context *const context) {
     uint8_t cpu_id = 0;
     const irq_number_t irq = gic_cpu_get_irq_number(&cpu_id);
 
+    this_cpu_mut()->called_eoi = false;
     if (irq >= GIC_ITS_LPI_INTERRUPT_START) {
         const uint16_t index = irq - GIC_ITS_LPI_INTERRUPT_START;
         this_cpu_mut()->in_lpi = true;
@@ -240,6 +241,15 @@ void handle_interrupt(struct thread_context *const context) {
 
         if (handler != NULL) {
             handler((uint64_t)cpu_id << 16 | index, context, ctx);
+            if (!this_cpu_mut()->called_eoi) {
+                printk(LOGLEVEL_WARN,
+                       "isr: lpi handler for irq " IRQ_NUMBER_FMT ", "
+                       "lpi %" PRIu16 " did not call eoi\n",
+                       irq,
+                       index);
+
+                gic_cpu_eoi(cpu_id, irq);
+            }
         } else {
             printk(LOGLEVEL_WARN,
                    "isr: got unhandled lpi interrupt " ISR_VECTOR_FMT " on "
@@ -271,6 +281,14 @@ void handle_interrupt(struct thread_context *const context) {
 
     if (handler != NULL) {
         handler((uint64_t)cpu_id << 16 | irq, context, ctx);
+        if (!this_cpu_mut()->called_eoi) {
+            printk(LOGLEVEL_WARN,
+                   "isr: lpi handler for irq " IRQ_NUMBER_FMT "did not call "
+                   "eoi\n",
+                   irq);
+
+            gic_cpu_eoi(cpu_id, irq);
+        }
     } else {
         printk(LOGLEVEL_WARN,
                "isr: got unhandled interrupt " ISR_VECTOR_FMT " on "

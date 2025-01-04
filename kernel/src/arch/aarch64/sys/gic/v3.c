@@ -376,6 +376,8 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
     (void)cpu_id;
 
     struct cpu_info *const cpu = this_cpu_mut();
+    cpu->called_eoi = true;
+
     if (cpu->in_lpi) {
         cpu->in_lpi = false;
     } else {

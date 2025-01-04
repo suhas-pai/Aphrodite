@@ -655,6 +655,7 @@ void gicv2_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     const uint32_t value =
         (uint32_t)cpu_id << GIC_CPU_EOI_CPU_ID_SHIFT | irq_number;
 
+    this_cpu_mut()->called_eoi = true;
     if (g_use_split_eoi) {
         mmio_write(&g_cpu->deactivation, value);
     } else {

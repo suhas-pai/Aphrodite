@@ -29,8 +29,6 @@
 #define GIC_SPI_INTR_RANGE \
     RANGE_INIT(GIC_SPI_INTR_START, GIC_SPI_INTR_LAST)
 
-#define IRQ_NUMBER_FMT "%" PRIu32
-
 void gic_init_from_dtb();
 void gic_init_on_this_cpu();
 

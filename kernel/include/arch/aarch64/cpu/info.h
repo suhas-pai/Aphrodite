@@ -28,4 +28,5 @@ struct cpu_info {
 
     bool in_lpi : 1;
     bool in_exception : 1;
+    bool called_eoi : 1;
 };

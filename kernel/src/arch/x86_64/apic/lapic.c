@@ -162,11 +162,21 @@ void lapic_enable() {
 }
 
 __debug_optimize(3) void lapic_eoi() {
+    if (this_cpu()->called_eoi) {
+        printk(LOGLEVEL_WARN, "isr: lapic_eoi() called more than once\n");
+        return;
+    }
+
+    this_cpu_mut()->called_eoi = true;
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_EOI, 0);
+        return;
     } else if (__builtin_expect(g_lapic_regs != NULL, 1)) {
         mmio_write(&g_lapic_regs->eoi, /*value=*/0);
+        return;
     }
+
+    verify_not_reached();
 }
 
 __debug_optimize(3)

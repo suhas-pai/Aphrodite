@@ -25,8 +25,6 @@ void gicdv2_free_msi_vector(isr_vector_t vector);
 
 void gicv2_add_msi_frame(uint64_t phys_base_address);
 
-#define IRQ_NUMBER_FMT "%" PRIu32
-
 void gicdv2_mask_irq(irq_number_t irq);
 void gicdv2_unmask_irq(irq_number_t irq);
 

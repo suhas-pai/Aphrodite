@@ -157,6 +157,8 @@ __debug_optimize(3) void
 isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
 {
     struct isr_func_info *const info = &g_funcs[vector];
+    this_cpu_mut()->called_eoi = false;
+
     if (info->masked) {
         lapic_eoi();
         return;
@@ -164,6 +166,15 @@ isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
 
     if (__builtin_expect(info->handler != NULL, 1)) {
         info->handler(vector, frame, info->ctx);
+        if (!this_cpu()->called_eoi) {
+            printk(LOGLEVEL_WARN,
+                   "isr: handler for vector " ISR_VECTOR_FMT " didn't call "
+                   "eoi\n",
+                   (isr_vector_t)vector);
+
+            lapic_eoi();
+        }
+
         return;
     }
 

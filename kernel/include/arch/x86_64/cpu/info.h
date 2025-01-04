@@ -29,6 +29,7 @@ struct cpu_info {
 
     bool active : 1;
     bool in_exception : 1;
+    bool called_eoi : 1;
 };
 
 const struct cpu_capabilities *get_cpu_capabilities();

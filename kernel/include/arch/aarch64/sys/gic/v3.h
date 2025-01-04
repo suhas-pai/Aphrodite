@@ -12,8 +12,6 @@
 #include "dev/device.h"
 #include "sys/isr.h"
 
-#define IRQ_NUMBER_FMT "%" PRIu32
-
 bool
 gicv3_init_from_dtb(const struct devicetree *tree,
                     const struct devicetree_node *node);
