@@ -114,10 +114,10 @@ void test_format() {
     test_format_to_buffer(countof(buffer), "    h", "%5c", 'h');
     test_format_to_buffer(countof(buffer), "Hello", "%s", "Hello");
     test_format_to_buffer(countof(buffer), " Hello ", " %s ", "Hello");
-    test_format_to_buffer(countof(buffer), "(null)", "%s", (char *)NULL);
-    test_format_to_buffer(countof(buffer), "(null)", "%5s", (char *)NULL);
-    test_format_to_buffer(countof(buffer), "(nil)", "%p", NULL);
-    test_format_to_buffer(countof(buffer), "(nil)", "%5p", NULL);
+    test_format_to_buffer(countof(buffer), "(null)", "%s", (char *)nullptr);
+    test_format_to_buffer(countof(buffer), "(null)", "%5s", (char *)nullptr);
+    test_format_to_buffer(countof(buffer), "(nil)", "%p", nullptr);
+    test_format_to_buffer(countof(buffer), "(nil)", "%5p", nullptr);
     test_format_to_buffer(countof(buffer), "0x1", "%p", (void *)0x1);
     test_format_to_buffer(countof(buffer), "0xff", "0x%x", 0xff);
     test_format_to_buffer(countof(buffer), " 0005", "%5.4d", 5);

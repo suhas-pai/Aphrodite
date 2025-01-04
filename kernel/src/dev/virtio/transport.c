@@ -49,7 +49,7 @@ virtio_pci_read_device_info(struct virtio_device *const device,
     volatile void *const device_cfg =
         (volatile void *)device->pci.device_cfg.front;
 
-    if (device_cfg != NULL) {
+    if (device_cfg != nullptr) {
         switch (size) {
             case sizeof(uint8_t):
                 *(uint8_t *)buf = mmio_read_8(device_cfg + offset);
@@ -78,7 +78,7 @@ virtio_pci_write_device_info(struct virtio_device *const device,
     volatile void *const device_cfg =
         (volatile void *)device->pci.device_cfg.front;
 
-    if (device_cfg != NULL) {
+    if (device_cfg != nullptr) {
         switch (size) {
             case sizeof(uint8_t):
                 mmio_write_8(device_cfg + offset, *(const uint8_t *)buf);

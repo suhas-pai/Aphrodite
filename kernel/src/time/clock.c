@@ -37,7 +37,5 @@ clock_read_res(const struct clock *const clock,
     }
 
     const uint64_t diff = clock->resolution - resolution;
-    return check_mul(clock->read(clock),
-                     math_pow_assert(1000, diff),
-                     result_out);
+    return ckd_mul(result_out, clock->read(clock), math_pow_assert(1000, diff));
 }

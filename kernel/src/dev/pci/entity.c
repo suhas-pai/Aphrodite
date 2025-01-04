@@ -284,7 +284,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
                             const bool masked)
     {
         struct pci_entity_bar_info *const bar = entity->msix.table_bar;
-        if (bar->mmio == NULL) {
+        if (bar->mmio == nullptr) {
             return;
         }
 
@@ -382,13 +382,13 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
 
     for (uint8_t i = 0; i != bar_count; i++) {
         struct pci_entity_bar_info *const bar = &bar_list[i];
-        if (bar->mmio != NULL) {
+        if (bar->mmio != nullptr) {
             vunmap_mmio(bar->mmio);
         }
     }
 
     kfree(entity->bar_list);
-    entity->bar_list = NULL;
+    entity->bar_list = nullptr;
 
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
@@ -403,8 +403,8 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
         case PCI_ENTITY_MSI_SUPPORT_MSIX:
             kfree(entity->msix.bitset);
 
-            entity->msix.table_bar = NULL;
-            entity->msix.bitset = NULL;
+            entity->msix.table_bar = nullptr;
+            entity->msix.bitset = nullptr;
             entity->msix.table_offset = 0;
             entity->msix.table_size = 0;
 
@@ -414,7 +414,7 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
 
     array_destroy(&entity->vendor_cap_list);
 
-    entity->bus = NULL;
+    entity->bus = nullptr;
     entity->loc = PCI_LOCATION_NULL();
 
     entity->id = 0;

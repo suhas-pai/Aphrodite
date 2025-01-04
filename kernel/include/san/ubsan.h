@@ -29,12 +29,12 @@ enum error_kind {
 #undef UBSAN_CHECK
 };
 
-enum type_descriptor_kind {
+enum type_descriptor_kind : uint8_t {
     TYPE_DESCRIPTOR_KIND_INT,
     TYPE_DESCRIPTOR_KIND_FLOAT,
 };
 
-enum type_check_kind {
+enum type_check_kind : uint8_t {
     TYPE_CHECK_KIND_LOAD,
     TYPE_CHECK_KIND_STORE,
     TYPE_CHECK_KIND_REFERENCE_BINDING,
@@ -50,7 +50,7 @@ enum type_check_kind {
 };
 
 struct type_descriptor {
-    enum type_descriptor_kind kind : 16;
+    enum type_descriptor_kind kind;
     uint16_t info;
 
     char name[];
@@ -162,7 +162,7 @@ struct nonnull_return_info {
     struct source_location location;
 };
 
-enum builtin_check_kind {
+enum builtin_check_kind : uint8_t {
     BUILTIN_CHECK_KIND_CTZ_PASSED_ZERO,
     BUILTIN_CHECK_KIND_CLZ_PASSED_ZERO,
 };

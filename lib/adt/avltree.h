@@ -27,12 +27,12 @@ struct avltree {
     struct avlnode *root;
 };
 
-#define AVLTREE_INIT() ((struct avltree){ .root = NULL })
+#define AVLTREE_INIT() ((struct avltree){ .root = nullptr })
 #define AVLNODE_INIT() \
     ((struct avlnode){ \
-        .parent = NULL, \
-        .left = NULL,   \
-        .right = NULL,  \
+        .parent = nullptr, \
+        .left = nullptr,   \
+        .right = nullptr,  \
         .height = 0     \
     })
 

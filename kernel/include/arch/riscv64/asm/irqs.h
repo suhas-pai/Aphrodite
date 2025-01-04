@@ -9,7 +9,7 @@
 #include "status.h"
 
 // ie = "Interrupt Enable"
-enum ie_flags {
+enum ie_flags : uint16_t {
     __INTR_USER_SOFTWARE = 1ull << 0,
     __INTR_SUPERVISOR_SOFTWARE = 1ull << 1,
     __INTR_MACHINE_SOFTWARE = 1ull << 3,

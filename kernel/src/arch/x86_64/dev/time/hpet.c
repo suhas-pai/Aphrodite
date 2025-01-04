@@ -24,7 +24,7 @@ struct hpet_addrspace_timer_info {
     volatile uint64_t fsb_intr_route;
 } __packed;
 
-enum hpet_addrspace_timer_flags {
+enum hpet_addrspace_timer_flags : uint16_t {
     __HPET_TIMER_LEVEL_TRIGGER_INT = 1 << 1,
     __HPET_TIMER_ENABLE_INT = 1 << 2,
     __HPET_TIMER_SET_MODE_PERIODIC = 1 << 3,
@@ -53,8 +53,8 @@ struct hpet_addrspace {
     struct hpet_addrspace_timer_info timers[32];
 } __packed;
 
-static struct mmio_region *g_hpet_mmio = NULL;
-static volatile struct hpet_addrspace *g_addrspace = NULL;
+static struct mmio_region *g_hpet_mmio = nullptr;
+static volatile struct hpet_addrspace *g_addrspace = nullptr;
 
 static uint64_t g_frequency = 0;
 
@@ -65,7 +65,7 @@ static uint8_t g_timer_count = 0;
 static struct event g_bitset_event = EVENT_INIT();
 
 __debug_optimize(3) fsec_t hpet_get_femto() {
-    assert_msg(g_addrspace != NULL,
+    assert_msg(g_addrspace != nullptr,
                "hpet: hpet_get_femto() called before init");
 
     return mmio_read(&g_addrspace->main_counter_value);
@@ -133,7 +133,7 @@ void hpet_init(const struct acpi_hpet *const hpet) {
     }
 
     g_hpet_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (g_hpet_mmio == NULL) {
+    if (g_hpet_mmio == nullptr) {
         printk(LOGLEVEL_WARN, "hpet: failed to mmio-map address-space\n");
         return;
     }

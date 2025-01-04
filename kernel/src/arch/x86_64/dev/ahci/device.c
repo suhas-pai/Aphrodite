@@ -7,10 +7,10 @@
 #include "sys/mmio.h"
 
 static struct ahci_hba_device g_device = {
-    .pci_entity = NULL,
-    .regs = NULL,
+    .pci_entity = nullptr,
+    .regs = nullptr,
 
-    .port_list = NULL,
+    .port_list = nullptr,
 
     .supports_64bit_dma = false,
     .supports_staggered_spinup = false,

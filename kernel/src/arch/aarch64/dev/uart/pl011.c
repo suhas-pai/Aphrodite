@@ -114,10 +114,10 @@ pl011_init(const port_t base,
            const uint32_t data_bits,
            const uint32_t stop_bits)
 {
-    struct pl011_device_info *info = NULL;
+    struct pl011_device_info *info = nullptr;
     if (kmalloc_initialized()) {
         info = kmalloc(sizeof(*info));
-        if (info == NULL) {
+        if (info == nullptr) {
             printk(LOGLEVEL_WARN, "pl011: failed to alloc info\n");
             return;
         }

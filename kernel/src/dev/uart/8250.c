@@ -25,7 +25,7 @@
 #define UART_SCR_OFFSET 7  // I/O: Scratch Register
 #define UART_MDR1_OFFSET 8  // I/O:  Mode Register
 
-enum uart_lsr {
+enum uart_lsr : uint8_t {
     __UART_LSR_DATA_READY = 1 << 0,
     __UART_LSR_OVERRUN_ERROR = 1 << 1,
     __UART_LSR_PARITY_ERROR = 1 << 2,
@@ -147,10 +147,10 @@ uart8250_init(const port_t base,
         bdiv = (in_freq + 8 * baudrate) / (16 * baudrate);
     }
 
-    struct uart8250_info *info = NULL;
+    struct uart8250_info *info = nullptr;
     if (kmalloc_initialized()) {
         info = kmalloc(sizeof(*info));
-        if (info == NULL) {
+        if (info == nullptr) {
             printk(LOGLEVEL_WARN, "uart8250: failed to alloc info\n");
             return false;
         }
@@ -213,7 +213,7 @@ init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN, "uart8250: 'reg' property in dtb is missing\n");
         return false;
     }
@@ -230,7 +230,7 @@ init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_clock_frequency *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (clock_freq_prop == NULL) {
+    if (clock_freq_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "uart8250: clock-frequency property of serial dtb-node is "
                "missing or malformed");
@@ -257,5 +257,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver uart8250_driver = {
     .name = SV_STATIC("uart8250-driver"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

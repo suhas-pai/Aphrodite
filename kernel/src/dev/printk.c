@@ -11,7 +11,7 @@
 #include "dev/printk.h"
 #include "lib/parse_printf.h"
 
-static struct terminal *g_first_term = NULL;
+static struct terminal *g_first_term = nullptr;
 
 __debug_optimize(3) void printk_add_terminal(struct terminal *const term) {
     with_intr_disabled({
@@ -42,7 +42,7 @@ write_char(struct printf_spec_info *const spec_info,
     (void)cb_info;
     (void)cont_out;
 
-    for (struct terminal *term = g_first_term; term != NULL; term = term->next)
+    for (struct terminal *term = g_first_term; term != nullptr; term = term->next)
     {
         term->emit_ch(term, ch, amount);
     }
@@ -60,7 +60,7 @@ write_sv(struct printf_spec_info *const spec_info,
     (void)cb_info;
     (void)cont_out;
 
-    for (struct terminal *term = g_first_term; term != NULL; term = term->next)
+    for (struct terminal *term = g_first_term; term != nullptr; term = term->next)
     {
         term->emit_sv(term, sv);
     }
@@ -82,7 +82,7 @@ void putk_sv(const enum log_level level, const struct string_view sv) {
     (void)level;
 
     with_spinlock_intr_disabled(&g_print_lock, {
-        write_sv(/*spec_info=*/NULL, /*cb_info=*/NULL, sv, /*cont_out=*/NULL);
+        write_sv(/*spec_info=*/nullptr, /*cb_info=*/nullptr, sv, /*cont_out=*/nullptr);
     });
 }
 
@@ -90,9 +90,9 @@ __debug_optimize(3)
 void vprintk_internal(const char *const string, va_list list) {
     parse_printf(string,
                  write_char,
-                 /*char_cb_info=*/NULL,
+                 /*char_cb_info=*/nullptr,
                  write_sv,
-                 /*sv_cb_info=*/NULL,
+                 /*sv_cb_info=*/nullptr,
                  list);
 }
 
@@ -111,9 +111,9 @@ vprintk(const enum log_level loglevel, const char *const string, va_list list) {
         printk_internal("[cpu %" PRIu32 "] ", cpu_get_id(this_cpu()));
         parse_printf(string,
                      write_char,
-                     /*char_cb_info=*/NULL,
+                     /*char_cb_info=*/nullptr,
                      write_sv,
-                     /*sv_cb_info=*/NULL,
+                     /*sv_cb_info=*/nullptr,
                      list);
     });
 }

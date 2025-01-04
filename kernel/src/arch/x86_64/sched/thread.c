@@ -18,7 +18,7 @@ __debug_optimize(3) void sched_set_current_thread(struct thread *const thread) {
     msr_write(IA32_MSR_KERNEL_GS_BASE, (uint64_t)thread);
 }
 
-extern __noreturn void thread_spinup(const struct thread_context *context);
+[[noreturn]] extern void thread_spinup(const struct thread_context *context);
 
 void
 sched_save_restore_context(struct thread *const prev,

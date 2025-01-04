@@ -42,7 +42,7 @@ uacpi_pci_handle_create(struct pci_domain *const domain,
                         const uacpi_pci_address address)
 {
     struct uacpi_pci_handle *const handle = kmalloc(sizeof(*handle));
-    if (handle == NULL) {
+    if (handle == nullptr) {
         return UACPI_NULL;
     }
 
@@ -79,7 +79,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
                 *out_handle = uacpi_pci_handle_create(domain, address);
                 pci_release_domain_list_lock(flag);
 
-                if (*out_handle == NULL) {
+                if (*out_handle == nullptr) {
                     return UACPI_STATUS_OUT_OF_MEMORY;
                 }
 
@@ -97,7 +97,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
                 *out_handle = uacpi_pci_handle_create(domain, address);
                 pci_release_domain_list_lock(flag);
 
-                if (*out_handle == NULL) {
+                if (*out_handle == nullptr) {
                     return UACPI_STATUS_OUT_OF_MEMORY;
                 }
 
@@ -195,7 +195,7 @@ uacpi_kernel_io_map(const uacpi_io_addr base,
     struct mmio_region *const region =
         vmap_mmio(RANGE_INIT(base, len), PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (region == NULL) {
+    if (region == nullptr) {
         return UACPI_STATUS_OUT_OF_MEMORY;
     }
 
@@ -347,7 +347,7 @@ void uacpi_kernel_sleep(const uacpi_u64 usec) {
 
 uacpi_handle uacpi_kernel_create_mutex(void) {
     struct mutex *const result = kmalloc(sizeof(*result));
-    if (result == NULL) {
+    if (result == nullptr) {
         return UACPI_NULL;
     }
 
@@ -390,7 +390,7 @@ bool uacpi_event_try_decrement(struct uacpi_event *const event) {
 
 uacpi_handle uacpi_kernel_create_event(void) {
     struct uacpi_event *const result = kmalloc(sizeof(*result));
-    if (result == NULL) {
+    if (result == nullptr) {
         return UACPI_NULL;
     }
 
@@ -500,7 +500,7 @@ struct uacpi_irq_context {
 struct uacpi_irq_context *
 uacpi_irq_context_create(const uacpi_handle handler, const uacpi_handle ctx) {
     struct uacpi_irq_context *const result = kmalloc(sizeof(*result));
-    if (result == NULL) {
+    if (result == nullptr) {
         return UACPI_NULL;
     }
 
@@ -533,7 +533,7 @@ uacpi_kernel_install_interrupt_handler(const uacpi_u32 irq,
     struct uacpi_irq_context *const context =
         uacpi_irq_context_create(handler, ctx);
 
-    if (context == NULL) {
+    if (context == nullptr) {
         return UACPI_STATUS_OUT_OF_MEMORY;
     }
 
@@ -562,7 +562,7 @@ uacpi_kernel_uninstall_interrupt_handler(
 
 uacpi_handle uacpi_kernel_create_spinlock(void) {
     struct spinlock *const lock = kmalloc(sizeof(*lock));
-    if (lock == NULL) {
+    if (lock == nullptr) {
         return UACPI_NULL;
     }
 

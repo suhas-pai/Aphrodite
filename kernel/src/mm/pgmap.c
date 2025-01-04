@@ -11,7 +11,7 @@
 #include "mm/pgmap.h"
 #include "mm/walker.h"
 
-enum map_result {
+enum map_result : uint8_t {
     MAP_DONE,
     MAP_CONTINUE,
     MAP_RESTART
@@ -61,7 +61,7 @@ split_large_page(struct pg_walker *const walker,
     }
 
     for (pg_level_t i = 1; i <= level; i++) {
-        walker->tables[i - 1] = NULL;
+        walker->tables[i - 1] = nullptr;
         walker->indices[i - 1] = 0;
     }
 
@@ -123,7 +123,7 @@ finish_split_info(struct pg_walker *const walker,
     curr_split->is_active = false;
 }
 
-enum override_result {
+enum override_result : uint8_t {
     OVERRIDE_OK,
     OVERRIDE_DONE
 };
@@ -207,8 +207,8 @@ override_pte(struct pg_walker *const walker,
         }
 
         const struct pgwalker_iterate_options iterate_options = {
-            .alloc_pgtable_cb_info = NULL,
-            .free_pgtable_cb_info = NULL,
+            .alloc_pgtable_cb_info = nullptr,
+            .free_pgtable_cb_info = nullptr,
 
             .alloc_parents = false,
             .alloc_level = false,
@@ -255,7 +255,7 @@ get_leaf_pte_count_until_next_large(
     const pg_level_t level,
     const uint64_t supports_largepage_at_level_mask)
 {
-    struct largepage_level_info *next_level_info = NULL;
+    struct largepage_level_info *next_level_info = nullptr;
     if (level != 1) {
         struct largepage_level_info *const info =
             &largepage_level_info_list[level - 1];
@@ -273,7 +273,7 @@ get_leaf_pte_count_until_next_large(
             break;
         }
 
-        if (next_level_info == NULL) {
+        if (next_level_info == nullptr) {
             return UINT64_MAX;
         }
     } else {
@@ -318,7 +318,7 @@ get_leaf_pte_count_until_next_large(
         }
 
         uint64_t largepage_end = 0;
-        if (!check_add(largepage_virt_addr, largepage_size, &largepage_end)) {
+        if (!ckd_add(&largepage_end, largepage_virt_addr, largepage_size)) {
             return UINT64_MAX;
         }
     }
@@ -547,8 +547,8 @@ pgmap_with_pgwalker(struct pg_walker *const walker,
     uint64_t total_remaining_leaf_pte = PAGE_COUNT(phys_range.size);
 
     const struct pgwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .alloc_parents = false,
         .alloc_level = false,
@@ -657,7 +657,7 @@ pgmap_at(struct pagemap *const pagemap,
                                     pagemap,
                                     virt_addr,
                                     pgwalker_early_alloc_pgtable_cb,
-                                    /*free_pgtable=*/NULL);
+                                    /*free_pgtable=*/nullptr);
     } else {
         pgwalker_default_for_pagemap(&walker, pagemap, virt_addr);
     }
@@ -711,7 +711,7 @@ pgmap_at(struct pagemap *const pagemap,
                     RANGE_INIT(curr_split.phys_range.front, offset);
                 const bool result =
                     pgmap_with_pgwalker(&walker,
-                                        /*curr_split=*/NULL,
+                                        /*curr_split=*/nullptr,
                                         &pageop,
                                         largepage_phys_range,
                                         walker_virt_addr,
@@ -929,8 +929,8 @@ pgmap_alloc_with_pgwalker(struct pg_walker *const walker,
         options->supports_largepage_at_level_mask;
 
     const struct pgwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .alloc_parents = false,
         .alloc_level = false,
@@ -1036,7 +1036,7 @@ split_initial_large_page_if_necessary(
     const struct range largepage_phys_range = RANGE_INIT(phys_front, offset);
     const bool result =
         pgmap_with_pgwalker(walker,
-                            /*curr_split=*/NULL,
+                            /*curr_split=*/nullptr,
                             pageop,
                             largepage_phys_range,
                             walker_virt_addr,
@@ -1085,7 +1085,7 @@ pgmap_alloc_at(struct pagemap *const pagemap,
                                     pagemap,
                                     virt_range.front,
                                     pgwalker_early_alloc_pgtable_cb,
-                                    /*free_pgtable=*/NULL);
+                                    /*free_pgtable=*/nullptr);
     } else {
         pgwalker_default_for_pagemap(&walker, pagemap, virt_range.front);
     }
@@ -1245,7 +1245,7 @@ pgunmap_at(struct pagemap *const pagemap,
             const uint64_t map_size = remaining;
             const bool map_result =
                 pgmap_with_pgwalker(&walker,
-                                    /*curr_split=*/NULL,
+                                    /*curr_split=*/nullptr,
                                     &pageop,
                                     RANGE_INIT(pte_phys, map_size),
                                     virt_range.front

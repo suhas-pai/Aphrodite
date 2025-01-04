@@ -9,7 +9,7 @@
 __debug_optimize(3) static inline
 void avlnode_verify(struct avlnode *const node, struct avlnode *const parent) {
 #if defined (BUILD_TEST)
-    if (node == NULL) {
+    if (node == nullptr) {
         return;
     }
 
@@ -30,7 +30,7 @@ go_up_parents(struct avlnode *node, uint32_t *const depth_level_in) {
     struct avlnode *parent = node->parent;
     uint32_t depth_level = *depth_level_in;
 
-    while (parent != NULL) {
+    while (parent != nullptr) {
         if (parent->left == node) {
             *depth_level_in = depth_level;
             return parent->right;
@@ -43,7 +43,7 @@ go_up_parents(struct avlnode *node, uint32_t *const depth_level_in) {
     }
 
     *depth_level_in = depth_level;
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) static bool
@@ -85,7 +85,7 @@ avlnode_print(struct avlnode *const node,
               const avlnode_print_sv_cb_t print_sv_cb,
               void *const cb_info)
 {
-    if (node == NULL) {
+    if (node == nullptr) {
         return;
     }
 
@@ -97,10 +97,10 @@ avlnode_print(struct avlnode *const node,
     uint32_t depth_level = 1;
     do {
         print_sv_cb(SV_STATIC("\n"), cb_info);
-        if (current->left == NULL) {
-            if (current->right == NULL) {
+        if (current->left == nullptr) {
+            if (current->right == nullptr) {
                 current = go_up_parents(current, &depth_level);
-                if (current == NULL) {
+                if (current == nullptr) {
                     return;
                 }
 
@@ -118,11 +118,11 @@ avlnode_print(struct avlnode *const node,
             depth_level++;
         }
 
-        if (parent->left == NULL) {
+        if (parent->left == nullptr) {
             print_prefix_lines(current, print_sv_cb, cb_info, depth_level);
 
             print_sv_cb(SV_STATIC("├── "), cb_info);
-            print_node_cb(NULL, cb_info);
+            print_node_cb(nullptr, cb_info);
             print_sv_cb(SV_STATIC("\n"), cb_info);
         }
 
@@ -136,12 +136,12 @@ avlnode_print(struct avlnode *const node,
         print_sv_cb(SV_STATIC("── "), cb_info);
         print_node_cb(current, cb_info);
 
-        if (parent->right == NULL) {
+        if (parent->right == nullptr) {
             print_sv_cb(SV_STATIC("\n"), cb_info);
             print_prefix_lines(current, print_sv_cb, cb_info, depth_level);
 
             print_sv_cb(SV_STATIC("└── "), cb_info);
-            print_node_cb(NULL, cb_info);
+            print_node_cb(nullptr, cb_info);
         }
     } while (true);
 }
@@ -160,7 +160,7 @@ static struct avlnode *rotate_left(struct avlnode *const node) {
     new_top_left->right = new_top_left_right;
     new_top_left->parent = new_top;
 
-    if (new_top_left_right != NULL) {
+    if (new_top_left_right != nullptr) {
         new_top_left_right->parent = new_top_left;
     }
 
@@ -187,7 +187,7 @@ static struct avlnode *rotate_right(struct avlnode *const node) {
     new_top_right->left = new_top_right_left;
     new_top_right->parent = new_top;
 
-    if (new_top_right_left != NULL) {
+    if (new_top_right_left != nullptr) {
         new_top_right_left->parent = new_top_right;
     }
 
@@ -202,7 +202,7 @@ static struct avlnode *rotate_right(struct avlnode *const node) {
 
 __debug_optimize(3)
 static inline uint32_t node_height(const struct avlnode *const node) {
-    return node != NULL ? node->height : 0;
+    return node != nullptr ? node->height : 0;
 }
 
 __debug_optimize(3)
@@ -218,7 +218,7 @@ static inline void reset_node_height(struct avlnode *const node) {
 __debug_optimize(3) static inline struct avlnode **
 get_node_link(struct avlnode *const node, struct avltree *const tree) {
     struct avlnode *const parent = node->parent;
-    if (parent != NULL) {
+    if (parent != nullptr) {
         return (node == parent->left) ? &parent->left : &parent->right;
     }
 
@@ -227,7 +227,7 @@ get_node_link(struct avlnode *const node, struct avltree *const tree) {
 
 __debug_optimize(3) static inline
 void avlnode_update(struct avlnode *const node, const avlnode_update_t update) {
-    if (update != NULL) {
+    if (update != nullptr) {
         update(node);
     }
 }
@@ -238,11 +238,11 @@ avltree_fixup(struct avltree *const tree,
               const avlnode_update_t update)
 {
     while (true) {
-        if (node == NULL) {
+        if (node == nullptr) {
             return;
         }
 
-        struct avlnode *new_node = NULL;
+        struct avlnode *new_node = nullptr;
         const int64_t balance = node_balance(node);
 
         if (balance > 1) {
@@ -314,14 +314,14 @@ insert_at_loc(struct avltree *const tree,
               const avlnode_added_node_t added_node)
 {
     node->height = 1;
-    node->left = NULL;
-    node->right = NULL;
+    node->left = nullptr;
+    node->right = nullptr;
     node->parent = parent;
 
     *link = node;
     avlnode_verify(node, parent);
 
-    if (added_node != NULL) {
+    if (added_node != nullptr) {
         added_node(node);
     }
 
@@ -336,11 +336,11 @@ avltree_insert(struct avltree *const tree,
                const avlnode_update_t update,
                const avlnode_added_node_t added_node)
 {
-    struct avlnode *parent = NULL;
+    struct avlnode *parent = nullptr;
     struct avlnode *curr_node = tree->root;
     struct avlnode **link = &tree->root;
 
-    while (curr_node != NULL) {
+    while (curr_node != nullptr) {
         const int compare = comparator(node, curr_node);
         if (compare == 0) {
             return false;
@@ -367,7 +367,7 @@ avltree_insert_at_loc(struct avltree *const tree,
                       struct avlnode **const link,
                       const avlnode_update_t update)
 {
-    insert_at_loc(tree, node, parent, link, update, /*added_node=*/NULL);
+    insert_at_loc(tree, node, parent, link, update, /*added_node=*/nullptr);
 }
 
 __debug_optimize(3) struct avlnode *
@@ -377,7 +377,7 @@ avltree_delete(struct avltree *const tree,
                const avlnode_update_t update)
 {
     struct avlnode *curr_node = tree->root;
-    while (curr_node != NULL) {
+    while (curr_node != nullptr) {
         const int compare = comparator(curr_node, key);
         if (compare == 0) {
             avltree_delete_node(tree, curr_node, update);
@@ -387,13 +387,13 @@ avltree_delete(struct avltree *const tree,
         curr_node = compare < 0 ? curr_node->left : curr_node->right;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) struct avlnode *avlnode_successor(struct avlnode *node) {
-    if (node->right != NULL) {
+    if (node->right != nullptr) {
         node = node->right;
-        while (node->left != NULL) {
+        while (node->left != nullptr) {
             node = node->left;
         }
 
@@ -401,15 +401,15 @@ __debug_optimize(3) struct avlnode *avlnode_successor(struct avlnode *node) {
     }
 
     node = node->parent;
-    while (node != NULL) {
-        if (node->left != NULL) {
+    while (node != nullptr) {
+        if (node->left != nullptr) {
             return node;
         }
 
         node = node->parent;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void
@@ -420,27 +420,27 @@ avltree_delete_node(struct avltree *const tree,
     struct avlnode **node_link = get_node_link(node, tree);
     struct avlnode *parent = node->parent;
 
-    if (node->left != NULL) {
-        if (node->right != NULL) {
+    if (node->left != nullptr) {
+        if (node->right != nullptr) {
             struct avlnode *successor = node->right;
             struct avlnode *const left = node->left;
 
-            if (successor->left != NULL) {
+            if (successor->left != nullptr) {
                 struct avlnode **successor_link = &node->right;
                 do {
                     parent = successor;
                     successor_link = &successor->left;
                     successor = successor->left;
-                } while (successor->left != NULL);
+                } while (successor->left != nullptr);
 
                 successor->left = left;
                 left->parent = successor;
-                node->left = NULL;
+                node->left = nullptr;
 
                 swap(node->right, successor->right);
                 successor->right->parent = successor;
 
-                if (node->right != NULL) {
+                if (node->right != nullptr) {
                     node->right->parent = node;
                 }
 
@@ -453,14 +453,14 @@ avltree_delete_node(struct avltree *const tree,
                 swap(node->height, successor->height);
                 node_link = successor_link;
             } else {
-                node->left = NULL;
+                node->left = nullptr;
                 node->right = successor->right;
 
                 successor->left = left;
                 successor->right = node;
 
                 left->parent = successor;
-                if (node->right != NULL) {
+                if (node->right != nullptr) {
                     node->right->parent = node;
                 }
 
@@ -481,7 +481,7 @@ avltree_delete_node(struct avltree *const tree,
     struct avlnode *const first_child = node->left ?: node->right;
     *node_link = first_child;
 
-    if (first_child != NULL) {
+    if (first_child != nullptr) {
         first_child->parent = parent;
     }
 
@@ -491,12 +491,12 @@ avltree_delete_node(struct avltree *const tree,
 __debug_optimize(3)
 struct avlnode *avltree_leftmost(const struct avltree *const tree) {
     struct avlnode *node = tree->root;
-    if (node == NULL) {
-        return NULL;
+    if (node == nullptr) {
+        return nullptr;
     }
 
     while (true) {
-        if (node->left == NULL) {
+        if (node->left == nullptr) {
             return node;
         }
 
@@ -507,12 +507,12 @@ struct avlnode *avltree_leftmost(const struct avltree *const tree) {
 __debug_optimize(3)
 struct avlnode *avltree_rightmost(const struct avltree *const tree) {
     struct avlnode *node = tree->root;
-    if (node == NULL) {
-        return NULL;
+    if (node == nullptr) {
+        return nullptr;
     }
 
     while (true) {
-        if (node->right == NULL) {
+        if (node->right == nullptr) {
             return node;
         }
 

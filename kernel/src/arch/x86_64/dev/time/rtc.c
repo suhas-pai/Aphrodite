@@ -68,7 +68,7 @@ static inline bool rtc_is_date_in_binary_format(const uint8_t reg_status_b) {
 
 __debug_optimize(3) bool rtc_init() {
     uint8_t reg_b = 0;
-    if (get_acpi_info()->fadt == NULL) {
+    if (get_acpi_info()->fadt == nullptr) {
         printk(LOGLEVEL_WARN,
                "rtc: acpi tables missing cruicial 'fadt' entry\n");
         return false;

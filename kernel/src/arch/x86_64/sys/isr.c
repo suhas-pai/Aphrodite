@@ -103,8 +103,8 @@ __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     with_spinlock_intr_disabled(&g_lock, {
         bitset_unset(g_vector_bitset, vector);
         isr_set_vector(vector,
-                       /*handler=*/NULL,
-                       /*ctx=*/NULL,
+                       /*handler=*/nullptr,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
     });
 
@@ -164,7 +164,7 @@ isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
         return;
     }
 
-    if (__builtin_expect(info->handler != NULL, 1)) {
+    if (__builtin_expect(info->handler != nullptr, 1)) {
         info->handler(vector, frame, info->ctx);
         if (!this_cpu()->called_eoi) {
             printk(LOGLEVEL_WARN,
@@ -221,7 +221,7 @@ void isr_init() {
 
     isr_set_vector(g_spur_vector,
                    spur_tick,
-                   /*ctx=*/NULL,
+                   /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
 
     idt_register_exception_handlers();
@@ -304,7 +304,7 @@ isr_get_msix_address(const struct cpu_info *const cpu,
 
 __debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
-    if (fadt != NULL) {
+    if (fadt != nullptr) {
         if (fadt->iapc_boot_arch_flags
               & __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
         {

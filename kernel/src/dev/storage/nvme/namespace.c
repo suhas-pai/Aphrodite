@@ -220,7 +220,7 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
     }
 
     uint64_t total_size = 0;
-    if (!check_mul(namespace->device.lba_size, lba_range.size, &total_size)) {
+    if (!ckd_mul(&total_size, namespace->device.lba_size, lba_range.size)) {
         printk(LOGLEVEL_WARN,
                "nvme: namespace got request to %s lba-range past end of 64-bit "
                "range of namespace\n",
@@ -257,7 +257,7 @@ void nvme_namespace_destroy(struct nvme_namespace *const namespace) {
         list_deinit(&namespace->list);
     });
 
-    namespace->controller = NULL;
+    namespace->controller = nullptr;
     namespace->nsid = 0;
     namespace->lba_count = 0;
 }

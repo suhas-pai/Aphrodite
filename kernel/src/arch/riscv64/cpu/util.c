@@ -10,21 +10,21 @@
 #include "dev/syscon.h"
 #include "lib/assert.h"
 
-__noreturn void cpu_idle() {
+[[noreturn]] void cpu_idle() {
     assert(intr_are_enabled());
     cpu_halt();
 }
 
-__noreturn void cpu_halt() {
+[[noreturn]] void cpu_halt() {
     while (true) {
         asm("wfi");
     }
 }
 
-__noreturn void cpu_shutdown() {
+[[noreturn]] void cpu_shutdown() {
     syscon_poweroff();
 }
 
-__noreturn void cpu_reboot() {
+[[noreturn]] void cpu_reboot() {
     syscon_reboot();
 }

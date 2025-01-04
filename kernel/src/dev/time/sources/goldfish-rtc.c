@@ -32,7 +32,7 @@ struct goldfish_rtc_info {
     struct mmio_region *mmio;
 };
 
-static struct goldfish_rtc_info *g_goldfish_clock = NULL;
+static struct goldfish_rtc_info *g_goldfish_clock = nullptr;
 
 __debug_optimize(3) struct clock *rtc_clock_get() {
     return &g_goldfish_clock->clock;
@@ -55,7 +55,7 @@ static bool
 init_from_dtb(const struct devicetree *const tree,
               const struct devicetree_node *const node)
 {
-    if (g_goldfish_clock != NULL) {
+    if (g_goldfish_clock != nullptr) {
         printk(LOGLEVEL_WARN,
                "goldfish-rtc: multiple devices found. Ignoring\n");
 
@@ -67,7 +67,7 @@ init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "goldfish-rtc: 'reg' property in dtb node is missing\n");
         return false;
@@ -106,13 +106,13 @@ init_from_dtb(const struct devicetree *const tree,
     struct mmio_region *const mmio =
         vmap_mmio(phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN, "goldfish-rtc: failed to mmio-map region\n");
         return false;
     }
 
     struct goldfish_rtc_info *const goldfish = kmalloc(sizeof(*goldfish));
-    if (goldfish == NULL) {
+    if (goldfish == nullptr) {
         printk(LOGLEVEL_WARN, "goldfish-rtc: failed to alloc clock-info\n");
         vunmap_mmio(mmio);
 
@@ -159,5 +159,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver driver = {
     .name = SV_STATIC("google,goldfish-rtc.driver"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

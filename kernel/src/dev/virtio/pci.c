@@ -16,7 +16,7 @@
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
     enum virtio_device_kind device_kind = pci_entity->id;
-    const char *kind = NULL;
+    const char *kind = nullptr;
 
     switch ((enum virtio_pci_trans_device_kind)device_kind) {
         case VIRTIO_PCI_TRANS_DEVICE_KIND_NETWORK_CARD:
@@ -56,7 +56,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             break;
     }
 
-    if (kind == NULL) {
+    if (kind == nullptr) {
         const struct range device_id_range = range_create_end(0x1040, 0x107f);
         if (!range_has_index(device_id_range, device_kind)) {
             printk(LOGLEVEL_WARN,
@@ -167,7 +167,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             continue;
         }
 
-        const char *cfg_kind = NULL;
+        const char *cfg_kind = nullptr;
         switch (cfg_type) {
             case VIRTIO_PCI_CAP_COMMON_CFG:
                 if (length < sizeof(struct virtio_pci_common_cfg)) {
@@ -293,7 +293,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         cap_index++;
     }
 
-    if (virt_device.pci.common_cfg == NULL) {
+    if (virt_device.pci.common_cfg == nullptr) {
         printk(LOGLEVEL_WARN, "virtio-pci: device is missing a common-cfg\n");
         virtio_device_destroy(&virt_device);
 
@@ -313,7 +313,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     }
 
 #undef pci_read_virtio_cap_field
-    if (virtio_device_init(&virt_device) == NULL) {
+    if (virtio_device_init(&virt_device) == nullptr) {
         virtio_device_destroy(&virt_device);
     }
 }
@@ -326,6 +326,6 @@ static const struct pci_driver pci_driver = {
 
 __driver static const struct driver driver = {
     .name = SV_STATIC("virtio-driver"),
-    .dtb = NULL,
+    .dtb = nullptr,
     .pci = &pci_driver
 };

@@ -22,7 +22,7 @@ pgwalker_alloc_pgtable_cb(struct pg_walker *const walker,
     (void)cb_info;
 
     struct page *const table = alloc_table();
-    if (table != NULL) {
+    if (table != nullptr) {
         return page_to_phys(table);
     }
 
@@ -142,8 +142,8 @@ pgwalker_create_from_root_phys(struct pg_walker *const walker,
 
     pte_t *prev_table = walker->tables[walker->top_level - 1];
     for (pg_level_t level = walker->top_level - 1; level >= 1; level--) {
-        pte_t *table = NULL;
-        if (prev_table != NULL) {
+        pte_t *table = nullptr;
+        if (prev_table != nullptr) {
             const pg_level_t parent_level = level + 1;
             const pg_index_t index = walker->indices[parent_level - 1];
 
@@ -170,7 +170,7 @@ pgwalker_create_from_root_phys(struct pg_walker *const walker,
          index != PGT_LEVEL_COUNT;
          index++)
     {
-        walker->tables[index] = NULL;
+        walker->tables[index] = nullptr;
         walker->indices[index] = 0;
     }
 }
@@ -197,8 +197,8 @@ pgwalker_create_from_toplevel(struct pg_walker *const walker,
 }
 
 static const struct pgwalker_iterate_options default_options = {
-    .alloc_pgtable_cb_info = NULL,
-    .free_pgtable_cb_info = NULL,
+    .alloc_pgtable_cb_info = nullptr,
+    .free_pgtable_cb_info = nullptr,
 
     .alloc_parents = true,
     .alloc_level = true,
@@ -213,7 +213,7 @@ enum pgwalker_result pgwalker_next(struct pg_walker *const walker) {
 __debug_optimize(3) static void
 reset_levels_lower_than(struct pg_walker *const walker, pg_level_t level) {
     for (level--; level >= 1; level--) {
-        walker->tables[level - 1] = NULL;
+        walker->tables[level - 1] = nullptr;
         walker->indices[level - 1] = 0;
     }
 }
@@ -257,7 +257,7 @@ __debug_optimize(3) static void
 pgwalker_drop_lowest(struct pg_walker *const walker,
                      void *const free_pgtable_cb_info)
 {
-    walker->tables[walker->level - 1] = NULL;
+    walker->tables[walker->level - 1] = nullptr;
     walker->indices[walker->level - 1] = 0;
 
     pgwalker_deref_from_level(walker, walker->level + 1, free_pgtable_cb_info);
@@ -292,7 +292,7 @@ alloc_levels_down_to(struct pg_walker *const walker,
                      void *const free_pgtable_cb_info)
 {
     const pgwalker_alloc_pgtable_t alloc_pgtable = walker->alloc_pgtable;
-    assert(alloc_pgtable != NULL);
+    assert(alloc_pgtable != nullptr);
 
     pg_level_t level = parent_level - 1;
     if (level == last_level) {
@@ -599,7 +599,7 @@ pgwalker_deref_from_level(struct pg_walker *const walker,
     }
 
     const pgwalker_free_pgtable_t free_pgtable = walker->free_pgtable;
-    assert(free_pgtable != NULL);
+    assert(free_pgtable != nullptr);
 
     pte_t *table = walker->tables[level - 1];
     for (; level <= walker->top_level; level++) {

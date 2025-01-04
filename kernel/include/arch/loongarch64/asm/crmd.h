@@ -4,8 +4,9 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-enum crmd {
+enum crmd : uint16_t {
     __CRMD_PRIVL = 0b11 << 0,
     __CRMD_INTR_ENABLE = 1 << 2,
     __CRMD_DIRECT_ACCESS_MEM = 1 << 3,

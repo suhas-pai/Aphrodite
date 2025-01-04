@@ -48,7 +48,7 @@
 #define PIB_SV_ABBREV SV_STATIC(C_STR_PIB_ABBREV)
 #define EIB_SV_ABBREV SV_STATIC(C_STR_EIB_ABBREV)
 
-enum size_unit_kind {
+enum size_unit_kind : uint64_t {
     UNIT_KIND_BYTE = 1,
     UNIT_KIND_KIB = kib(1),
     UNIT_KIND_MIB = mib(1),

@@ -8,8 +8,8 @@
 #include <stdbool.h>
 #include "lib/macros.h"
 
-__noreturn void syscon_poweroff();
-__noreturn void syscon_reboot();
+[[noreturn]] void syscon_poweroff();
+[[noreturn]] void syscon_reboot();
 
 struct devicetree;
 struct devicetree_node;

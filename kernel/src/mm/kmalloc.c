@@ -62,7 +62,7 @@ void *kmalloc(const uint32_t size) {
     kmalloc_check_slabs();
     if (__builtin_expect(size == 0, 0)) {
         printk(LOGLEVEL_WARN, "mm: kmalloc() got size=0\n");
-        return NULL;
+        return nullptr;
     }
 
     if (__builtin_expect(size > KMALLOC_MAX, 0)) {
@@ -71,7 +71,7 @@ void *kmalloc(const uint32_t size) {
                "bytes\n",
                size,
                KMALLOC_MAX);
-        return NULL;
+        return nullptr;
     }
 
     struct slab_allocator *allocator = &kmalloc_slabs[0];
@@ -90,7 +90,7 @@ void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
 
     if (__builtin_expect(size == 0, 0)) {
         printk(LOGLEVEL_WARN, "mm: kmalloc_size() got size=0\n");
-        return NULL;
+        return nullptr;
     }
 
     if (__builtin_expect(size > KMALLOC_MAX, 0)) {
@@ -99,7 +99,7 @@ void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
                "bytes\n",
                size,
                KMALLOC_MAX);
-        return NULL;
+        return nullptr;
     }
 
     struct slab_allocator *allocator = &kmalloc_slabs[0];
@@ -110,12 +110,12 @@ void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
     void *const result = slab_alloc(allocator);
     kmalloc_check_slabs();
 
-    if (__builtin_expect(result != NULL, 1)) {
+    if (__builtin_expect(result != nullptr, 1)) {
         *size_out = allocator->object_size;
         return result;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
@@ -123,9 +123,9 @@ __debug_optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
                "mm: krealloc() called before kmalloc_init()");
 
     // Allow buffer=NULL to call kmalloc().
-    if (__builtin_expect(buffer == NULL, 0)) {
+    if (__builtin_expect(buffer == nullptr, 0)) {
         if (__builtin_expect(size == 0, 0)) {
-            return NULL;
+            return nullptr;
         }
 
         return kmalloc(size);
@@ -136,7 +136,7 @@ __debug_optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
         printk(LOGLEVEL_WARN,
                "mm: krealloc(): got size=0, use kfree() instead\n");
 
-        return NULL;
+        return nullptr;
     }
 
     const uint64_t buffer_size = slab_object_size(buffer);
@@ -145,8 +145,8 @@ __debug_optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
     }
 
     void *const ret = kmalloc(size);
-    if (__builtin_expect(ret == NULL, 0)) {
-        return NULL;
+    if (__builtin_expect(ret == nullptr, 0)) {
+        return nullptr;
     }
 
     memcpy(ret, buffer, buffer_size);

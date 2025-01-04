@@ -32,7 +32,7 @@ nvme_queue_create(struct nvme_queue *const queue,
     struct page *const submit_queue_page =
         alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, submit_order);
 
-    if (submit_queue_page == NULL) {
+    if (submit_queue_page == nullptr) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to allocate page for nvme submit-queue\n");
         return false;
@@ -50,7 +50,7 @@ nvme_queue_create(struct nvme_queue *const queue,
     struct page *const completion_queue_page =
         alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, completion_order);
 
-    if (completion_queue_page == NULL) {
+    if (completion_queue_page == nullptr) {
         free_pages(submit_queue_page, submit_order);
         printk(LOGLEVEL_WARN,
                "nvme: failed to allocate page for nvme completion-queue\n");
@@ -65,7 +65,7 @@ nvme_queue_create(struct nvme_queue *const queue,
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
-    if (submit_queue_mmio == NULL) {
+    if (submit_queue_mmio == nullptr) {
         free_pages(submit_queue_page, submit_order);
         free_pages(completion_queue_page, completion_order);
 
@@ -80,7 +80,7 @@ nvme_queue_create(struct nvme_queue *const queue,
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
-    if (completion_queue_mmio == NULL) {
+    if (completion_queue_mmio == nullptr) {
         vunmap_mmio(submit_queue_mmio);
 
         free_pages(submit_queue_page, submit_order);
@@ -143,7 +143,7 @@ nvme_queue_create(struct nvme_queue *const queue,
 
         queue->phys_region_page_list = phys_to_virt(prp_phys);
     } else {
-        queue->phys_region_page_list = NULL;
+        queue->phys_region_page_list = nullptr;
     }
 
     return true;
@@ -165,10 +165,10 @@ uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
 }
 
 __debug_optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
-    if (queue->phys_region_page_list != NULL) {
+    if (queue->phys_region_page_list != nullptr) {
         physalloc_free(virt_to_phys(queue->phys_region_page_list));
 
-        queue->phys_region_page_list = NULL;
+        queue->phys_region_page_list = nullptr;
         queue->phys_region_pages_count = 0;
     }
 
@@ -180,16 +180,16 @@ __debug_optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     free_pages(phys_to_page(queue->completion_queue_phys),
                queue->completion_alloc_order);
 
-    queue->submit_queue_mmio = NULL;
-    queue->completion_queue_mmio = NULL;
+    queue->submit_queue_mmio = nullptr;
+    queue->completion_queue_mmio = nullptr;
     queue->id = 0;
 
-    queue->controller = NULL;
+    queue->controller = nullptr;
     queue->submit_queue_head = 0;
     queue->completion_queue_head = 0;
     queue->submit_queue_tail = 0;
 
-    queue->doorbells = NULL;
+    queue->doorbells = nullptr;
     queue->entry_count = 0;
     queue->phase = false;
 }

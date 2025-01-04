@@ -95,7 +95,7 @@ const char *fdt_get_string(const void *fdt, int stroffset, int *lenp)
 fail:
     if (lenp)
         *lenp = err;
-    return NULL;
+    return nullptr;
 }
 
 const char *fdt_string(const void *fdt, int stroffset)
@@ -165,10 +165,10 @@ static const struct fdt_reserve_entry *fdt_mem_rsv(const void *fdt, int n)
 
     if (!can_assume(VALID_INPUT)) {
         if (absoffset < fdt_off_mem_rsvmap(fdt))
-            return NULL;
+            return nullptr;
         if (absoffset > fdt_totalsize(fdt) -
             sizeof(struct fdt_reserve_entry))
-            return NULL;
+            return nullptr;
     }
     return fdt_mem_rsv_(fdt, n);
 }
@@ -192,7 +192,7 @@ int fdt_num_mem_rsv(const void *fdt)
     int i;
     const struct fdt_reserve_entry *re;
 
-    for (i = 0; (re = fdt_mem_rsv(fdt, i)) != NULL; i++) {
+    for (i = 0; (re = fdt_mem_rsv(fdt, i)) != nullptr; i++) {
         if (fdt64_ld_(&re->size) == 0)
             return i;
     }
@@ -321,7 +321,7 @@ const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
          */
         const char *leaf;
         leaf = strrchr(nameptr, '/');
-        if (leaf == NULL) {
+        if (leaf == nullptr) {
             err = -FDT_ERR_BADSTRUCTURE;
             goto fail;
         }
@@ -336,7 +336,7 @@ const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
  fail:
     if (len)
         *len = err;
-    return NULL;
+    return nullptr;
 }
 
 int fdt_first_property_offset(const void *fdt, int nodeoffset)
@@ -368,7 +368,7 @@ static const struct fdt_property *fdt_get_property_by_offset_(const void *fdt,
         (err = fdt_check_prop_offset_(fdt, offset)) < 0) {
         if (lenp)
             *lenp = err;
-        return NULL;
+        return nullptr;
     }
 
     prop = fdt_offset_ptr_(fdt, offset);
@@ -389,7 +389,7 @@ const struct fdt_property *fdt_get_property_by_offset(const void *fdt,
     if (!can_assume(LATEST) && fdt_version(fdt) < 0x10) {
         if (lenp)
             *lenp = -FDT_ERR_BADVERSION;
-        return NULL;
+        return nullptr;
     }
 
     return fdt_get_property_by_offset_(fdt, offset, lenp);
@@ -422,7 +422,7 @@ static const struct fdt_property *fdt_get_property_namelen_(const void *fdt,
 
     if (lenp)
         *lenp = offset;
-    return NULL;
+    return nullptr;
 }
 
 
@@ -436,7 +436,7 @@ const struct fdt_property *fdt_get_property_namelen(const void *fdt,
     if (!can_assume(LATEST) && fdt_version(fdt) < 0x10) {
         if (lenp)
             *lenp = -FDT_ERR_BADVERSION;
-        return NULL;
+        return nullptr;
     }
 
     return fdt_get_property_namelen_(fdt, offset, name, namelen, lenp,
@@ -461,7 +461,7 @@ const void *fdt_getprop_namelen(const void *fdt, int nodeoffset,
     prop = fdt_get_property_namelen_(fdt, nodeoffset, name, namelen, lenp,
                      &poffset);
     if (!prop)
-        return NULL;
+        return nullptr;
 
     /* Handle realignment */
     if (!can_assume(LATEST) && fdt_version(fdt) < 0x10 &&
@@ -478,7 +478,7 @@ const void *fdt_getprop_by_offset(const void *fdt, int offset,
 
     prop = fdt_get_property_by_offset_(fdt, offset, lenp);
     if (!prop)
-        return NULL;
+        return nullptr;
     if (namep) {
         const char *name;
         int namelen;
@@ -490,7 +490,7 @@ const void *fdt_getprop_by_offset(const void *fdt, int offset,
             if (!name) {
                 if (lenp)
                     *lenp = namelen;
-                return NULL;
+                return nullptr;
             }
         } else {
             *namep = fdt_string(fdt, (int)fdt32_ld_(&prop->nameoff));
@@ -535,7 +535,7 @@ static const void *fdt_path_getprop_namelen(const void *fdt, const char *path,
     int offset = fdt_path_offset(fdt, path);
 
     if (offset < 0)
-        return NULL;
+        return nullptr;
 
     return fdt_getprop_namelen(fdt, offset, propname, propnamelen, lenp);
 }
@@ -550,7 +550,7 @@ const char *fdt_get_alias_namelen(const void *fdt,
 
     if (!can_assume(VALID_DTB) &&
         !(alias && len > 0 && alias[len - 1] == '\0' && *alias == '/'))
-        return NULL;
+        return nullptr;
 
     return alias;
 }
@@ -823,7 +823,7 @@ const char *fdt_stringlist_get(const void *fdt, int nodeoffset,
         if (lenp)
             *lenp = length;
 
-        return NULL;
+        return nullptr;
     }
 
     end = list + length;
@@ -836,7 +836,7 @@ const char *fdt_stringlist_get(const void *fdt, int nodeoffset,
             if (lenp)
                 *lenp = -FDT_ERR_BADVALUE;
 
-            return NULL;
+            return nullptr;
         }
 
         if (idx == 0) {
@@ -853,7 +853,7 @@ const char *fdt_stringlist_get(const void *fdt, int nodeoffset,
     if (lenp)
         *lenp = -FDT_ERR_NOTFOUND;
 
-    return NULL;
+    return nullptr;
 }
 
 int fdt_node_check_compatible(const void *fdt, int nodeoffset,

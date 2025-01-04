@@ -6,7 +6,7 @@
 #pragma once
 #include "entity.h"
 
-enum pci_driver_match {
+enum pci_driver_match : uint8_t {
     PCI_DRIVER_MATCH_VENDOR_DEVICE,
     PCI_DRIVER_MATCH_VENDOR,
 

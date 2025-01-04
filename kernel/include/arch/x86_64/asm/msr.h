@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 
-enum ia32_msr {
+enum ia32_msr : uint32_t {
     IA32_MSR_APIC_BASE = 0x1B,
 
     IA32_MSR_PAT = 0x277,
@@ -47,7 +47,7 @@ enum ia32_msr {
 
 };
 
-enum ia32_msr_efer_flags {
+enum ia32_msr_efer_flags : uint16_t {
     // System Call Extensions
     __IA32_MSR_EFER_BIT_SCE = 1ull << 0,
 
@@ -61,7 +61,7 @@ enum ia32_msr_efer_flags {
     __IA32_MSR_EFER_BIT_NXE = 1ull << 11,
 };
 
-enum ia32_msr_misc_flags {
+enum ia32_msr_misc_flags : uint32_t {
     __IA32_MSR_MISC_FAST_STRING_ENABLE    = 1ull << 0,
     __IA32_MSR_MISC_POPCODE_COMPAT_ENABLE = 1ull << 2,
     __IA32_MSR_MISC_THERM_MONITOR_ENABLE  = 1ull << 3,
@@ -74,7 +74,7 @@ enum ia32_msr_misc_flags {
     __IA32_MSR_MISC_ADJC_SECT_PREFETCH_DISABLE = 1ull << 19
 };
 
-enum msr_pat_encoding {
+enum msr_pat_encoding : uint8_t {
     MSR_PAT_ENCODING_UNCACHEABLE = 0x00,
     MSR_PAT_ENCODING_WRITE_COMBINING = 0x01,
     MSR_PAT_ENCODING_WRITE_THROUGH = 0x04,
@@ -83,7 +83,7 @@ enum msr_pat_encoding {
     MSR_PAT_ENCODING_UNCACHED = 0x07,
 };
 
-enum msr_pat_indexes {
+enum msr_pat_indexes : uint8_t {
     // PAT=0, PCD=0, PWT=0
     MSR_PAT_INDEX_PAT0 = 0,
 

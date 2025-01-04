@@ -144,18 +144,18 @@ const void *fdt_offset_ptr(const void *fdt, int offset, unsigned int len)
     unsigned int absoffset = (unsigned)offset + fdt_off_dt_struct(fdt);
 
     if (offset < 0)
-        return NULL;
+        return nullptr;
 
     if (!can_assume(VALID_INPUT))
         if ((absoffset < uoffset)
             || ((absoffset + len) < absoffset)
             || (absoffset + len) > fdt_totalsize(fdt))
-            return NULL;
+            return nullptr;
 
     if (can_assume(LATEST) || fdt_version(fdt) >= 0x11)
         if (((uoffset + len) < uoffset)
             || (((unsigned)offset + len) > fdt_size_dt_struct(fdt)))
-            return NULL;
+            return nullptr;
 
     return fdt_offset_ptr_(fdt, offset);
 }
@@ -324,7 +324,7 @@ const char *fdt_find_string_(const char *strtab, int tabsize, const char *s)
     for (p = strtab; p <= last; p++)
         if (memcmp(p, s, (size_t)len) == 0)
             return p;
-    return NULL;
+    return nullptr;
 }
 
 int fdt_move(const void *fdt, void *buf, int bufsize)

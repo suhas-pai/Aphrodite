@@ -571,7 +571,7 @@ ahci_hba_port_set_state(volatile struct ahci_spec_hba_port *const port,
     uint32_t cmd_status = mmio_read(&port->cmd_status);
     cmd_status =
         rm_mask(cmd_status, __AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL)
-      | ctrl << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT;
+      | (uint32_t)ctrl << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT;
 
     mmio_write(&port->cmd_status, cmd_status);
 }
@@ -643,8 +643,8 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     // We assume here that the port is idle.
     assert(ahci_hba_port_is_idle(port));
 
-    struct page *cmd_list_page = NULL;
-    struct page *cmd_table_pages = NULL;
+    struct page *cmd_list_page = nullptr;
+    struct page *cmd_table_pages = nullptr;
 
     const bool supports_64bit_dma = ahci_hba_get()->supports_64bit_dma;
     if (supports_64bit_dma) {
@@ -668,8 +668,8 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
                                   /*allow_fallback=*/true);
     }
 
-    if (cmd_list_page == NULL) {
-        if (cmd_table_pages != NULL) {
+    if (cmd_list_page == nullptr) {
+        if (cmd_table_pages != nullptr) {
             free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
         }
 
@@ -677,7 +677,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         return false;
     }
 
-    if (cmd_table_pages == NULL) {
+    if (cmd_table_pages == nullptr) {
         free_page(cmd_list_page);
         printk(LOGLEVEL_WARN, "ahci: failed to allocate pages for hba port\n");
 
@@ -700,7 +700,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         kmalloc(sizeof(struct ahci_hba_port_cmdhdr_info)
                 * AHCI_HBA_CMD_HDR_COUNT);
 
-    if (cmdhdr_info_list == NULL) {
+    if (cmdhdr_info_list == nullptr) {
         free_page(cmd_list_page);
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
@@ -733,7 +733,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     struct mmio_region *const mmio =
         vmap_mmio(phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         free_page(cmd_list_page);
         free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
 
@@ -744,7 +744,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     struct page *const resp_page =
         alloc_page(PAGE_STATE_USED, /*alloc_flags=*/0);
 
-    if (resp_page == NULL) {
+    if (resp_page == nullptr) {
         vunmap_mmio(mmio);
 
         free_page(cmd_list_page);

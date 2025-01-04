@@ -120,7 +120,7 @@ parse_reg_pairs(const void *const dtb,
         return false;
     }
 
-    const fdt32_t *data = NULL;
+    const fdt32_t *data = nullptr;
     uint32_t data_length = 0;
 
     if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
@@ -180,7 +180,7 @@ parse_ranges_prop(const void *const dtb,
         *has_flags_out = true;
     }
 
-    const fdt32_t *data = NULL;
+    const fdt32_t *data = nullptr;
     uint32_t data_length = 0;
 
     if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
@@ -329,7 +329,7 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
                         const int prop_length,
                         struct array *const array)
 {
-    const fdt32_t *data = NULL;
+    const fdt32_t *data = nullptr;
     uint32_t data_length = 0;
 
     if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
@@ -462,7 +462,7 @@ parse_interrupt_map_prop(const void *const dtb,
         return false;
     }
 
-    const fdt32_t *data = NULL;
+    const fdt32_t *data = nullptr;
     uint32_t data_length = 0;
 
     if (!parse_array_prop(fdt_prop, (int)prop_length, &data, &data_length)) {
@@ -499,7 +499,7 @@ parse_interrupt_map_prop(const void *const dtb,
         const struct devicetree_node *const phandle_node =
             devicetree_get_node_for_phandle(tree, info.phandle);
 
-        if (phandle_node == NULL) {
+        if (phandle_node == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map refers to a phandle "
                    "0x%" PRIx32 " w/o a corresponding node\n",
@@ -512,7 +512,7 @@ parse_interrupt_map_prop(const void *const dtb,
                 devicetree_node_get_prop(phandle_node,
                                          DEVICETREE_PROP_ADDR_SIZE_CELLS);
 
-        if (phandle_prop_info != NULL) {
+        if (phandle_prop_info != nullptr) {
             if (!parse_cell_pair(&data,
                                  data_end,
                                  (int)phandle_prop_info->addr_cells,
@@ -527,7 +527,7 @@ parse_interrupt_map_prop(const void *const dtb,
                 devicetree_node_get_prop(phandle_node,
                                          DEVICETREE_PROP_INTR_CELLS);
 
-        if (intr_cells_prop == NULL) {
+        if (intr_cells_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map prop of phandle 0x%" PRIx32 "'s "
                    "corresponding node is missing the #interrupt-cells "
@@ -540,7 +540,7 @@ parse_interrupt_map_prop(const void *const dtb,
             devicetree_node_get_prop(phandle_node,
                                      DEVICETREE_PROP_INTR_CONTROLLER);
 
-        if (intr_ctrl_prop == NULL) {
+        if (intr_ctrl_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: interrupt-map's phandle 0x%" PRIx32 "'s "
                    "corresponding node is missing the interrupt-controller "
@@ -588,7 +588,7 @@ parse_specifier_map_prop(const void *const dtb,
         return true;
     }
 
-    const fdt32_t *data = NULL;
+    const fdt32_t *data = nullptr;
     uint32_t data_length = 0;
 
     if (!parse_array_prop(fdt_prop, prop_length, &data, &data_length)) {
@@ -718,7 +718,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_compat *const compat_prop =
                     kmalloc(sizeof(*compat_prop));
 
-                if (compat_prop == NULL) {
+                if (compat_prop == nullptr) {
                     return false;
                 }
 
@@ -753,7 +753,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_reg *const prop = kmalloc(sizeof(*prop));
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     array_destroy(&list);
                     return false;
                 }
@@ -796,7 +796,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_ranges *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     array_destroy(&list);
                     return false;
                 }
@@ -831,7 +831,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_model *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -863,7 +863,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_status *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -918,7 +918,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_phandle *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -955,7 +955,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_virtual_reg *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -996,7 +996,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_ranges *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     array_destroy(&list);
                     return false;
                 }
@@ -1024,7 +1024,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_no_value *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1047,7 +1047,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_device_type *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1069,7 +1069,7 @@ parse_node_prop(const void *const dtb,
             [[fallthrough]];
         case DEVICETREE_PROP_INTERRUPTS:
             if (sv_equals(name, SV_STATIC("interrupts"))) {
-                const fdt32_t *data = NULL;
+                const fdt32_t *data = nullptr;
                 uint32_t count = 0;
 
                 if (!parse_array_prop(fdt_prop, prop_len, &data, &count)) {
@@ -1114,7 +1114,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_intr_parent *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1139,7 +1139,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_no_value *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1167,7 +1167,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_intr_cells *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1197,7 +1197,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_intr_map_mask *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     array_destroy(&list);
                     return false;
                 }
@@ -1225,7 +1225,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_no_value *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1266,7 +1266,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_specifier_map *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     array_destroy(&list);
                     return false;
                 }
@@ -1300,7 +1300,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_specifier_cells *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1331,7 +1331,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_clock_frequency *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1361,7 +1361,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_current_speed *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1392,7 +1392,7 @@ parse_node_prop(const void *const dtb,
                 struct devicetree_prop_bus_range *const prop =
                     kmalloc(sizeof(*prop));
 
-                if (prop == NULL) {
+                if (prop == nullptr) {
                     return false;
                 }
 
@@ -1417,7 +1417,7 @@ parse_node_prop(const void *const dtb,
     struct devicetree_prop_other *const other_prop =
         kmalloc(sizeof(*other_prop));
 
-    if (other_prop == NULL) {
+    if (other_prop == nullptr) {
         return false;
     }
 
@@ -1442,7 +1442,7 @@ parse_node_children(const void *const dtb,
     int nodeoff = 0;
     fdt_for_each_subnode(nodeoff, dtb, parent->nodeoff) {
         struct devicetree_node *const node = kmalloc(sizeof(*node));
-        if (node == NULL) {
+        if (node == nullptr) {
             return false;
         }
 
@@ -1582,7 +1582,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         struct devicetree_prop_intr_map *const map_prop =
             kmalloc(sizeof(*map_prop));
 
-        if (map_prop == NULL) {
+        if (map_prop == nullptr) {
             array_destroy(&list);
 
             parse_later_info_destroy(&later_info);
@@ -1619,7 +1619,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                 devicetree_node_get_prop(parent,
                                          DEVICETREE_PROP_INTR_PARENT);
 
-        if (intr_parent == NULL) {
+        if (intr_parent == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: node " SV_FMT "'s parent is missing an "
                    "'interrupt-parent' prop necessary to parse 'interrupts' "
@@ -1635,7 +1635,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         const struct devicetree_node *const intc_node =
             devicetree_get_node_for_phandle(tree, intr_parent->phandle);
 
-        if (intc_node == NULL) {
+        if (intc_node == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: node " SV_FMT "'s parent is missing an "
                    "'interrupt-parent' prop doesn't point to any node\n",
@@ -1662,7 +1662,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                 devicetree_node_get_prop(intc_node,
                                          DEVICETREE_PROP_INTR_CELLS);
 
-        if (intr_cells_prop == NULL) {
+        if (intr_cells_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: node " SV_FMT "'s parent's 'interrupt-parent' "
                    "prop points to an interrupt-controller prop that's missing "
@@ -1733,7 +1733,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         }
 
         struct devicetree_prop_interrupts *const prop = kmalloc(sizeof(*prop));
-        if (prop == NULL) {
+        if (prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: failed to alloc memory while parsing\n");
 

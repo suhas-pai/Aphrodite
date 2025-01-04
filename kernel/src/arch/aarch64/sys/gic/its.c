@@ -18,36 +18,36 @@
 #include "sched/thread.h"
 #include "sys/mmio.h"
 
-enum gic_its_baser_page_size {
+enum gic_its_baser_page_size : uint8_t {
     GIC_ITS_BASER_PAGE_SIZE_4KIB,
     GIC_ITS_BASER_PAGE_SIZE_16KIB,
     GIC_ITS_BASER_PAGE_SIZE_64KIB,
 };
 
-enum gic_its_baser_cacheability {
+enum gic_its_baser_cacheability : uint8_t {
     GIC_ITS_BASER_CACHEABILITY_NONE,
     GIC_ITS_BASER_CACHEABILITY_INNER_SHAREABLE,
     GIC_ITS_BASER_CACHEABILITY_OUTER_SHAREABLE
 };
 
-enum gic_its_baser_kind {
+enum gic_its_baser_kind : uint8_t {
     GIC_ITS_BASER_KIND_UNIMPLEMENTED,
     GIC_ITS_BASER_KIND_DEVICES,
     GIC_ITS_BASER_KIND_VPES,
     GIC_ITS_BASER_KIND_INTR_COLLECTIONS = 0b100,
 };
 
-enum gic_its_baser_shifts {
+enum gic_its_baser_shifts : uint8_t {
     GIC_ITS_BASER_PAGE_SIZE_SHIFT = 8,
     GIC_ITS_BASER_ENTRY_SIZE_SHIFT_MINUS_ONE = 48,
     GIC_ITS_BASER_TYPE_SHIFT = 56
 };
 
-enum gic_its_ctrl_flags {
+enum gic_its_ctrl_flags : uint8_t {
     __GIC_ITS_CTRL_ENABLED = 1 << 0,
 };
 
-enum gic_its_typer_shifts {
+enum gic_its_typer_shifts : uint8_t {
     GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE_SHIFT = 4,
     GIC_ITS_TYPER_INTR_ID_BITS_MINUS_ONE_SHIFT = 8,
     GIC_ITS_TYPER_DEV_ID_BITS_MINUS_ONE_SHIFT = 13,
@@ -55,7 +55,7 @@ enum gic_its_typer_shifts {
     GIC_ITS_TYPER_COLLECTION_ID_BITS_MINUS_ONE_SHIFT = 32,
 };
 
-enum gic_its_typer_flags {
+enum gic_its_typer_flags : uint64_t {
     __GIC_ITS_TYPER_SUPPORTS_PHYS_LPIS = 1 << 0,
     __GIC_ITS_TYPER_SUPPORTS_VIRT_LPIS = 1 << 1,
     __GIC_ITS_TYPER_ITT_ENTRY_SIZE_MINUS_ONE =
@@ -73,7 +73,7 @@ enum gic_its_typer_flags {
     __GIC_ITS_TYPER_SUPPORTS_COLLECTION_ID_LIMIT = 1ull << 33,
 };
 
-enum gic_its_baser_flags {
+enum gic_its_baser_flags : uint64_t {
     __GIC_ITS_BASER_PAGE_COUNT = 0xFF,
     __GIC_ITS_BASER_PAGE_SIZE = 0b11 << GIC_ITS_BASER_PAGE_SIZE_SHIFT,
     __GIC_ITS_BASER_ENTRY_SIZE_MINUS_ONE =
@@ -103,7 +103,7 @@ struct gic_its_registers {
     volatile uint64_t translator;
 };
 
-enum gic_its_command_kind {
+enum gic_its_command_kind : uint8_t {
     GIC_ITS_CMD_MOVI = 0x01,
     GIC_ITS_CMD_INT = 0x03,
     GIC_ITS_CMD_CLEAR,
@@ -130,12 +130,12 @@ struct gic_its_cmd_queue_entry {
     uint64_t dwords[3];
 };
 
-enum gic_its_device_table_entry_shifts {
+enum gic_its_device_table_entry_shifts : uint8_t {
     GIC_ITS_DEVICE_TABLE_ENTRY_SIZE_SHIFT = 1,
     GIC_ITS_DEVICE_TABLE_ENTRY_PHYS_ADDR_SHIFT = 8
 };
 
-enum gic_its_device_table_entry_flags {
+enum gic_its_device_table_entry_flags : uint64_t {
     __GIC_ITS_DEVICE_TABLE_ENTRY_VALID = 1 << 0,
     __GIC_ITS_DEVICE_TABLE_ENTRY_SIZE =
         mask_for_n_bits(5) << GIC_ITS_DEVICE_TABLE_ENTRY_SIZE_SHIFT,
@@ -357,8 +357,8 @@ volatile uint64_t *gic_its_get_msi_address(struct gic_its_info *const its) {
 struct gic_its_info *
 gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
     struct gic_its_info *const info = kmalloc(sizeof(*info));
-    if (info == NULL) {
-        return NULL;
+    if (info == nullptr) {
+        return nullptr;
     }
 
     info->id = id;
@@ -375,15 +375,16 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                "gic/its: failed to align register range " RANGE_FMT " to "
                "page-size\n",
                RANGE_FMT_ARGS(range));
-        return NULL;
+
+        return nullptr;
     }
 
     info->mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (info->mmio == NULL) {
+    if (info->mmio == nullptr) {
         kfree(info);
         printk(LOGLEVEL_WARN, "gic/its: failed to mmio-map msi registers\n");
 
-        return false;
+        return nullptr;
     }
 
     info->bitset_lock = SPINLOCK_INIT();
@@ -393,23 +394,23 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
     struct page *const cmd_queue_page =
         alloc_pages(PAGE_STATE_USED, __ALLOC_ZERO, CMD_QUEUE_PAGE_ORDER);
 
-    if (cmd_queue_page == NULL) {
+    if (cmd_queue_page == nullptr) {
         vunmap_mmio(info->mmio);
         kfree(info);
 
         printk(LOGLEVEL_WARN, "gic/its: failed to alloc cmd-queue page\n");
-        return NULL;
+        return nullptr;
     }
 
     info->bitset = kmalloc(bitset_size_for_count(GIC_ITS_MAX_LPIS_SUPPORTED));
-    if (info->bitset == NULL) {
+    if (info->bitset == nullptr) {
         free_page(cmd_queue_page);
 
         vunmap_mmio(info->mmio);
         kfree(info);
 
         printk(LOGLEVEL_WARN, "gic/its: failed to alloc bitset\n");
-        return NULL;
+        return nullptr;
     }
 
     volatile struct gic_its_registers *const regs = info->mmio->base;
@@ -519,8 +520,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                                 __ALLOC_ZERO,
                                 DEVICE_TABLE_PAGE_ORDER);
 
-                if (table_page == NULL) {
-                    return NULL;
+                if (table_page == nullptr) {
+                    return nullptr;
                 }
 
                 mmio_write(baser_iter, page_to_phys(table_page) | baser);
@@ -538,8 +539,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                                 __ALLOC_ZERO,
                                 COLLECTION_TABLE_PAGE_ORDER);
 
-                if (table_page == NULL) {
-                    return NULL;
+                if (table_page == nullptr) {
+                    return nullptr;
                 }
 
                 mmio_write(baser_iter, page_to_phys(table_page) | baser);
@@ -576,29 +577,29 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
     const struct devicetree_prop *const msi_controller_prop =
         devicetree_node_get_prop(node, DEVICETREE_PROP_MSI_CONTROLLER);
 
-    if (msi_controller_prop == NULL) {
+    if (msi_controller_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "gic/its: dtb node is missing a 'msi-controller' property\n");
 
-        return NULL;
+        return nullptr;
     }
 
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "gic/its: dtb node is missing a 'reg' property\n");
 
-        return NULL;
+        return nullptr;
     }
 
     if (array_item_count(reg_prop->list) != 1) {
         printk(LOGLEVEL_WARN,
                "gic/its: reg prop of dtb node is of the incorrect length\n");
 
-        return NULL;
+        return nullptr;
     }
 
     struct devicetree_prop_reg_info *const msi_reg_info =
@@ -606,18 +607,18 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
 
     if (msi_reg_info->size < sizeof(struct gic_its_registers)) {
         printk(LOGLEVEL_INFO, "gic/its: reg's range is too small\n");
-        return NULL;
+        return nullptr;
     }
 
     const struct devicetree_prop_phandle *const phandle_prop =
         (const struct devicetree_prop_phandle *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
 
-    if (phandle_prop == NULL) {
+    if (phandle_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "gic/its: dtb node is missing a 'phandle' property\n");
 
-        return NULL;
+        return nullptr;
     }
 
     return gic_its_init_from_info(phandle_prop->phandle, msi_reg_info->address);

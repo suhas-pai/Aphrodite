@@ -6,7 +6,7 @@
 #pragma once
 #include "sys/pio.h"
 
-enum pio_port {
+enum pio_port : uint16_t {
     PIO_PORT_PIT_CHANNEL_0_DATA = 0x40,
     PIO_PORT_PIT_MODE_COMMAND = 0x43,
 

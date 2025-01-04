@@ -61,8 +61,8 @@ __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     with_spinlock_intr_disabled(&g_lock, {
         bitset_unset(g_vector_bitset, vector);
         isr_set_vector(vector,
-                       /*handler=*/NULL,
-                       /*ctx=*/NULL,
+                       /*handler=*/nullptr,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
     });
 }
@@ -152,7 +152,7 @@ isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
             panic("Got machine external interrupt");
     }
 
-    if (g_callbacks[code].handler != NULL) {
+    if (g_callbacks[code].handler != nullptr) {
         g_callbacks[code].handler(code, context, g_callbacks[code].ctx);
         return;
     }

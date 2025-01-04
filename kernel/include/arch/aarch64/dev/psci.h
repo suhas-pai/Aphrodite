@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum psci_function {
+enum psci_function : uint8_t {
     PSCI_FUNC_VERSION,
     PSCI_FUNC_CPU_OFF,
     PSCI_FUNC_MIGRATE_INFO_TYPE,
@@ -21,7 +21,7 @@ enum psci_function {
     PSCI_FUNC_MIGRATE_INFO_UP_CPU
 };
 
-enum psci_return_value {
+enum psci_return_value : int8_t {
     PSCI_RETVAL_SUCCESS,
     PSCI_RETVAL_NOT_SUPPORTED    = -1,
     PSCI_RETVAL_INVALID_PARAMS   = -2,
@@ -33,7 +33,7 @@ enum psci_return_value {
     PSCI_RETVAL_DISABLED         = -8,
 };
 
-enum psci_invoke_method {
+enum psci_invoke_method : uint8_t {
     PSCI_INVOKE_METHOD_NONE,
     PSCI_INVOKE_METHOD_HVC,
     PSCI_INVOKE_METHOD_SMC

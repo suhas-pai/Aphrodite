@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "location.h"
 
-enum pci_domain_kind {
+enum pci_domain_kind : uint8_t {
 #if defined(__x86_64__)
     PCI_DOMAIN_LEGACY,
 #endif /* defined(__x86_64__) */

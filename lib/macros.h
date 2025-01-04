@@ -12,10 +12,6 @@
     #define __unused __attribute__((unused))
 #endif /* !defined(__unused )*/
 
-#if !defined(__noreturn)
-    #define __noreturn __attribute__((noreturn))
-#endif /* !defined(__noreturn )*/
-
 #if !defined(__packed)
     #define __packed __attribute__((packed))
 #endif /* !defined(__packed) */

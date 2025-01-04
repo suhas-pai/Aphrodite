@@ -19,7 +19,7 @@ devicetree_node_init_fields(struct devicetree_node *const node,
         HASHMAP_INIT(sizeof(struct devicetree_prop *),
                      DEVICETREE_PROP_MAP_BUCKET_COUNT,
                      hashmap_no_hash,
-                     /*hash_cb_info=*/NULL);
+                     /*hash_cb_info=*/nullptr);
 
     node->other_props = ARRAY_INIT(sizeof(struct devicetree_prop_other *));
 }
@@ -44,7 +44,7 @@ devicetree_prop_other_get_u32_list(
     uint32_t *const count_out)
 {
     uint32_t elem_size = 0;
-    if (!check_mul(u32_in_elem_count, sizeof(uint32_t), &elem_size)) {
+    if (!ckd_mul(&elem_size, u32_in_elem_count, sizeof(uint32_t))) {
         return false;
     }
 
@@ -71,11 +71,11 @@ devicetree_node_get_prop(const struct devicetree_node *const node,
     struct devicetree_prop **const prop_ptr =
         hashmap_get(&node->known_props, hashmap_key_create(kind));
 
-    if (prop_ptr != NULL) {
+    if (prop_ptr != nullptr) {
         return *prop_ptr;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) const struct devicetree_prop_other *
@@ -92,7 +92,7 @@ devicetree_node_get_other_prop(const struct devicetree_node *const node,
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) bool
@@ -103,7 +103,7 @@ devicetree_node_has_compat_sv(const struct devicetree_node *const node,
         (const struct devicetree_prop_compat *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
 
-    if (compat_prop != NULL) {
+    if (compat_prop != nullptr) {
         return devicetree_prop_compat_has_sv(compat_prop, sv);
     }
 
@@ -121,7 +121,7 @@ fdt_stringlist_contains_sv(const char *strlist,
         }
 
         const char *const p = memchr(strlist, '\0', (size_t)listlen);
-        if (p == NULL) {
+        if (p == nullptr) {
             return false; /* malformed strlist.. */
         }
 

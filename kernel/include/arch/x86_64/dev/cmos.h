@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 
-enum cmos_register {
+enum cmos_register : uint8_t {
     CMOS_REGISTER_RTC_SECOND,
     CMOS_REGISTER_RTC_MINUTE = 0x02,
     CMOS_REGISTER_RTC_HOUR   = 0x04,

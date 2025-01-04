@@ -26,10 +26,10 @@
 __debug_optimize(3) struct pagemap pagemap_empty() {
     struct pagemap result = {
     #if PAGEMAP_HAS_SPLIT_ROOT
-        .lower_root = NULL,
-        .higher_root = NULL,
+        .lower_root = nullptr,
+        .higher_root = nullptr,
     #else
-        .root = NULL,
+        .root = nullptr,
     #endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
         .addrspace = ADDRSPACE_INIT(result.addrspace),
@@ -151,10 +151,10 @@ pagemap_add_vma(struct pagemap *const pagemap,
 
 void switch_to_pagemap(struct pagemap *const pagemap) {
 #if PAGEMAP_HAS_SPLIT_ROOT
-    assert(pagemap->lower_root != NULL);
-    assert(pagemap->higher_root != NULL);
+    assert(pagemap->lower_root != nullptr);
+    assert(pagemap->higher_root != nullptr);
 #else
-    assert(pagemap->root != NULL);
+    assert(pagemap->root != nullptr);
 #endif /* PAGEMAP_HAS_SPLIT_ROOT */
 
     with_spinlock_intr_disabled(&pagemap->cpu_lock, {
@@ -193,7 +193,7 @@ __debug_optimize(3) uint64_t
 pagemap_virt_get_phys(const struct pagemap *const pagemap, const uint64_t virt)
 {
     struct pg_walker walker;
-    pgwalker_create_for_pagemap(&walker, pagemap, virt, NULL, NULL);
+    pgwalker_create_for_pagemap(&walker, pagemap, virt, nullptr, nullptr);
 
     const uint64_t phys = pgwalker_get_phys_addr(&walker);
     if (phys == INVALID_PHYS) {

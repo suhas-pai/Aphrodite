@@ -11,7 +11,7 @@
 
 #include "sys/irq.h"
 
-enum devicetree_prop_kind {
+enum devicetree_prop_kind : uint32_t {
     DEVICETREE_PROP_COMPAT,
     DEVICETREE_PROP_REG,
     DEVICETREE_PROP_RANGES,
@@ -89,7 +89,7 @@ struct devicetree_prop_virtual_reg {
     uint32_t address;
 };
 
-enum devicetree_prop_status_kind {
+enum devicetree_prop_status_kind : uint8_t {
     DEVICETREE_PROP_STATUS_OKAY,
     DEVICETREE_PROP_STATUS_DISABLED,
     DEVICETREE_PROP_STATUS_RESERVED,
@@ -236,7 +236,7 @@ struct devicetree_node {
 };
 
 #define devicetree_node_foreach_child(node, iter) \
-    struct devicetree_node *iter = NULL; \
+    struct devicetree_node *iter = nullptr; \
     list_foreach(iter, &(node)->child_list, sibling_list)
 
 void

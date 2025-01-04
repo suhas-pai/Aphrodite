@@ -61,8 +61,8 @@ void setup_flanterm() {
             boot_get_fb()->framebuffers[i];
 
         struct flanterm_context *const context =
-            flanterm_fb_init(/*_malloc=*/NULL,
-                             /*_free=*/NULL,
+            flanterm_fb_init(/*_malloc=*/nullptr,
+                             /*_free=*/nullptr,
                              framebuffer->address,
                              framebuffer->width,
                              framebuffer->height,
@@ -76,15 +76,15 @@ void setup_flanterm() {
                              framebuffer->blue_mask_shift,
                         #endif /* !defined(FLANTERM_FB_SUPPORT_BPP) */
                         #if !defined(FLANTERM_FB_DISABLE_CANVAS)
-                             /*canvas=*/NULL,
+                             /*canvas=*/nullptr,
                         #endif /* !defined(FLANTERM_FB_DISABLE_CANVAS) */
-                             /*ansi_colours=*/NULL,
-                             /*ansi_bright_colours=*/NULL,
-                             /*default_bg=*/NULL,
-                             /*default_fg=*/NULL,
-                             /*default_bg_bright=*/NULL,
-                             /*default_fg_bright=*/NULL,
-                             /*font=*/NULL,
+                             /*ansi_colours=*/nullptr,
+                             /*ansi_bright_colours=*/nullptr,
+                             /*default_bg=*/nullptr,
+                             /*default_fg=*/nullptr,
+                             /*default_bg_bright=*/nullptr,
+                             /*default_fg_bright=*/nullptr,
+                             /*font=*/nullptr,
                              /*font_width=*/0,
                              /*font_height=*/0,
                              /*font_spacing=*/1,
@@ -92,7 +92,7 @@ void setup_flanterm() {
                              /*font_scale_y=*/1,
                              /*margin=*/0);
 
-        if (context == NULL) {
+        if (context == nullptr) {
             printk(LOGLEVEL_WARN, "flanterm: failed to init\n");
             continue;
         }

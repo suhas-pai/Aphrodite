@@ -31,12 +31,12 @@
 #endif /* defined(__aarch64__) */
 
 void madt_init(const struct acpi_madt *const madt) {
-    const struct acpi_madt_entry_header *iter = NULL;
+    const struct acpi_madt_entry_header *iter = nullptr;
 
 #if defined(__x86_64__)
     uint64_t local_apic_base = madt->local_apic_base;
 #elif defined(__aarch64__)
-    const struct acpi_madt_entry_gic_distributor *gic_dist = NULL;
+    const struct acpi_madt_entry_gic_distributor *gic_dist = nullptr;
     struct array msi_frame_list =
         ARRAY_INIT(sizeof(struct acpi_madt_entry_gic_msi_frame *));
 
@@ -52,7 +52,7 @@ void madt_init(const struct acpi_madt *const madt) {
     struct array hart_irq_ctlr_list =
         ARRAY_INIT(sizeof(struct acpi_madt_riscv_hart_irq_controller *));
 
-    const struct acpi_madt_riscv_imsic *supervisor_imsic = NULL;
+    const struct acpi_madt_riscv_imsic *supervisor_imsic = nullptr;
 #endif /* defined(_-x86_64__) */
 
     uint32_t length = madt->sdt.length - sizeof(*madt);
@@ -580,20 +580,20 @@ void madt_init(const struct acpi_madt *const madt) {
                             __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE ?
                                 "yes" : "no",
                        ctrlr->hart_id,
-                       cpu != NULL ? "" : " (cpu not found)",
+                       cpu != nullptr ? "" : " (cpu not found)",
                        ctrlr->acpi_proc_uid,
                        ctrlr->external_irq_controller_id,
                        (void *)ctrlr->imsic_base,
                        ctrlr->imsic_size);
 
-                if (cpu != NULL) {
+                if (cpu != nullptr) {
                     struct mmio_region *const imsic_mmio =
                         vmap_mmio(RANGE_INIT(ctrlr->imsic_base,
                                              ctrlr->imsic_size),
                                   PROT_READ | PROT_WRITE,
                                   /*flags=*/0);
 
-                    assert_msg(imsic_mmio != NULL,
+                    assert_msg(imsic_mmio != nullptr,
                                "madt: failed to map imsic page\n");
 
                     cpu->imsic_phys = ctrlr->imsic_base;
@@ -741,7 +741,7 @@ void madt_init(const struct acpi_madt *const madt) {
     apic_init(local_apic_base);
     isr_setup_irq_pins();
 #elif defined(__aarch64__)
-    assert_msg(gic_dist != NULL, "madt: failed to find gic-distributor");
+    assert_msg(gic_dist != nullptr, "madt: failed to find gic-distributor");
     gic_set_version(gic_dist->gic_version);
 
     switch (gic_dist->gic_version) {
@@ -796,7 +796,7 @@ void madt_init(const struct acpi_madt *const madt) {
           gic_dist->gic_version);
 #elif defined(__riscv64)
     if (!array_empty(aplic_list)) {
-        assert_msg(supervisor_imsic != NULL,
+        assert_msg(supervisor_imsic != nullptr,
                    "madt: no imsic found, required for aplic\n");
 
         array_foreach(&hart_irq_ctlr_list,
@@ -818,7 +818,7 @@ void madt_init(const struct acpi_madt *const madt) {
             }
 
             struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
-            if (cpu == NULL) {
+            if (cpu == nullptr) {
                 printk(LOGLEVEL_WARN,
                        "madt: found hart irq controller pointing to unknown "
                        "cpu, with hart-id: %" PRIu64 "\n",

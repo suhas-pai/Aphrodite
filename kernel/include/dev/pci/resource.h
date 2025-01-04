@@ -6,7 +6,7 @@
 #pragma once
 #include "mm/mmio.h"
 
-enum pci_bus_resource_kind {
+enum pci_bus_resource_kind : uint8_t {
     PCI_BUS_RESOURCE_IO,
     PCI_BUS_RESOURCE_MEM,
     PCI_BUS_RESOURCE_PREFETCH_MEM,

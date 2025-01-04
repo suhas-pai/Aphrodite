@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/adt/string_view.h"
 
-enum numeric_base {
+enum numeric_base : uint8_t {
     NUMERIC_BASE_2 = 2,
     NUMERIC_BASE_8 = 8,
     NUMERIC_BASE_10 = 10,
@@ -45,7 +45,7 @@ struct str_to_num_options {
     bool dont_parse_to_end : 1;
 };
 
-enum str_to_num_result {
+enum str_to_num_result : uint8_t {
     E_STR_TO_NUM_OK,
 
     E_STR_TO_NUM_NO_DIGITS,

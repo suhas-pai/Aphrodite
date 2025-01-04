@@ -4,21 +4,22 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-enum spsr_mode {
+enum spsr_mode : uint8_t {
     SPSR_MODE_EL0t,
     SPSR_MODE_EL1t = 0b100,
     SPSR_MODE_EL1h
 };
 
-enum spsr_shifts {
+enum spsr_shifts : uint8_t {
     SPSR_EXEC_IS_32B_SHIFT = 4,
     SPSR_SERROR_SHIFT = 8,
     SPSR_DEBUG_SHIFT = 9,
     SPSR_BTI_SHIFT = 10,
 };
 
-enum spsr_flags {
+enum spsr_flags : uint64_t {
     __SPSR_EXCP_LVL_AND_SP = 0b111ull,
     __SPSR_EXEC_IS_32B = 1ull << SPSR_EXEC_IS_32B_SHIFT,
     __SPSR_FIQ_INT = 1ull << 7,

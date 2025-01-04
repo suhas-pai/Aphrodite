@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum ata_status {
+enum ata_status : uint8_t {
     __ATA_STATUS_REG_ERR = 1 << 0,
     __ATA_STATUS_REG_IDX = 1 << 1,
     __ATA_STATUS_REG_CORR = 1 << 2,
@@ -17,7 +17,7 @@ enum ata_status {
     __ATA_STATUS_REG_BSY = 1 << 7,
 };
 
-enum ata_error {
+enum ata_error : uint8_t {
     __ATA_ERROR_AMNF = 1 << 0,
     __ATA_ERROR_TK0NF = 1 << 1,
     __ATA_ERROR_ABRT = 1 << 2,
@@ -28,7 +28,7 @@ enum ata_error {
     __ATA_ERROR_BBK = 1 << 7
 };
 
-enum ata_command {
+enum ata_command : uint8_t {
     ATA_CMD_READ_PIO = 0x20,
     ATA_CMD_READ_PIO_EXT = 0x24,
     ATA_CMD_READ_DMA = 0xC8,
@@ -44,18 +44,18 @@ enum ata_command {
     ATA_CMD_IDENTIFY = 0xEC,
 };
 
-enum ata_ident_capabilities {
+enum ata_ident_capabilities : uint16_t {
     __ATA_IDENTITY_CAP_DMA_SUPPORT = 1 << 8,
     __ATA_IDENTITY_CAP_LBA_SUPPORT = 1 << 9,
     __ATA_IDENTITY_CAP_IORDY_SUPPORT = 1 << 10,
     __ATA_IDENTITY_CAP_STANDBY_TIMER_SUPPORTED = 1 << 13,
 };
 
-enum ata_ident_capabilities_ext {
+enum ata_ident_capabilities_ext : uint8_t {
     __ATA_IDENTITY_CAP_EXT_HAS_MIN_STANDBY_TIME = 1 << 0,
 };
 
-enum ata_ident_sata_cap_flags {
+enum ata_ident_sata_cap_flags : uint16_t {
     __ATA_IDENTITY_SATA_CAP_GEN1 = 1 << 1,
     __ATA_IDENTITY_SATA_CAP_GEN2 = 1 << 2,
     __ATA_IDENTITY_SATA_CAP_GEN3 = 1 << 3,
@@ -99,7 +99,7 @@ struct ata_identity {
     uint32_t max_lba_upper32;
 } __packed;
 
-enum atapi_identity_fieldvalid_flags {
+enum atapi_identity_fieldvalid_flags : uint8_t {
     __ATAPI_IDENTITY_FIELDVALID_64_70_VALID = 1 << 0,
     __ATAPI_IDENTITY_FIELDVALID_88_VALID = 1 << 1,
 };
@@ -126,7 +126,7 @@ struct atapi_identify {
     uint16_t fieldvalid;
 } __packed;
 
-enum ata_register {
+enum ata_register : uint8_t {
     ATA_REG_DATA,
     ATA_REG_ERROR,
     ATA_REG_FEATURES,
@@ -146,7 +146,7 @@ enum ata_register {
     ATA_REG_DEV_ADDRESS,
 };
 
-enum {
+enum : uint8_t {
     __ATA_USE_LBA_ADDRESSING = 1 << 6
 };
 

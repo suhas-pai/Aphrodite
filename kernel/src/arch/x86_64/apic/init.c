@@ -13,13 +13,13 @@
 #include "mm/mmio.h"
 #include "sys/pic.h"
 
-enum {
+enum : uint16_t {
     __IA32_MSR_APIC_BASE_IS_BSP = 1 << 8,
     __IA32_MSR_APIC_BASE_X2APIC = 1 << 10,
     __IA32_MSR_APIC_BASE_ENABLE = 1 << 11
 };
 
-static struct mmio_region *g_lapic_region = NULL;
+static struct mmio_region *g_lapic_region = nullptr;
 static volatile struct lapic_registers *g_lapic_regs;
 
 void apic_init(const uint64_t local_apic_base) {
@@ -28,7 +28,7 @@ void apic_init(const uint64_t local_apic_base) {
                   PROT_READ | PROT_WRITE,
                   /*flags=*/0);
 
-    assert_msg(g_lapic_region != NULL,
+    assert_msg(g_lapic_region != nullptr,
                "apic: failed to mmio-map local-apic registers");
 
     g_lapic_regs = g_lapic_region->base;

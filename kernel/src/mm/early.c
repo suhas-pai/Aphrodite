@@ -61,7 +61,7 @@ static uint64_t g_total_free_pages_remaining = 0;
 
 __debug_optimize(3)
 static void add_to_asc_list(struct freepage_list_info *const info) {
-    struct freepage_list_info *iter = NULL;
+    struct freepage_list_info *iter = nullptr;
     struct freepage_list_info *prev =
         parent_of(&g_asc_freelist, struct freepage_list_info, asc_list);
 
@@ -113,7 +113,7 @@ static void claim_pages(const struct mm_memmap *const memmap) {
             prev =
                 parent_of(&g_freepage_list, struct freepage_list_info, list);
 
-            struct freepage_list_info *iter = NULL;
+            struct freepage_list_info *iter = nullptr;
             list_foreach(iter, &g_freepage_list, list) {
                 if (info < iter) {
                     break;
@@ -194,7 +194,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
         return INVALID_PHYS;
     }
 
-    struct freepage_list_info *info = NULL;
+    struct freepage_list_info *info = nullptr;
 
     uint64_t free_page = INVALID_PHYS;
     bool is_in_middle = false;
@@ -241,7 +241,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
             struct freepage_list_info *const info_prev =
                 list_prev_safe(info, asc_list, &g_asc_freelist);
 
-            if (info_prev != NULL) {
+            if (info_prev != nullptr) {
                 if (info_prev->avail_page_count > info->avail_page_count) {
                     list_remove(&info->asc_list);
                     add_to_asc_list(info);
@@ -273,7 +273,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
             const struct freepage_list_info *const prev =
                 list_prev_safe(info, asc_list, &g_asc_freelist);
 
-            if (prev != NULL) {
+            if (prev != nullptr) {
                 if (prev->avail_page_count > info->avail_page_count) {
                     list_remove(&info->asc_list);
                     add_to_asc_list(info);
@@ -405,8 +405,8 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
     struct pg_walker walker;
     pgwalker_create(&walker,
                     virt_addr,
-                    /*alloc_pgtable=*/NULL,
-                    /*free_pgtable=*/NULL);
+                    /*alloc_pgtable=*/nullptr,
+                    /*free_pgtable=*/nullptr);
 
     for (pg_level_t level = (uint8_t)walker.level;
          level <= walker.top_level;
@@ -431,8 +431,8 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
         walker.indices[prev_level - 1] == PGT_PTE_COUNT(prev_level) - 1;
 
     const struct pgwalker_iterate_options iterate_options = {
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .alloc_parents = false,
         .alloc_level = false,
@@ -559,15 +559,15 @@ mm_early_identity_map_phys(const uint64_t root_phys,
                                    root_phys,
                                    /*virt_addr=*/phys,
                                    pgwalker_early_alloc_pgtable_cb,
-                                   /*free_pgtable=*/NULL);
+                                   /*free_pgtable=*/nullptr);
 
     g_mapped_early_top_level = walker.level - 1;
     const enum pgwalker_result walker_result =
         pgwalker_fill_in_to(&walker,
                             /*level=*/1,
                             /*should_ref=*/false,
-                            /*alloc_pgtable_cb_info=*/NULL,
-                            /*free_pgtable_cb_info=*/NULL);
+                            /*alloc_pgtable_cb_info=*/nullptr,
+                            /*free_pgtable_cb_info=*/nullptr);
 
     assert_msg(walker_result == E_PGWALKER_OK,
                "mm: failed to fill out pagemap in "
@@ -591,7 +591,7 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
                                    g_mapped_early_root_phys,
                                    /*virt_addr=*/g_mapped_early_phys,
                                    pgwalker_early_alloc_pgtable_cb,
-                                   /*free_pgtable=*/NULL);
+                                   /*free_pgtable=*/nullptr);
 
     for (pg_level_t level = 1; level <= g_mapped_early_top_level; level++) {
         pte_t *const table = walker.tables[level - 1];
@@ -611,7 +611,7 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
 
 __debug_optimize(3)
 static void mark_crucial_pages(const struct page_section *const memmap) {
-    struct freepage_list_info *iter = NULL;
+    struct freepage_list_info *iter = nullptr;
     list_foreach(iter, &g_asc_freelist, asc_list) {
         uint64_t iter_phys = virt_to_phys(iter);
         if (!range_has_loc(memmap->range, iter_phys)) {
@@ -696,7 +696,7 @@ __debug_optimize(3) static void
 set_section_for_pages(const struct page_section *const memmap,
                       const page_section_t section)
 {
-    struct freepage_list_info *iter = NULL;
+    struct freepage_list_info *iter = nullptr;
     list_foreach(iter, &g_freepage_list, list) {
         uint64_t iter_phys = virt_to_phys(iter);
         uint64_t back_phys =
@@ -727,8 +727,8 @@ set_section_for_pages(const struct page_section *const memmap,
 }
 
 __debug_optimize(3) static uint64_t free_all_pages() {
-    struct freepage_list_info *iter = NULL;
-    struct freepage_list_info *tmp = NULL;
+    struct freepage_list_info *iter = nullptr;
+    struct freepage_list_info *tmp = nullptr;
 
     /*
      * Free pages into the buddy allocator while ensuring
@@ -854,7 +854,7 @@ __debug_optimize(3) static inline void split_sections_for_zones() {
         struct page_zone *const back_zone =
             phys_to_zone(range_get_end_assert(section->range) - PAGE_SIZE);
 
-        if (section->zone == NULL) {
+        if (section->zone == nullptr) {
             section->zone = begin_zone;
         }
 

@@ -63,7 +63,7 @@ __debug_optimize(3) char *strchr(const char *const str, const int ch) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 #endif /* !defined(BUILD_TEST) */

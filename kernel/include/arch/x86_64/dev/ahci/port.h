@@ -21,7 +21,7 @@ struct ahci_hba_port_cmdhdr_info {
 #define AHCI_HBA_PORT_CMDHDR_INFO_INIT() \
     ((struct ahci_hba_port_cmdhdr_info){ .event = EVENT_INIT() })
 
-enum ahci_hba_port_state {
+enum ahci_hba_port_state : uint8_t {
     AHCI_HBA_PORT_STATE_OK,
     AHCI_HBA_PORT_STATE_NEEDS_RESET,
 };
@@ -53,7 +53,7 @@ struct ahci_hba_port {
     enum sata_sig sig;
 };
 
-enum ahci_hba_port_command_kind {
+enum ahci_hba_port_command_kind : uint8_t {
     AHCI_HBA_PORT_CMDKIND_READ,
     AHCI_HBA_PORT_CMDKIND_WRITE
 };

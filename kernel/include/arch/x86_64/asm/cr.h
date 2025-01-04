@@ -50,7 +50,7 @@ __debug_optimize(3) static inline void write_cr4(const uint64_t cr4) {
     asm volatile ("mov %0, %%cr4" :: "r"(cr4) : "memory");
 }
 
-enum {
+enum : uint32_t {
     // Protection Enable
     __CR0_BIT_PE = 1ull << 0,
 
@@ -91,7 +91,7 @@ enum {
     __CR0_BIT_PG = 1ull << 31,
 };
 
-enum {
+enum : uint64_t {
     // Virtual-8086 Mode Extensions
     __CR4_BIT_VME = 1ull << 0,
 

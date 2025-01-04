@@ -6,18 +6,18 @@
 #pragma once
 #include "lib/macros.h"
 
-enum ext2fs_state {
+enum ext2fs_state : uint8_t {
     EXT2FS_STATE_CLEAN = 1,
     EXT2FS_STATE_HAS_ERRORS,
 };
 
-enum ext2fs_error_handling_strategy {
+enum ext2fs_error_handling_strategy : uint8_t {
     EXT2FS_ERROR_HANDLING_IGNORE,
     EXT2FS_ERROR_HANDLING_FS_READ_ONLY,
     EXT2FS_ERROR_HANDLING_KERNEL_PANIC,
 };
 
-enum ext2fs_os_id {
+enum ext2fs_os_id : uint8_t {
     EXT2FS_OS_ID_LINUX,
     EXT2FS_OS_ID_GNU_HURD,
     EXT2FS_OS_ID_MASIX,
@@ -25,7 +25,7 @@ enum ext2fs_os_id {
     EXT2FS_OS_ID_OTHER,
 };
 
-enum ext2fs_optional_features {
+enum ext2fs_optional_features : uint8_t {
     __EXT2FS_OPT_FEAT_PREALLOC_BLOCKS = 1 << 0,
     __EXT2FS_OPT_FEAT_AFS_SERVER_INODES_EXIST = 1 << 1,
     __EXT2FS_OPT_FEAT_JOURNALING = 1 << 2,
@@ -34,14 +34,14 @@ enum ext2fs_optional_features {
     __EXT2FS_OPT_FEAT_DIR_USE_HASH_INDEX = 1 << 5,
 };
 
-enum ext2fs_required_features {
+enum ext2fs_required_features : uint8_t {
     __EXT2FS_REQ_FEAT_COMPRESSION = 1 << 0,
     __EXT2FS_REQ_FEAT_DIR_ENTRIES_TYPE_FIELD = 1 << 1,
     __EXT2FS_REQ_FEAT_JOURNAL_REPLAY = 1 << 2,
     __EXT2FS_REQ_FEAT_USES_JOURNAL_DEVICE = 1 << 3,
 };
 
-enum ext2fs_readonly_features {
+enum ext2fs_readonly_features : uint8_t {
     __EXT2FS_READONLY_FEAT_SPARSE_SUPERBLOCKS_AND_GROUP_DESC = 1 << 0,
     __EXT2FS_READONLY_FEAT_64BIT_FILE_SIZE = 1 << 1,
     __EXT2FS_READONLY_FEAT_DIR_ENTRIES_IN_BINARY_TREE = 1 << 2,

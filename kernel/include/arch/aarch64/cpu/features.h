@@ -10,37 +10,37 @@
 
 #define CPU_FEAT_NONE 0
 
-enum cpu_feat_aes {
+enum cpu_feat_aes : uint8_t {
     CPU_FEAT_AES_NONE,
     CPU_FEAT_AES,
     CPU_FEAT_AES_PMULL
 };
 
-enum cpu_feat_sha2 {
+enum cpu_feat_sha2 : uint8_t {
     CPU_FEAT_SHA2_NONE,
     CPU_FEAT_SHA256,
     CPU_FEAT_SHA512
 };
 
-enum cpu_feat_atomic {
+enum cpu_feat_atomic : uint8_t {
     CPU_FEAT_ATOMIC_NONE,
     CPU_FEAT_ATOMIC_LSE,
     CPU_FEAT_ATOMIC_LSE128
 };
 
-enum cpu_feat_ts {
+enum cpu_feat_ts : uint8_t {
     CPU_FEAT_TS_NONE,
     CPU_FEAT_TS_FLAG_M,
     CPU_FEAT_TS_FLAG_M2
 };
 
-enum cpu_feat_tlb {
+enum cpu_feat_tlb : uint8_t {
     CPU_FEAT_TLB_NONE,
     CPU_FEAT_TLBIOS,
     CPU_FEAT_TLB_IRANGE,
 };
 
-enum cpu_feat_pauth {
+enum cpu_feat_pauth : uint8_t {
     CPU_FEAT_PAUTH_NONE,
     CPU_FEAT_PAUTH,
     CPU_FEAT_PAUTH_EPAC,
@@ -48,90 +48,90 @@ enum cpu_feat_pauth {
     CPU_FEAT_PAUTH_FPACCOMBINE,
 };
 
-enum cpu_feat_lrcpc {
+enum cpu_feat_lrcpc : uint8_t {
     CPU_FEAT_LRCPC_NONE,
     CPU_FEAT_LRCPC,
     CPU_FEAT_LRCPC2,
     CPU_FEAT_LRCPC3
 };
 
-enum cpu_feat_specres {
+enum cpu_feat_specres : uint8_t {
     CPU_FEAT_SPECRES_NONE,
     CPU_FEAT_SPECRES,
     CPU_FEAT_SPECRES2,
 };
 
-enum cpu_feat_bf16 {
+enum cpu_feat_bf16 : uint8_t {
     CPU_FEAT_BF16_NONE,
     CPU_FEAT_BF16,
     CPU_FEAT_EBF16,
 };
 
-enum cpu_feat_ls64 {
+enum cpu_feat_ls64 : uint8_t {
     CPU_FEAT_LS64_NONE,
     CPU_FEAT_LS64,
     CPU_FEAT_LS64V,
     CPU_FEAT_LS64_ACCDATA,
 };
 
-enum cpu_feat_fp {
+enum cpu_feat_fp : uint8_t {
     CPU_FEAT_FP_NONE,
     CPU_FEAT_FP_PARTIAL,
     CPU_FEAT_FP_FULL
 };
 
-enum cpu_feat_dpb {
+enum cpu_feat_dpb : uint8_t {
     CPU_FEAT_DPB_NONE,
     CPU_FEAT_DPB,
     CPU_FEAT_DPB2,
 };
 
-enum cpu_feat_adv_simd {
+enum cpu_feat_adv_simd : uint8_t {
     CPU_FEAT_ADV_SIMD_NONE,
     CPU_FEAT_ADV_SIMD_PARTIAL,
     CPU_FEAT_ADV_SIMD_FULL
 };
 
-enum cpu_feat_gic {
+enum cpu_feat_gic : uint8_t {
     CPU_FEAT_GIC_NONE,
     CPU_FEAT_GIC_V4,
     CPU_FEAT_GIC_V4p1,
 };
 
-enum cpu_feat_ras {
+enum cpu_feat_ras : uint8_t {
     CPU_FEAT_RAS_NONE,
     CPU_FEAT_RAS,
     CPU_FEAT_RASv1p1,
     CPU_FEAT_RASv2,
 };
 
-enum mpan_version {
+enum mpan_version : uint8_t {
     MPAN_VERSION_NONE,
     MPAN_VERSION_V0p1,
     MPAN_VERSION_V1p0,
     MPAN_VERSION_V1p1,
 };
 
-enum cpu_feat_amu {
+enum cpu_feat_amu : uint8_t {
     CPU_FEAT_AMU_NONE,
     CPU_FEAT_AMU_AMUv1,
     CPU_FEAT_AMU_AMUv1p1,
 };
 
-enum cpu_feat_csv2 {
+enum cpu_feat_csv2 : uint8_t {
     CPU_FEAT_CSV2_NONE,
     CPU_FEAT_CSV2,
     CPU_FEAT_CSV2_2,
     CPU_FEAT_CSV2_3,
 };
 
-enum cpu_feat_ssbs {
+enum cpu_feat_ssbs : uint8_t {
     CPU_FEAT_SSBS_NONE,
     CPU_FEAT_SSBS,
     CPU_FEAT_SSBS2
 };
 
-enum cpu_feat_mte {
+enum cpu_feat_mte : uint8_t {
     CPU_FEAT_MTE_NONE,
     CPU_FEAT_MTE,
     CPU_FEAT_MTE2,
@@ -139,94 +139,94 @@ enum cpu_feat_mte {
     CPU_FEAT_MTEX
 };
 
-enum cpu_feat_sme {
+enum cpu_feat_sme : uint8_t {
     CPU_FEAT_SME_NONE,
     CPU_FEAT_SME,
     CPU_FEAT_SME2,
     CPU_FEAT_SME2p1
 };
 
-enum csv2_version {
+enum csv2_version : uint8_t {
     CSV2_VERSION_NONE,
     CSV2_VERSION_V0P1,
     CSV2_VERSION_V1P0,
     CSV2_VERSION_V1P1,
 };
 
-enum cpu_feat_fgt {
+enum cpu_feat_fgt : uint8_t {
     CPU_FEAT_FGT_NONE,
     CPU_FEAT_FGT,
     CPU_FEAT_FGT2,
 };
 
-enum cpu_feat_ecv {
+enum cpu_feat_ecv : uint8_t {
     CPU_FEAT_ECV_NONE,
     CPU_FEAT_ECV_PARTIAL,
     CPU_FEAT_ECV_FULL
 };
 
-enum cpu_feat_hafdbs {
+enum cpu_feat_hafdbs : uint8_t {
     CPU_FEAT_HAFDBS_NONE,
     CPU_FEAT_HAFDBS_ONLY_ACCESS_BIT,
     CPU_FEAT_HAFDBS_ACCESS_AND_DIRTY_BIT,
     CPU_FEAT_HAFDBS_FULL,
 };
 
-enum cpu_feat_hpds {
+enum cpu_feat_hpds : uint8_t {
     CPU_FEAT_HPDS_NONE,
     CPU_FEAT_HPDS,
     CPU_FEAT_HPDS2,
 };
 
-enum cpu_feat_pan {
+enum cpu_feat_pan : uint8_t {
     CPU_FEAT_PAN_NONE,
     CPU_FEAT_PAN,
     CPU_FEAT_PAN2,
     CPU_FEAT_PAN3,
 };
 
-enum cpu_feat_nv {
+enum cpu_feat_nv : uint8_t {
     CPU_FEAT_NV_NONE,
     CPU_FEAT_NV,
     CPU_FEAT_NV2
 };
 
-enum cpu_feat_bbm {
+enum cpu_feat_bbm : uint8_t {
     CPU_FEAT_BBM_LVL0,
     CPU_FEAT_BBM_LVL1,
     CPU_FEAT_BBM_LVL2,
 };
 
-enum cpu_feat_evt {
+enum cpu_feat_evt : uint8_t {
     CPU_FEAT_EVT1,
     CPU_FEAT_EVT2
 };
 
-enum cpu_feat_sve {
+enum cpu_feat_sve : uint8_t {
     CPU_FEAT_SVE,
     CPU_FEAT_SVE2,
     CPU_FEAT_SVE2p1,
 };
 
-enum cpu_feat_sve_aes {
+enum cpu_feat_sve_aes : uint8_t {
     CPU_FEAT_SVE_AES_NONE,
     CPU_FEAT_SVE_AES,
     CPU_FEAT_SVE_AES_PMULL128,
 };
 
-enum cpu_feat_sve_bf16 {
+enum cpu_feat_sve_bf16 : uint8_t {
     CPU_FEAT_SVE_BF16_NONE,
     CPU_FEAT_SVE_BF16,
     CPU_FEAT_SVE_EBF16,
 };
 
-enum cpu_feat_brbe {
+enum cpu_feat_brbe : uint8_t {
     CPU_FEAT_BRBE_NONE,
     CPU_FEAT_BRBE,
     CPU_FEAT_BRBEv1p1
 };
 
-enum cpu_feat_debug {
+enum cpu_feat_debug : uint8_t {
     CPU_FEAT_DEBUG_DEFAULT,
     CPU_FEAT_DEBUG_VHE,
     CPU_FEAT_DEBUG_v8p1 = CPU_FEAT_DEBUG_VHE,
@@ -236,7 +236,7 @@ enum cpu_feat_debug {
     CPU_FEAT_DEBUG_v8p9,
 };
 
-enum cpu_feat_pmu {
+enum cpu_feat_pmu : uint8_t {
     CPU_FEAT_PMU_FEAT_PMUv3,
     CPU_FEAT_PMU_FEAT_PMUv3p1,
     CPU_FEAT_PMU_FEAT_PMUv3p4,
@@ -246,7 +246,7 @@ enum cpu_feat_pmu {
     CPU_FEAT_PMU_FEAT_PMUv3p9,
 };
 
-enum cpu_feat_mtpmu {
+enum cpu_feat_mtpmu : uint8_t {
     CPU_FEAT_MTPMU,
     CPU_FEAT_MTPMU_3_MAYBE,
 };

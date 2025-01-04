@@ -18,8 +18,8 @@ pci_bus_create(struct pci_domain *const domain,
                const uint8_t segment)
 {
     struct pci_bus *const bus = kmalloc(sizeof(*bus));
-    if (bus == NULL) {
-        return NULL;
+    if (bus == nullptr) {
+        return nullptr;
     }
 
     bus->domain = domain;

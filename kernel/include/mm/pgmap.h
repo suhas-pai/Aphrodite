@@ -37,7 +37,7 @@ struct pgmap_alloc_options {
     void *alloc_large_page_cb_info;
 };
 
-enum pgmap_alloc_result {
+enum pgmap_alloc_result : uint8_t {
     E_PGMAP_ALLOC_OK,
     E_PGMAP_ALLOC_PAGE_ALLOC_FAIL,
     E_PGMAP_ALLOC_PGTABLE_ALLOC_FAIL

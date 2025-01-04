@@ -60,7 +60,7 @@ __debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
 
 __debug_optimize(3)
 bool thread_running_nolock(const struct thread *const thread) {
-    return thread->cpu != NULL;
+    return thread->cpu != nullptr;
 }
 
 __debug_optimize(3) bool thread_running(const struct thread *const thread) {
@@ -111,7 +111,7 @@ __debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
 __debug_optimize(3)
 static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_intr(&g_run_queue_lock);
-    struct thread *next = NULL;
+    struct thread *next = nullptr;
 
     list_foreach(next, &g_run_queue, sched_info.list) {
         if (next == prev) {
@@ -144,8 +144,8 @@ __debug_optimize(3)
 static void update_alarm_list(struct thread *const current_thread) {
     struct list *const alarm_list = &this_cpu_mut()->alarm_list;
 
-    struct alarm *iter = NULL;
-    struct alarm *tmp = NULL;
+    struct alarm *iter = nullptr;
+    struct alarm *tmp = nullptr;
 
     list_foreach_mut(iter, tmp, alarm_list, list) {
         const usec_t time_spent =
@@ -168,7 +168,7 @@ static void update_alarm_list(struct thread *const current_thread) {
 }
 
 void sched_set_current_thread(struct thread *thread);
-extern __noreturn void thread_spinup(const struct thread_context *context);
+[[noreturn]] extern void thread_spinup(const struct thread_context *context);
 
 void sched_next(const irq_number_t irq, struct thread_context *const context) {
     kmalloc_check_slabs();
@@ -204,7 +204,7 @@ void sched_next(const irq_number_t irq, struct thread_context *const context) {
 
     next_thread->cpu = cpu;
     if (curr_thread != idle_thread) {
-        curr_thread->cpu = NULL;
+        curr_thread->cpu = nullptr;
     }
 
     sched_set_current_thread(next_thread);

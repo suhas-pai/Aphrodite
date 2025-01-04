@@ -36,8 +36,8 @@ alloc_region(const uint64_t virt_addr,
         .leaf_pte_flags = pte_flags,
         .large_pte_flags = large_pte_flags,
 
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .supports_largepage_at_level_mask = 1 << 2 | 1 << 3,
 
@@ -50,8 +50,8 @@ alloc_region(const uint64_t virt_addr,
         .alloc_page = alloc_page,
         .alloc_large_page = alloc_large_page,
 
-        .alloc_page_cb_info = NULL,
-        .alloc_large_page_cb_info = NULL,
+        .alloc_page_cb_info = nullptr,
+        .alloc_large_page_cb_info = nullptr,
     };
 
     const enum pgmap_alloc_result map_result =
@@ -101,8 +101,8 @@ map_into_kernel_pagemap(const struct range phys_range,
         .leaf_pte_flags = __PTE_GLOBAL | pte_flags,
         .large_pte_flags = __PTE_GLOBAL_LARGE | options.leaf_pte_flags,
 
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .supports_largepage_at_level_mask = 1 << 2 | 1 << 3,
 

@@ -17,13 +17,13 @@
 
 static uint64_t g_frequency = 0;
 
-enum cntp_ctl {
+enum cntp_ctl : uint8_t {
     __CNTP_CTL_ENABLE = 1 << 0,
     __CNTP_CTL_INTR_MASK = 1 << 1,
     __CNTP_CTL_COND_MET = 1 << 2,
 };
 
-enum cntv_ctl {
+enum cntv_ctl : uint8_t {
     __CNTV_CTL_ENABLE = 1 << 0,
 };
 
@@ -98,8 +98,8 @@ static void enable_dtb_timer_irqs() {
     struct devicetree_node *const node =
         devicetree_get_node_at_path(tree, SV_STATIC("/timer"));
 
-    if (node == NULL) {
-        assert_msg(get_acpi_info()->gtdt != NULL,
+    if (node == nullptr) {
+        assert_msg(get_acpi_info()->gtdt != nullptr,
                    "time: no timer found in acpi/dtb, expected GTDT table "
                    "in ACPI, or '/timer' node in dtb");
     }
@@ -108,7 +108,7 @@ static void enable_dtb_timer_irqs() {
         (struct devicetree_prop_interrupts *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPTS);
 
-    assert_msg(intr_prop != NULL,
+    assert_msg(intr_prop != nullptr,
                "time: 'interrupts' prop not found in '/timer' dtb-node");
 
     uint8_t index = 0;
@@ -132,7 +132,7 @@ static void enable_dtb_timer_irqs() {
 
         isr_set_vector(iter->num,
                        interrupt_handler,
-                       /*ctx=*/NULL,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
 
         gicd_set_irq_trigger_mode(iter->num, iter->trigger_mode);
@@ -161,16 +161,16 @@ enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
 
     isr_set_vector(secure_el1_timer_gsiv,
                    interrupt_handler,
-                   /*ctx=*/NULL,
+                   /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
 
     isr_set_vector(non_secure_el1_timer_gsiv,
                    interrupt_handler,
-                   /*ctx=*/NULL,
+                   /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
     isr_set_vector(virtual_el1_timer_gsiv,
                    interrupt_handler,
-                   /*ctx=*/NULL,
+                   /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
 
     gicd_set_irq_trigger_mode(secure_el1_timer_gsiv, secure_el1_trigger_mode);
@@ -202,11 +202,11 @@ void arch_init_time() {
     asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
     asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)__CNTV_CTL_ENABLE));
 
-    if (boot_get_dtb() != NULL) {
+    if (boot_get_dtb() != nullptr) {
         enable_dtb_timer_irqs();
     } else {
         const struct acpi_gtdt *const gtdt = get_acpi_info()->gtdt;
-        assert_msg(gtdt != NULL,
+        assert_msg(gtdt != nullptr,
                    "time: dtb is missing and acpi is missing a 'gtdt' table");
     }
 

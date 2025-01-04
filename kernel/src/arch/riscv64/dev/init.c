@@ -22,12 +22,12 @@ void arch_init_from_dtb() {
     struct devicetree_node *const cpus_node =
         devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
 
-    assert_msg(cpus_node != NULL, "arch: dtb-tree is missing node \"/cpus\"\n");
+    assert_msg(cpus_node != nullptr, "arch: dtb-tree is missing node \"/cpus\"\n");
     const struct devicetree_prop_other *const timebase_freq_prop =
         devicetree_node_get_other_prop(cpus_node,
                                        SV_STATIC("timebase-frequency"));
 
-    assert_msg(timebase_freq_prop != NULL,
+    assert_msg(timebase_freq_prop != nullptr,
                "arch: dtb-node at path \"/cpus\" is missing the "
                "timebase-frequency prop\n");
 
@@ -46,7 +46,7 @@ void arch_init_from_dtb() {
 
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();
-    if (tree != NULL) {
+    if (tree != nullptr) {
         static const struct string_view syscon_compat_list[] = {
             SV_STATIC("syscon")
         };
@@ -93,7 +93,7 @@ void arch_init_dev() {
     const struct acpi_rhct *const rhct =
         (const struct acpi_rhct *)acpi_lookup_sdt("RHCT");
 
-    if (rhct != NULL) {
+    if (rhct != nullptr) {
         acpi_rhct_init(rhct);
     } else {
         arch_init_from_dtb();

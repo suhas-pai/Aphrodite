@@ -75,8 +75,8 @@ arch_make_mapping(struct pagemap *const pagemap,
         .leaf_pte_flags = 0,
         .large_pte_flags = 0,
 
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .supports_largepage_at_level_mask = 1 << 2 | 1 << 3,
 

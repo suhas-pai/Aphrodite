@@ -25,7 +25,7 @@ void sched_init() {
         sched_thread_init(&kernel_main_thread,
                           &kernel_process,
                           this_cpu_mut(),
-                          /*entry=*/NULL);
+                          /*entry=*/nullptr);
 
         sched_algo_post_init();
     });
@@ -33,7 +33,7 @@ void sched_init() {
 
 void sched_init_on_cpu(struct cpu_info *const cpu) {
     struct thread *const idle_thread = kmalloc(sizeof(struct thread));
-    assert(idle_thread != NULL);
+    assert(idle_thread != nullptr);
 
     with_intr_disabled({
         sched_thread_init(idle_thread, &kernel_process, cpu, cpu_idle);

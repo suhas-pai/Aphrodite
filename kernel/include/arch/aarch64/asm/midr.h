@@ -4,8 +4,9 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-enum midr_arch {
+enum midr_arch : uint8_t {
     MIDR_ARCH_ARMV4 = 1,
     MIDR_ARCH_ARMV4T,
     MIDR_ARCH_ARMV5_OBSOLETE,
@@ -15,7 +16,7 @@ enum midr_arch {
     MIDR_ARCH_ARMV6,
 };
 
-enum midr_implementer {
+enum midr_implementer : uint8_t {
     MIDR_IMPLEMENTER_ARM = 0x41,
     MIDR_IMPLEMENTER_BROADCOM,
     MIDR_IMPLEMENTER_CAVIUM,
@@ -32,14 +33,14 @@ enum midr_implementer {
     MIDR_IMPLEMENTER_AMPERE = 0xC0,
 };
 
-enum midr_shifts {
+enum midr_shifts : uint8_t {
     MIDR_REVISION_SHIFT = 0,
     MIDR_PARTNUM_SHIFT = 4,
     MIDR_VARIANT_SHIFT = 20,
     MIDR_IMPLEMENTER_SHIFT = 24
 };
 
-enum midr_flags {
+enum midr_flags : uint32_t {
     __MIDR_REVISION = 0b1111ull << MIDR_REVISION_SHIFT,
     __MIDR_PARTNUM = 0xfffull << MIDR_PARTNUM_SHIFT,
     __MIDR_VARIANT = 0b1111ull << MIDR_VARIANT_SHIFT,

@@ -50,7 +50,7 @@ struct acpi_madt {
     char madt_entries[];
 } __packed;
 
-enum acpi_madt_entry_kind {
+enum acpi_madt_entry_kind : uint8_t {
     ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC,
     ACPI_MADT_ENTRY_KIND_IO_APIC,
     ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE,
@@ -73,7 +73,7 @@ enum acpi_madt_entry_kind {
 };
 
 struct acpi_madt_entry_header {
-    enum acpi_madt_entry_kind kind : 8;
+    enum acpi_madt_entry_kind kind;
     uint8_t length;
 } __packed;
 
@@ -310,7 +310,7 @@ struct acpi_madt_riscv_plic {
 } __packed;
 
 
-enum acpi_gas_addrspace_kind {
+enum acpi_gas_addrspace_kind : uint8_t {
     ACPI_GAS_ADDRSPACE_KIND_SYSMEM,
     ACPI_GAS_ADDRSPACE_KIND_SYS_IO,
     ACPI_GAS_ADDRSPACE_KIND_PCI_CONFIG,
@@ -324,7 +324,7 @@ enum acpi_gas_addrspace_kind {
     ACPI_GAS_ADDRSPACE_KIND_SYS_PLATFORM_COMM_CHANNEL,
 };
 
-enum acpi_gas_access_size_kind {
+enum acpi_gas_access_size_kind : uint8_t {
     ACPI_GAS_ACCESS_SIZE_UNDEFINED,
 
     ACPI_GAS_ACCESS_SIZE_1_BYTE,
@@ -335,16 +335,16 @@ enum acpi_gas_access_size_kind {
 
 // gas = Generic Address Structure
 struct acpi_gas {
-    enum acpi_gas_addrspace_kind addr_space : 8;
+    enum acpi_gas_addrspace_kind addr_space;
 
     uint8_t bit_width;
     uint8_t bit_offset;
 
-    enum acpi_gas_access_size_kind access_size : 8;
+    enum acpi_gas_access_size_kind access_size;
     uint64_t address;
 } __packed;
 
-enum acpi_fadt_preferred_pm_profile {
+enum acpi_fadt_preferred_pm_profile : uint8_t {
     ACPI_FADT_PREFERRED_PM_PROFILE_UNSPECIFIED,
     ACPI_FADT_PREFERRED_PM_PROFILE_DESKTOP,
     ACPI_FADT_PREFERRED_PM_PROFILE_MOBILE,
@@ -356,7 +356,7 @@ enum acpi_fadt_preferred_pm_profile {
     ACPI_FADT_PREFERRED_PM_PROFILE_TABLET
 };
 
-enum acpi_fadt_flags {
+enum acpi_fadt_flags : uint32_t {
     __ACPI_FADT_WBINVD                             = 1 << 0,
     __ACPI_FADT_WBINVD_FLUSH                       = 1 << 1,
     __ACPI_FADT_PROC_C1                            = 1 << 2,
@@ -381,7 +381,7 @@ enum acpi_fadt_flags {
     __ACPI_FADT_FORCE_HW_LOW_POWER_S0_IDLE_CAPABLE = 1 << 21,
 };
 
-enum acpi_fadt_iapc_boot_flags {
+enum acpi_fadt_iapc_boot_flags : uint8_t {
     __ACPI_FADT_IAPC_BOOT_LEGACY_DEVICES          = 1 << 0,
     __ACPI_FADT_IAPC_BOOT_8042                    = 1 << 1,
     __ACPI_FADT_IAPC_BOOT_VGA_NOT_PRESENT         = 1 << 2,
@@ -390,12 +390,12 @@ enum acpi_fadt_iapc_boot_flags {
     __ACPI_FADT_IAPC_BOOT_CMOS_NOT_PRESENT        = 1 << 5,
 };
 
-enum acpi_fadt_arm_boot_flags {
+enum acpi_fadt_arm_boot_flags : uint8_t {
     __ACPI_FADT_ARM_BOOT_PSCI_COMPLIANT = 1 << 0,
     __ACPI_FADT_ARM_BOOT_PSCI_USE_HVC = 1 << 1,
 };
 
-enum acpi_fadt_pm1_status {
+enum acpi_fadt_pm1_status : uint16_t {
     // This bit gets set any time the most significant bit of a 24/32-bit
     // counter changes from clear to set or set to clear.
     __ACPI_FADT_PM1_STATUS_TIMER_CARRY_STATUS = 1 << 0,
@@ -523,7 +523,7 @@ enum acpi_fadt_pm1_status {
  * feature, then software treats these bits as ignored.
  */
 
-enum acpi_fadt_pm1_enable_registers {
+enum acpi_fadt_pm1_enable_registers : uint16_t {
     __ACPI_FADT_PM1_ENABLE_TMR_EN     = 1 << 0,
     __ACPI_FADT_PM1_ENABLE_GBL_EN     = 1 << 5,
     __ACPI_FADT_PM1_ENABLE_PWR_BTN_EN = 1 << 8,
@@ -545,7 +545,7 @@ enum acpi_fadt_pm1_enable_registers {
     __ACPI_FADT_PM1_ENABLE_PCIEXP_WAKE_EN = 1 << 14,
 };
 
-enum acpi_fadt_pm1_control_registers {
+enum acpi_fadt_pm1_control_registers  : uint16_t {
     /*
      * Selects the power management event to be either an SCI or SMI interrupt
      * for the following events. When this bit is set, then power management
@@ -697,7 +697,7 @@ struct acpi_fadt {
     uint64_t hypervisor_vendor_identity;
 } __packed;
 
-enum acpi_fadt_pm2_control_registers {
+enum acpi_fadt_pm2_control_registers : uint8_t {
     __ACPI_FADT_PM2_CONTROL_ABR_DISABLE = 1 << 0,
 };
 
@@ -716,7 +716,7 @@ struct acpi_mcfg {
     struct acpi_mcfg_entry entries[];
 } __packed;
 
-enum acpi_gtdt_flags {
+enum acpi_gtdt_flags : uint8_t {
     __ACPI_GTDT_EDGE_TRIGGER_IRQ = 1 << 0,
     __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ = 1 << 1,
 
@@ -758,15 +758,15 @@ struct acpi_gtdt {
     char buffer[];
 } __packed;
 
-enum acpi_gtdt_platform_timer_kind {
+enum acpi_gtdt_platform_timer_kind : uint8_t {
     ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK,
 };
 
 struct acpi_gtdt_platform_timer_base {
-    enum acpi_gtdt_platform_timer_kind kind : 8;
+    enum acpi_gtdt_platform_timer_kind kind;
 } __packed;
 
-enum acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags {
+enum acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags : uint8_t {
     __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ =
         1 << 0,
 
@@ -774,7 +774,7 @@ enum acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags {
         1 << 1,
 };
 
-enum acpi_gtdt_platform_timer_gt_block_timer_common_flags {
+enum acpi_gtdt_platform_timer_gt_block_timer_common_flags : uint8_t {
     __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_COMMON_SECURE = 1 << 0,
     __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_ALWAYS_ON_CAP = 1 << 1,
 };
@@ -807,7 +807,7 @@ struct acpi_gtdt_platform_timer_gt_block {
     uint32_t gt_block_timer_offset;
 } __packed;
 
-enum acpi_gtdt_platform_timer_generic_watchdog_flags {
+enum acpi_gtdt_platform_timer_generic_watchdog_flags : uint8_t {
     __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_EDGE_TRIGGER_IRQ = 1 << 0,
     __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_ACTIVE_LOW_POLARITY_IRQ =
         1 << 1,
@@ -827,16 +827,16 @@ struct acpi_gtdt_platform_timer_generic_watchdog {
     uint32_t watchdog_timer_flags;
 } __packed;
 
-enum acpi_pptt_node_kind {
+enum acpi_pptt_node_kind : uint8_t {
     ACPI_PPTT_NODE_PROCESSOR_HIERARCHY,
     ACPI_PPTT_NODE_CACHE_TYPE
 };
 
 struct acpi_pptt_node_base {
-    enum acpi_pptt_node_kind kind : 8;
+    enum acpi_pptt_node_kind kind;
 } __packed;
 
-enum acpi_pptt_processor_hierarchy_node_flags {
+enum acpi_pptt_processor_hierarchy_node_flags : uint8_t {
     // This node of the processor topology represents the boundary of a physical
     // package, whether socketed or surface mounted.
     __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG = 1 << 0,
@@ -892,31 +892,31 @@ struct acpi_pptt_processor_hierarchy_node {
     uint32_t private_resource_offsets[];
 } __packed;
 
-enum acpi_pptt_cache_type_node_attr_alloc_kind {
+enum acpi_pptt_cache_type_node_attr_alloc_kind : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2,
 };
 
-enum acpi_pptt_cache_type_node_attr_cache_kind {
+enum acpi_pptt_cache_type_node_attr_cache_kind : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2,
 };
 
-enum acpi_pptt_cache_type_node_attr_write_policy {
+enum acpi_pptt_cache_type_node_attr_write_policy : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_THROUGH
 };
 
-enum acpi_pptt_cache_type_node_attr_write_shifts {
+enum acpi_pptt_cache_type_node_attr_write_shifts : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT = 2,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT = 4
 };
 
-enum acpi_pptt_cache_type_node_attr_write_masks {
+enum acpi_pptt_cache_type_node_attr_write_masks : uint8_t {
     __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND = 0b11,
     __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND =
         0b11 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT,
@@ -924,7 +924,7 @@ enum acpi_pptt_cache_type_node_attr_write_masks {
         0b1 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT
 };
 
-enum acpi_pptt_cache_type_node_flags {
+enum acpi_pptt_cache_type_node_flags : uint8_t {
     __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID = 1 << 0,
     __ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID = 1 << 1,
     __ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID = 1 << 2,
@@ -958,7 +958,7 @@ struct acpi_pptt {
     char buffer[];
 };
 
-enum acpi_spcr_interface_kind {
+enum acpi_spcr_interface_kind : uint8_t {
     ACPI_SPCR_INTERFACE_16550_COMPATIBLE,
     ACPI_SPCR_INTERFACE_16550_SUBSET,
     ACPI_SPCR_INTERFACE_MAX311XE_SPI,
@@ -981,7 +981,7 @@ enum acpi_spcr_interface_kind {
     ACPI_SPCR_INTERFACE_INTEL_LPSS,
 };
 
-enum acpi_spcr_irq_kind {
+enum acpi_spcr_irq_kind : uint8_t {
     __ACPI_SPCR_IRQ_8259 = 1 << 0,
     __ACPI_SPCR_IRQ_IOAPIC = 1 << 1,
     __ACPI_SPCR_IRQ_IO_SAPIC = 1 << 2,
@@ -989,7 +989,7 @@ enum acpi_spcr_irq_kind {
     __ACPI_SPCR_IRQ_RISCV_PLIC = 1 << 4,
 };
 
-enum acpi_spcr_baud_rate {
+enum acpi_spcr_baud_rate : uint8_t {
     ACPI_SPCR_BAUD_RATE_OS_DEPENDENT,
     ACPI_SPCR_BAUD_RATE_9600 = 3,
     ACPI_SPCR_BAUD_RATE_19200,
@@ -997,20 +997,20 @@ enum acpi_spcr_baud_rate {
     ACPI_SPCR_BAUD_RATE_115200,
 };
 
-enum acpi_spcr_terminal_kind {
+enum acpi_spcr_terminal_kind : uint8_t {
     ACPI_SPCR_TERMINAL_VT100,
     ACPI_SPCR_TERMINAL_VT100_EXT,
     ACPI_SPCR_TERMINAL_VT_UTF8,
     ACPI_SPCR_TERMINAL_ANSI,
 };
 
-enum acpi_spcr_pci_flags {
+enum acpi_spcr_pci_flags : uint8_t {
     __ACPI_SPCR_PCI_DONT_SUPPRESS_PNP = 1 << 0
 };
 
 struct acpi_spcr {
     struct acpi_sdt sdt;
-    enum acpi_spcr_interface_kind interface_kind : 8;
+    enum acpi_spcr_interface_kind interface_kind;
 
     uint8_t reserved[3];
     struct acpi_gas serial_port;
@@ -1019,13 +1019,13 @@ struct acpi_spcr {
     uint8_t pc_interrupt;
 
     uint32_t gsiv;
-    enum acpi_spcr_baud_rate baud_rate : 8;
+    enum acpi_spcr_baud_rate baud_rate;
 
     uint8_t parity;
     uint8_t stop_bits;
     uint8_t flow_control;
 
-    enum acpi_spcr_terminal_kind terminal_kind : 8;
+    enum acpi_spcr_terminal_kind terminal_kind;
     uint8_t reserved1;
 
     uint16_t pci_device_id;

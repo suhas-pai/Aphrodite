@@ -17,8 +17,8 @@ __hidden struct cpu_info g_base_cpu_info = {
 
     .spe_overflow_interrupt = 0,
 
-    .gic_its_pend_page = NULL,
-    .gic_its_prop_page = NULL,
+    .gic_its_pend_page = nullptr,
+    .gic_its_prop_page = nullptr,
 
     .in_lpi = false,
     .in_exception = false,
@@ -36,25 +36,25 @@ __debug_optimize(3) uint32_t cpu_get_id(const struct cpu_info *const cpu) {
 }
 
 __debug_optimize(3) const struct cpu_info *cpu_for_id(const cpu_id_t id) {
-    const struct cpu_info *iter = NULL;
+    const struct cpu_info *iter = nullptr;
     list_foreach(iter, cpus_get_list(), cpu_list) {
         if (iter->processor_id == id) {
             return iter;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) struct cpu_info *cpu_for_id_mut(const cpu_id_t id) {
-    struct cpu_info *iter = NULL;
+    struct cpu_info *iter = nullptr;
     list_foreach(iter, cpus_get_list(), cpu_list) {
         if (iter->processor_id == id) {
             return iter;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) bool cpu_in_bad_state() {

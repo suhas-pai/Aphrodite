@@ -19,11 +19,11 @@
 #include "sys/boot.h"
 
 static struct acpi_info g_info = {
-    .madt = NULL,
-    .fadt = NULL,
-    .mcfg = NULL,
-    .rsdp = NULL,
-    .rsdt = NULL,
+    .madt = nullptr,
+    .fadt = nullptr,
+    .mcfg = nullptr,
+    .rsdp = nullptr,
+    .rsdt = nullptr,
 
 #if defined(__aarch64__)
     .msi_frame_list = ARRAY_INIT(sizeof(struct acpi_msi_frame)),
@@ -121,7 +121,7 @@ static inline void acpi_print_each_sdt(const struct acpi_sdt *const sdt) {
 
 void acpi_init(void) {
     g_info.rsdp = boot_get_rsdp();
-    if (g_info.rsdp == NULL) {
+    if (g_info.rsdp == nullptr) {
         printk(LOGLEVEL_WARN, "acpi: tables are missing\n");
         return;
     }
@@ -158,38 +158,38 @@ void acpi_init(void) {
     acpi_recurse(acpi_print_each_sdt);
 
     const struct acpi_sdt *const spcr_sdt = acpi_lookup_sdt("SPCR");
-    if (spcr_sdt != NULL) {
+    if (spcr_sdt != nullptr) {
         const struct acpi_spcr *const spcr = (const struct acpi_spcr *)spcr_sdt;
         spcr_init(spcr);
     }
 
-    if (get_acpi_info()->madt != NULL) {
+    if (get_acpi_info()->madt != nullptr) {
         madt_init(get_acpi_info()->madt);
     }
 
-    if (get_acpi_info()->fadt != NULL) {
+    if (get_acpi_info()->fadt != nullptr) {
         fadt_init(get_acpi_info()->fadt);
     }
 
 #if defined(__aarch64__)
-    if (get_acpi_info()->gtdt != NULL) {
+    if (get_acpi_info()->gtdt != nullptr) {
         gtdt_init(get_acpi_info()->gtdt);
     }
 #endif /* defined(__aarch64__) */
 
-    if (get_acpi_info()->pptt != NULL) {
+    if (get_acpi_info()->pptt != nullptr) {
         pptt_init(get_acpi_info()->pptt);
     }
 
-    if (get_acpi_info()->mcfg != NULL) {
+    if (get_acpi_info()->mcfg != nullptr) {
         mcfg_init(get_acpi_info()->mcfg);
     }
 }
 
 __debug_optimize(3)
 const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
-    if (get_acpi_info()->rsdp == NULL) {
-        return NULL;
+    if (get_acpi_info()->rsdp == nullptr) {
+        return nullptr;
     }
 
     if (has_xsdt()) {
@@ -230,7 +230,7 @@ const struct acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
            "acpi: failed to find entry with signature \"" SV_FMT "\"\n",
            SV_FMT_ARGS(sv_create_nocheck(sig, 4)));
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) const struct acpi_info *get_acpi_info() {

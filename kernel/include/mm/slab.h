@@ -26,7 +26,7 @@ struct slab_allocator {
     uint32_t slab_count;
 };
 
-enum slab_allocator_flags {
+enum slab_allocator_flags : uint8_t {
     __SLAB_ALLOC_NO_LOCK = 1ull << 0
 };
 

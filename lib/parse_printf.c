@@ -58,8 +58,8 @@ read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
         }
 
         if (__builtin_expect(
-                !check_mul(result, 10, &result)
-             || !check_add(result, digit, &result), 0))
+                !ckd_mul(&result, result, 10)
+             || !ckd_add(&result, result, digit), 0))
         {
             *iter_out = iter;
             return -1;
@@ -260,7 +260,7 @@ parse_length(struct printf_spec_info *const curr_spec,
     return true;
 }
 
-enum handle_spec_result {
+enum handle_spec_result : uint8_t {
     E_HANDLE_SPEC_OK,
     E_HANDLE_SPEC_REACHED_END,
     E_HANDLE_SPEC_CONTINUE
@@ -378,7 +378,7 @@ handle_spec(struct printf_spec_info *const curr_spec,
             break;
         case 's': {
             const char *const str = va_arg(list_struct->list, const char *);
-            if (str != NULL) {
+            if (str != nullptr) {
                 uint64_t length = 0;
                 if (curr_spec->precision != -1) {
                     length = strnlen(str, (size_t)curr_spec->precision);
@@ -396,7 +396,7 @@ handle_spec(struct printf_spec_info *const curr_spec,
         }
         case 'p': {
             const void *const arg = va_arg(list_struct->list, const void *);
-            if (arg != NULL) {
+            if (arg != nullptr) {
                 const struct num_to_str_options options = {
                     .capitalize = true,
                     .include_prefix = true
@@ -624,12 +624,12 @@ parse_printf(const char *const fmt,
     bool should_continue = true;
 
     const char *iter = strchr(fmt, '%');
-    for (; iter != NULL; iter = strchr(iter, '%')) {
+    for (; iter != nullptr; iter = strchr(iter, '%')) {
         const struct string_view unformatted =
             sv_create_end(unformatted_start, iter);
 
         written_out +=
-            call_cb(NULL,
+            call_cb(nullptr,
                     unformatted,
                     write_char_cb,
                     write_char_cb_info,
@@ -891,7 +891,7 @@ parse_printf(const char *const fmt,
             sv_create_length(unformatted_start, strlen(unformatted_start));
 
         written_out +=
-            call_cb(NULL,
+            call_cb(nullptr,
                     unformatted,
                     write_char_cb,
                     write_char_cb_info,

@@ -9,14 +9,14 @@
 bool
 virtio_device_shmem_region_map(struct virtio_device_shmem_region *const region)
 {
-    if (region->mmio != NULL) {
+    if (region->mmio != nullptr) {
         return true;
     }
 
     struct mmio_region *const mmio =
         vmap_mmio(region->phys_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN,
                "virtio-device: failed to map shared-memory region\n");
         return false;
@@ -30,12 +30,12 @@ void
 virtio_device_shmem_region_unmap(
     struct virtio_device_shmem_region *const region)
 {
-    if (region->mmio == NULL) {
+    if (region->mmio == nullptr) {
         return;
     }
 
     vunmap_mmio(region->mmio);
-    region->mmio = NULL;
+    region->mmio = nullptr;
 
     return;
 }
@@ -57,19 +57,19 @@ void virtio_device_destroy(struct virtio_device *const device) {
         case VIRTIO_DEVICE_TRANSPORT_MMIO:
             vunmap_mmio(device->mmio.region);
 
-            device->mmio.region = NULL;
-            device->mmio.header = NULL;
+            device->mmio.region = nullptr;
+            device->mmio.header = nullptr;
 
             break;
         case VIRTIO_DEVICE_TRANSPORT_PCI:
-            device->pci.entity = NULL;
-            device->pci.common_cfg = NULL;
+            device->pci.entity = nullptr;
+            device->pci.common_cfg = nullptr;
 
             device->pci.device_cfg = RANGE_EMPTY();
             device->pci.notify_cfg_range = RANGE_EMPTY();
 
             device->pci.notify_off_multiplier = 0;
-            device->pci.pci_cfg = NULL;
+            device->pci.pci_cfg = nullptr;
 
             device->pci.offsets.pci_cfg = 0;
             device->pci.offsets.isr_cfg = 0;
@@ -77,7 +77,7 @@ void virtio_device_destroy(struct virtio_device *const device) {
             break;
     }
 
-    device->queue_list = NULL;
+    device->queue_list = nullptr;
     device->queue_count = 0;
 
     device->transport_kind = VIRTIO_DEVICE_TRANSPORT_MMIO;

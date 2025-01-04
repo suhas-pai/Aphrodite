@@ -24,7 +24,7 @@ dtb_init_nodes_for_driver(const struct dtb_driver *const driver,
             (struct devicetree_prop_compat *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
 
-        if (compat_prop == NULL) {
+        if (compat_prop == nullptr) {
             goto next;
         }
 
@@ -47,7 +47,7 @@ dtb_init_nodes_for_driver(const struct dtb_driver *const driver,
             (struct devicetree_prop_device_type *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_DEVICE_TYPE);
 
-        if (device_type_prop == NULL) {
+        if (device_type_prop == nullptr) {
             goto next;
         }
 
@@ -73,7 +73,7 @@ static void dtb_init_drivers() {
         assert_msg(driver->name.length != 0, "driver is missing a name");
 
         const struct dtb_driver *const dtb = driver->dtb;
-        if (dtb == NULL) {
+        if (dtb == nullptr) {
             continue;
         }
 
@@ -83,7 +83,7 @@ static void dtb_init_drivers() {
                    SV_FMT_ARGS(driver->name));
 
         if (dtb->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
-            assert_msg(dtb->compat_list != NULL && dtb->compat_count != 0,
+            assert_msg(dtb->compat_list != nullptr && dtb->compat_count != 0,
                        "driver " SV_FMT "'s dtb-driver is missing its compat_* "
                        "fields\n",
                        SV_FMT_ARGS(driver->name));
@@ -102,14 +102,14 @@ static void dtb_init_drivers() {
 
 void dtb_parse_main_tree() {
     devicetree_node_init_fields(&g_device_tree_root,
-                                /*parent=*/NULL,
+                                /*parent=*/nullptr,
                                 /*name=*/SV_EMPTY(),
                                 /*nodeoff=*/0);
 
     devicetree_init_fields(&g_device_tree, &g_device_tree_root);
 
     const void *const dtb = boot_get_dtb();
-    if (dtb == NULL) {
+    if (dtb == nullptr) {
         printk(LOGLEVEL_WARN, "dev: dtb not found\n");
         return;
     }
@@ -121,7 +121,7 @@ void dtb_parse_main_tree() {
 }
 
 void dtb_init() {
-    if (boot_get_dtb() == NULL) {
+    if (boot_get_dtb() == nullptr) {
         return;
     }
 

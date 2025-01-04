@@ -8,7 +8,7 @@
 
 #include "dev/pio.h"
 
-enum pci_config_address_flags {
+enum pci_config_address_flags : uint32_t {
     __PCI_CONFIG_ADDR_ENABLE = 1ull << 31,
 };
 

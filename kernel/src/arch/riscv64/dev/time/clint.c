@@ -25,7 +25,7 @@ struct clint_mtime {
     uint64_t frequency;
 };
 
-static struct clint_mtime *g_clint_mtime = NULL;
+static struct clint_mtime *g_clint_mtime = nullptr;
 
 __debug_optimize(3) struct clock *system_clock_get() {
     return &g_clint_mtime->clock;
@@ -35,13 +35,13 @@ void clint_init(const struct range range, const uint64_t freq) {
     struct mmio_region *const mmio =
         vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN, "clint: failed to mmio-map registers\n");
         return;
     }
 
     struct clint_mtime *const clint = kmalloc(sizeof(*clint));
-    if (clint == NULL) {
+    if (clint == nullptr) {
         vunmap_mmio(mmio);
         printk(LOGLEVEL_WARN, "clint: failed to allocate clint-info struct\n");
 
@@ -56,10 +56,10 @@ void clint_init(const struct range range, const uint64_t freq) {
     clint->clock.resolution = CLOCK_RES_NANO;
     clint->clock.one_shot_capable = false;
 
-    clint->clock.read = NULL;
-    clint->clock.enable = NULL;
-    clint->clock.disable = NULL;
-    clint->clock.oneshot = NULL;
+    clint->clock.read = nullptr;
+    clint->clock.enable = nullptr;
+    clint->clock.disable = nullptr;
+    clint->clock.oneshot = nullptr;
 
     clock_add(&clint->clock);
     g_clint_mtime = clint;
@@ -69,7 +69,7 @@ static bool
 init_from_dtb(const struct devicetree *const tree,
               const struct devicetree_node *const node)
 {
-    if (g_clint_mtime != NULL) {
+    if (g_clint_mtime != nullptr) {
         printk(LOGLEVEL_WARN, "clint: multiple mtime clocks found. Ignoring\n");
         return true;
     }
@@ -82,7 +82,7 @@ init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-        if (reg_prop == NULL) {
+        if (reg_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "clint: 'reg' property in dtb node is missing\n");
             return false;
@@ -113,7 +113,7 @@ init_from_dtb(const struct devicetree *const tree,
         struct devicetree_node *const cpus_node =
             devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
 
-        if (cpus_node == NULL) {
+        if (cpus_node == nullptr) {
             printk(LOGLEVEL_WARN,
                    "clint: failed to init because node at path \"/cpus\" is "
                    "missing\n");
@@ -124,7 +124,7 @@ init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_other_prop(cpus_node,
                                            SV_STATIC("timebase-frequency"));
 
-        if (timebase_freq_prop == NULL) {
+        if (timebase_freq_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "clint: node at path \"/cpus\" is missing the "
                    "timebase-frequency prop\n");
@@ -159,5 +159,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver driver = {
     .name = SV_STATIC("riscv64-clint-driver"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

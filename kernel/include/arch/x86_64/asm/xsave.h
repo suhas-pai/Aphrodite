@@ -12,7 +12,7 @@
 #include "lib/assert.h"
 #include "lib/inttypes.h"
 
-enum xsave_header_xcompbv_flags {
+enum xsave_header_xcompbv_flags : uint64_t {
     __XSAVE_XCOMPBV_USES_COMPACTED_FORM = 1ull << 63,
 };
 
@@ -142,7 +142,7 @@ struct xsave_pasid_state {
     uint64_t pasid;
 } __packed;
 
-enum xsave_feature {
+enum xsave_feature : uint8_t {
     XSAVE_FEAT_X87,
     XSAVE_FEAT_SSE,
     XSAVE_FEAT_AVX,
@@ -170,7 +170,7 @@ enum xsave_feature {
     XSAVE_FEAT_MAX = XSAVE_FEAT_AMX_TILEDATA
 };
 
-enum xsave_feature_flags {
+enum xsave_feature_flags : uint8_t {
     __XSAVE_FEAT_FLAG_SUPERVISOR_FEAT = 1 << 0,
     __XSAVE_FEAT_FLAG_64B_ALIGNED = 1 << 1,
 };

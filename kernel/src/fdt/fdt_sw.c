@@ -101,7 +101,7 @@ static void *fdt_grab_space_(void *fdt, size_t len)
         - fdt_size_dt_strings(fdt);
 
     if ((offset + len < offset) || (offset + len > spaceleft))
-        return NULL;
+        return nullptr;
 
     fdt_set_size_dt_struct(fdt, offset + len);
     return fdt_offset_ptr_w_(fdt, (int)offset);

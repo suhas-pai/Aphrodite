@@ -8,7 +8,7 @@
 #include "port.h"
 #include "structs.h"
 
-enum ahci_hba_device_kind {
+enum ahci_hba_device_kind : uint8_t {
     AHCI_HBA_DEVICE_KIND_SATA_ATA,
     AHCI_HBA_DEVICE_KIND_SATA_ATAPI,
     AHCI_HBA_DEVICE_KIND_SATA_SEMB,

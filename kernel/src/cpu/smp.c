@@ -32,7 +32,7 @@ extern void arch_init_for_smp();
 
 void smp_init() {
     const struct limine_mp_response *const smp_resp = boot_get_mp();
-    if (smp_resp == NULL) {
+    if (smp_resp == nullptr) {
         return;
     }
 
@@ -51,7 +51,7 @@ void smp_init() {
 void smp_boot_all_cpus() {
 #if defined(__x86_64__) || defined(__aarch64__)
     const struct limine_mp_response *const mp_resp = boot_get_mp();
-    if (mp_resp == NULL) {
+    if (mp_resp == nullptr) {
         return;
     }
 
@@ -71,7 +71,7 @@ void smp_boot_all_cpus() {
         struct cpu_info *const cpu = cpu_for_id_mut(cpu_list[i]->processor_id);
         struct smp_boot_info boot_info = SMP_BOOT_INFO_INIT(cpu);
 
-        assert_msg(cpu != NULL,
+        assert_msg(cpu != nullptr,
                    "smp: failed to find cpu-info for "
                    "processor-id %" PRIu32 "\n",
                    cpu->processor_id);

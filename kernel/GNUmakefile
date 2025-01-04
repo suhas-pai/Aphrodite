@@ -103,7 +103,7 @@ override CC_IS_CLANG := $(shell ! $(CC) --version | grep 'clang' >/dev/null 2>&1
 override CFLAGS += \
 	-Wall \
 	-Wextra \
-	-std=gnu17 \
+	-std=gnu23 \
 	-nostdinc \
 	-ffreestanding \
 	-fno-stack-protector \
@@ -162,7 +162,7 @@ ifeq ($(ARCH),x86_64)
 	endif
 	override CFLAGS += \
 		-m64 \
-		-march=x86-64-v3 \
+		-march=x86-64-v4 \
 		-mno-80387 \
 		-mno-mmx \
 		-mno-sse \

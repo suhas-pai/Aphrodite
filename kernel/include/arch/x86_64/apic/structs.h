@@ -10,7 +10,7 @@ struct lapic_aligned_value {
     _Alignas(16) volatile uint32_t value;
 };
 
-enum lapic_timer_div_config {
+enum lapic_timer_div_config : uint8_t {
     LAPIC_TIMER_DIV_CONFIG_BY_2,
     LAPIC_TIMER_DIV_CONFIG_BY_4,
     LAPIC_TIMER_DIV_CONFIG_BY_8,
@@ -66,7 +66,7 @@ struct lapic_registers {
     _Alignas(16) volatile uint32_t reserved_6[3];
 } __packed;
 
-enum apic_lvt_delivery_mode {
+enum apic_lvt_delivery_mode : uint8_t {
     APIC_LVT_DELIVERY_MODE_FIXED,
     APIC_LVT_DELIVERY_MODE_LOWEST,
     APIC_LVT_DELIVERY_MODE_SMI,
@@ -79,12 +79,12 @@ enum apic_lvt_delivery_mode {
     APIC_LVT_DELIVERY_MODE_EXTINT
 };
 
-enum apic_lvt_dest_mode {
+enum apic_lvt_dest_mode : uint8_t {
     APIC_LVT_DEST_MODE_PHYSICAL,
     APIC_LVT_DEST_MODE_LOGICAL
 };
 
-enum apic_lvt_trigger_mode {
+enum apic_lvt_trigger_mode : uint8_t {
     APIC_LVT_TRIGGER_MODE_EDGE,
     APIC_LVT_TRIGGER_MODE_LEVEL
 };

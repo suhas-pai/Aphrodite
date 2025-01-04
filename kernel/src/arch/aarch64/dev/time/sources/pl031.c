@@ -25,14 +25,14 @@ struct pl031_header {
     volatile uint32_t intr_clear_status; // Write-only
 };
 
-static struct mmio_region *g_mmio = NULL;
-static volatile struct pl031_header *g_header = NULL;
+static struct mmio_region *g_mmio = nullptr;
+static volatile struct pl031_header *g_header = nullptr;
 
 bool
 init_from_dtb(const struct devicetree *const tree,
               const struct devicetree_node *const node)
 {
-    if (g_mmio != NULL) {
+    if (g_mmio != nullptr) {
         printk(LOGLEVEL_WARN, "pl031: device already found. ignoring\n");
         return true;
     }
@@ -42,7 +42,7 @@ init_from_dtb(const struct devicetree *const tree,
         (struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_INFO, "pl031: dtb-node is missing a 'reg' prop\n");
         return false;
     }
@@ -72,7 +72,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     g_mmio = vmap_mmio(reg_range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (g_mmio == NULL) {
+    if (g_mmio == nullptr) {
         printk(LOGLEVEL_INFO,
                "pl031: failed to mmio-map range of 'reg' prop of dtb-node\n");
         return false;
@@ -93,7 +93,8 @@ init_from_dtb(const struct devicetree *const tree,
 }
 
 __debug_optimize(3) sec_t pl031_get_wallclock() {
-    assert_msg(g_mmio != NULL, "pl031_get_wallclock(): pl031 device not found");
+    assert_msg(g_mmio != nullptr,
+               "pl031_get_wallclock(): pl031 device not found");
     return mmio_read(&g_header->data);
 }
 
@@ -109,5 +110,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver driver = {
     .name = SV_STATIC("arm,pl031.driver"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

@@ -30,7 +30,7 @@ void serial_init() {
         uint32_t baudrate = 9600;
         uint8_t stop_bits = 1;
 
-        if (spcr != NULL) {
+        if (spcr != nullptr) {
             address = spcr->serial_port.address;
             baudrate = spcr->baud_rate;
             stop_bits = spcr->stop_bits;

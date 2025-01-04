@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum rflags {
+enum rflags : uint64_t {
     __RFLAGS_CARRY = 1 << 0,
     __RFLAGS_PARITY = 1 << 2,
 

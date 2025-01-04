@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum atapi_command {
+enum atapi_command : uint8_t {
     ATAPI_CMD_TEST_UNIT_READY = 0x00,
     ATAPI_CMD_REQUEST_SENSE = 0x03,
     ATAPI_CMD_FORMAT_UNIT = 0x04,
@@ -59,7 +59,7 @@ enum atapi_command {
     ATAPI_CMD_SEND_DISC_STRUCTURE = 0xBF,
 };
 
-enum atapi_sense {
+enum atapi_sense : uint8_t {
     ATAPI_SENSE_NONE,
     ATAPI_SENSE_RECOVERED_ERROR,
     ATAPI_SENSE_NOT_READY,
@@ -75,7 +75,7 @@ enum atapi_sense {
     ATAPI_SENSE_MISCOMPARE,
 };
 
-enum atapi_sense_asc {
+enum atapi_sense_asc : uint8_t {
     ATAPI_SENSE_ASC_NONE,
     ATAPI_SENSE_ASC_NO_SEEK_COMPLETE = 0x02,
     ATAPI_SENSE_ASC_ILLEGAL_OPCODE = 0x20,

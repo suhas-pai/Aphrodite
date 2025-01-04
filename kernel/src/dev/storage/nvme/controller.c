@@ -78,7 +78,7 @@ handle_irq(const uint64_t int_no,
     (void)context;
     (void)ctx;
 
-    struct nvme_controller *iter = NULL;
+    struct nvme_controller *iter = nullptr;
     bool found = false;
 
     list_foreach(iter, &g_controller_list, list) {
@@ -105,7 +105,7 @@ handle_irq(const uint64_t int_no,
 
     // TODO: use GET_FEATURES command to check for interrupt coalescing
 
-    struct nvme_namespace *ns_iter = NULL;
+    struct nvme_namespace *ns_iter = nullptr;
     list_foreach(ns_iter, &iter->namespace_list, list) {
         if (notify_queue_if_done(&ns_iter->io_queue)) {
             isr_eoi(int_no);
@@ -233,7 +233,7 @@ identify_namespaces(struct nvme_controller *const controller,
         }
 
         struct nvme_namespace *const namespace = kmalloc(sizeof(*namespace));
-        if (namespace == NULL) {
+        if (namespace == nullptr) {
             continue;
         }
 
@@ -349,7 +349,7 @@ nvme_controller_create(struct nvme_controller *const controller,
 
     isr_set_msi_vector(controller->isr_vector,
                        handle_irq,
-                       /*ctx=*/NULL,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
 
     list_add(&g_controller_list, &controller->list);
@@ -371,7 +371,7 @@ nvme_controller_create(struct nvme_controller *const controller,
 bool nvme_controller_destroy(struct nvme_controller *const controller) {
     spinlock_deinit(&controller->lock);
 
-    struct nvme_namespace *iter = NULL;
+    struct nvme_namespace *iter = nullptr;
     list_foreach(iter, &controller->namespace_list, list) {
         nvme_namespace_destroy(iter);
     }
@@ -383,7 +383,7 @@ bool nvme_controller_destroy(struct nvme_controller *const controller) {
     list_deinit(&controller->list);
     list_deinit(&controller->namespace_list);
 
-    controller->regs = NULL;
+    controller->regs = nullptr;
     controller->stride = 0;
     controller->msix_vector = 0;
     controller->isr_vector = 0;

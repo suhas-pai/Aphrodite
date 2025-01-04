@@ -99,7 +99,7 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
     hba->port_list =
         kmalloc(sizeof(struct ahci_hba_port) * ports_implemented_count);
 
-    if (hba->port_list == NULL) {
+    if (hba->port_list == nullptr) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to allocate memory for port list\n");
 
@@ -250,7 +250,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     isr_set_vector(g_hba_vector,
                    ahci_port_handle_irq,
-                   /*ctx=*/NULL,
+                   /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
 
     pci_entity_enable_msi(pci_entity);
@@ -292,6 +292,6 @@ static const struct pci_driver pci_driver = {
 
 __driver static const struct driver driver = {
     .name = SV_STATIC("x86_64-ahci-driver"),
-    .dtb = NULL,
+    .dtb = nullptr,
     .pci = &pci_driver
 };

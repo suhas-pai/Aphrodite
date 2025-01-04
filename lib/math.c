@@ -17,8 +17,8 @@ round_up(const uint64_t number,
         return true;
     }
 
-    if (!check_add(number, multiple - 1, result_out)
-     || !check_mul(*result_out / multiple, multiple, result_out))
+    if (!ckd_add(result_out, number, multiple - 1)
+     || !ckd_mul(result_out, *result_out / multiple, multiple))
     {
         return false;
     }
@@ -30,7 +30,7 @@ __debug_optimize(3) bool
 math_pow(const uint64_t base, const uint64_t exp, uint64_t *const result_out) {
     uint64_t result = base;
     for (uint64_t i = 0; i != exp; i++) {
-        if (!check_mul(result, base, &result)) {
+        if (!ckd_mul(&result, result, base)) {
             return false;
         }
     }

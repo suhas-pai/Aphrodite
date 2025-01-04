@@ -9,13 +9,13 @@
 #include "lib/time.h"
 #include "sys/isr.h"
 
-enum lapic_version_reg_flags {
+enum lapic_version_reg_flags : uint32_t {
     __LAPIC_VERSION_REG_VERION_MASK = 0xFF,
     __LAPIC_VERSION_REG_MAX_LVT_ENTRIES_MASK = 0xFF0000,
     __LAPIC_VERSION_REG_SUPPRESS_EOI = 1 << 24,
 };
 
-enum lapic_reg {
+enum lapic_reg : uint16_t {
     // ICR = "Interrupt Command Register"
     LAPIC_REG_ID = 0x20,
     LAPIC_REG_VERSION = 0x30,
@@ -93,7 +93,7 @@ enum lapic_reg {
     LAPIC_REG_TIMER_DVR = 0x3E0,
 };
 
-enum x2apic_reg {
+enum x2apic_reg : uint8_t {
     X2APIC_LAPIC_REG_ID = 0x2,
     X2APIC_LAPIC_REG_VERSION = 0x3,
 
@@ -149,20 +149,20 @@ enum x2apic_reg {
     X2APIC_LAPIC_REG_SELF_IPI = 0x3F,
 };
 
-enum lapic_ipi {
+enum lapic_ipi : uint16_t {
     LAPIC_IPI_INIT = 0x4500,
 
     // Send IPI to all APs
     LAPIC_IPI_SIPI = 0x4600,
 };
 
-enum lapic_spurious_vector_flags {
+enum lapic_spurious_vector_flags : uint16_t {
     __LAPIC_SPURVEC_ENABLE = 1 << 8,
     __LAPIC_SPURVEC_FOCUS_DISABLED = 1 << 9,
     __LAPIC_SPURVEC_EOI = 1 << 11,
 };
 
-enum lapic_timer_mode {
+enum lapic_timer_mode : uint8_t {
     /*
      * In one-shot mode, the timer is started by writing to the initial-count
      * register.

@@ -148,7 +148,7 @@ get_from_freelist_order(struct page_section *const section,
 {
     struct page_freelist *const freelist = &section->freelist_list[order];
     if (freelist->count == 0) {
-        return NULL;
+        return nullptr;
     }
 
     struct page *const page =
@@ -241,7 +241,7 @@ get_from_freelist_order_at_align(struct page_section *const section,
 {
     struct page_freelist *const freelist = &section->freelist_list[order];
     if (freelist->count == 0) {
-        return NULL;
+        return nullptr;
     }
 
     struct page *const page =
@@ -259,14 +259,14 @@ get_from_freelist_order_at_align(struct page_section *const section,
         PAGE_COUNT(align_up_assert(phys, 1ull << align) - phys);
 
     if (!index_in_bounds(index, size)) {
-        return NULL;
+        return nullptr;
     }
 
     const uint64_t req_page_count = 1ull << req_order;
     const uint64_t remaining = size - index;
 
     if (remaining < req_page_count) {
-        return NULL;
+        return nullptr;
     }
 
     if (index != 0) {
@@ -389,7 +389,7 @@ get_large_from_freelist_order(struct page_section *const section,
         &section->freelist_list[freelist_order];
 
     if (freelist->count == 0) {
-        return NULL;
+        return nullptr;
     }
 
     struct page *head =
@@ -408,7 +408,7 @@ get_large_from_freelist_order(struct page_section *const section,
                        "mm: alloc_large_page() failed to align page's physical "
                        "address to boundary at order %" PRIu8 "\n",
                        large_order);
-                return NULL;
+                return nullptr;
             }
 
             page += PAGE_COUNT(new_phys - page_phys);
@@ -454,7 +454,7 @@ get_large_from_freelist_order(struct page_section *const section,
                           freelist_head.freelist);
 
             if (&head->freelist_head.freelist == &freelist->page_list) {
-                return NULL;
+                return nullptr;
             }
 
             page = head;
@@ -472,9 +472,9 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
                           const uint8_t order,
                           const enum page_state state)
 {
-    struct page *page = NULL;
+    struct page *page = nullptr;
     if (__builtin_expect(atomic_load(&zone->total_free) < 1ull << order, 0)) {
-        return NULL;
+        return nullptr;
     }
 
     // Iterate over each section and try to acquire the section's lock.
@@ -494,7 +494,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
             iter = list_next(iter, zone_list);
             if (&iter->zone_list == &zone->section_list) {
                 if (locked_section_mask == mm_get_full_section_mask()) {
-                    return NULL;
+                    return nullptr;
                 }
 
                 iter = list_head(&zone->section_list, typeof(*iter), zone_list);
@@ -509,7 +509,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
 
         for (; alloced_order < max_order; alloced_order++) {
             page = get_from_freelist_order(iter, alloced_order, order);
-            if (page != NULL) {
+            if (page != nullptr) {
                 goto done;
             }
         }
@@ -525,7 +525,7 @@ try_alloc_pages_from_zone(struct page_zone *const zone,
         section_index++;
     } while (true);
 
-    return NULL;
+    return nullptr;
 
 done:
     free_extra_pages_if_from_higher_order(page, iter, alloced_order, order);
@@ -542,9 +542,9 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
                                    const uint8_t align,
                                    const enum page_state state)
 {
-    struct page *page = NULL;
+    struct page *page = nullptr;
     if (__builtin_expect(atomic_load(&zone->total_free) < 1ull << order, 0)) {
-        return NULL;
+        return nullptr;
     }
 
     // Iterate over each section and try to acquire the section's lock.
@@ -564,7 +564,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
             iter = list_next(iter, zone_list);
             if (&iter->zone_list == &zone->section_list) {
                 if (locked_section_mask == mm_get_full_section_mask()) {
-                    return NULL;
+                    return nullptr;
                 }
 
                 iter = list_head(&zone->section_list, typeof(*iter), zone_list);
@@ -584,7 +584,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
                                                  /*orig_order=*/order,
                                                  align);
 
-            if (page != NULL) {
+            if (page != nullptr) {
                 goto done;
             }
         }
@@ -600,7 +600,7 @@ try_alloc_pages_from_zone_at_align(struct page_zone *const zone,
         section_index++;
     } while (true);
 
-    return NULL;
+    return nullptr;
 
 done:
     spin_release_restore_intr(&iter->lock, flag);
@@ -688,26 +688,26 @@ alloc_pages(const enum page_state state,
 {
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
-        return NULL;
+        return nullptr;
     }
 
     struct page_zone *zone = page_zone_default();
-    struct page *page = NULL;
+    struct page *page = nullptr;
 
-    while (zone != NULL) {
+    while (zone != nullptr) {
         page = try_alloc_pages_from_zone(zone, order, state);
-        if (page != NULL) {
+        if (page != nullptr) {
             return setup_alloced_page(page,
                                       state,
                                       alloc_flags,
                                       order,
-                                      /*large_info=*/NULL);
+                                      /*large_info=*/nullptr);
         }
 
         zone = zone->fallback_zone;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 struct page *
@@ -719,37 +719,37 @@ alloc_pages_from_zone(struct page_zone *zone,
 {
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
-        return NULL;
+        return nullptr;
     }
 
     struct page *page = try_alloc_pages_from_zone(zone, order, state);
-    if (page != NULL) {
+    if (page != nullptr) {
     setup:
         return setup_alloced_page(page,
                                   state,
                                   alloc_flags,
                                   order,
-                                  /*large_info=*/NULL);
+                                  /*large_info=*/nullptr);
     }
 
     if (!allow_fallback) {
-        return NULL;
+        return nullptr;
     }
 
     do {
         zone = zone->fallback_zone;
-        if (zone == NULL) {
+        if (zone == nullptr) {
             break;
         }
 
         page = try_alloc_pages_from_zone(zone, order, state);
-        if (page != NULL) {
+        if (page != nullptr) {
             goto setup;
         }
 
     } while (true);
 
-    return NULL;
+    return nullptr;
 }
 
 struct page *
@@ -760,26 +760,26 @@ alloc_pages_at_align(const enum page_state state,
 {
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
-        return NULL;
+        return nullptr;
     }
 
     struct page_zone *zone = page_zone_default();
-    struct page *page = NULL;
+    struct page *page = nullptr;
 
-    while (zone != NULL) {
+    while (zone != nullptr) {
         page = try_alloc_pages_from_zone_at_align(zone, order, align, state);
-        if (page != NULL) {
+        if (page != nullptr) {
             return setup_alloced_page(page,
                                       state,
                                       alloc_flags,
                                       order,
-                                      /*large_info=*/NULL);
+                                      /*large_info=*/nullptr);
         }
 
         zone = zone->fallback_zone;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 struct page *
@@ -792,38 +792,38 @@ alloc_pages_from_zone_at_align(struct page_zone *zone,
 {
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN, "mm: alloc_pages() got order >= MAX_ORDER\n");
-        return NULL;
+        return nullptr;
     }
 
     struct page *page =
         try_alloc_pages_from_zone_at_align(zone, order, align, state);
 
-    if (page != NULL) {
+    if (page != nullptr) {
     setup:
         return setup_alloced_page(page,
                                   state,
                                   alloc_flags,
                                   order,
-                                  /*large_info=*/NULL);
+                                  /*large_info=*/nullptr);
     }
 
     if (!allow_fallback) {
-        return NULL;
+        return nullptr;
     }
 
     do {
         zone = zone->fallback_zone;
-        if (zone == NULL) {
+        if (zone == nullptr) {
             break;
         }
 
         page = try_alloc_pages_from_zone_at_align(zone, order, align, state);
-        if (page != NULL) {
+        if (page != nullptr) {
             goto setup;
         }
     } while (true);
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) static struct page *
@@ -832,10 +832,10 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
 {
     const uint8_t order = info->order;
     if (__builtin_expect(atomic_load(&zone->total_free) < 1ull << order, 0)) {
-        return NULL;
+        return nullptr;
     }
 
-    struct page_section *iter = NULL;
+    struct page_section *iter = nullptr;
     list_foreach(iter, &zone->section_list, zone_list) {
         int flag = 0;
         if (!spin_try_acquire_save_intr(&iter->lock, &flag)) {
@@ -851,7 +851,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
                                               alloced_order,
                                               /*largepage_order=*/order);
 
-            if (page != NULL) {
+            if (page != nullptr) {
                 spin_release_restore_intr(&iter->lock, flag);
                 return page;
             }
@@ -860,7 +860,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
         spin_release_restore_intr(&iter->lock, flag);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 struct page *
@@ -874,20 +874,20 @@ alloc_large_page(const pg_level_t level, const uint64_t alloc_flags) {
                "mm: alloc_large_page() allocating at level %" PRIu8 " is not "
                "supported\n",
                level);
-        return NULL;
+        return nullptr;
     }
 
     const uint8_t order = info->order;
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN,
                "mm: alloc_large_page() can't allocate large-page, too large\n");
-        return NULL;
+        return nullptr;
     }
 
-    struct page *page = NULL;
-    while (zone != NULL) {
+    struct page *page = nullptr;
+    while (zone != nullptr) {
         page = try_alloc_large_page_from_zone(zone, info);
-        if (page != NULL) {
+        if (page != nullptr) {
             return setup_alloced_page(page,
                                       PAGE_STATE_LARGE_HEAD,
                                       alloc_flags,
@@ -898,7 +898,7 @@ alloc_large_page(const pg_level_t level, const uint64_t alloc_flags) {
         zone = zone->fallback_zone;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 struct page *
@@ -915,18 +915,18 @@ alloc_large_page_from_zone(struct page_zone *zone,
                "mm: alloc_large_page() allocating at level %" PRIu8 " is not "
                "supported\n",
                level);
-        return NULL;
+        return nullptr;
     }
 
     const uint8_t order = info->order;
     if (__builtin_expect(order >= MAX_ORDER, 0)) {
         printk(LOGLEVEL_WARN,
                "mm: alloc_large_page() can't allocate large-page, too large\n");
-        return NULL;
+        return nullptr;
     }
 
     struct page *page = try_alloc_large_page_from_zone(zone, info);
-    if (page != NULL) {
+    if (page != nullptr) {
     setup:
         return setup_alloced_page(page,
                                   PAGE_STATE_LARGE_HEAD,
@@ -936,22 +936,22 @@ alloc_large_page_from_zone(struct page_zone *zone,
     }
 
     if (!fallback) {
-        return NULL;
+        return nullptr;
     }
 
     do {
         zone = zone->fallback_zone;
-        if (zone == NULL) {
+        if (zone == nullptr) {
             break;
         }
 
         page = try_alloc_large_page_from_zone(zone, info);
-        if (page != NULL) {
+        if (page != nullptr) {
             goto setup;
         }
     } while (true);
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) void
@@ -1132,7 +1132,7 @@ __debug_optimize(3)
 struct page *deref_page(struct page *page, struct pageop *const pageop) {
     if (ref_down(&page->used.refcount)) {
         list_add(&pageop->delayed_free, &page->used.delayed_free_list);
-        return NULL;
+        return nullptr;
     }
 
     return page;
@@ -1146,7 +1146,7 @@ deref_large_page(struct page *const page,
     if (page_get_state(page) == PAGE_STATE_LARGE_HEAD) {
         if (ref_down(&page->largehead.refcount)) {
             list_add(&pageop->delayed_free, &page->used.delayed_free_list);
-            return NULL;
+            return nullptr;
         }
 
         return page;
@@ -1159,7 +1159,7 @@ deref_large_page(struct page *const page,
         deref_page(iter, pageop);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) struct page *alloc_table() {
@@ -1171,8 +1171,8 @@ struct page *alloc_user_stack(struct process *const proc, const uint8_t order) {
     struct page *const page =
         alloc_pages(PAGE_STATE_USER_STACK, __ALLOC_ZERO, order);
 
-    if (page == NULL) {
-        return NULL;
+    if (page == nullptr) {
+        return nullptr;
     }
 
     page->user_stack.process = proc;

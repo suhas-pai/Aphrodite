@@ -33,7 +33,7 @@ struct idt_register {
     struct idt_entry *idt;
 } __packed;
 
-enum exception {
+enum exception : uint8_t {
     EXCEPTION_DIVIDE_BY_ZERO,
     EXCEPTION_DEBUG,
 
@@ -244,7 +244,7 @@ void idt_register_exception_handlers() {
     for (idt_vector_t vector = 0; vector != 0x20; vector++) {
         isr_set_vector(vector,
                        handle_exception,
-                       /*ctx=*/NULL,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
     }
 }

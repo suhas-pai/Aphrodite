@@ -26,7 +26,7 @@ __debug_optimize(3) void sched_init_irq() {
 
     isr_set_vector(g_sched_vector,
                    sched_handle_irq,
-                   /*ctx=*/NULL,
+                   /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
 }
 

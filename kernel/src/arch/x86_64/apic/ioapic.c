@@ -12,7 +12,7 @@
 
 static struct array g_ioapic_list = ARRAY_INIT(sizeof(struct ioapic_info));
 
-enum ioapic_redir_reg_shifts {
+enum ioapic_redir_reg_shifts : uint8_t {
     IOAPIC_REDIRECT_REG_VECTOR_SHIFT = 0,
     IOAPIC_REDIRECT_REG_DELIVERY_MODE_SHIFT = 8,
     IOAPIC_REDIRECT_REG_DEST_MODE_SHIFT = 11,
@@ -36,8 +36,8 @@ create_ioapic_redirect_request(
 
     const uint64_t result =
         vector
-      | delivery_mode << IOAPIC_REDIRECT_REG_DELIVERY_MODE_SHIFT
-      | dest_mode << IOAPIC_REDIRECT_REG_DEST_MODE_SHIFT
+      | (uint64_t)delivery_mode << IOAPIC_REDIRECT_REG_DELIVERY_MODE_SHIFT
+      | (uint64_t)dest_mode << IOAPIC_REDIRECT_REG_DEST_MODE_SHIFT
       | (uint32_t)is_active_low << IOAPIC_REDIRECT_REG_POLARITY_SHIFT
       | (uint32_t)is_level_triggered << IOAPIC_REDIRECT_REG_TRIGGER_MODE_SHIFT
       | (uint32_t)masked << IOAPIC_REDIRECT_REG_MASKED_SHIFT
@@ -55,7 +55,7 @@ static const struct ioapic_info *ioapic_info_for_gsi(const uint32_t gsi) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 static void
@@ -66,7 +66,7 @@ redirect_irq(const uint8_t lapic_id,
              const bool masked)
 {
     const struct ioapic_info *const ioapic = ioapic_info_for_gsi(/*gsi=*/irq);
-    assert_msg(ioapic != NULL,
+    assert_msg(ioapic != nullptr,
                "ioapic: failed to find i/o apic for requested IRQ: %" PRIu8,
                irq);
 
@@ -91,7 +91,7 @@ redirect_irq(const uint8_t lapic_id,
 
 static void toggle_irq_mask(const uint8_t irq, const bool masked) {
     const struct ioapic_info *const ioapic = ioapic_info_for_gsi(/*gsi=*/irq);
-    assert_msg(ioapic != NULL,
+    assert_msg(ioapic != nullptr,
                "ioapic: failed to find i/o apic for requested IRQ: %" PRIu8,
                irq);
 
@@ -141,7 +141,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
         .regs_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0)
     };
 
-    assert_msg(info.regs_mmio != NULL, "ioapic: failed to map ioapic regs");
+    assert_msg(info.regs_mmio != nullptr, "ioapic: failed to map ioapic regs");
     info.regs = info.regs_mmio->base;
 
     const uint32_t id_reg = ioapic_read(&info, IOAPIC_REG_ID);

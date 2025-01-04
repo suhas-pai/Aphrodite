@@ -75,7 +75,7 @@ atomic_compare_exchange_flags(struct mutex *const mutex,
 // taking care of other operations on behalf of our threads, such as waking up
 // the next waiter for mutex_unlock().
 
-enum contention_result {
+enum contention_result : uint8_t {
     CONTENTION_SUCCESS,
     CONTENTION_FAILURE,
     CONTENTION_RETRY,
@@ -150,7 +150,7 @@ static void mutex_alarm_callback(struct alarm *const alarm, void *const ctx) {
     struct thread *const thread =
         atomic_load_explicit(&waiter->thread, memory_order_relaxed);
 
-    if (thread != NULL) {
+    if (thread != nullptr) {
         sched_wake(thread);
     }
 }
@@ -232,11 +232,11 @@ mutex_lock_slow(struct mutex *const mutex,
         // As we haven't contended for the lock, there is a chance that another
         // thread, with contention, is waking up our thread. Handle that case
         // here.
-        // The other thread will first atomically-set waiter->thread to NULL,
+        // The other thread will first atomically-set waiter->thread to nullptr,
         // before removing us from the wait-queue and waking our thread.
         // Wait for the mutex's flags to reflect our new ownership and exit.
 
-        if (atomic_load_explicit(&waiter->thread, memory_order_relaxed) == NULL)
+        if (atomic_load_explicit(&waiter->thread, memory_order_relaxed) == nullptr)
         {
             uintptr_t mutex_owner =
                 atomic_load_explicit(&mutex->flags, memory_order_relaxed) &
@@ -276,7 +276,7 @@ try_acquire:
 
     // By this point in time, we should've already contended for the lock.
 
-    assert(waiter->thread != NULL);
+    assert(waiter->thread != nullptr);
     if (waiter->list.prev != &mutex->waiters) {
         assert_msg(timed_out,
                    "mutex_lock(%p): waiter is not at the front of waiter-queue, "
@@ -377,7 +377,7 @@ static bool mutex_unlock_slow(struct mutex *const mutex) {
         list_head(&mutex->waiters, struct mutex_waiter, list);
 
     struct thread *const thread = waiter->thread;
-    atomic_store_explicit(&waiter->thread, NULL, memory_order_relaxed);
+    atomic_store_explicit(&waiter->thread, nullptr, memory_order_relaxed);
 
     list_remove(&waiter->list);
     sched_wake(thread);

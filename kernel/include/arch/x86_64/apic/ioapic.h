@@ -11,7 +11,7 @@ struct ioapic_registers {
     _Alignas(16) volatile uint32_t data;     // IOWIN
 } __packed;
 
-enum ioapic_redirect_req_delivery_mode {
+enum ioapic_redirect_req_delivery_mode : uint8_t {
     IOAPIC_REDIRECT_REQ_DELIVERY_MODE_FIXED,
     IOAPIC_REDIRECT_REQ_DELIVERY_MODE_LOWEST,
 
@@ -26,12 +26,12 @@ enum ioapic_redirect_req_delivery_mode {
     IOAPIC_REDIRECT_REQ_DELIVERY_MODE_EXTINT = 0b111,
 };
 
-enum ioapic_redirect_req_dest_mode {
+enum ioapic_redirect_req_dest_mode : uint8_t {
     IOAPIC_REDIRECT_REQ_DEST_MODE_PHYSICAL,
     IOAPIC_REDIRECT_REQ_DEST_MODE_LOGICAL,
 };
 
-enum ioapic_reg {
+enum ioapic_reg : uint8_t {
     IOAPIC_REG_ID,
     IOAPIC_REG_VERSION,
     IOAPIC_REG_ARBITRATION_ID,

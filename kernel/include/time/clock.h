@@ -10,7 +10,7 @@
 #include "lib/list.h"
 #include "lib/time.h"
 
-enum clock_resolution {
+enum clock_resolution : uint8_t {
     CLOCK_RES_SECONDS,
     CLOCK_RES_MILLI,
     CLOCK_RES_MICRO,

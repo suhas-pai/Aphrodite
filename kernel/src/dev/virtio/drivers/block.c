@@ -91,5 +91,5 @@ virtio_block_driver_init(struct virtio_device *const device,
            virtio_block_read_config_field(device, topology.opt_io_size),
            virtio_block_read_config_field(device, num_queues));
 
-    return NULL;
+    return nullptr;
 }

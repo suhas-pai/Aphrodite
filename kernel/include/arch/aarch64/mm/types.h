@@ -157,7 +157,7 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
     })
 #endif /* defined(AARCH64_USE_16K_PAGES) */
 
-enum pte_flags {
+enum pte_flags : uint64_t {
     __PTE_VALID  = 1ull << 0,
     __PTE_PML1_PAGE = 1ull << 1, // Valid only on ptes of a pml1 table
     __PTE_TABLE = 1ull << 1,

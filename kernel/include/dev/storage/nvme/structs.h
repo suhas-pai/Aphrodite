@@ -6,12 +6,12 @@
 #pragma once
 #include "lib/macros.h"
 
-enum nvme_cmd_set_support {
+enum nvme_cmd_set_support : uint8_t {
     NVME_CMD_SET_SUPPORT_NONE = 7,
     NVME_CMD_SET_SUPPORT_ONE_OR_MORE = 6
 };
 
-enum nvme_capability_shifts {
+enum nvme_capability_shifts : uint8_t {
     NVME_CAP_DOORBELL_STRIDE_SHIFT = 32,
     NVME_CAP_CMD_SETS_SUPPORT_SHIFT = 37,
     NVME_CAP_CNTLR_POWER_SUPPORT_SHIFT = 46,
@@ -20,7 +20,7 @@ enum nvme_capability_shifts {
     NVME_CAP_CNTLR_READY_MODES_SUPPORTED_SHIFT = 59
 };
 
-enum nvme_capabilities {
+enum nvme_capabilities : uint64_t {
     __NVME_CAP_MAX_QUEUE_ENTRIES = 0xFF,
     __NVME_CAP_CONTIG_QUEUE_SUPPORTED = 1 << 16,
     __NVME_CAP_ARBITR_MECH_SUPPORTED = 1 << 17,
@@ -47,12 +47,12 @@ enum nvme_capabilities {
         0b11ull << NVME_CAP_CNTLR_READY_MODES_SUPPORTED_SHIFT
 };
 
-enum nvme_version_shifts {
+enum nvme_version_shifts : uint8_t {
     NVME_VERSION_MINOR_SHIFT = 8,
     NVME_VERSION_MAJOR_SHIFT = 16,
 };
 
-enum nvme_version_masks {
+enum nvme_version_masks : uint32_t {
     __NVME_VERSION_TERTIARY = 0xFF,
     __NVME_VERSION_MINOR = 0xFF << NVME_VERSION_MINOR_SHIFT,
     __NVME_VERSION_MAJOR = 0xFFFFull << NVME_VERSION_MAJOR_SHIFT,
@@ -64,24 +64,24 @@ enum nvme_version_masks {
     (version & __NVME_VERSION_MINOR) >> NVME_VERSION_MINOR_SHIFT, \
     version & __NVME_VERSION_TERTIARY
 
-enum nvme_config_arbitration_method {
+enum nvme_config_arbitration_method : uint8_t {
     NVME_CONFIG_ARB_METHOD_ROUND_ROBIN,
     // Weighted Round Robin with Urgent Priority Class
     NVME_CONFIG_ARB_METHOD_WEIGHTED_ROUND_ROBIN,
     NVME_CONFIG_ARB_METHOD_VENDOR_SPECIFIC = 0b111,
 };
 
-enum nvme_config_shutdown_notif {
+enum nvme_config_shutdown_notif : uint8_t {
     NVME_CONFIG_SHUTDOWN_NOTIF_NONE,
     NVME_CONFIG_SHUTDOWN_NOTIF_NORMAL,
     NVME_CONFIG_SHUTDOWN_NOTIF_ABRUPT,
 };
 
-enum nvme_config_css {
+enum nvme_config_css : uint8_t {
     NVME_CONFIG_CSS
 };
 
-enum nvme_config_shifts {
+enum nvme_config_shifts : uint8_t {
     NVME_CONFIG_CMD_SET_SELECTED_SHIFT = 4,
     NVME_CONFIG_MEM_PAGE_SIZE_SHIFT = 7,
     NVME_CONFIG_ARB_METHOD_SHIFT = 11,
@@ -90,7 +90,7 @@ enum nvme_config_shifts {
     NVME_CONFIG_IO_COMPL_QUEUE_ENTRY_SIZE_SHIFT = 20
 };
 
-enum nvme_config_flags {
+enum nvme_config_flags : uint32_t {
     __NVME_CONFIG_ENABLE = 1 << 0,
 
     /*
@@ -114,17 +114,17 @@ enum nvme_config_flags {
     __NVME_CONFIG_CNTLR_READY_INDEP_OF_MEDIA_ENABLE = 1 << 24
 };
 
-enum nvme_controller_status_shutdown {
+enum nvme_controller_status_shutdown : uint8_t {
     NVME_CNTLR_STATUS_SHUTDOWN_NORMAL,
     NVME_CNTLR_STATUS_SHUTDOWN_OCCURRING,
     NVME_CNTLR_STATUS_SHUTDOWN_COMPLETE,
 };
 
-enum nvme_controller_status_shifts {
+enum nvme_controller_status_shifts : uint8_t {
     NVME_CNTLR_STATUS_SHUTDOWN_SHIFT = 2,
 };
 
-enum nvme_controller_status_flags {
+enum nvme_controller_status_flags : uint8_t {
     __NVME_CNTLR_STATUS_READY = 1 << 0,
     __NVME_CNTLR_STATUS_FATAL = 1 << 1,
     __NVME_CNTLR_STATUS_SHUTDOWN = 0b11 << NVME_CNTLR_STATUS_SHUTDOWN_SHIFT,
@@ -142,11 +142,11 @@ enum nvme_controller_status_flags {
 
 #define NVME_SUBSYS_RESET_VALUE 0x4E564D65
 
-enum nvme_admin_queue_attr_shifts {
+enum nvme_admin_queue_attr_shifts : uint8_t {
     NVME_ADMIN_QUEUE_ATTR_SUBMIT_QUEUE_SIZE_SHIFT = 16,
 };
 
-enum nvme_admin_queue_attr_flags {
+enum nvme_admin_queue_attr_flags : uint32_t {
     /*
      * The minimum size of the Admin Completion Queue is two entries. The
      * maximum size of the Admin Completion Queue is 4,096 entries. This is a
@@ -161,11 +161,11 @@ enum nvme_admin_queue_attr_flags {
     __NVME_ADMIN_QUEUE_ATTR_COMPL_QUEUE_SIZE = mask_for_n_bits(12) << 16,
 };
 
-enum nvme_cntlr_mem_buffer_loc_shifts {
+enum nvme_cntlr_mem_buffer_loc_shifts : uint8_t {
     NVME_CNTLR_CMB_OFFSET_SHIFT = 12,
 };
 
-enum nvme_cntlr_mem_buffer_loc_flags {
+enum nvme_cntlr_mem_buffer_loc_flags : uint32_t {
     __NVME_CNTLR_CMB_LOC_MEM_BUFFER_LOC_BIR = 0b111,
     __NVME_CNTLR_CMB_LOC_MIXED_MEM_SUPPORT = 1 << 3,
     __NVME_CNTLR_CMB_LOC_PHYSICAL_MEM_DISCONTIG_SUPPORT = 1 << 4,
@@ -180,7 +180,7 @@ enum nvme_cntlr_mem_buffer_loc_flags {
         mask_for_n_bits(20) << NVME_CNTLR_CMB_OFFSET_SHIFT
 };
 
-enum nvme_cntlr_cmb_size_units_gran {
+enum nvme_cntlr_cmb_size_units_gran : uint8_t {
     NVME_CNTLR_CMB_SIZE_UNITS_GRAN_4KiB,
     NVME_CNTLR_CMB_SIZE_UNITS_GRAN_64KiB,
     NVME_CNTLR_CMB_SIZE_UNITS_GRAN_1MiB,
@@ -190,12 +190,12 @@ enum nvme_cntlr_cmb_size_units_gran {
     NVME_CNTLR_CMB_SIZE_UNITS_GRAN_64GiB,
 };
 
-enum nvme_cntlr_mem_buffer_size_shifts {
+enum nvme_cntlr_mem_buffer_size_shifts : uint8_t {
     NVME_CNTLR_CMB_SIZE_UNITS_GRAN_SHIFT = 4,
     NVME_CNTLR_CMB_SIZE_SHIFT = 12,
 };
 
-enum nvme_cntlr_mem_buffer_size_flags {
+enum nvme_cntlr_mem_buffer_size_flags : uint32_t {
     __NVME_CNTLR_CMB_SIZE_SUBMIT_QUEUE_SUPPORT = 1 << 0,
     __NVME_CNTLR_CMB_SIZE_COMPL_QUEUE_SUPPORT = 1 << 1,
     __NVME_CNTLR_CMB_SIZE_PRP_SGL_LIST_SUPPORT = 1 << 2,
@@ -207,18 +207,18 @@ enum nvme_cntlr_mem_buffer_size_flags {
         mask_for_n_bits(20) << NVME_CNTLR_CMB_SIZE_SHIFT,
 };
 
-enum nvme_cntlr_boot_partition_info_read_status {
+enum nvme_cntlr_boot_partition_info_read_status : uint8_t {
     NVME_CNTLR_BOOT_PARTITION_INFO_READ_STATUS_NONE,
     NVME_CNTLR_BOOT_PARTITION_INFO_READ_STATUS_IN_PROGRESS,
     NVME_CNTLR_BOOT_PARTITION_INFO_READ_STATUS_SUCCESS,
     NVME_CNTLR_BOOT_PARTITION_INFO_READ_STATUS_ERROR,
 };
 
-enum nvme_cntlr_boot_partition_info_shifts {
+enum nvme_cntlr_boot_partition_info_shifts : uint8_t {
     NVME_CNTLR_BOOT_PARTITION_INFO_BOOT_READ_STATUS_SHIFT = 15,
 };
 
-enum nvme_cntlr_boot_partition_info_flags {
+enum nvme_cntlr_boot_partition_info_flags : uint32_t {
     __NVME_CNTLR_BOOT_PARTITION_INFO_SIZE_128KiB = mask_for_n_bits(14),
     __NVME_CNTLR_BOOT_PARTITION_INFO_READ_STATUS =
         0b11 << NVME_CNTLR_BOOT_PARTITION_INFO_BOOT_READ_STATUS_SHIFT,
@@ -226,11 +226,11 @@ enum nvme_cntlr_boot_partition_info_flags {
     __NVME_CNTLR_BOOT_PARTITION_INFO_ACTIVE_ID = 1ull << 31
 };
 
-enum nvme_cntlr_boot_partition_read_select_shifts {
+enum nvme_cntlr_boot_partition_read_select_shifts : uint8_t {
     NVME_CNTLR_BOOT_PARTITION_RD_SELECT_OFFSET_4KiB_SHIFT = 10,
 };
 
-enum nvme_cntlr_boot_partition_read_select_flags {
+enum nvme_cntlr_boot_partition_read_select_flags : uint32_t {
     __NVME_CNTLR_BOOT_PARTITION_RD_SELECT_SIZE_4KiB = mask_for_n_bits(10),
     __NVME_CNTLR_BOOT_PARTITION_RD_SELECT_OFFSET_4KiB =
         mask_for_n_bits(10) <<
@@ -239,13 +239,13 @@ enum nvme_cntlr_boot_partition_read_select_flags {
     __NVME_CNTLR_BOOT_PARTITION_RD_SELECT_ID = 1ull << 31,
 };
 
-enum nvme_cntlr_cmb_control_flags {
+enum nvme_cntlr_cmb_control_flags : uint64_t {
     __NVME_CNTLR_CMB_CONTROL_CAP_REG_ENABLED = 1 << 0,
     __NVME_CNTLR_CMB_CONTROL_MEM_SPACE_ENABLED = 1 << 1,
     __NVME_CNTLR_CMB_CONTROL_BASE_ADDR = mask_for_n_bits(52) << 12,
 };
 
-enum nvme_cntlr_cmb_status_flags {
+enum nvme_cntlr_cmb_status_flags : uint8_t {
     __NVME_CNTLR_CMB_STATUS_BASE_ADDR_INVALID = 1 << 0,
 };
 
@@ -302,21 +302,21 @@ struct nvme_registers {
     volatile const uint8_t doorbell[];
 } __packed;
 
-enum nvme_identify_cns {
+enum nvme_identify_cns : uint8_t {
     NVME_IDENTIFY_CNS_NAMESPACE,
     NVME_IDENTIFY_CNS_CONTROLLER,
     NVME_IDENTIFY_CNS_ACTIVE_NSID_LIST,
     NVME_IDENTIFY_CNS_NSID_DESC_LIST,
 };
 
-enum nvme_controller_kind {
+enum nvme_controller_kind : uint8_t {
     NVME_CONTROLLER_KIND_NOT_REPORTED,
     NVME_CONTROLLER_KIND_IO_CONTROLLER,
     NVME_CONTROLLER_KIND_DISCOVERY_CONTROLLER,
     NVME_CONTROLLER_KIND_ADMINISTRATIVE_CONTROLLER,
 };
 
-enum nvme_admin_cmd_support_flags {
+enum nvme_admin_cmd_support_flags : uint16_t {
     __NVME_ADMIN_CMD_SUPPORTS_SECURITY_SEND_RECV = 1 << 0,
     __NVME_ADMIN_CMD_SUPPORTS_FORMAT_NVM = 1 << 1,
     __NVME_ADMIN_CMD_SUPPORTS_FIRMWARE_COMMIT_IMAGE_DL = 1 << 2,
@@ -330,7 +330,7 @@ enum nvme_admin_cmd_support_flags {
     __NVME_ADMIN_CMD_SUPPORTS_CMD_FEAT_LOCKDOWN = 1 << 10,
 };
 
-enum nvme_cmdsupport_flags {
+enum nvme_cmdsupport_flags : uint16_t {
     __NVME_CMD_SUPPORTS_COMPARE = 1 << 0,
     __NVME_CMD_SUPPORTS_WRITE_UNCORRECTABLE = 1 << 1,
     __NVME_CMD_SUPPORTS_DATASET_MGMT = 1 << 2,
@@ -538,7 +538,7 @@ struct nvme_nsidentity {
     uint8_t vendor_specific[3712];
 };
 
-enum nvme_command_opcode {
+enum nvme_command_opcode : uint8_t {
     NVME_CMD_OPCODE_FLUSH = 0,
     NVME_CMD_OPCODE_WRITE = 1,
     NVME_CMD_OPCODE_READ = 2,
@@ -553,20 +553,20 @@ enum nvme_command_opcode {
     NVME_CMD_ADMIN_OPCODE_GETFT,
 };
 
-enum nvme_completion_queue_entry_status_status_code_type {
+enum nvme_completion_queue_entry_status_status_code_type : uint8_t {
     NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_GENERIC_CMD,
     NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_CMD_SPECIFIC,
     NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_MEDIA_DATA_INTEGRITY,
     NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_PATH_RELATED,
 };
 
-enum nvme_completion_queue_entry_status_shifts {
+enum nvme_completion_queue_entry_status_shifts : uint8_t {
     NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_SHIFT = 17,
     NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_TYPE_SHIFT = 25,
     NVME_COMPL_QUEUE_ENTRY_STATUS_RETRY_DELAY_SHIFT = 28
 };
 
-enum nvme_completion_queue_entry_status {
+enum nvme_completion_queue_entry_status : uint64_t {
     __NVME_COMPL_QUEUE_ENTRY_STATUS_PHASE = 1 << 0,
     __NVME_COMPL_QUEUE_ENTRY_STATUS_CODE =
         0b11ull << NVME_COMPL_QUEUE_ENTRY_STATUS_STATUS_CODE_SHIFT,
@@ -588,7 +588,7 @@ struct nvme_completion_queue_entry {
     uint16_t status;
 };
 
-enum nvme_command_feature {
+enum nvme_command_feature : uint8_t {
     NVME_CMD_FEATURE_ARBITRATION = 1,
     NVME_CMD_FEATURE_POWER_MGMT,
     NVME_CMD_FEATURE_TEMP_THRESHOLD = 4,
@@ -621,12 +621,12 @@ enum nvme_command_feature {
     NVME_CMD_FEATURE_NAMESPACE_WRITE_CONFIG,
 };
 
-enum nvme_create_cq_flags {
+enum nvme_create_cq_flags : uint8_t {
     __NVME_CREATE_CQ_PHYS_CONTIG = 1 << 0,
     __NVME_CREATE_CQ_IRQS_ENABLED = 1 << 1,
 };
 
-enum nvme_create_sq_flags {
+enum nvme_create_sq_flags : uint8_t {
     __NVME_CREATE_SQ_PHYS_CONTIG = 1 << 0,
 };
 

@@ -39,7 +39,7 @@ struct hashmap {
 
 #define HASHMAP_INIT(obj_size, bucket_count_, hash_func, hash_cb_info) \
     ((struct hashmap){ \
-        .buckets = NULL, \
+        .buckets = nullptr, \
         .bucket_count = (bucket_count_), \
         .object_size = (obj_size), \
         .hash = (hash_func), \
@@ -52,17 +52,17 @@ struct hashmap {
     for (__auto_type iter = (hashmap)->buckets; iter != h_var(end); iter++) \
 
 #define hashmap_bucket_foreach_node(bucket, iter) \
-    struct hashmap_node *iter = NULL; \
+    struct hashmap_node *iter = nullptr; \
     list_foreach(iter, &(bucket)->node_list, list)
 
 #define hashmap_foreach_node(hashmap, iter) \
     const __auto_type h_var(end) = \
         (hashmap)->buckets + (hashmap)->bucket_count; \
-    struct hashmap_node *iter = NULL; \
+    struct hashmap_node *iter = nullptr; \
     for (__auto_type h_var(bucket) = (hashmap)->buckets; \
          h_var(bucket) != h_var(end); \
          h_var(bucket)++) \
-        if (*h_var(bucket) != NULL) \
+        if (*h_var(bucket) != nullptr) \
             list_foreach(iter, &((*h_var(bucket))->node_list), list)
 
 struct hashmap *

@@ -22,7 +22,7 @@ struct terminal {
 
 void printk_add_terminal(struct terminal *term);
 
-enum log_level {
+enum log_level : uint8_t {
     LOGLEVEL_DEBUG,
     LOGLEVEL_INFO,
     LOGLEVEL_WARN,

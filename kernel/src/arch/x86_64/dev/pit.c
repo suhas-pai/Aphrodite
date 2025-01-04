@@ -43,7 +43,7 @@ void pit_init(const uint8_t flags, const enum pit_granularity granularity) {
     g_gran = granularity;
 
     struct irq_pin *const pin = isr_get_irq_pin(PIT_IRQ);
-    isr_install_irq(pin, irq$pit, /*ctx=*/NULL, /*masked=*/false);
+    isr_install_irq(pin, irq$pit, /*ctx=*/nullptr, /*masked=*/false);
 
     const uint32_t divisor = PIT_DIVIDEND / (uint32_t)granularity;
     const uint8_t data = ((divisor >> 8) & 0xFF);

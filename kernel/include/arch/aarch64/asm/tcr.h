@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum tcr_shifts {
+enum tcr_shifts : uint8_t {
     TCR_INNER_CACHEABILITY_TTBR0_SHIFT = 8,
     TCR_OUTER_CACHEABILITY_TTBR0_SHIFT = 10,
     TCR_SHAREABILITY_ATTR_TTBR0_SHIFT = 12,
@@ -19,45 +19,45 @@ enum tcr_shifts {
     TCR_IPS_SHIFT = 30,
 };
 
-enum tcr_inner_cacheability {
+enum tcr_inner_cacheability : uint8_t {
     TCR_INNER_CACHEABILITY_NONE,
     TCR_INNER_CACHEABILITY_WRITEBACK_READALLOC_WRITEALLOC,
     TCR_INNER_CACHEABILITY_WRITETHROUGH_READALLOC_NO_WRITEALLOC,
     TCR_INNER_CACHEABILITY_WRITEBACK_READALLOC_NO_WRITEALLOC,
 };
 
-enum tcr_outer_cacheability {
+enum tcr_outer_cacheability : uint8_t {
     TCR_OUTER_CACHEABILITY_NONE,
     TCR_OUTER_CACHEABILITY_WRITEBACK_READALLOC_WRITEALLOC,
     TCR_OUTER_CACHEABILITY_WRITETHROUGH_READALLOC_NO_WRITEALLOC,
     TCR_OUTER_CACHEABILITY_WRITEBACK_READALLOC_NO_WRITEALLOC,
 };
 
-enum tcr_shareability_attribute {
+enum tcr_shareability_attribute : uint8_t {
     TCR_SHAREABILITY_ATTR_NONE,
     TCR_SHAREABILITY_ATTR_OUTER,
     TCR_SHAREABILITY_ATTR_INNER,
 };
 
-enum tcr_el0_granule_size {
+enum tcr_el0_granule_size : uint8_t {
     TCR_EL0_GRANULE_16KIB = 1,
     TCR_EL0_GRANULE_4KIB,
     TCR_EL0_GRANULE_64KIB,
 };
 
-enum tcr_tg0_size {
+enum tcr_tg0_size : uint8_t {
     TCR_TG0_4KIB,
     TCR_TG0_64KIB,
     TCR_TG0_16KIB,
 };
 
-enum tcr_tg1_size {
+enum tcr_tg1_size : uint8_t {
     TCR_TG1_16KIB,
     TCR_TG1_4KIB,
     TCR_TG1_64KIB,
 };
 
-enum tcr_phys_addrspace_size {
+enum tcr_phys_addrspace_size : uint8_t {
     TCR_PHYS_ADDRSPACE_32BIT_4GIB,
     TCR_PHYS_ADDRSPACE_36BIT_64GIB,
     TCR_PHYS_ADDRSPACE_40BIT_1TIB,
@@ -67,7 +67,7 @@ enum tcr_phys_addrspace_size {
     TCR_PHYS_ADDRSPACE_52BIT_4PIB,
 };
 
-enum tcr_flags {
+enum tcr_flags : uint64_t {
     // The size offset of the memory region addressed by TTBR0_EL1.
     // The region size is 2^(64-T0SZ) bytes.
     __TCR_T0SZ = 0b11111ull,

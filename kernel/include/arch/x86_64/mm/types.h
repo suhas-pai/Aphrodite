@@ -91,7 +91,7 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
     __page_size_level_result__; \
 })
 
-enum pte_flags {
+enum pte_flags : uint64_t {
     __PTE_PRESENT  = 1ull << 0,
     __PTE_WRITE    = 1ull << 1,
     __PTE_USER     = 1ull << 2,

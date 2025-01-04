@@ -133,7 +133,7 @@ ide_read_buffer(const uint8_t channel,
     }
 }
 
-enum ide_polling_result {
+enum ide_polling_result : uint8_t {
     IDE_POLLING_OK,
     IDE_POLLING_BUSY,
     IDE_POLLING_DEVICE_FAULT,
@@ -368,6 +368,6 @@ static const struct pci_driver pci_driver = {
 
 __driver static const struct driver driver = {
     .name = SV_STATIC("ide-driver"),
-    .dtb = NULL,
+    .dtb = nullptr,
     .pci = &pci_driver
 };

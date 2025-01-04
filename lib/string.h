@@ -22,9 +22,14 @@
     char *strcpy(char *dst, const char *src);
     char *strncpy(char *dst, const char *src, unsigned long n);
 
+    char *strdup(const char *str);
     int memcmp(const void *s1, const void *s2, size_t n);
+
     void *memcpy(void *dst, const void *src, unsigned long n);
+    void *memccpy(void *dst, const void *src, int ch, unsigned long n);
+
     void *memset(void *dst, int val, unsigned long n);
+    void *memset_explicit(void *dst, int val, unsigned long n);
     void *memmove(void *dst, const void *src, unsigned long n);
     void *memchr(const void *ptr, int ch, size_t count);
 

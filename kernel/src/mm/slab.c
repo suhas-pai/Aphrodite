@@ -69,7 +69,7 @@ get_free_ptr_from_index(struct page *const page,
         return page_to_virt(page) + get_free_obj_byte_index(alloc, index);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) static inline struct free_slab_object *
@@ -99,7 +99,7 @@ __debug_optimize(3) void slab_verify(struct slab_allocator *const alloc) {
     struct free_slab_object *free_obj = get_free_object(head, alloc);
     uint32_t prev = UINT32_MAX;
 
-    while (free_obj != NULL) {
+    while (free_obj != nullptr) {
         if (free_obj->next == UINT32_MAX) {
             break;
         }
@@ -134,7 +134,7 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
     }
 
     uint32_t min_size_for_slab = object_size;
-    if (!check_mul(object_size, MIN_OBJ_PER_SLAB, &min_size_for_slab)) {
+    if (!ckd_mul(&min_size_for_slab, object_size, MIN_OBJ_PER_SLAB)) {
         return false;
     }
 
@@ -161,8 +161,8 @@ static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
                     __ALLOC_ZERO | alloc->alloc_flags,
                     alloc->slab_order);
 
-    if (__builtin_expect(head == NULL, 0)) {
-        return NULL;
+    if (__builtin_expect(head == nullptr, 0)) {
+        return nullptr;
     }
 
     const struct page *const end = head + ((1 << alloc->slab_order) - 1);
@@ -207,15 +207,15 @@ void *slab_alloc(struct slab_allocator *const alloc) {
         flag = spin_acquire_save_intr(&alloc->lock);
     }
 
-    struct page *head = NULL;
+    struct page *head = nullptr;
     if (list_empty(&alloc->free_slab_head_list)) {
         head = alloc_slab_page(alloc);
-        if (head == NULL) {
+        if (head == nullptr) {
             if (needs_lock) {
                 spin_release_restore_intr(&alloc->lock, flag);
             }
 
-            return NULL;
+            return nullptr;
         }
     } else {
         head =
@@ -252,15 +252,15 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
         flag = spin_acquire_save_intr(&alloc->lock);
     }
 
-    struct page *head = NULL;
+    struct page *head = nullptr;
     if (list_empty(&alloc->free_slab_head_list)) {
         head = alloc_slab_page(alloc);
-        if (head == NULL) {
+        if (head == nullptr) {
             if (needs_lock) {
                 spin_release_restore_intr(&alloc->lock, flag);
             }
 
-            return NULL;
+            return nullptr;
         }
     } else {
         head =
@@ -357,7 +357,7 @@ void slab_free(void *const mem) {
 }
 
 __debug_optimize(3) uint32_t slab_object_size(void *const mem) {
-    if (__builtin_expect(mem == NULL, 0)) {
+    if (__builtin_expect(mem == nullptr, 0)) {
         panic("slab_object_size(): Got mem=NULL");
     }
 

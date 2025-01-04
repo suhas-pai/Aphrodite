@@ -20,10 +20,10 @@ ipi_handler(const uint64_t intr_no,
 }
 
 void sched_init_irq() {
-    g_sched_sgi_vector = isr_alloc_msi_vector(/*device=*/NULL, /*msi_index=*/0);
+    g_sched_sgi_vector = isr_alloc_msi_vector(/*device=*/nullptr, /*msi_index=*/0);
     isr_set_msi_vector(g_sched_sgi_vector,
                        ipi_handler,
-                       /*ctx=*/NULL,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
 }
 

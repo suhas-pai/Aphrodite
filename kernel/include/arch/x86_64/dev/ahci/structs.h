@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum ahci_hba_port_interface_comm_ctrl {
+enum ahci_hba_port_interface_comm_ctrl : uint8_t {
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_IDLE,
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_ACTIVE,
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_PARTIAL,
@@ -14,12 +14,12 @@ enum ahci_hba_port_interface_comm_ctrl {
     AHCI_HBA_PORT_INTERFACE_COMM_CTRL_DEV_SLEEP = 8
 };
 
-enum ahci_hba_port_cmd_status_shifts {
+enum ahci_hba_port_cmd_status_shifts : uint8_t {
     AHCI_HBA_PORT_CMDSTATUS_CURRENT_CMD_SLOT_SHIFT = 8,
     AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT = 28
 };
 
-enum ahci_hba_port_cmd_status_flags {
+enum ahci_hba_port_cmd_status_flags : uint64_t {
     __AHCI_HBA_PORT_CMDSTATUS_START = 1ull << 0,
 
     /*
@@ -60,7 +60,7 @@ enum ahci_hba_port_cmd_status_flags {
         0b11111ull << AHCI_HBA_PORT_CMDSTATUS_INTERFACE_COMM_CTRL_SHIFT,
 };
 
-enum ahci_hba_port_interrupt_status_flags {
+enum ahci_hba_port_interrupt_status_flags : uint32_t {
     __AHCI_HBA_IS_DEV_TO_HOST_FIS = 1ull << 0,
     __AHCI_HBA_IS_PIO_SETUP_FIS = 1ull << 1,
     __AHCI_HBA_IS_DMA_SETUP_FIS = 1ull << 2,
@@ -101,7 +101,7 @@ enum ahci_hba_port_interrupt_status_flags {
    | __AHCI_HBA_IS_HOST_BUS_FATAL_ERR_STATUS \
    | __AHCI_HBA_IS_TASK_FILE_ERR_STATUS)
 
-enum ahci_hba_port_interrupt_enable_flags {
+enum ahci_hba_port_interrupt_enable_flags : uint32_t {
     __AHCI_HBA_IE_DEV_TO_HOST_FIS = 1ull << 0,
     __AHCI_HBA_IE_PIO_SETUP_FIS = 1ull << 1,
     __AHCI_HBA_IE_DMA_SETUP_FIS = 1ull << 2,
@@ -134,7 +134,7 @@ enum ahci_hba_port_interrupt_enable_flags {
    | __AHCI_HBA_IE_HOST_BUS_FATAL_ERR_STATUS \
    | __AHCI_HBA_IE_TASK_FILE_ERR_STATUS)
 
-enum ahci_hba_port_task_file_data_flags {
+enum ahci_hba_port_task_file_data_flags : uint16_t {
     __AHCI_HBA_TFD_STATUS_ERROR = 1 << 0,
     __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED = 1 << 3,
     __AHCI_HBA_TFD_STATUS_BUSY = 1 << 7,
@@ -143,25 +143,25 @@ enum ahci_hba_port_task_file_data_flags {
     __AHCI_HBA_TFD_ERROR = 0xFFull << 8
 };
 
-enum ahci_hba_port_ipm {
+enum ahci_hba_port_ipm : uint8_t {
     AHCI_HBA_PORT_IPM_ACTIVE = 1,
     AHCI_HBA_PORT_IPM_PARTIAL_POWER_MGMT_STATE,
     AHCI_HBA_PORT_IPM_PARTIAL_SLUMBER_MGMT_STATE,
     AHCI_HBA_PORT_IPM_PARTIAL_DEVSLEEP_MGMT_STATE
 };
 
-enum ahci_hba_port_det {
+enum ahci_hba_port_det : uint8_t {
     AHCI_HBA_PORT_DET_NO_INIT,
     AHCI_HBA_PORT_DET_INIT,
     AHCI_HBA_PORT_DET_PRESENT = 3,
     AHCI_HBA_PORT_DET_OFFLINE_MODE
 };
 
-enum ahci_hba_port_sata_status_control_shifts {
+enum ahci_hba_port_sata_status_control_shifts : uint32_t {
     AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT = 8
 };
 
-enum ahci_hba_port_sata_status_flags {
+enum ahci_hba_port_sata_status_flags : uint32_t {
     __AHCI_HBA_PORT_SATA_STAT_CTRL_DET = 0xF,
     __AHCI_HBA_PORT_SATA_STAT_CTRL_IPM =
         0xF << AHCI_HBA_PORT_SATA_STAT_CTRL_IPM_SHIFT,
@@ -176,7 +176,7 @@ enum ahci_hba_port_sata_error_flags {
     __AHCI_HBA_PORT_SATA_ERROR_SATA_INTERNAL_ERROR = 1 << 11,
 };
 
-enum ahci_hba_port_sata_diag_flags {
+enum ahci_hba_port_sata_diag_flags : uint32_t {
     __AHCI_HBA_PORT_SATA_DIAG_PHYRDY_CHANGED = 1 << 16,
     __AHCI_HBA_PORT_SATA_DIAG_PHY_INTERNAL_ERROR = 1 << 17,
     __AHCI_HBA_PORT_SATA_DIAG_COMM_WAKE = 1 << 18,
@@ -214,18 +214,18 @@ struct ahci_spec_hba_port {
     volatile uint32_t vendor[4];
 };
 
-enum ahci_hba_interface_speed_support {
+enum ahci_hba_interface_speed_support : uint8_t {
     AHCI_HBA_INTERFACE_SPEED_GEN1 = 1, // 1.5 gbps
     AHCI_HBA_INTERFACE_SPEED_GEN2, // 3 gbps
     AHCI_HBA_INTERFACE_SPEED_GEN3, // 6 gbps
 };
 
-enum ahci_hba_host_capability_shifts {
+enum ahci_hba_host_capability_shifts : uint8_t {
     AHCI_HBA_HOST_CAP_CMD_SLOT_COUNT_SHIFT = 8,
     AHCI_HBA_HOST_CAP_INTERFACE_SPEED_SUPPORT_SHIFT = 20
 };
 
-enum ahci_hba_host_capability_flags {
+enum ahci_hba_host_capability_flags : uint32_t {
     __AHCI_HBA_HOST_CAP_PORTS_IMPLEMENTED = 0b11111,
     __AHCI_HBA_HOST_CAP_SUPPORTS_EXT_SATA = 1ull << 5,
     __AHCI_HBA_HOST_CAP_SUPPORTS_EMS = 1ull << 6,
@@ -252,7 +252,7 @@ enum ahci_hba_host_capability_flags {
     __AHCI_HBA_HOST_CAP_64BIT_DMA = 1ull << 31,
 };
 
-enum ahci_hba_host_capability_ext_flags {
+enum ahci_hba_host_capability_ext_flags : uint32_t {
     __AHCI_HBA_HOST_CAP_EXT_BIOS_HANDOFF = 1ull << 0,
 
     // When set to ‘1’, the HBA includes support for NVMHCI and the registers at
@@ -267,7 +267,7 @@ enum ahci_hba_host_capability_ext_flags {
     __AHCI_HBA_HOST_CAP_EXT_DEVSLEEP_ENTRANCE_FROM_SLEEP_ONLY = 1ull << 5,
 };
 
-enum ahci_hba_bios_handoff_status_ctrl_flags {
+enum ahci_hba_bios_handoff_status_ctrl_flags : uint32_t {
     __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_OWNED_SEM = 1ull << 0,
     __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_OS_OWNED_SEM = 1ull << 1,
 
@@ -305,7 +305,7 @@ struct ahci_spec_hba_regs {
 #define AHCI_HBA_MAX_PORT_COUNT \
     sizeof_bits_field(struct ahci_spec_hba_regs, ports_implemented)
 
-enum ahci_hba_global_host_control_flags {
+enum ahci_hba_global_host_control_flags : uint32_t {
     /*
      * When set by SW, this bit causes an internal reset of the HBA.
      *
@@ -325,13 +325,13 @@ enum ahci_hba_global_host_control_flags {
     __AHCI_HBA_GLOBAL_HOST_CTRL_AHCI_ENABLE = 1ull << 31,
 };
 
-enum ahci_hba_cmd_compl_coalescing_ctrl_shifts {
+enum ahci_hba_cmd_compl_coalescing_ctrl_shifts : uint8_t {
     AHCI_HBA_CMD_COMPL_COALESCING_INTR_NUMBER_SHIFT = 3,
     AHCI_HBA_CMD_COMPL_COALESCING_COUNT_REQ_FOR_INTR_SHIFT = 8,
     AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS_SHIFT = 16
 };
 
-enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
+enum ahci_hba_cmd_compl_coalescing_ctrl_flags : uint32_t {
     __AHCI_HBA_CMD_COMPL_COALESCING_CTRL_ENABLE = 1ull << 0,
 
     /*
@@ -374,7 +374,7 @@ enum ahci_hba_cmd_compl_coalescing_ctrl_flags {
         0xffffull << AHCI_HBA_CMD_COMPL_COALESCING_TIMEOUT_VALUE_MS_SHIFT
 };
 
-enum sata_sig {
+enum sata_sig : uint32_t {
     SATA_SIG_ATA = 0x00000101,
     SATA_SIG_ATAPI = 0xEB140101,
 
@@ -390,7 +390,7 @@ enum sata_sig {
 #define AHCI_DEV_PM 3
 #define AHCI_DEV_SATAPI 4
 
-enum ahci_spec_hba_prdt_entry_flags {
+enum ahci_spec_hba_prdt_entry_flags : uint32_t {
     __AHCI_SPEC_HBA_PRDT_ENTRY_DATA_BYTE_COUNT_MINUS_ONE = mask_for_n_bits(22),
     __AHCI_SPEC_HBA_PRDT_ENTRY_INTR_ON_COMPLETION = 1ull << 31,
 };
@@ -414,7 +414,7 @@ struct ahci_spec_hba_cmd_table {
         AHCI_HBA_MAX_PRDT_ENTRIES];
 };
 
-enum ahci_fis_kind {
+enum ahci_fis_kind : uint8_t {
     AHCI_FIS_KIND_REG_H2D = 0x27,
     AHCI_FIS_KIND_REG_D2H = 0x34,
     AHCI_FIS_KIND_DMA_ACT = 0x39,
@@ -425,11 +425,11 @@ enum ahci_fis_kind {
     AHCI_FIS_KIND_DEV_BITS = 0xA1,
 };
 
-enum ahci_fis_reg_h2d_flags {
+enum ahci_fis_reg_h2d_flags : uint8_t {
     __AHCI_FIS_REG_H2D_IS_ATA_CMD = 1 << 7
 };
 
-enum ahci_fis_reg_h2d_features {
+enum ahci_fis_reg_h2d_features : uint8_t {
     __AHCI_FIS_REG_H2D_FEAT_ATAPI_DMA = 1 << 0,
     __AHCI_FIS_REG_H2D_FEAT_OVERLAPPING_CMDS = 1 << 1
 };
@@ -559,12 +559,12 @@ struct ahci_spec_hba_fis {
     uint8_t reserved_4[0x100-0xA0];
 } __packed;
 
-enum ahci_port_command_header_shifts {
+enum ahci_port_command_header_shifts : uint8_t {
     AHCI_PORT_CMDHDR_PORT_MULT_PORT_SHIFT = 12,
     AHCI_PORT_CMDHDR_PRDT_LENGTH_SHIFT = 15
 };
 
-enum ahci_port_command_header_flags {
+enum ahci_port_command_header_flags : uint32_t {
     __AHCI_PORT_CMDHDR_FIS_LENGTH = 0b11111,
 
     __AHCI_PORT_CMDHDR_ATAPI = 1 << 5,

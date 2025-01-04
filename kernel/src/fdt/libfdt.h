@@ -348,7 +348,7 @@ int fdt_check_full(const void *fdt, size_t bufsize);
  *
  * returns:
  *     a pointer to the string, on success
- *     NULL, if stroffset is out of bounds, or doesn't point to a valid string
+ *     nullptr, if stroffset is out of bounds, or doesn't point to a valid string
  */
 const char *fdt_get_string(const void *fdt, int stroffset, int *lenp);
 
@@ -362,7 +362,7 @@ const char *fdt_get_string(const void *fdt, int stroffset, int *lenp);
  *
  * returns:
  *     a pointer to the string, on success
- *     NULL, if stroffset is out of bounds, or doesn't point to a valid string
+ *     nullptr, if stroffset is out of bounds, or doesn't point to a valid string
  */
 const char *fdt_string(const void *fdt, int stroffset);
 
@@ -577,7 +577,7 @@ int fdt_path_offset(const void *fdt, const char *path);
  *  pointer to the node's name, on success
  *      If lenp is non-NULL, *lenp contains the length of that name
  *          (>=0)
- *  NULL, on error
+ *  nullptr, on error
  *      if lenp is non-NULL *lenp contains an error code (<0):
  *      -FDT_ERR_BADOFFSET, nodeoffset did not point to FDT_BEGIN_NODE
  *          tag
@@ -673,7 +673,7 @@ int fdt_next_property_offset(const void *fdt, int offset);
  *  pointer to the structure representing the property
  *      if lenp is non-NULL, *lenp contains the length of the property
  *      value (>=0)
- *  NULL, on error
+ *  nullptr, on error
  *      if lenp is non-NULL, *lenp contains an error code (<0):
  *      -FDT_ERR_BADOFFSET, nodeoffset did not point to FDT_PROP tag
  *      -FDT_ERR_BADMAGIC,
@@ -731,7 +731,7 @@ const struct fdt_property *fdt_get_property_namelen(const void *fdt,
  *  pointer to the structure representing the property
  *      if lenp is non-NULL, *lenp contains the length of the property
  *      value (>=0)
- *  NULL, on error
+ *  nullptr, on error
  *      if lenp is non-NULL, *lenp contains an error code (<0):
  *      -FDT_ERR_NOTFOUND, node does not have named property
  *      -FDT_ERR_BADOFFSET, nodeoffset did not point to FDT_BEGIN_NODE
@@ -774,7 +774,7 @@ static inline struct fdt_property *fdt_get_property_w(void *fdt, int nodeoffset,
  *      value (>=0)
  *      if namep is non-NULL *namep contains a pointer to the property
  *      name.
- *  NULL, on error
+ *  nullptr, on error
  *      if lenp is non-NULL, *lenp contains an error code (<0):
  *      -FDT_ERR_BADOFFSET, nodeoffset did not point to FDT_PROP tag
  *      -FDT_ERR_BADMAGIC,
@@ -830,7 +830,7 @@ static inline void *fdt_getprop_namelen_w(void *fdt, int nodeoffset,
  *  pointer to the property's value
  *      if lenp is non-NULL, *lenp contains the length of the property
  *      value (>=0)
- *  NULL, on error
+ *  nullptr, on error
  *      if lenp is non-NULL, *lenp contains an error code (<0):
  *      -FDT_ERR_NOTFOUND, node does not have named property
  *      -FDT_ERR_BADOFFSET, nodeoffset did not point to FDT_BEGIN_NODE
@@ -890,7 +890,7 @@ const char *fdt_get_alias_namelen(const void *fdt,
  *
  * returns:
  *  a pointer to the expansion of the alias named 'name', if it exists
- *  NULL, if the given alias or the /aliases node does not exist
+ *  nullptr, if the given alias or the /aliases node does not exist
  */
 const char *fdt_get_alias(const void *fdt, const char *name);
 
@@ -926,7 +926,7 @@ const char *fdt_get_symbol_namelen(const void *fdt,
  *
  * returns:
  *  a pointer to the expansion of the symbol named 'name', if it exists
- *  NULL, if the given symbol or the /__symbols__ node does not exist
+ *  nullptr, if the given symbol or the /__symbols__ node does not exist
  */
 const char *fdt_get_symbol(const void *fdt, const char *name);
 
@@ -1867,7 +1867,7 @@ static inline int fdt_setprop_cell(void *fdt, int nodeoffset, const char *name,
  *  -FDT_ERR_TRUNCATED, standard meanings
  */
 #define fdt_setprop_empty(fdt, nodeoffset, name) \
-    fdt_setprop((fdt), (nodeoffset), (name), NULL, 0)
+    fdt_setprop((fdt), (nodeoffset), (name), nullptr, 0)
 
 /**
  * fdt_appendprop - append to or create a property

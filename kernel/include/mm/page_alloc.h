@@ -11,7 +11,7 @@
 #define alloc_page(state, flags) alloc_pages((state), (flags), /*order=*/0)
 #define free_page(page) free_pages((page), /*order=*/0)
 
-enum page_alloc_flags {
+enum page_alloc_flags : uint8_t {
     __ALLOC_ZERO = 1 << 0,
 };
 

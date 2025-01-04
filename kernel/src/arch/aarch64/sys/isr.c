@@ -239,7 +239,7 @@ void handle_interrupt(struct thread_context *const context) {
         const isr_func_t handler = g_lpi_irq_info_list[index].handler;
         void *const ctx = g_lpi_irq_info_list[index].ctx;
 
-        if (handler != NULL) {
+        if (handler != nullptr) {
             handler((uint64_t)cpu_id << 16 | index, context, ctx);
             if (!this_cpu_mut()->called_eoi) {
                 printk(LOGLEVEL_WARN,
@@ -279,7 +279,7 @@ void handle_interrupt(struct thread_context *const context) {
     const isr_func_t handler = g_irq_info_list[irq].handler;
     void *const ctx = g_irq_info_list[irq].ctx;
 
-    if (handler != NULL) {
+    if (handler != nullptr) {
         handler((uint64_t)cpu_id << 16 | irq, context, ctx);
         if (!this_cpu_mut()->called_eoi) {
             printk(LOGLEVEL_WARN,

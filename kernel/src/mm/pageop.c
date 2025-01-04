@@ -46,8 +46,8 @@ pageop_flush_pte_in_current_range(struct pageop *const pageop,
                                   pte_phys,
                                   level,
                                   /*root_index=*/0,
-                                  /*alloc_pgtable=*/NULL,
-                                  /*free_pgtable=*/NULL);
+                                  /*alloc_pgtable=*/nullptr,
+                                  /*free_pgtable=*/nullptr);
 
     while (true) {
         pte_t *const walker_pte =
@@ -132,7 +132,7 @@ pageop_setup_for_range(struct pageop *const pageop, const struct range virt) {
 }
 
 __debug_optimize(3) static void free_all_pages(struct pageop *const pageop) {
-    struct page *iter = NULL;
+    struct page *iter = nullptr;
     list_foreach(iter, &pageop->delayed_free, table.delayed_free_list) {
         free_page(iter);
     }

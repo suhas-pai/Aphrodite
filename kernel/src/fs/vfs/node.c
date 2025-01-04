@@ -12,14 +12,14 @@ vfs_node_create(struct vfs_node *const parent,
                 const struct string_view name)
 {
     struct vfs_node *const result = kmalloc(sizeof(*result));
-    if (result == NULL) {
-        return NULL;
+    if (result == nullptr) {
+        return nullptr;
     }
 
     result->name = string_alloc(name);
     if (name.length != 0 && string_length(result->name) == 0) {
         kfree(result);
-        return NULL;
+        return nullptr;
     }
 
     result->parent = parent;

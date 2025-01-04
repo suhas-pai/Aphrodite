@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum csr {
+enum csr : uint8_t {
     CSR_crmd,
     CSR_ecfg = 4,
     CSR_estat,

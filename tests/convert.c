@@ -343,7 +343,7 @@ static const struct num_to_str_test num_to_str_test_list[] = {
 };
 
 void run_str_to_num_test(const struct str_to_num_test *const test) {
-    const char *end = NULL;
+    const char *end = nullptr;
     if (test->is_signed) {
         int64_t number = 0;
         enum str_to_num_result result =

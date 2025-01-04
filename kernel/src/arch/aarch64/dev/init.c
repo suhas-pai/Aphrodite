@@ -13,7 +13,7 @@
 
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();
-    if (boot_get_dtb() == NULL) {
+    if (boot_get_dtb() == nullptr) {
         return;
     }
 

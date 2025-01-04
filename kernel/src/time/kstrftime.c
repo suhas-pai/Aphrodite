@@ -15,7 +15,7 @@ time_format_to_string_sv_callback(
     bool *const should_cont_out)
 {
     (void)spec_info;
-    if (string_append_sv((struct string *)cb_info, sv) == NULL) {
+    if (string_append_sv((struct string *)cb_info, sv) == nullptr) {
         *should_cont_out = false;
         return 0;
     }

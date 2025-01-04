@@ -27,7 +27,7 @@ struct growable_buffer gbuffer_alloc(const uint32_t capacity) {
 __debug_optimize(3) struct growable_buffer
 gbuffer_alloc_copy(void *const data, const uint32_t size) {
     const struct growable_buffer gbuffer = gbuffer_alloc(size);
-    if (gbuffer.begin != NULL) {
+    if (gbuffer.begin != nullptr) {
         memcpy(gbuffer.begin, data, size);
     }
 
@@ -44,7 +44,7 @@ struct growable_buffer gbuffer_copy(const struct growable_buffer gbuffer) {
     }
 
     result = gbuffer_alloc(used_size);
-    if (result.begin != NULL) {
+    if (result.begin != nullptr) {
         memcpy(result.begin, gbuffer.begin, used_size);
         result.index = gbuffer.index;
     }
@@ -91,7 +91,7 @@ gbuffer_ensure_can_add_capacity(struct growable_buffer *const gb, uint32_t add)
     uint32_t new_size = check_add_assert((uint32_t)gb->capacity, add);
     void *const new_alloc = malloc_size(new_size, &new_size);
 
-    if (new_alloc == NULL) {
+    if (new_alloc == nullptr) {
         return false;
     }
 
@@ -257,7 +257,7 @@ __debug_optimize(3)
 void *gbuffer_take_data(struct growable_buffer *const gbuffer) {
     void *const result = gbuffer->begin;
 
-    gbuffer->begin = NULL;
+    gbuffer->begin = nullptr;
     gbuffer->index = 0;
     gbuffer->capacity = 0;
     gbuffer->is_alloc = false;
@@ -277,7 +277,7 @@ __debug_optimize(3) void gbuffer_destroy(struct growable_buffer *const gb) {
         bzero(gb->begin, gb->capacity);
     }
 
-    gb->begin = NULL;
+    gb->begin = nullptr;
     gb->index = 0;
     gb->capacity = 0;
     gb->is_alloc = false;

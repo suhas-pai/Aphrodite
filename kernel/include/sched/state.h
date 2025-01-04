@@ -4,8 +4,9 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-enum thread_state {
+enum thread_state : uint8_t {
     THREAD_STATE_NONE,
     THREAD_STATE_BLOCKED,
     THREAD_STATE_RUNNABLE,

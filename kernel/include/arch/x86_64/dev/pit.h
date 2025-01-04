@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 
-enum pit_timer_channel {
+enum pit_timer_channel : uint8_t {
     PIT_TIMER_CHANNEL_0 = 0,
     PIT_TIMER_CHANNEL_1 = 1 << 6,
     PIT_TIMER_CHANNEL_2 = 1 << 7,
@@ -17,7 +17,7 @@ enum pit_timer_channel {
 #define PIT_FREQUENCY 1193180
 #define PIT_TIMER_CHANNEL_MASK (PIT_TIMER_CHANNEL_2 | PIT_TIMER_CHANNEL_1)
 
-enum pit_timer_access_byte {
+enum pit_timer_access_byte : uint8_t {
     PIT_TIMER_ACCESS_MODE_LATCH = 0,
     PIT_TIMER_ACCESS_MODE_LO_BYTE = 1 << 4,
     PIT_TIMER_ACCESS_MODE_HI_BYTE = 1 << 5,
@@ -25,7 +25,7 @@ enum pit_timer_access_byte {
         PIT_TIMER_ACCESS_MODE_HI_BYTE | PIT_TIMER_ACCESS_MODE_LO_BYTE
 };
 
-enum pit_timer_op_mode {
+enum pit_timer_op_mode : uint8_t {
     PIT_TIMER_OP_MODE_0,
     PIT_TIMER_OP_MODE_INTERRUPT_TERMINAL_COUNT = PIT_TIMER_OP_MODE_0,
 
@@ -45,7 +45,7 @@ enum pit_timer_op_mode {
     PIT_TIMER_OP_MODE_HW_TRIGGERED_STROBE = PIT_TIMER_OP_MODE_5
 };
 
-enum pit_granularity {
+enum pit_granularity : uint16_t {
     PIT_GRANULARITY_1_MS = 10000,
     PIT_GRANULARITY_5_MS = 1000,
     PIT_GRANULARITY_10_MS = 200,

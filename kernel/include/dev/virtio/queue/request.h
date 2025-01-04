@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 
-enum virtio_queue_request_kind {
+enum virtio_queue_request_kind : uint8_t {
     VIRTIO_QUEUE_REQUEST_READ,
     VIRTIO_QUEUE_REQUEST_WRITE,
 };

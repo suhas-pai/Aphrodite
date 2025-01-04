@@ -21,7 +21,7 @@ virtio_device_init_queues(struct virtio_device *const device,
     struct virtio_split_queue *const queue_list =
         kmalloc(sizeof(struct virtio_split_queue) * queue_count);
 
-    if (queue_list == NULL) {
+    if (queue_list == nullptr) {
         printk(LOGLEVEL_WARN,
                "virtio-pci: failed to allocate space for %" PRIu16 " "
                "virtio_queue objects\n",
@@ -43,17 +43,17 @@ virtio_device_init_queues(struct virtio_device *const device,
 }
 
 struct virtio_device *virtio_device_init(struct virtio_device *const device) {
-    struct virtio_device *iter = NULL;
+    struct virtio_device *iter = nullptr;
     list_foreach(iter, &g_device_list, list) {
         if (iter->kind == device->kind) {
-            return NULL;
+            return nullptr;
         }
     }
 
     const struct virtio_driver *const driver = &virtio_drivers[device->kind];
-    if (driver->init == NULL) {
+    if (driver->init == nullptr) {
         printk(LOGLEVEL_WARN, "virtio-pci: ignoring device, no driver found\n");
-        return NULL;
+        return nullptr;
     }
 
     // 1. Reset the device.
@@ -78,7 +78,7 @@ struct virtio_device *virtio_device_init(struct virtio_device *const device) {
                "virtio-pci: device is missing required features, features: "
                "%" PRIu64 "\n",
                features);
-        return NULL;
+        return nullptr;
     }
 
     virtio_device_write_features(device, features);
@@ -103,7 +103,7 @@ struct virtio_device *virtio_device_init(struct virtio_device *const device) {
         status = virtio_device_read_status(device);
         if ((status & __VIRTIO_DEVSTATUS_FEATURES_OK) == 0) {
             printk(LOGLEVEL_WARN, "virtio-pci: failed to accept features\n");
-            return NULL;
+            return nullptr;
         }
     } else {
         printk(LOGLEVEL_INFO, "virtio-pci: device is legacy\n");
@@ -117,14 +117,14 @@ struct virtio_device *virtio_device_init(struct virtio_device *const device) {
             status |= __VIRTIO_DEVSTATUS_FAILED;
             virtio_device_write_status(device, status);
 
-            return NULL;
+            return nullptr;
         }
     }
 
     struct virtio_device *const ret_device = driver->init(device, features);
-    if (ret_device == NULL) {
+    if (ret_device == nullptr) {
         virtio_device_write_status(device, status | __VIRTIO_DEVSTATUS_FAILED);
-        return NULL;
+        return nullptr;
     }
 
     list_add(&g_device_list, &ret_device->list);

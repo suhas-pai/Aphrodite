@@ -20,63 +20,63 @@ __attribute__((section(".requests")))
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0,
-    .response = NULL
+    .response = nullptr
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
     .revision = 0,
-    .response = NULL
+    .response = nullptr
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_executable_address_request exec_addr_request = {
     .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
     .revision = 0,
-    .response = NULL
+    .response = nullptr
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0,
-    .response = NULL
+    .response = nullptr
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_paging_mode_request paging_mode_request = {
     .id = LIMINE_PAGING_MODE_REQUEST,
     .revision = 0,
-    .response = NULL
+    .response = nullptr
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_rsdp_request rsdp_request = {
     .id = LIMINE_RSDP_REQUEST,
     .revision = 0,
-    .response = NULL,
+    .response = nullptr,
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_dtb_request dtb_request = {
     .id = LIMINE_DTB_REQUEST,
     .revision = 0,
-    .response = NULL
+    .response = nullptr
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_boot_time_request boot_time_request = {
     .id = LIMINE_BOOT_TIME_REQUEST,
     .revision = 0,
-    .response = NULL,
+    .response = nullptr,
 };
 
 __attribute__((section(".requests")))
 static volatile struct limine_mp_request mp_request = {
     .id = LIMINE_MP_REQUEST,
     .revision = 0,
-    .response = NULL,
+    .response = nullptr,
 #if defined(__x86_64__)
     .flags = 1 << 0, // Use x2apic (when available)
 #else
@@ -96,7 +96,7 @@ __attribute__((used, section(".requests_end_marker")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
 static struct limine_framebuffer_response framebuffer_resp = {0};
-static struct limine_mp_response *mp_response = NULL;
+static struct limine_mp_response *mp_response = nullptr;
 
 static struct mm_memmap mm_memmap_list[255] = {0};
 static uint8_t mm_memmap_count = 0;
@@ -112,8 +112,8 @@ static uint8_t mm_memmap_count = 0;
 static struct page_section mm_page_section_list[255] = {0};
 static uint8_t mm_page_section_count = 0;
 
-static const void *rsdp = NULL;
-static const void *dtb = NULL;
+static const void *rsdp = nullptr;
+static const void *dtb = nullptr;
 
 static int64_t boot_time = 0;
 
@@ -162,10 +162,10 @@ __debug_optimize(3) uint64_t mm_get_full_section_mask() {
 }
 
 void boot_init() {
-    assert(hhdm_request.response != NULL);
-    assert(exec_addr_request.response != NULL);
-    assert(memmap_request.response != NULL);
-    assert(paging_mode_request.response != NULL);
+    assert(hhdm_request.response != nullptr);
+    assert(exec_addr_request.response != nullptr);
+    assert(memmap_request.response != nullptr);
+    assert(paging_mode_request.response != nullptr);
 
     HHDM_OFFSET = hhdm_request.response->offset;
     KERNEL_BASE = exec_addr_request.response->virtual_base;
@@ -178,16 +178,16 @@ void boot_init() {
     #error "Unrecognized architecture when calculating slide"
 #endif
 
-    if (framebuffer_request.response != NULL) {
+    if (framebuffer_request.response != nullptr) {
         framebuffer_resp = *framebuffer_request.response;
     }
 
     mp_response = mp_request.response;
-    if (dtb_request.response != NULL && dtb_request.response->dtb_ptr != NULL) {
+    if (dtb_request.response != nullptr && dtb_request.response->dtb_ptr != nullptr) {
         dtb = dtb_request.response->dtb_ptr;
     }
 
-    if (rsdp_request.response != NULL && rsdp_request.response->address != 0) {
+    if (rsdp_request.response != nullptr && rsdp_request.response->address != 0) {
         rsdp = phys_to_virt((uint64_t)rsdp_request.response->address);
     }
 
@@ -258,7 +258,7 @@ void boot_init() {
                 &mm_page_section_list[usable_index];
 
             page_section_init(section,
-                              /*zone=*/NULL,
+                              /*zone=*/nullptr,
                               mm_memmap_list[memmap_index].range,
                               pfn);
 
@@ -284,12 +284,12 @@ void boot_post_early_init() {
            mm_page_section_count);
 
 #if !defined(__x86_64__)
-    if (dtb_request.response == NULL || dtb_request.response->dtb_ptr == NULL) {
+    if (dtb_request.response == nullptr || dtb_request.response->dtb_ptr == nullptr) {
         printk(LOGLEVEL_WARN, "boot: device tree is missing\n");
     }
 #endif /* !defined(__x86_64__) */
 
-    if (rsdp_request.response == NULL || rsdp_request.response->address == 0)
+    if (rsdp_request.response == nullptr || rsdp_request.response->address == 0)
     {
     #if !defined(__riscv64) && !defined(__aarch64__)
         panic("boot: acpi not found\n");
@@ -298,13 +298,13 @@ void boot_post_early_init() {
     #endif /* !defined(__riscv64) */
     }
 
-    if (mp_response != NULL) {
+    if (mp_response != nullptr) {
         printk(LOGLEVEL_WARN,
                "boot: found %" PRIu64 " cpus\n",
                mp_response->cpu_count);
     }
 
-    if (boot_time_request.response == NULL) {
+    if (boot_time_request.response == nullptr) {
         panic("boot: boot-time not found\n");
     }
 

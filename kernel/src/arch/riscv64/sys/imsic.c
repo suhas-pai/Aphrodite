@@ -15,7 +15,7 @@
 #include "sys/aplic.h"
 #include "sys/imsic.h"
 
-enum {
+enum : uint8_t {
     EP_BASE = 0x80,
     EI_BASE = 0xc0,
 
@@ -47,8 +47,8 @@ struct imsic {
     struct isr_callback funcs[IMSIC_MSG_COUNT];
 };
 
-static struct imsic *g_machine_imsic = NULL;
-static struct imsic *g_supervisor_imsic = NULL;
+static struct imsic *g_machine_imsic = nullptr;
+static struct imsic *g_supervisor_imsic = nullptr;
 
 static struct array g_supervisor_region_list =
     ARRAY_INIT(sizeof(struct imsic_region));
@@ -85,13 +85,13 @@ imsic_init_from_acpi(const enum riscv64_privl privl,
     switch (privl) {
         case RISCV64_PRIVL_MACHINE:
             g_machine_imsic = kmalloc(sizeof(struct imsic));
-            assert_msg(g_machine_imsic != NULL,
+            assert_msg(g_machine_imsic != nullptr,
                        "imsic_init_from_acpi(): failed to alloc machine imsic");
 
             break;
         case RISCV64_PRIVL_SUPERVISOR:
             g_supervisor_imsic = kmalloc(sizeof(struct imsic));
-            assert_msg(g_supervisor_imsic != NULL,
+            assert_msg(g_supervisor_imsic != nullptr,
                        "imsic_init_from_acpi(): failed to alloc supervisor "
                        "imsic");
 
@@ -127,7 +127,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop *const intr_controller =
             devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
-        if (intr_controller == NULL) {
+        if (intr_controller == nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node is missing an 'interrupt-controller' "
                    "prop\n");
@@ -139,7 +139,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop *const msi_controller =
             devicetree_node_get_prop(node, DEVICETREE_PROP_MSI_CONTROLLER);
 
-        if (msi_controller == NULL) {
+        if (msi_controller == nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node is missing a 'msi-controller' prop\n");
 
@@ -158,7 +158,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_phandle *)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
 
-        if (phandle_prop == NULL) {
+        if (phandle_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node's 'phandle' prop is missing\n");
             return false;
@@ -171,7 +171,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_phandle *)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
 
-        if (phandle_prop == NULL) {
+        if (phandle_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node's 'phandle' prop is missing\n");
             return false;
@@ -184,7 +184,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-        if (reg_prop != NULL) {
+        if (reg_prop != nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node is missing a 'reg' property\n");
             return false;
@@ -217,7 +217,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_other_prop(node,
                                            SV_STATIC("riscv,guest-index-bits"));
 
-        if (source_prop != NULL) {
+        if (source_prop != nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node is missing a 'riscv,guest-index-bits' "
                    "property\n");
@@ -243,7 +243,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop_other *const source_prop =
             devicetree_node_get_other_prop(node, SV_STATIC("riscv,num-ids"));
 
-        if (source_prop != NULL) {
+        if (source_prop != nullptr) {
             printk(LOGLEVEL_WARN,
                    "imsic: dtb-node is missing a 'riscv,num-ids' property\n");
             return false;
@@ -264,7 +264,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
     }
 
     struct imsic *const imsic = kmalloc(sizeof(*imsic));
-    assert_msg(imsic != NULL, "imsic: failed to allocate info\n");
+    assert_msg(imsic != nullptr, "imsic: failed to allocate info\n");
 
     const enum riscv64_privl privl = find_privl_for_imsic(imsic, phandle);
 
@@ -302,7 +302,7 @@ imsic_add_region(const uint64_t hart_id, const struct range range) {
     struct mmio_region *const mmio =
         vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    assert_msg(mmio != NULL,
+    assert_msg(mmio != nullptr,
                "imsic: failed to map mmio region at " RANGE_FMT,
                RANGE_FMT_ARGS(range));
 
@@ -327,7 +327,7 @@ volatile void *imsic_region_for_hartid(const uint64_t hart_id) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) uint8_t imsic_alloc_msg(const enum riscv64_privl privl) {
@@ -358,8 +358,8 @@ void imsic_free_msg(const enum riscv64_privl privl, const uint8_t msg) {
         imsic_disable_msg(privl, msg);
         bitset_unset(&imsic->bitset, msg);
 
-        imsic->funcs[msg].func = NULL;
-        imsic->funcs[msg].ctx = NULL;
+        imsic->funcs[msg].func = nullptr;
+        imsic->funcs[msg].ctx = nullptr;
     });
 }
 
@@ -444,7 +444,7 @@ imsic_handle(const enum riscv64_privl privl,
     }
 
     struct imsic *const imsic = imsic_for_privl(privl);
-    if (imsic->funcs[code].func == NULL) {
+    if (imsic->funcs[code].func == nullptr) {
         printk(LOGLEVEL_WARN,
                "imsic: got interrupt %" PRIu32 " w/o a handler\n",
                code);

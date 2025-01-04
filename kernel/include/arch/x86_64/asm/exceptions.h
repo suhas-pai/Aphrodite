@@ -4,8 +4,9 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-enum exception {
+enum exception : uint8_t {
     EXCEPTION_DIVIDE_BY_ZERO,
     EXCEPTION_DEBUG,
 

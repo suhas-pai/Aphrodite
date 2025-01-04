@@ -17,7 +17,7 @@ struct mmio_region {
 
 struct range mmio_region_get_range(const struct mmio_region *region);
 
-enum vmap_mmio_flags {
+enum vmap_mmio_flags : uint8_t {
     __VMAP_MMIO_WT = 1 << 0
 };
 

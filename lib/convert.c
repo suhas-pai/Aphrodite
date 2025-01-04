@@ -68,7 +68,7 @@ convert_cstr_to_64int(const char *string,
         ch = *(++string);
         switch (ch) {
             case '\0':
-                *end_out = NULL;
+                *end_out = nullptr;
                 *result_out = 0;
 
                 return E_STR_TO_NUM_OK;
@@ -165,7 +165,7 @@ convert_cstr_to_64int(const char *string,
     bool found_digit = found_zero;
     for (;; ch = *(++string)) {
         if (ch == '\0') {
-            *end_out = NULL;
+            *end_out = nullptr;
             break;
         }
 
@@ -189,8 +189,8 @@ convert_cstr_to_64int(const char *string,
 
         found_digit = true;
         if (__builtin_expect(
-                !check_mul(*result_out, base, result_out)
-             || !check_add(*result_out, digit, result_out), 0))
+                !ckd_mul(result_out, *result_out, base)
+             || !ckd_add(result_out, *result_out, digit), 0))
         {
             return E_STR_TO_NUM_OVERFLOW;
         }
@@ -208,7 +208,7 @@ convert_cstr_to_64int(const char *string,
 
     if (is_neg) {
         if (__builtin_expect(
-                check_sub(0, *result_out, (int64_t *)result_out), 0))
+                ckd_sub((int64_t *)result_out, 0, *result_out), 0))
         {
             return E_STR_TO_NUM_UNDERFLOW;
         }
@@ -396,8 +396,8 @@ convert_sv_to_64int(struct string_view sv,
 
         found_digit = true;
         if (__builtin_expect(
-                !check_mul(*result_out, base, result_out)
-             || !check_add(*result_out, digit, result_out), 0))
+                !ckd_mul(result_out, *result_out, base)
+             || !ckd_add(result_out, *result_out, digit), 0))
         {
             return E_STR_TO_NUM_OVERFLOW;
         }
@@ -414,8 +414,7 @@ convert_sv_to_64int(struct string_view sv,
     }
 
     if (is_negative) {
-        if (__builtin_expect(
-                check_sub(0, *result_out, (int64_t *)result_out), 0))
+        if (__builtin_expect(ckd_sub((int64_t *)result_out, 0, *result_out), 0))
         {
             return E_STR_TO_NUM_UNDERFLOW;
         }

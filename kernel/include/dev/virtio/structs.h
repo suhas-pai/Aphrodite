@@ -8,7 +8,7 @@
 #include "dev/pci/structs.h"
 #include "lib/endian.h"
 
-enum virtio_pci_trans_device_kind {
+enum virtio_pci_trans_device_kind : uint16_t {
     VIRTIO_PCI_TRANS_DEVICE_KIND_NETWORK_CARD = 0x1000,
     VIRTIO_PCI_TRANS_DEVICE_KIND_BLOCK_DEVICE,
     VIRTIO_PCI_TRANS_DEVICE_KIND_MEM_BALLOON_TRAD,
@@ -18,7 +18,7 @@ enum virtio_pci_trans_device_kind {
     VIRTIO_PCI_TRANS_DEVICE_KIND_9P_TRANSPORT,
 };
 
-enum virtio_device_kind {
+enum virtio_device_kind : uint8_t {
     VIRTIO_DEVICE_KIND_INVALID,
     VIRTIO_DEVICE_KIND_NETWORK_CARD,
     VIRTIO_DEVICE_KIND_BLOCK_DEVICE,
@@ -61,11 +61,11 @@ enum virtio_device_kind {
     VIRTIO_DEVICE_KIND_RDMA_DEVICE,
 };
 
-enum virtio_features {
+enum virtio_features : uint64_t {
     __VIRTIO_F_VERSION_1 = 1ull << 32
 };
 
-enum virtio_pci_cap_cfg {
+enum virtio_pci_cap_cfg : uint8_t {
     // Common configuration
     VIRTIO_PCI_CAP_COMMON_CFG = 1,
     VIRTIO_PCI_CAP_CFG_MIN = VIRTIO_PCI_CAP_COMMON_CFG,
@@ -113,7 +113,7 @@ struct virtio_pci_common_cfg {
     le16_t queue_reset;
 } __packed;
 
-enum virtio_pci_legacy_common_cfg_offsets {
+enum virtio_pci_legacy_common_cfg_offsets : uint8_t {
     // Read-only
     VIRTIO_PCI_LEGACY_DEV_FEATURES,
     // Read-write
@@ -212,7 +212,7 @@ struct virtio_pci_vendor_data_cap {
     uint16_t vendor_id; // Identifies the vendor-specific format.
 } __packed;
 
-enum virtio_device_status {
+enum virtio_device_status : uint8_t {
     // Indicates that the guest OS has found the device and recognized it as a
     // valid virtio device.
     __VIRTIO_DEVSTATUS_ACKNOWLEDGE = 1 << 0,
@@ -240,7 +240,7 @@ enum virtio_device_status {
     __VIRTIO_DEVSTATUS_FAILED = 1 << 7
 };
 
-enum virtio_device_feature_bits {
+enum virtio_device_feature_bits : uint64_t {
     /*
      * Negotiating this feature indicates that the driver can use descriptors
      * with the VIRTQ_DESC_F_INDIRECT flag set, as described in 2.7.5.3 Indirect

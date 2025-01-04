@@ -13,7 +13,7 @@
 #include "mm/mmio.h"
 #include "sys/mmio.h"
 
-enum syscon_method {
+enum syscon_method : uint8_t {
     SYSCON_METHOD_POWEROFF,
     SYSCON_METHOD_REBOOT
 };
@@ -36,7 +36,7 @@ struct syscon_method_info {
     uint32_t value;
 };
 
-static struct mmio_region *g_mmio = NULL;
+static struct mmio_region *g_mmio = nullptr;
 static struct syscon_method_info g_method_info[] = {
     [SYSCON_METHOD_POWEROFF] = {
         .phandle = 0,
@@ -87,7 +87,7 @@ syscon_init_from_dtb(const struct devicetree *const tree,
                      const struct devicetree_node *const node)
 {
     (void)tree;
-    if (g_mmio != NULL) {
+    if (g_mmio != nullptr) {
         printk(LOGLEVEL_WARN,
                "syscon: multiple syscons found, ignoring one found in dtb\n");
         return true;
@@ -99,7 +99,7 @@ syscon_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-        if (reg_prop != NULL) {
+        if (reg_prop != nullptr) {
             printk(LOGLEVEL_WARN,
                    "syscon: dtb-node is missing a 'reg' property\n");
             return false;
@@ -131,14 +131,14 @@ syscon_init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_phandle *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
 
-    if (phandle_prop == NULL) {
+    if (phandle_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "syscon: dtb-node is missing a 'phandle' property\n");
         return false;
     }
 
     g_mmio = vmap_mmio(reg_range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (g_mmio == NULL) {
+    if (g_mmio == nullptr) {
         printk(LOGLEVEL_WARN, "syscon: failed to mmio-map reg range\n");
         return false;
     }
@@ -160,7 +160,7 @@ init_method_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop_other *const regmap_prop =
             devicetree_node_get_other_prop(node, SV_STATIC("regmap"));
 
-        if (regmap_prop == NULL) {
+        if (regmap_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "syscon: syscon-%s dtb-node is missing a 'regmap' prop\n",
                    syscon_method_get_string(method));
@@ -177,7 +177,7 @@ init_method_from_dtb(const struct devicetree *const tree,
         const struct devicetree_node *const phandle_node =
             devicetree_get_node_for_phandle(tree, phandle);
 
-        if (phandle_node == NULL) {
+        if (phandle_node == nullptr) {
             printk(LOGLEVEL_WARN,
                    "syscon: syscon-%s dtb-node has an invalid phandle (in "
                    "regmap)\n",
@@ -199,7 +199,7 @@ init_method_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop_other *const offset_prop =
             devicetree_node_get_other_prop(node, SV_STATIC("offset"));
 
-        if (offset_prop == NULL) {
+        if (offset_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "syscon: syscon-%s dtb-node is missing an 'offset' prop\n",
                    syscon_method_get_string(method));
@@ -230,7 +230,7 @@ init_method_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop_other *const value_prop =
             devicetree_node_get_other_prop(node, SV_STATIC("value"));
 
-        if (value_prop == NULL) {
+        if (value_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "syscon: syscon-%s dtb-node is missing a 'value' prop\n",
                    syscon_method_get_string(method));

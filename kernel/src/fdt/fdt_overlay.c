@@ -45,7 +45,7 @@ int fdt_overlay_target_offset(const void *fdt, const void *fdto,
                   int fragment_offset, char const **pathp)
 {
     uint32_t phandle;
-    const char *path = NULL;
+    const char *path = nullptr;
     int path_len = 0, ret;
 
     /* Try first to do a phandle based lookup */
@@ -80,7 +80,7 @@ int fdt_overlay_target_offset(const void *fdt, const void *fdto,
 
     /* return pointer to path (if available) */
     if (pathp)
-        *pathp = path ? path : NULL;
+        *pathp = path ? path : nullptr;
 
     return ret;
 }

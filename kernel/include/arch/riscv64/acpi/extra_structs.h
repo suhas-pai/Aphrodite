@@ -14,7 +14,7 @@ struct acpi_rhct {
     uint32_t node_offset;
 } __packed;
 
-enum acpi_rhct_node_kind {
+enum acpi_rhct_node_kind : uint16_t {
     ACPI_RHCT_NODE_KIND_ISA_STRING,
     ACPI_RHCT_NODE_KIND_CMO,
     ACPI_RHCT_NODE_KIND_MMU,
@@ -42,7 +42,7 @@ struct acpi_rhct_cmo_node {
     uint8_t cboz_shift;
 } __packed;
 
-enum acpi_rhct_mmu_kind {
+enum acpi_rhct_mmu_kind : uint8_t {
     ACPI_RHCT_MMU_KIND_SV39,
     ACPI_RHCT_MMU_KIND_SV48,
     ACPI_RHCT_MMU_KIND_SV57

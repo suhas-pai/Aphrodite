@@ -26,7 +26,7 @@ __debug_optimize(3) void arch_early_init() {
         (const struct acpi_spcr *)acpi_lookup_sdt("SPCR");
 
     uint64_t address = QEMU_SERIAL_PHYS;
-    if (spcr != NULL) {
+    if (spcr != nullptr) {
         assert(spcr->interface_kind == ACPI_SPCR_INTERFACE_ARM_PL011);
         assert(spcr->interrupt_kind & __ACPI_SPCR_IRQ_ARM_GIC);
         assert(spcr->serial_port.access_size == ACPI_GAS_ACCESS_SIZE_4_BYTE);

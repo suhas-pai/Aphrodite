@@ -828,7 +828,7 @@ void collect_cpu_features() {
 }
 
 void print_cpu_features() {
-    const char *pauth_string = NULL;
+    const char *pauth_string = nullptr;
     switch (g_cpu_features.pauth) {
         case CPU_FEAT_PAUTH_NONE:
             pauth_string = "none";
@@ -847,7 +847,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *lrcpc_string = NULL;
+    const char *lrcpc_string = nullptr;
     switch (g_cpu_features.lrcpc) {
         case CPU_FEAT_LRCPC_NONE:
             lrcpc_string = "none";
@@ -863,7 +863,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *ls64_string = NULL;
+    const char *ls64_string = nullptr;
     switch (g_cpu_features.ls64) {
         case CPU_FEAT_LS64_NONE:
             ls64_string = "none";
@@ -879,7 +879,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *ras_string = NULL;
+    const char *ras_string = nullptr;
     switch (g_cpu_features.ras) {
         case CPU_FEAT_RAS_NONE:
             ras_string = "none";
@@ -895,7 +895,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *csv2_string = NULL;
+    const char *csv2_string = nullptr;
     switch (g_cpu_features.csv2) {
         case CPU_FEAT_CSV2_NONE:
             csv2_string = "none";
@@ -911,7 +911,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *mte_string = NULL;
+    const char *mte_string = nullptr;
     switch (g_cpu_features.mte) {
         case CPU_FEAT_MTE_NONE:
             mte_string = "none";
@@ -930,7 +930,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *sme_string = NULL;
+    const char *sme_string = nullptr;
     switch (g_cpu_features.sme) {
         case CPU_FEAT_SME_NONE:
             sme_string = "none";
@@ -946,7 +946,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *parange_string = NULL;
+    const char *parange_string = nullptr;
     switch (g_cpu_features.pa_range) {
         case ID_AA64MMFR0_PA_RANGE_32B_4GIB:
             parange_string = "32-bit, 4gib";
@@ -974,7 +974,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *hafdbs_string = NULL;
+    const char *hafdbs_string = nullptr;
     switch (g_cpu_features.hafdbs) {
         case CPU_FEAT_HAFDBS_NONE:
             hafdbs_string = "none";
@@ -990,7 +990,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *pan_string = NULL;
+    const char *pan_string = nullptr;
     switch (g_cpu_features.pan) {
         case CPU_FEAT_PAN_NONE:
             pan_string = "none";
@@ -1006,7 +1006,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *debug_string = NULL;
+    const char *debug_string = nullptr;
     switch (g_cpu_features.debug) {
         case CPU_FEAT_DEBUG_DEFAULT:
             debug_string = "default";
@@ -1028,7 +1028,7 @@ void print_cpu_features() {
             break;
     }
 
-    const char *pmu_string = NULL;
+    const char *pmu_string = nullptr;
     switch (g_cpu_features.pmu) {
         case CPU_FEAT_PMU_FEAT_PMUv3:
             pmu_string = "v3";
@@ -1404,7 +1404,7 @@ void cpu_init_for_smp(struct cpu_info *const cpu) {
                     __ALLOC_ZERO,
                     KERNEL_IRQ_STACK_ORDER);
 
-    assert_msg(cpu->irq_stack != NULL, "smp: failed to alloc irq stack");
+    assert_msg(cpu->irq_stack != nullptr, "smp: failed to alloc irq stack");
 
     // FIXME:
 #if 0
@@ -1429,7 +1429,7 @@ void cpu_post_mm_init() {
                     __ALLOC_ZERO,
                     KERNEL_IRQ_STACK_ORDER);
 
-    assert_msg(this_cpu()->irq_stack != NULL,
+    assert_msg(this_cpu()->irq_stack != nullptr,
                "cpu: failed to alloc irq stack");
 
     // FIXME:

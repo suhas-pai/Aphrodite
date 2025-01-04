@@ -19,7 +19,7 @@ struct mutex {
         .waiters = LIST_INIT(name.waiters) \
     })
 
-enum mutex_flags {
+enum mutex_flags : uint64_t {
     __MUTEX_FLAGS_OWNER_MASK = UINT64_MAX << 2,
 
     // Only one thread can be contending for the lock at a time. The contender

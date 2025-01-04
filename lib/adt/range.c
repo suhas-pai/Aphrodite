@@ -14,7 +14,7 @@ range_create_and_verify(const uint64_t base,
                         struct range *const out)
 {
     uint64_t end = 0;
-    if (__builtin_expect(!check_add(base, size, &end), 0)) {
+    if (__builtin_expect(!ckd_add(&end, base, size), 0)) {
         return false;
     }
 
@@ -38,8 +38,8 @@ range_multiply(const struct range range,
                struct range *const result_out)
 {
     struct range result = RANGE_EMPTY();
-    if (!check_mul(range.front, mult, &result.front)
-     || !check_mul(range.size, mult, &result.size))
+    if (!ckd_mul(&result.front, range.front, mult)
+     || !ckd_mul(&result.size, range.size, mult))
     {
         return false;
     }
@@ -167,12 +167,12 @@ bool range_has_end(const struct range range, const uint64_t end) {
 
 __debug_optimize(3)
 bool range_get_end(const struct range range, uint64_t *const end_out) {
-    return check_add(range.front, range.size, end_out);
+    return ckd_add(end_out, range.front, range.size);
 }
 
 __debug_optimize(3) bool range_overflows(const struct range range) {
     uint64_t result = 0;
-    return !check_add(range.front, range.size, &result);
+    return !ckd_add(&result, range.front, range.size);
 }
 
 __debug_optimize(3)

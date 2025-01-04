@@ -29,25 +29,25 @@ __debug_optimize(3) uint32_t cpu_get_id(const struct cpu_info *const cpu) {
 }
 
 __debug_optimize(3) const struct cpu_info *cpu_for_id(const cpu_id_t id) {
-    const struct cpu_info *iter = NULL;
+    const struct cpu_info *iter = nullptr;
     list_foreach(iter, cpus_get_list(), cpu_list) {
         if (iter->core_id == id) {
             return iter;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) struct cpu_info *cpu_for_id_mut(const cpu_id_t id) {
-    struct cpu_info *iter = NULL;
+    struct cpu_info *iter = nullptr;
     list_foreach(iter, cpus_get_list(), cpu_list) {
         if (iter->core_id == id) {
             return iter;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3)
@@ -55,7 +55,7 @@ struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     (void)info;
 
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
-    assert_msg(cpu != NULL, "cpu: failed to alloc cpu info");
+    assert_msg(cpu != nullptr, "cpu: failed to alloc cpu info");
 
     cpu_info_base_init(cpu);
 

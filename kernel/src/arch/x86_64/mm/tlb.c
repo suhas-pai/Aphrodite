@@ -17,8 +17,8 @@ __debug_optimize(3) static void tlb_flush_range(const struct range range) {
 __debug_optimize(3) void tlb_flush_pageop(struct pageop *const pageop) {
     tlb_flush_range(pageop->flush_range);
 
-    struct page *page = NULL;
-    struct page *tmp = NULL;
+    struct page *page = nullptr;
+    struct page *tmp = nullptr;
 
     list_foreach_mut(page, tmp, &pageop->delayed_free, table.delayed_free_list)
     {

@@ -8,7 +8,7 @@
 #include "asm/context.h"
 #include "driver.h"
 
-enum ps2_keyboard_command {
+enum ps2_keyboard_command : uint8_t {
     PS2_KBD_CMD_SET_LED = 0xED,
     PS2_KBD_CMD_ECHO = 0xEE,
 
@@ -16,23 +16,23 @@ enum ps2_keyboard_command {
     PS2_KBD_CMD_TYPEMATIC_RATE = 0xF3
 };
 
-enum ps2_keyboard_led_kind {
+enum ps2_keyboard_led_kind : uint8_t {
     PS2_KBD_LED_KIND_SCROLL_LOCK,
     PS2_KBD_LED_KIND_NUMBER_LOCK,
     PS2_KBD_LED_KIND_CAPS_LOCK,
 };
 
-enum ps2_keyboard_scan_code_set_subcommand_kind {
+enum ps2_keyboard_scan_code_set_subcommand_kind : uint8_t {
     PS2_KBD_SCAN_CODE_SET_SUBCMD_GET,
     PS2_KBD_SCAN_CODE_SET_SUBCMD_SET_SET_1,
     PS2_KBD_SCAN_CODE_SET_SUBCMD_SET_SET_2,
     PS2_KBD_SCAN_CODE_SET_SUBCMD_SET_SET_3
 };
 
-enum ps2_keyboard_special_byte {
-    PS2_KBD_SPECIAL_BYTE_ERROR          = 0x0,
+enum ps2_keyboard_special_byte : uint8_t {
+    PS2_KBD_SPECIAL_BYTE_ERROR = 0x0,
     PS2_KBD_SPECIAL_BYTE_SELF_TEST_PASS = 0xAA,
-    PS2_KBD_SPECIAL_BYTE_ECHO           = 0xEE,
+    PS2_KBD_SPECIAL_BYTE_ECHO = 0xEE,
 
     // Both bytes are sent as responses to self-test.
     PS2_KBD_SPECIAL_BYTE_SELF_TEST_1 = 0xFC,
@@ -42,7 +42,7 @@ enum ps2_keyboard_special_byte {
     PS2_KBD_SPECIAL_BYTE_ERROR_2 = 0xFF,
 };
 
-enum ps2_keyboard_byte_flags {
+enum ps2_keyboard_byte_flags : uint8_t {
     __PS2_KBD_KEY_RELEASE = 1ull << 7
 };
 

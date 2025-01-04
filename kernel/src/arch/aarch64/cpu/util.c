@@ -12,12 +12,12 @@
 
 #include "sched/scheduler.h"
 
-__noreturn void cpu_idle() {
+[[noreturn]] void cpu_idle() {
     assert(intr_are_enabled());
     cpu_halt();
 }
 
-__noreturn void cpu_halt() {
+[[noreturn]] void cpu_halt() {
     while (true) {
         asm ("wfi");
     }
@@ -35,7 +35,7 @@ void cpu_reboot() {
 
 struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     struct cpu_info *const cpu = kmalloc(sizeof(*cpu));
-    assert_msg(cpu != NULL, "cpu: failed to alloc info");
+    assert_msg(cpu != nullptr, "cpu: failed to alloc info");
 
     cpu_info_base_init(cpu);
 
@@ -46,8 +46,8 @@ struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     cpu->spe_overflow_interrupt = 0;
     cpu->icid = 0;
 
-    cpu->gic_its_pend_page = NULL;
-    cpu->gic_its_prop_page = NULL;
+    cpu->gic_its_pend_page = nullptr;
+    cpu->gic_its_prop_page = nullptr;
 
     cpu->in_lpi = false;
     cpu->in_exception = false;

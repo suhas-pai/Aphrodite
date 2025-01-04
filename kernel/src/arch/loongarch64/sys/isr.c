@@ -31,12 +31,12 @@ void isr_init() {
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
     const int flag = spin_acquire_save_intr(&g_lock);
-    if (g_funcs[0].handler == NULL) {
+    if (g_funcs[0].handler == nullptr) {
         spin_release_restore_intr(&g_lock, flag);
         return 0;
     }
 
-    if (g_funcs[1].handler == NULL) {
+    if (g_funcs[1].handler == nullptr) {
         spin_release_restore_intr(&g_lock, flag);
         return 1;
     }
@@ -66,8 +66,8 @@ isr_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
 __debug_optimize(3) void isr_free_vector(const isr_vector_t vector) {
     assert(vector < 2);
     with_spinlock_intr_disabled(&g_lock, {
-        g_funcs[vector].handler = NULL;
-        g_funcs[vector].ctx = NULL;
+        g_funcs[vector].handler = nullptr;
+        g_funcs[vector].ctx = nullptr;
     });
 }
 
@@ -82,8 +82,8 @@ isr_free_msi_vector(struct device *const device,
     with_spinlock_intr_disabled(&g_lock, {
         bitset_unset(g_msi_bitset, vector);
         isr_set_vector(vector,
-                       /*handler=*/NULL,
-                       /*ctx=*/NULL,
+                       /*handler=*/nullptr,
+                       /*ctx=*/nullptr,
                        &ARCH_ISR_INFO_NONE());
     });
 }

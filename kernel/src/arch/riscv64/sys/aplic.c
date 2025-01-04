@@ -14,13 +14,13 @@
 #include "sys/imsic.h"
 #include "sys/mmio.h"
 
-enum aplic_domain_config_flags {
+enum aplic_domain_config_flags : uint16_t {
     __APLIC_DOMAIN_CFG_BIG_ENDIAN = 1 << 0,
     __APLIC_DOMAIN_CFG_DIRECT_MODE = 1 << 2,
     __APLIC_DOMAIN_CFG_ENABLE = 1 << 8
 };
 
-enum aplic_irq_source_mode {
+enum aplic_irq_source_mode : uint8_t {
     APLIC_IRQ_SOURCE_MODE_INACTIVE,
     APLIC_IRQ_SOURCE_MODE_DETACHED,
 
@@ -31,11 +31,11 @@ enum aplic_irq_source_mode {
     APLIC_IRQ_SOURCE_MODE_LEVEL_LOW,
 };
 
-enum aplic_generate_msi_shifts {
+enum aplic_generate_msi_shifts : uint8_t {
     APLIC_GENERATE_MSI_HART_SHIFT = 18,
 };
 
-enum aplic_target_shifts {
+enum aplic_target_shifts : uint8_t {
     APLIC_TARGET_GUEST_SHIFT = 12,
     APLIC_TARGET_HART_SHIFT = 18,
 };
@@ -97,8 +97,8 @@ struct aplic {
 
 #define APLIC_IRQ_COUNT 1024
 
-static struct aplic *g_machine_aplic = NULL;
-static struct aplic *g_supervisor_aplic = NULL;
+static struct aplic *g_machine_aplic = nullptr;
+static struct aplic *g_supervisor_aplic = nullptr;
 
 static int64_t g_machine_child_phandle = -1;
 
@@ -138,9 +138,9 @@ aplic_init(struct aplic *const aplic,
     struct mmio_region *const mmio =
         vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN, "aplic: failed to mmio-map reg range\n");
-        return NULL;
+        return false;
     }
 
     printk(LOGLEVEL_INFO, "aplic: supports %" PRIu32 " irqs\n", source_count);
@@ -151,7 +151,7 @@ aplic_init(struct aplic *const aplic,
     aplic->source_count = source_count;
 
     init_with_regs(aplic->regs, source_count);
-    return aplic;
+    return true;
 }
 
 __debug_optimize(3)
@@ -228,7 +228,7 @@ aplic_init_from_acpi(const struct range range,
                      const uint32_t gsi_base)
 {
     g_supervisor_aplic = kmalloc(sizeof(struct aplic));
-    if (g_supervisor_aplic == NULL) {
+    if (g_supervisor_aplic == nullptr) {
         return false;
     }
 
@@ -244,7 +244,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop *const interrupt_controller =
             devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
-        if (interrupt_controller == NULL) {
+        if (interrupt_controller == nullptr) {
             printk(LOGLEVEL_WARN,
                    "aplic: dtb-node is missing a 'interrupt-controller' "
                    "prop\n");
@@ -253,7 +253,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
         }
     }
 
-    struct aplic **aplic_ptr = NULL;
+    struct aplic **aplic_ptr = nullptr;
     struct range reg_range = RANGE_EMPTY();
 
     uint32_t source_count = 0;
@@ -264,7 +264,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_phandle *)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
 
-        if (phandle_prop == NULL) {
+        if (phandle_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "aplic: dtb-node's 'phandle' prop is missing\n");
             return false;
@@ -276,8 +276,8 @@ aplic_init_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop_other *const children_prop =
             devicetree_node_get_other_prop(node, SV_STATIC("riscv,children"));
 
-        if (children_prop != NULL) {
-            const fdt32_t *child_list = NULL;
+        if (children_prop != nullptr) {
+            const fdt32_t *child_list = nullptr;
             uint32_t count = 0;
 
             if (!devicetree_prop_other_get_u32_list(children_prop,
@@ -298,7 +298,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
             }
 
             g_machine_child_phandle = fdt32_to_cpu(child_list[0]);
-            if (g_supervisor_aplic != NULL) {
+            if (g_supervisor_aplic != nullptr) {
                 if (g_supervisor_aplic->phandle != g_machine_child_phandle) {
                     printk(LOGLEVEL_WARN,
                            "aplic: 'riscv,children' doesn't point to "
@@ -322,7 +322,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
         }
 
         *aplic_ptr = kmalloc(sizeof(struct aplic));
-        if (*aplic_ptr == NULL) {
+        if (*aplic_ptr == nullptr) {
             printk(LOGLEVEL_WARN, "aplic: failed to alloc info\n");
             return false;
         }
@@ -334,7 +334,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-        if (reg_prop != NULL) {
+        if (reg_prop != nullptr) {
             printk(LOGLEVEL_WARN,
                    "aplic: dtb-node is missing a 'reg' property\n");
             return false;
@@ -370,7 +370,7 @@ aplic_init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_other_prop(node,
                                            SV_STATIC("riscv,num-sources"));
 
-        if (source_prop != NULL) {
+        if (source_prop != nullptr) {
             printk(LOGLEVEL_WARN,
                    "aplic: dtb-node is missing a 'riscv,num-sources' "
                    "property\n");
@@ -407,5 +407,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver driver = {
     .name = SV_STATIC("riscv,aplic"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

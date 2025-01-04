@@ -41,23 +41,23 @@ pci_add_ecam_domain(const struct range bus_range,
                (void *)base_addr,
                segment);
 
-        return NULL;
+        return nullptr;
     }
 
     struct pci_domain_ecam *const ecam_domain = kmalloc(sizeof(*ecam_domain));
-    if (ecam_domain == NULL) {
+    if (ecam_domain == nullptr) {
         printk(LOGLEVEL_WARN, "pci: failed to alloc ecam domain info\n");
-        return NULL;
+        return nullptr;
     }
 
     ecam_domain->domain = PCI_DOMAIN_INIT(PCI_DOMAIN_ECAM, segment);
     ecam_domain->mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (ecam_domain->mmio == NULL) {
+    if (ecam_domain->mmio == nullptr) {
         kfree(ecam_domain);
         printk(LOGLEVEL_WARN, "pci/ecam: failed to mmio-map config-domain\n");
 
-        return NULL;
+        return nullptr;
     }
 
     list_init(&ecam_domain->list);
@@ -75,7 +75,7 @@ pci_add_ecam_domain(const struct range bus_range,
         vunmap_mmio(ecam_domain->mmio);
         kfree(ecam_domain);
 
-        return NULL;
+        return nullptr;
     }
 
     return ecam_domain;
@@ -213,17 +213,17 @@ pci_ecam_write_64(const struct pci_domain_ecam *const domain,
     mmio_write_64(domain->mmio->base + offset, value);
 }
 
-enum pci_ecam_dtb_range_kind {
+enum pci_ecam_dtb_range_kind : uint8_t {
     PCI_ECAM_DTB_RANGE_KIND_IO = 1,
     PCI_ECAM_DTB_RANGE_KIND_MEM32,
     PCI_ECAM_DTB_RANGE_KIND_MEM64,
 };
 
-enum pci_ecam_dtb_child_addr_shifts {
+enum pci_ecam_dtb_child_addr_shifts : uint8_t {
     PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT = 24,
 };
 
-enum pci_ecam_dtb_child_addr_flags {
+enum pci_ecam_dtb_child_addr_flags : uint32_t {
     __PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND =
         0b11 << PCI_ECAM_DTB_CHILD_ADDR_RNG_KIND_SHIFT,
 
@@ -265,7 +265,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
         (const struct devicetree_prop_ranges *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_RANGES);
 
-    if (ranges_prop == NULL) {
+    if (ranges_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "pci/ecam: 'ranges' property in dtb node is missing\n");
         return false;
@@ -323,7 +323,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
         struct mmio_region *const mmio =
             vmap_mmio(res_mmio_range, PROT_READ | PROT_WRITE, flags);
 
-        if (mmio == NULL) {
+        if (mmio == nullptr) {
             printk(LOGLEVEL_WARN,
                    "pci/ecam: failed to mmio-map range #%" PRIu32 " in "
                    "'ranges' dtb-node prop has a size of zero\n",
@@ -360,7 +360,7 @@ init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "pci/ecam: 'reg' property in dtb node is missing\n");
         return false;
@@ -376,7 +376,7 @@ init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_bus_range *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_PCI_BUS_RANGE);
 
-    if (bus_range_prop == NULL) {
+    if (bus_range_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "pci/ecam: 'bus-range' property in dtb node is missing\n");
         return false;
@@ -428,7 +428,7 @@ init_from_dtb(const struct devicetree *const tree,
     struct pci_bus *const root_bus =
         pci_bus_create(&ecam_domain->domain, bus_range.front, /*segment=*/0);
 
-    if (root_bus == NULL) {
+    if (root_bus == nullptr) {
         pci_remove_ecam_domain(ecam_domain);
         printk(LOGLEVEL_WARN,
                "pci/ecam: failed to create root-bus from dtb node\n");
@@ -464,5 +464,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver driver = {
     .name = SV_STATIC("pci-ecam-driver"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

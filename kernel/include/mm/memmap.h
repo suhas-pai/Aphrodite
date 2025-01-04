@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/adt/range.h"
 
-enum mm_memmap_kind {
+enum mm_memmap_kind : uint8_t {
     MM_MEMMAP_KIND_NONE,
     MM_MEMMAP_KIND_USABLE,
     MM_MEMMAP_KIND_RESERVED,

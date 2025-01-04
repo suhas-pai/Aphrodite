@@ -28,7 +28,7 @@ parse_gpt_entries(struct storage_device *const device,
     const uint32_t alloc_size = min(total_size, device->lba_size);
     struct gpt_entry *const entry_list = kmalloc(alloc_size);
 
-    if (entry_list == NULL) {
+    if (entry_list == nullptr) {
         return false;
     }
 
@@ -64,7 +64,7 @@ parse_gpt_entries(struct storage_device *const device,
             }
 
             struct partition *const partition = kmalloc(sizeof(*partition));
-            if (partition == NULL) {
+            if (partition == nullptr) {
                 kfree(entry_list);
                 return false;
             }
@@ -109,7 +109,7 @@ parse_mbr_entries(struct storage_device *const device,
         }
 
         struct partition *const partition = kmalloc(sizeof(*partition));
-        if (partition == NULL) {
+        if (partition == nullptr) {
             return false;
         }
 
@@ -179,7 +179,7 @@ storage_device_init(struct storage_device *const device,
         return false;
     }
 
-    struct partition *iter = NULL;
+    struct partition *iter = nullptr;
 
     uint8_t partition_index = 0;
     bool found_atleast_one_fs = false;
@@ -219,7 +219,7 @@ find_in_cache_or_read_block(struct storage_device *const device,
                             const uint64_t lba)
 {
     void *block = storage_cache_find(&device->cache, lba);
-    if (block != NULL) {
+    if (block != nullptr) {
         return block;
     }
 
@@ -227,12 +227,12 @@ find_in_cache_or_read_block(struct storage_device *const device,
     if (phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc phys-memory while reading\n");
-        return NULL;
+        return nullptr;
     }
 
     if (device->read(device, phys, RANGE_INIT(lba, 1)) != 1) {
         physalloc_free(phys);
-        return NULL;
+        return nullptr;
     }
 
     block = phys_to_virt(phys);
@@ -253,7 +253,7 @@ storage_device_read(struct storage_device *const device,
     if (__builtin_expect(buf_offset < range.size, 1)) {
         while (true) {
             void *const block = find_in_cache_or_read_block(device, lba);
-            if (block == NULL) {
+            if (block == nullptr) {
                 return buf_offset;
             }
 
@@ -301,7 +301,7 @@ storage_device_write(struct storage_device *const device,
 
             if (should_break) {
                 void *const block = find_in_cache_or_read_block(device, lba);
-                if (block == NULL) {
+                if (block == nullptr) {
                     physalloc_free(phys);
                     return offset;
                 }

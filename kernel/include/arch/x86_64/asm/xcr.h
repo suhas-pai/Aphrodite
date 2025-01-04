@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum xcr0_flags {
+enum xcr0_flags : uint32_t {
     // This bit 0 must be 1. An attempt to write 0 to this bit causes a #GP
     // exception.
     __XCR0_BIT_X87 = 1ull << 0,
@@ -64,7 +64,7 @@ enum xcr0_flags {
     __XCR0_BIT_TILEDATA = 1ull << 18,
 };
 
-enum xcr {
+enum xcr : uint8_t {
     XCR_XSTATE_FEATURES_ENABLED,
     XCR_XSTATE_FEATURES_IN_USE
 };

@@ -6,12 +6,12 @@
 #pragma once
 #include "acpi/structs.h"
 
-enum acpi_hpet_event_timer_block_id_shifts {
+enum acpi_hpet_event_timer_block_id_shifts : uint8_t {
     HPET_EVENT_TIMER_BLOCKID_COMPARATOR_NUM_1ST_TIMER_SHIFT = 8,
     HPET_EVENT_TIMER_BLOCKID_1ST_TIMER_PCI_VENDOR_ID_SHIFT = 32,
 };
 
-enum acpi_hpet_event_timer_block_id_flags {
+enum acpi_hpet_event_timer_block_id_flags : uint64_t {
     __HPET_EVENT_TIMER_BLOCKID_HW_REV_ID = 0xFF,
     __HPET_EVENT_TIMER_BLOCKID_COMPARATOR_NUM_1ST_TIMER =
         0b1111 << HPET_EVENT_TIMER_BLOCKID_COMPARATOR_NUM_1ST_TIMER_SHIFT,
@@ -21,13 +21,13 @@ enum acpi_hpet_event_timer_block_id_flags {
         0xFFFFFFFFull << HPET_EVENT_TIMER_BLOCKID_1ST_TIMER_PCI_VENDOR_ID_SHIFT
 };
 
-enum acpi_hpet_page_prot_guarantee {
+enum acpi_hpet_page_prot_guarantee : uint8_t {
     ACPI_HPET_PAGE_PROT_NONE,
     ACPI_HPET_PAGE_PROT_4K,
     ACPI_HPET_PAGE_PROT_64K,
 };
 
-enum acpi_hpet_page_prot_and_oem_attr_flags {
+enum acpi_hpet_page_prot_and_oem_attr_flags : uint8_t {
     __HPET_PAGEPROT_OEMATTR_PAGE_HW_CAP = 0b1111,
     __HPET_PAGEPROT_OEMATTR_OEM_ATTR = 0b1111 << 4
 };

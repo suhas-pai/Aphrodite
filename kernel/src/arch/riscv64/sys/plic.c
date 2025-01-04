@@ -7,7 +7,7 @@
 #include "mm/mmio.h"
 #include "sys/plic.h"
 
-enum plic_irq_kind {
+enum plic_irq_kind : uint8_t {
     PLIC_IRQ_SOFTWARE_USER,
     PLIC_IRQ_SOFTWARE_SUPERVISOR,
     PLIC_IRQ_SOFTWARE_HYPERVISOR,
@@ -39,8 +39,8 @@ struct plic_registers {
     struct hart_interrupt_context hart_intr_context[240];
 };
 
-static volatile struct plic_registers *g_regs = NULL;
-static struct mmio_region *g_mmio = NULL;
+static volatile struct plic_registers *g_regs = nullptr;
+static struct mmio_region *g_mmio = nullptr;
 
 __debug_optimize(3)
 static inline bool plic_irq_kind_is_valid(const enum plic_irq_kind kind) {
@@ -103,7 +103,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
     const struct devicetree_prop *const intr_cntlr_prop =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
-    if (intr_cntlr_prop == NULL) {
+    if (intr_cntlr_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "plic: dtb-node is missing a 'interrupt-controller' property\n");
         return false;
@@ -112,14 +112,14 @@ plic_init_from_dtb(const struct devicetree *const tree,
     uint32_t ndev = 0;
     struct range reg_range = RANGE_EMPTY();
 
-    const fdt32_t *intr_ext_list = NULL;
+    const fdt32_t *intr_ext_list = nullptr;
     uint32_t intr_ext_count = 0;
 
     {
         const struct devicetree_prop_other *const ndev_prop =
             devicetree_node_get_other_prop(node, SV_STATIC("riscv,ndev"));
 
-        if (ndev_prop == NULL) {
+        if (ndev_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "plic: dtb-node is missing \"riscv,ndev\" property\n");
             return false;
@@ -136,7 +136,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_reg *)
                 (uint64_t)devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-        if (reg_prop == NULL) {
+        if (reg_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "plic: dtb-node is missing a 'reg' property\n");
             return false;
@@ -172,7 +172,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_other_prop(node,
                                            SV_STATIC("interrupts-extended"));
 
-        if (intr_ext_prop == NULL) {
+        if (intr_ext_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "plic: dtb-node is missing a 'interrupts-extended' prop\n");
             return false;
@@ -191,7 +191,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
     }
 
     g_mmio = vmap_mmio(reg_range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (g_mmio == NULL) {
+    if (g_mmio == nullptr) {
         printk(LOGLEVEL_WARN, "plic: failed to map registers\n");
         return false;
     }

@@ -14,7 +14,7 @@
 
 static void setup_from_dtb(const uint32_t hartid) {
     const struct devicetree *const tree = dtb_get_tree();
-    if (tree == NULL) {
+    if (tree == nullptr) {
         printk(LOGLEVEL_WARN, "cpu: dtb is missing, can't get cbo/cmo info\n");
         return;
     }
@@ -22,13 +22,13 @@ static void setup_from_dtb(const uint32_t hartid) {
     const struct devicetree_node *const cpus_node =
         devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
 
-    assert_msg(cpus_node != NULL, "cpu: dtb is missing a 'cpus' node");
+    assert_msg(cpus_node != nullptr, "cpu: dtb is missing a 'cpus' node");
     devicetree_node_foreach_child(cpus_node, iter) {
         const struct devicetree_prop_reg *const reg_prop =
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(cpus_node, DEVICETREE_PROP_REG);
 
-        assert_msg(reg_prop != NULL,
+        assert_msg(reg_prop != nullptr,
                    "cpu: dtb node of cpu is missing a 'reg' prop");
         assert_msg(array_item_count(reg_prop->list) == 1,
                    "cpu: 'reg' prop is of the wrong format");
@@ -47,7 +47,7 @@ static void setup_from_dtb(const uint32_t hartid) {
         const struct devicetree_prop_other *const cbo_prop =
             devicetree_node_get_other_prop(cpus_node, cbo_sv);
 
-        assert_msg(cbo_prop != NULL,
+        assert_msg(cbo_prop != nullptr,
                    "cpu: dtb node of cpu is missing a '" SV_FMT "' prop",
                    SV_FMT_ARGS(cbo_sv));
 
@@ -55,7 +55,7 @@ static void setup_from_dtb(const uint32_t hartid) {
         const struct devicetree_prop_other *const cmo_prop =
             devicetree_node_get_other_prop(cpus_node, cmo_sv);
 
-        assert_msg(cmo_prop != NULL,
+        assert_msg(cmo_prop != nullptr,
                    "cpu: dtb node of cpu is missing a '" SV_FMT "' prop",
                    SV_FMT_ARGS(cmo_sv));
 

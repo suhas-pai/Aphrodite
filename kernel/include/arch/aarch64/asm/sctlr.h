@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum sctlr_tag_check_fault {
+enum sctlr_tag_check_fault : uint8_t {
     SCTLR_TAG_CHECK_FAULT_NO_EFFECT,
     SCTLR_TAG_CHECK_FAULT_SYNC_EXCEPTION,
     SCTLR_TAG_CHECK_FAULT_ASYNC_EXCEPTION,
@@ -15,13 +15,13 @@ enum sctlr_tag_check_fault {
     SCTLR_TAG_CHECK_FAULT_SYNC_READ_ASYNC_ACCUM_WRITE_EXCEPTION,
 };
 
-enum sctlr_shifts {
+enum sctlr_shifts : uint8_t {
     SCTLR_TAG_CHECK_FAULT_EL0_SHIFT = 38,
     SCTLR_TAG_CHECK_FAULT_EL1_SHIFT = 40,
     SCTLR_TWE_DELAY_CONFIG_VALUE_SHIFT = 46
 };
 
-enum sctlr_flags {
+enum sctlr_flags : uint64_t {
     // MMU enable for EL1&0 stage 1 address translation.
     // EL1&0 stage 1 address translation enabled.
     __SCTLR_MMU = 1ull << 0,
@@ -510,7 +510,8 @@ enum sctlr_flags {
     // When AArch64.HCR_EL2.{E2H, TGE} is {1, 1}, this bit has no effect on
     // execution at EL0.
 
-    // For this control, stage 1 has write permission if all of the following apply:
+    // For this control, stage 1 has write permission if all of the following
+    // apply:
     //  AP[2] is 0 or DBM is 1 in the stage 1 descriptor.
     //  Where APTable is in use, APTable[1] is 0 for all levels of the
     //      translation table.
@@ -697,7 +698,6 @@ enum sctlr_flags {
 
     __SCTLR_TIDCP = 1ull << 63,
 };
-
 
 __debug_optimize(3) static inline uint64_t read_sctlr_el0() {
     uint64_t result = 0;

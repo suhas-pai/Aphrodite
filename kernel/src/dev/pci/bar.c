@@ -21,7 +21,7 @@ bool pci_map_bar(struct pci_entity_bar_info *const bar) {
         return false;
     }
 
-    if (bar->mmio != NULL) {
+    if (bar->mmio != nullptr) {
         return true;
     }
 
@@ -42,7 +42,7 @@ bool pci_map_bar(struct pci_entity_bar_info *const bar) {
     struct mmio_region *const mmio =
         vmap_mmio(aligned_range, PROT_READ | PROT_WRITE, flags);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN,
                "pcie: failed to mmio map bar at phys range: " RANGE_FMT "\n",
                RANGE_FMT_ARGS(bar->port_or_phys_range));
@@ -63,13 +63,13 @@ __debug_optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
         return false;
     }
 
-    if (bar->mmio == NULL) {
+    if (bar->mmio == nullptr) {
         return true;
     }
 
     vunmap_mmio(bar->mmio);
 
-    bar->mmio = NULL;
+    bar->mmio = nullptr;
     bar->index_in_mmio = 0;
 
     return true;
@@ -98,7 +98,7 @@ pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
             }
         }
 
-        return NULL;
+        return nullptr;
     }
 #endif /* !defined(__x86_64__) */
 
@@ -108,7 +108,7 @@ pci_bar_read_u8(struct pci_entity_info *const entity,
                 const uint32_t offset)
 {
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to read uint8 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -118,7 +118,7 @@ pci_bar_read_u8(struct pci_entity_info *const entity,
 
 #if !defined(__x86_64__)
     volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-    assert_msg(ptr != NULL,
+    assert_msg(ptr != nullptr,
                "pci: trying to read uint8 at offset 0x%" PRIx32 " that's not "
                "part of any resource",
                offset);
@@ -136,7 +136,7 @@ pci_bar_read_u16(struct pci_entity_info *const entity,
                  const uint32_t offset)
 {
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to read uint16 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -146,7 +146,7 @@ pci_bar_read_u16(struct pci_entity_info *const entity,
 
 #if !defined(__x86_64__)
     volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-    assert_msg(ptr != NULL,
+    assert_msg(ptr != nullptr,
                "pci: trying to read uint16 at offset 0x%" PRIx32 " that's not "
                "part of any resource",
                offset);
@@ -164,7 +164,7 @@ pci_bar_read_u32(struct pci_entity_info *const entity,
                  const uint32_t offset)
 {
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to read uint32 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -174,7 +174,7 @@ pci_bar_read_u32(struct pci_entity_info *const entity,
 
 #if !defined(__x86_64__)
     volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-    assert_msg(ptr != NULL,
+    assert_msg(ptr != nullptr,
                "pci: trying to read uint32 at offset 0x%" PRIx32 " that's not "
                "part of any resource",
                offset);
@@ -195,7 +195,7 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
     (void)entity;
 
     assert(bar->is_mmio);
-    assert_msg(bar->mmio != NULL,
+    assert_msg(bar->mmio != nullptr,
                "pci: trying to read uint64 at offset 0x%" PRIx32 " from "
                "bar that isn't mapped",
                offset);
@@ -203,7 +203,7 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
     return mmio_read_64(pci_entity_bar_get_base(bar) + offset);
 #else
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to read uint64 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -212,7 +212,7 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
     }
 
     volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-    assert_msg(ptr != NULL,
+    assert_msg(ptr != nullptr,
                "pci: trying to read uint64 at offset 0x%" PRIx32 " that's not "
                "part of any resource",
                offset);
@@ -228,7 +228,7 @@ pci_bar_write_u8(struct pci_entity_info *const entity,
                  const uint8_t value)
 {
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to write uint32 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -237,7 +237,7 @@ pci_bar_write_u8(struct pci_entity_info *const entity,
     } else {
     #if !defined(__x86_64__)
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-        assert_msg(ptr != NULL,
+        assert_msg(ptr != nullptr,
                    "pci: trying to write uint8 at offset 0x%" PRIx32 " that's "
                    "not part of any resource",
                    offset);
@@ -257,7 +257,7 @@ pci_bar_write_u16(struct pci_entity_info *const entity,
                   const uint16_t value)
 {
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to write uint16 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -266,7 +266,7 @@ pci_bar_write_u16(struct pci_entity_info *const entity,
     } else {
     #if !defined(__x86_64__)
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-        assert_msg(ptr != NULL,
+        assert_msg(ptr != nullptr,
                    "pci: trying to write uint16 at offset 0x%" PRIx32 " that's "
                    "not part of any resource",
                    offset);
@@ -286,7 +286,7 @@ pci_bar_write_u32(struct pci_entity_info *const entity,
                   const uint32_t value)
 {
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to write uint64 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -295,7 +295,7 @@ pci_bar_write_u32(struct pci_entity_info *const entity,
     } else {
     #if !defined(__x86_64__)
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-        assert_msg(ptr != NULL,
+        assert_msg(ptr != nullptr,
                    "pci: trying to write uint32 at offset 0x%" PRIx32 " that's "
                    "not part of any resource",
                    offset);
@@ -318,7 +318,7 @@ pci_bar_write_u64(struct pci_entity_info *const entity,
     (void)entity;
 
     assert(bar->is_mmio);
-    assert_msg(bar->mmio != NULL,
+    assert_msg(bar->mmio != nullptr,
                "pci: trying to write uint64 at offset 0x%" PRIx32 " from "
                "bar that isn't mapped",
                offset);
@@ -326,7 +326,7 @@ pci_bar_write_u64(struct pci_entity_info *const entity,
     mmio_write_64(pci_entity_bar_get_base(bar) + offset, value);
 #else
     if (bar->is_mmio) {
-        assert_msg(bar->mmio != NULL,
+        assert_msg(bar->mmio != nullptr,
                    "pci: trying to read uint64 at offset 0x%" PRIx32 " from "
                    "bar that isn't mapped",
                    offset);
@@ -334,7 +334,7 @@ pci_bar_write_u64(struct pci_entity_info *const entity,
         mmio_write_64(pci_entity_bar_get_base(bar) + offset, value);
     } else {
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
-        assert_msg(ptr != NULL,
+        assert_msg(ptr != nullptr,
                    "pci: trying to write uint64 at offset 0x%" PRIx32 " that's "
                    "not part of any resource",
                    offset);

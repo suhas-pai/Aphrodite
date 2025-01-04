@@ -8,7 +8,7 @@
 #include "lib/macros.h"
 #include "csr.h"
 
-enum mstatus_flags {
+enum mstatus_flags : uint32_t {
     __MSTATUS_USER_INTR_ENABLE = 1ull << 0,
     __MSTATUS_SUPERVISOR_INTR_ENABLE = 1ull << 1,
     __MSTATUS_MACHINE_INTR_ENABLE = 1ull << 3,
@@ -27,7 +27,7 @@ enum mstatus_flags {
     __MSTATUS_FS_OR_XS_IS_DIRTY = 1ull << 31
 };
 
-enum sstatus_flags {
+enum sstatus_flags : uint32_t {
     __SSTATUS_USER_INTR_ENABLE = 1ull << 0,
     __SSTATUS_SUPERVISOR_INTR_ENABLE = 1ull << 1,
     __SSTATUS_USER_PRIV_INTR_ENABLE = 1ull << 4,

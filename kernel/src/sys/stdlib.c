@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "lib/alloc.h"
+
 #if defined(__riscv64)
     #include "cpu/info.h"
     #include "lib/align.h"
@@ -72,11 +74,11 @@ __debug_optimize(3) char *strchr(const char *const str, const int ch) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) char *strrchr(const char *const str, const int ch) {
-    char *result = NULL;
+    char *result = nullptr;
     cstring_foreach (str, iter) {
         if (*iter == ch) {
         #pragma GCC diagnostic push
@@ -91,7 +93,7 @@ __debug_optimize(3) char *strrchr(const char *const str, const int ch) {
 
 // TODO: Fix
 #define DECL_MEM_CMP_FUNC(type)                                                \
-    __debug_optimize(3) static inline int                                            \
+    __debug_optimize(3) static inline int                                      \
     VAR_CONCAT(_memcmp_, type)(const void *left,                               \
                                const void *right,                              \
                                size_t len,                                     \
@@ -198,12 +200,12 @@ DECL_MEM_CMP_FUNC(uint16_t)
 DECL_MEM_CMP_FUNC(uint32_t)
 
 #define DECL_MEM_COPY_FUNC(type) \
-    __debug_optimize(3) static inline unsigned long \
-    VAR_CONCAT(_memcpy_, type)(void *dst,                  \
-                               const void *src,            \
-                               unsigned long n,            \
-                               void **const dst_out,       \
-                               const void **const src_out) \
+    __debug_optimize(3) static inline unsigned long                            \
+    VAR_CONCAT(_memcpy_, type)(void *dst,                                      \
+                               const void *src,                                \
+                               unsigned long n,                                \
+                               void **const dst_out,                           \
+                               const void **const src_out)                     \
     {                                                                          \
         if (n >= sizeof(type)) {                                               \
             do {                                                               \
@@ -279,7 +281,52 @@ DECL_MEM_COPY_FUNC(uint8_t)
 DECL_MEM_COPY_FUNC(uint16_t)
 DECL_MEM_COPY_FUNC(uint32_t)
 
-__debug_optimize(3) int memcmp(const void *left, const void *right, size_t len) {
+char *strcpy(char *dst, const char *src) {
+    char *ret = dst;
+    while (*src != '\0') {
+        *dst++ = *src++;
+    }
+
+    *dst = '\0';
+    return ret;
+}
+
+char *strncpy(char *dst, const char *src, unsigned long n) {
+    char *ret = dst;
+    while (*src != '\0' && n != 0) {
+        *dst++ = *src++;
+        n--;
+    }
+
+    *dst = '\0';
+    return ret;
+}
+
+char *strdup(const char *str) {
+    char *result = (char *)malloc(strlen(str) + 1);
+    if (result == nullptr) {
+        return nullptr;
+    }
+
+    return strcpy(result, str);
+}
+
+char *strndup(const char *str, const size_t len) {
+    size_t str_len = strnlen(str, len);
+    char *result = (char *)malloc(str_len + 1);
+
+    if (result == nullptr) {
+        return nullptr;
+    }
+
+    memcpy(result, str, str_len);
+    result[str_len] = '\0';
+
+    return result;
+}
+
+__debug_optimize(3)
+int memcmp(const void *left, const void *right, size_t len) {
     int res = _memcmp_uint64_t(left, right, len, &left, &right, &len);
     if (res != 0) {
         return res;
@@ -336,6 +383,20 @@ __debug_optimize(3) void *memcpy(void *dst, const void *src, unsigned long n) {
     }
 
     return ret;
+}
+
+__debug_optimize(3)
+void *memccpy(void *dst, const void *src, int ch, unsigned long n) {
+    for (unsigned long i = 0; i != n; ++i, ++dst, ++src) {
+        const uint8_t src_ch = *(const uint8_t *)src;
+        *(uint8_t *)dst = src_ch;
+
+        if (src_ch == ch) {
+            return dst;
+        }
+    }
+
+    return nullptr;
 }
 
 #define DECL_MEM_COPY_BACK_FUNC(type) \
@@ -549,6 +610,11 @@ __debug_optimize(3) void *memset(void *dst, const int val, unsigned long n) {
 }
 
 __debug_optimize(3)
+void *memset_explicit(void *dst, const int val, const unsigned long n) {
+    return memset(dst, val, n);
+}
+
+__debug_optimize(3)
 void *memchr(const void *const ptr, const int ch, const size_t count) {
     const uint8_t *const end = ptr + count;
     for (const uint8_t *iter = (const uint8_t *)ptr; iter != end; iter++) {
@@ -557,7 +623,7 @@ void *memchr(const void *const ptr, const int ch, const size_t count) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) void bzero(void *dst, unsigned long n) {

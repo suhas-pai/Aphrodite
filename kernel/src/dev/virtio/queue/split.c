@@ -41,7 +41,7 @@ virtio_split_queue_init(struct virtio_device *const device,
                     __ALLOC_ZERO,
                     VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER);
 
-    if (page == NULL) {
+    if (page == nullptr) {
         printk(LOGLEVEL_WARN,
                "virtio/split-queue: failed to allocate buffer for queue at "
                "index %" PRIu16 "\n",

@@ -21,14 +21,14 @@
 #include "sys/mmio.h"
 
 static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
-static volatile struct lapic_registers *g_lapic_regs = NULL;
+static volatile struct lapic_registers *g_lapic_regs = nullptr;
 
 __debug_optimize(3) static inline uint32_t
 create_timer_register(const enum lapic_timer_mode timer_mode,
                       const uint8_t vector,
                       const bool masked)
 {
-    return (timer_mode << 17) | ((uint32_t)masked << 16) | vector;
+    return ((uint32_t)timer_mode << 17) | ((uint32_t)masked << 16) | vector;
 }
 
 static void calibrate_timer() {
@@ -171,7 +171,7 @@ __debug_optimize(3) void lapic_eoi() {
     if (get_acpi_info()->using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_EOI, 0);
         return;
-    } else if (__builtin_expect(g_lapic_regs != NULL, 1)) {
+    } else if (__builtin_expect(g_lapic_regs != nullptr, 1)) {
         mmio_write(&g_lapic_regs->eoi, /*value=*/0);
         return;
     }

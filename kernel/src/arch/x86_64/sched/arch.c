@@ -35,8 +35,8 @@ sched_thread_arch_info_init(struct thread *const thread,
                     __ALLOC_ZERO,
                     KERNEL_STACK_SIZE_ORDER);
 
-    assert(thread->arch_info.avx_state != NULL);
-    assert(thread->arch_info.kernel_stack != NULL);
+    assert(thread->arch_info.avx_state != nullptr);
+    assert(thread->arch_info.kernel_stack != nullptr);
 
     void *const stack = page_to_virt(thread->arch_info.kernel_stack);
     thread->context =

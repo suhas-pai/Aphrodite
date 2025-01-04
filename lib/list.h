@@ -108,8 +108,8 @@ __debug_optimize(3) static inline void list_deinit(struct list *const elem) {
     elem->next->prev = elem->prev;
     elem->prev->next = elem->next;
 
-    elem->prev = NULL;
-    elem->next = NULL;
+    elem->prev = nullptr;
+    elem->next = nullptr;
 }
 
 __debug_optimize(3) static inline
@@ -117,7 +117,7 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
     for (struct slist *iter = head->next; iter != head; iter = iter->next) {
         if (iter->next == elem) {
             iter->next = elem->next;
-            elem->next = NULL;
+            elem->next = nullptr;
 
             break;
         }
@@ -155,7 +155,7 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
 #define slist_foreach(iter, list, field) list_foreach(iter, list, field)
 #define list_count(list, type, field) ({ \
     uint64_t __result__ = 0;             \
-    type *__iter__ = NULL;               \
+    type *__iter__ = nullptr;               \
     list_foreach(__iter__, list, field) { \
         __result__++;                    \
     }                                    \

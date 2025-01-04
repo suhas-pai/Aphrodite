@@ -38,7 +38,7 @@ static void test_alloc_largepage() {
         alloc_large_page(LARGEPAGE_LEVEL_1GIB, __ALLOC_ZERO);
 #endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
 
-    if (largepage != NULL) {
+    if (largepage != nullptr) {
         printk(LOGLEVEL_INFO,
                "kernel: allocated largepage at %p\n",
                (void *)page_to_phys(largepage));

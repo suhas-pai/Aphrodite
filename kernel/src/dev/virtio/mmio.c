@@ -19,7 +19,7 @@ struct virtio_device *virtio_mmio_init(struct virtio_device *const device) {
     if (mmio_read(&device_hdr->magic) != VIRTIO_MMIO_DEVICE_MAGIC) {
         printk(LOGLEVEL_WARN,
                "virtio-mmio: device's header has the wrong magic\n");
-        return NULL;
+        return nullptr;
     }
 
     // The driver MUST ignore a device with Version which is not 0x2, although
@@ -28,14 +28,14 @@ struct virtio_device *virtio_mmio_init(struct virtio_device *const device) {
     const uint32_t version = mmio_read(&device_hdr->version);
     if (version != 1 && version != 2) {
         printk(LOGLEVEL_WARN, "virtio-mmio: device has the wrong version\n");
-        return NULL;
+        return nullptr;
     }
 
     // The driver MUST ignore a device with DeviceID 0x0, but MUST NOT report
     // any error.
 
     if (mmio_read(&device_hdr->device_id) == 0) {
-        return NULL;
+        return nullptr;
     }
 
     return virtio_device_init(device);
@@ -50,7 +50,7 @@ init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg == NULL) {
+    if (reg == nullptr) {
         printk(LOGLEVEL_WARN,
                "virtio-mmio: dtb-node is missing a 'reg' property\n");
         return false;
@@ -117,5 +117,5 @@ static const struct dtb_driver dtb_driver = {
 __driver static const struct driver driver = {
     .name = SV_STATIC("virtio-driver"),
     .dtb = &dtb_driver,
-    .pci = NULL
+    .pci = nullptr
 };

@@ -122,7 +122,7 @@ extern const uint64_t VMAP_END;
 extern uint64_t PAGE_END;
 extern uint64_t PAGING_MODE;
 
-enum prot_flags {
+enum prot_flags : uint8_t {
     PROT_NONE,
 
     PROT_READ = 1 << 0,
@@ -145,7 +145,7 @@ enum prot_flags {
 
 typedef uint8_t prot_t;
 
-enum vma_cachekind {
+enum vma_cachekind : uint8_t {
     VMA_CACHEKIND_WRITEBACK,
     VMA_CACHEKIND_DEFAULT = VMA_CACHEKIND_WRITEBACK,
 

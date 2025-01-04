@@ -11,7 +11,7 @@ static struct page_zone zone_low4g = {
     .name = "low4g",
 
     .section_list = LIST_INIT(zone_low4g.section_list),
-    .fallback_zone = NULL,
+    .fallback_zone = nullptr,
 };
 
 static struct page_zone zone_default = {

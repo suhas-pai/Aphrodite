@@ -8,8 +8,8 @@
 
 __debug_optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_prev(&vma->node);
-    if (node == NULL) {
-        return NULL;
+    if (node == nullptr) {
+        return nullptr;
     }
 
     return parent_of(node, struct vm_area, node);
@@ -17,8 +17,8 @@ __debug_optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
 
 __debug_optimize(3) struct vm_area *vma_next(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_next(&vma->node);
-    if (node == NULL) {
-        return NULL;
+    if (node == nullptr) {
+        return nullptr;
     }
 
     return parent_of(node, struct vm_area, node);
@@ -31,8 +31,8 @@ vma_alloc(struct pagemap *const pagemap,
           const enum vma_cachekind cachekind)
 {
     struct vm_area *const vma = kmalloc(sizeof(struct vm_area));
-    if (vma == NULL) {
-        return NULL;
+    if (vma == nullptr) {
+        return nullptr;
     }
 
     vma->node = ADDRSPACE_NODE_INIT(vma->node, &pagemap->addrspace);
@@ -54,8 +54,8 @@ vma_create(struct pagemap *const pagemap,
     assert(range_has_align(phys_range, PAGE_SIZE));
     struct vm_area *const vma = vma_alloc(pagemap, phys_range, prot, cachekind);
 
-    if (vma == NULL) {
-        return NULL;
+    if (vma == nullptr) {
+        return nullptr;
     }
 
     if (!pagemap_find_space_and_add_vma(pagemap,
@@ -65,7 +65,7 @@ vma_create(struct pagemap *const pagemap,
                                         align))
     {
         kfree(vma);
-        return NULL;
+        return nullptr;
     }
 
     return vma;
@@ -79,13 +79,13 @@ vma_create_at(struct pagemap *const pagemap,
               const enum vma_cachekind cachekind)
 {
     struct vm_area *const vma = vma_alloc(pagemap, range, prot, cachekind);
-    if (vma == NULL) {
-        return NULL;
+    if (vma == nullptr) {
+        return nullptr;
     }
 
     if (!pagemap_add_vma(pagemap, vma, phys_addr)) {
         kfree(vma);
-        return NULL;
+        return nullptr;
     }
 
     return vma;

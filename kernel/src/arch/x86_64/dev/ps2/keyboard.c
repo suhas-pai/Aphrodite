@@ -233,7 +233,7 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
     }
 
     struct irq_pin *const pin = isr_get_irq_pin(IRQ_KEYBOARD);
-    if (!isr_install_irq(pin, ps2_keyboard_interrupt, NULL, /*masked=*/false)) {
+    if (!isr_install_irq(pin, ps2_keyboard_interrupt, nullptr, /*masked=*/false)) {
         printk(LOGLEVEL_WARN, "ps2: failed to install keyboard irq\n");
         return;
     }

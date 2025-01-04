@@ -42,7 +42,7 @@ struct gpt_header {
 // First lba
 #define GPT_HEADER_LOCATION SECTOR_SIZE
 
-enum gpt_entry_attr_flags {
+enum gpt_entry_attr_flags : uint8_t {
     __GPT_ENTRY_ATTR_USED_BY_EFI = 1 << 0,
     __GPT_ENTRY_ATTR_REQ_TO_FUNCTION = 1 << 1,
     __GPT_ENTRY_ATTR_USED_BY_OS = 1 << 2,

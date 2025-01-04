@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 
-enum device_kind {
+enum device_kind : uint8_t {
     DEVICE_KIND_PCI_ENTITY,
 };
 

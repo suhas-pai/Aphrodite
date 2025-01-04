@@ -26,7 +26,7 @@ struct virtio_scsi_config {
 };
 
 // Command-specific response values
-enum virtio_scsi_status {
+enum virtio_scsi_status : uint16_t {
     // When the request was completed and the status byte is filled with a SCSI
     // status code (not necessarily “GOOD”).
     __VIRTIO_SCSI_S_OK = 1 << 0,
@@ -74,7 +74,7 @@ enum virtio_scsi_status {
     __VIRTIO_SCSI_S_FAILURE = 1 << 9,
 };
 
-enum virtio_scsi_task_attributes {
+enum virtio_scsi_task_attributes : uint8_t {
     __VIRTIO_SCSI_TASK_ATTR_SIMPLE = 1 << 0,
     __VIRTIO_SCSI_TASK_ATTR_ORDERED = 1 << 1,
     __VIRTIO_SCSI_TASK_ATTR_HEAD = 1 << 2,
@@ -111,8 +111,8 @@ virtio_scsi_driver_init(struct virtio_device *const device,
            queue_count);
 
     if (!virtio_device_init_queues(device, queue_count)) {
-        return NULL;
+        return nullptr;
     }
 
-    return NULL;
+    return nullptr;
 }

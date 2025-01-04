@@ -13,10 +13,10 @@ void storage_cache_create(struct storage_cache *const cache) {
         HASHMAP_INIT(sizeof(struct storage_cache_item),
                      NVME_CACHE_HASHMAP_BUCKET_COUNT,
                      hashmap_no_hash,
-                     /*hash_cb_info=*/NULL);
+                     /*hash_cb_info=*/nullptr);
 
     cache->lock = SPINLOCK_INIT();
-    cache->most_recent = NULL;
+    cache->most_recent = nullptr;
 }
 
 void
@@ -42,18 +42,18 @@ storage_cache_find(struct storage_cache *const cache, const uint64_t lba) {
     spin_acquire_preempt_disable(&cache->lock);
 
     struct storage_cache_item *const most_recent = cache->most_recent;
-    if (most_recent != NULL) {
+    if (most_recent != nullptr) {
         if (most_recent->lba == lba) {
             spin_release_preempt_enable(&cache->lock);
             return most_recent->block;
         }
     }
 
-    void *result = NULL;
+    void *result = nullptr;
     struct storage_cache_item *const item =
         hashmap_get(&cache->items, hashmap_key_create(lba));
 
-    if (item != NULL) {
+    if (item != nullptr) {
         result = item->block;
         cache->most_recent = item;
     }
@@ -66,5 +66,5 @@ void storage_cache_destroy(struct storage_cache *const cache) {
     spinlock_deinit(&cache->lock);
     hashmap_destroy(&cache->items);
 
-    cache->most_recent = NULL;
+    cache->most_recent = nullptr;
 }

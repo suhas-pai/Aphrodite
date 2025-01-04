@@ -53,12 +53,12 @@ struct gic_v2_msi_info {
 
 struct gic_cpu_interface;
 
-enum gicdv2_type_shifts {
+enum gicdv2_type_shifts : uint8_t {
     GICDV2_CPU_IMPLED_COUNT_MINUS_ONE_SHIFT = 5,
     GICDV2_MAX_IMPLED_LOCKABLE_SPIS_SHIFT = 11
 };
 
-enum gicdv2_type_flags {
+enum gicdv2_type_flags : uint32_t {
     __GICDV2_TYPE_INTR_LINES = 0b11111ull,
     __GICDV2_CPU_IMPLED_COUNT_MINUS_ONE =
         0b111ull << GICDV2_CPU_IMPLED_COUNT_MINUS_ONE_SHIFT,
@@ -138,27 +138,27 @@ struct gicdv2_registers {
     volatile uint32_t component_id_3;
 };
 
-enum gicdv2_sgi_shifts {
+enum gicdv2_sgi_shifts : uint8_t {
     GICD_V2_SGI_CPU_TARGET_MASK_SHIFT = 16
 };
 
-enum gicdv2_sgi_target_list_filter {
+enum gicdv2_sgi_target_list_filter : uint8_t {
     GICD_V2_SGI_TARGET_LIST_FILTER_USE_FIELD,
     GICD_V2_SGI_TARGET_LIST_FILTER_ALL_OTHER_CPUS,
     GICD_V2_SGI_TARGET_LIST_FILTER_ONLY_SELF_IPI,
 };
 
-enum gicd_v2m_msi_frame_setspi_ns_shifts {
+enum gicd_v2m_msi_frame_setspi_ns_shifts : uint8_t {
     GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE_SHIFT = 16,
 };
 
-enum gicd_v2m_msi_frame_setspi_ns_flags {
+enum gicd_v2m_msi_frame_setspi_ns_flags : uint32_t {
     __GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_COUNT = 0x3ff,
     __GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE =
         0x3ff << GICD_V2M_MSI_FRAME_SETSPI_NS_FLAGS_SPI_BASE_SHIFT,
 };
 
-enum gic_cpu_interrupt_control_flags {
+enum gic_cpu_interrupt_control_flags : uint16_t {
     __GIC_CPU_INTR_CTRL_ENABLE_GROUP_0 = 1ull << 0,
     __GIC_CPU_INTR_CTRL_ENABLE_GROUP_1 = 1ull << 1,
 
@@ -180,11 +180,11 @@ enum gic_cpu_interrupt_control_flags {
     __GIC_CPU_INTERFACE_CTRL_SPLIT_EOI = 1 << 9,
 };
 
-enum gic_cpu_eoi_shifts {
+enum gic_cpu_eoi_shifts : uint8_t {
     GIC_CPU_EOI_CPU_ID_SHIFT = 10,
 };
 
-enum gic_cpu_eoi_flags {
+enum gic_cpu_eoi_flags : uint16_t {
     __GIC_CPU_EOI_IRQ_ID = 0x3FF,
     __GIC_CPU_EOI_CPU_ID = 0b111 << GIC_CPU_EOI_CPU_ID_SHIFT,
 };
@@ -228,11 +228,11 @@ struct intr_info {
 
 static struct intr_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 
-static struct mmio_region *g_dist_mmio = NULL;
-static volatile struct gicdv2_registers *g_regs = NULL;
+static struct mmio_region *g_dist_mmio = nullptr;
+static volatile struct gicdv2_registers *g_regs = nullptr;
 
-static struct mmio_region *g_cpu_mmio = NULL;
-static volatile struct gic_cpu_interface *g_cpu = NULL;
+static struct mmio_region *g_cpu_mmio = nullptr;
+static volatile struct gic_cpu_interface *g_cpu = nullptr;
 
 static struct list g_msi_info_list = LIST_INIT(g_msi_info_list);
 static struct range g_cpu_phys_range= RANGE_EMPTY();
@@ -316,7 +316,7 @@ gicv2_init_from_info(const struct range cpu_range,
     }
 
     g_dist_mmio = vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (g_dist_mmio == NULL) {
+    if (g_dist_mmio == nullptr) {
         printk(LOGLEVEL_WARN, "gicv2: failed to mmio-map dist registers\n");
         return false;
     }
@@ -356,7 +356,7 @@ gicv2_init_from_info(const struct range cpu_range,
     g_cpu_mmio =
         vmap_mmio(cpu_range, PROT_READ | PROT_WRITE | PROT_DEVICE, /*flags=*/0);
 
-    assert_msg(g_cpu_mmio != NULL,
+    assert_msg(g_cpu_mmio != nullptr,
                "gicv2: failed to allocate mmio-region for cpu-interface");
 
     g_cpu = g_cpu_mmio->base;
@@ -400,7 +400,7 @@ gicv2_init_from_info(const struct range cpu_range,
 
 __debug_optimize(3)
 volatile uint64_t *gicdv2_get_msi_address(const isr_vector_t vector) {
-    struct gic_v2_msi_info *iter = NULL;
+    struct gic_v2_msi_info *iter = nullptr;
     list_foreach(iter, &g_msi_info_list, list) {
         const struct range spi_range =
             RANGE_INIT(iter->spi_base, iter->spi_count);
@@ -413,7 +413,7 @@ volatile uint64_t *gicdv2_get_msi_address(const isr_vector_t vector) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) enum isr_msi_support gicdv2_get_msi_support() {
@@ -452,7 +452,7 @@ bool init_msi_frame(const uint64_t phys_addr, struct mmio_region *const mmio) {
     }
 
     struct gic_v2_msi_info *const info = kmalloc(sizeof(*info));
-    if (info == NULL) {
+    if (info == nullptr) {
         return false;
     }
 
@@ -480,7 +480,7 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
     struct mmio_region *const mmio =
         vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN,
                "gicd: failed to mmio-map msi-frame at phys address %p\n",
                (void *)phys_base_address);
@@ -503,7 +503,7 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
 }
 
 __debug_optimize(3) isr_vector_t gicdv2_alloc_msi_vector() {
-    struct gic_v2_msi_info *iter = NULL;
+    struct gic_v2_msi_info *iter = nullptr;
     list_foreach(iter, &g_msi_info_list, list) {
         const uint16_t end = iter->spi_base + iter->spi_count;
         for (uint16_t irq = iter->spi_base; irq != end; irq++) {
@@ -671,7 +671,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
     const struct devicetree_prop *const intr_controller_node =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
-    if (intr_controller_node == NULL) {
+    if (intr_controller_node == nullptr) {
         printk(LOGLEVEL_WARN,
                "gicv2: dtb-node is missing interrupt-controller property\n");
         return false;
@@ -681,7 +681,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN, "gicv2: dtb-node is missing reg property\n");
         return false;
     }
@@ -718,7 +718,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
             devicetree_node_get_prop(child_node,
                                      DEVICETREE_PROP_MSI_CONTROLLER);
 
-        if (msi_controller_prop == NULL) {
+        if (msi_controller_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "gicv2: msi child of interrupt-controller dtb node is "
                    "missing a msi-controller property\n");
@@ -730,7 +730,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
             (const struct devicetree_prop_reg *)(uint64_t)
                 devicetree_node_get_prop(child_node, DEVICETREE_PROP_REG);
 
-        if (msi_reg_prop == NULL) {
+        if (msi_reg_prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "gicv2: msi dtb-node is missing a 'reg' property\n");
 

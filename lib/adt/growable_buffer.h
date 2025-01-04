@@ -19,7 +19,7 @@ struct growable_buffer {
 
 #define GBUFFER_INIT() \
     ((struct growable_buffer){ \
-        .begin = NULL,         \
+        .begin = nullptr,         \
         .index = 0,            \
         .capacity = 0,         \
         .is_alloc = false      \

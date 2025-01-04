@@ -16,7 +16,7 @@ void test_add_and_get(struct hashmap *const hashmap, int object) {
 
     void *hm_object = hashmap_get(hashmap, hashmap_key_create(object));
 
-    assert(hm_object != NULL);
+    assert(hm_object != nullptr);
     assert(*(int *)hm_object == object);
 
     const int new_ob = object + 1;
@@ -24,21 +24,21 @@ void test_add_and_get(struct hashmap *const hashmap, int object) {
 
     hm_object = hashmap_get(hashmap, hashmap_key_create(object));
 
-    assert(hm_object != NULL);
+    assert(hm_object != nullptr);
     assert(*(int *)hm_object == new_ob);
 
     assert(hashmap_update(hashmap, hashmap_key_create(object), &object, false));
 
     hm_object = hashmap_get(hashmap, hashmap_key_create(object));
 
-    assert(hm_object != NULL);
+    assert(hm_object != nullptr);
     assert(*(int *)hm_object == object);
 }
 
 void test_get(struct hashmap *const hashmap, const int object) {
     void *const hm_object = hashmap_get(hashmap, (void *)(uint64_t)object);
 
-    assert(hm_object != NULL);
+    assert(hm_object != nullptr);
     assert(*(int *)hm_object == object);
 }
 
@@ -50,7 +50,7 @@ void test_remove(struct hashmap *const hashmap, int object) {
 
 void test_hashmap() {
     struct hashmap hashmap =
-        HASHMAP_INIT(sizeof(int), /*bucket_count=*/5, hasher, NULL);
+        HASHMAP_INIT(sizeof(int), /*bucket_count=*/5, hasher, nullptr);
 
     test_add_and_get(&hashmap, /*object=*/5);
     test_add_and_get(&hashmap, /*object=*/2);

@@ -20,11 +20,11 @@ hashmap_alloc(const uint32_t object_size,
               const hashmap_hash_t hash,
               void *const cb_info)
 {
-    assert_msg(hash != NULL, "hashmap_init(): hash function cannot be NULL");
+    assert_msg(hash != nullptr, "hashmap_init(): hash function cannot be NULL");
 
     struct hashmap *const hashmap = malloc(sizeof(*hashmap));
-    if (hashmap == NULL) {
-        return NULL;
+    if (hashmap == nullptr) {
+        return nullptr;
     }
 
     *hashmap = HASHMAP_INIT(object_size, bucket_count, hash, cb_info);
@@ -50,13 +50,13 @@ hashmap_add(struct hashmap *const hashmap,
                "hashmap_add(): hashmap not initialized");
 
     bool alloced_buckets = false;
-    if (__builtin_expect(hashmap->buckets == NULL, 0)) {
+    if (__builtin_expect(hashmap->buckets == nullptr, 0)) {
         hashmap->buckets =
             calloc_size(hashmap->bucket_count,
                         sizeof(struct hashmap_bucket *),
                         &hashmap->bucket_count);
 
-        if (hashmap->buckets == NULL) {
+        if (hashmap->buckets == nullptr) {
             return false;
         }
 
@@ -66,30 +66,30 @@ hashmap_add(struct hashmap *const hashmap,
     const uint32_t key_hash = hash_of(hashmap, key);
     struct hashmap_bucket *bucket = hashmap->buckets[key_hash];
 
-    if (bucket != NULL) {
+    if (bucket != nullptr) {
         hashmap_bucket_foreach_node(bucket, iter) {
             if (iter->key != key) {
                 continue;
             }
 
             if (list_empty(&bucket->node_list)) {
-                hashmap->buckets[key_hash] = NULL;
+                hashmap->buckets[key_hash] = nullptr;
                 free(bucket);
             }
 
             if (__builtin_expect(alloced_buckets, 0)) {
                 free(hashmap->buckets);
-                hashmap->buckets = NULL;
+                hashmap->buckets = nullptr;
             }
 
             return false;
         }
     } else {
         bucket = calloc(1, sizeof(struct hashmap_bucket));
-        if (bucket == NULL) {
+        if (bucket == nullptr) {
             if (__builtin_expect(alloced_buckets, 0)) {
                 free(hashmap->buckets);
-                hashmap->buckets = NULL;
+                hashmap->buckets = nullptr;
             }
 
             return false;
@@ -102,15 +102,15 @@ hashmap_add(struct hashmap *const hashmap,
     struct hashmap_node *const node =
         calloc(1, sizeof(*node) + hashmap->object_size);
 
-    if (node == NULL) {
+    if (node == nullptr) {
         if (list_empty(&bucket->node_list)) {
-            hashmap->buckets[key_hash] = NULL;
+            hashmap->buckets[key_hash] = nullptr;
             free(bucket);
         }
 
         if (__builtin_expect(alloced_buckets, 0)) {
             free(hashmap->buckets);
-            hashmap->buckets = NULL;
+            hashmap->buckets = nullptr;
         }
 
         return false;
@@ -133,7 +133,7 @@ hashmap_update(struct hashmap *const hashmap,
     assert_msg(hashmap_initialized(hashmap),
                "hashmap_update(): hashmap not initialized");
 
-    if (__builtin_expect(hashmap->buckets == NULL, 0)) {
+    if (__builtin_expect(hashmap->buckets == nullptr, 0)) {
         if (add_if_missing) {
             return hashmap_add(hashmap, key, object);
         }
@@ -144,13 +144,13 @@ hashmap_update(struct hashmap *const hashmap,
     const uint32_t key_hash = hash_of(hashmap, key);
     struct hashmap_bucket *bucket = hashmap->buckets[key_hash];
 
-    if (bucket == NULL) {
+    if (bucket == nullptr) {
         if (!add_if_missing) {
             return false;
         }
 
         bucket = calloc(1, sizeof(struct hashmap_bucket));
-        if (bucket == NULL) {
+        if (bucket == nullptr) {
             return false;
         }
 
@@ -172,9 +172,9 @@ hashmap_update(struct hashmap *const hashmap,
     struct hashmap_node *const node =
         calloc(1, sizeof(*node) + hashmap->object_size);
 
-    if (node == NULL) {
+    if (node == nullptr) {
         if (list_empty(&bucket->node_list)) {
-            hashmap->buckets[key_hash] = NULL;
+            hashmap->buckets[key_hash] = nullptr;
             free(bucket);
         }
 
@@ -194,15 +194,15 @@ hashmap_get(const struct hashmap *const hashmap, const hashmap_key_t key) {
     assert_msg(hashmap_initialized(hashmap),
                "hashmap_get(): hashmap not initialized");
 
-    if (__builtin_expect(hashmap->buckets == NULL, 0)) {
-        return NULL;
+    if (__builtin_expect(hashmap->buckets == nullptr, 0)) {
+        return nullptr;
     }
 
     const uint32_t key_hash = hash_of(hashmap, key);
     struct hashmap_bucket *const bucket = hashmap->buckets[key_hash];
 
-    if (bucket == NULL) {
-        return NULL;
+    if (bucket == nullptr) {
+        return nullptr;
     }
 
     hashmap_bucket_foreach_node(bucket, iter) {
@@ -211,7 +211,7 @@ hashmap_get(const struct hashmap *const hashmap, const hashmap_key_t key) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool
@@ -222,19 +222,19 @@ hashmap_remove(struct hashmap *const hashmap,
     assert_msg(hashmap_initialized(hashmap),
                "hashmap_remove(): hashmap not initialized");
 
-    if (__builtin_expect(hashmap->buckets == NULL, 0)) {
-        return NULL;
+    if (__builtin_expect(hashmap->buckets == nullptr, 0)) {
+        return false;
     }
 
     const uint32_t key_hash = hash_of(hashmap, key);
     struct hashmap_bucket *const bucket = hashmap->buckets[key_hash];
 
-    if (bucket == NULL) {
-        return NULL;
+    if (bucket == nullptr) {
+        return false;
     }
 
-    struct hashmap_node *iter = NULL;
-    struct hashmap_node *tmp = NULL;
+    struct hashmap_node *iter = nullptr;
+    struct hashmap_node *tmp = nullptr;
 
     list_foreach_mut(iter, tmp, &bucket->node_list, list) {
         if (iter->key != key) {
@@ -243,11 +243,11 @@ hashmap_remove(struct hashmap *const hashmap,
 
         list_deinit(&iter->list);
         if (list_empty(&bucket->node_list)) {
-            hashmap->buckets[key_hash] = NULL;
+            hashmap->buckets[key_hash] = nullptr;
             free(bucket);
         }
 
-        if (object_ptr != NULL) {
+        if (object_ptr != nullptr) {
             __builtin_memcpy(object_ptr, iter->data, hashmap->object_size);
         }
 
@@ -265,12 +265,12 @@ destroy_hashmap_buckets(struct hashmap_bucket **const buckets,
     struct hashmap_bucket **const end = buckets + bucket_count;
     for (__auto_type iter = buckets; iter != end; iter++) {
         struct hashmap_bucket *const bucket = *iter;
-        if (bucket == NULL) {
+        if (bucket == nullptr) {
             continue;
         }
 
-        struct hashmap_node *node = NULL;
-        struct hashmap_node *tmp = NULL;
+        struct hashmap_node *node = nullptr;
+        struct hashmap_node *tmp = nullptr;
 
         list_foreach_mut(node, tmp, &bucket->node_list, list) {
             free(node);
@@ -298,7 +298,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
     struct hashmap_bucket **const buckets =
         calloc(bucket_count, sizeof(struct hashmap_bucket *));
 
-    if (buckets == NULL) {
+    if (buckets == nullptr) {
         return false;
     }
 
@@ -311,7 +311,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
     struct hashmap_bucket *const *const end = old_buckets + old_bucket_count;
     for (struct hashmap_bucket **iter = old_buckets; iter != end; iter++) {
         struct hashmap_bucket *const bucket = *iter;
-        if (bucket == NULL) {
+        if (bucket == nullptr) {
             continue;
         }
 
@@ -327,7 +327,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
         }
     }
 
-    if (old_buckets != NULL) {
+    if (old_buckets != nullptr) {
         destroy_hashmap_buckets(old_buckets, old_bucket_count);
     }
 
@@ -337,12 +337,12 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
 void hashmap_destroy(struct hashmap *const hashmap) {
     destroy_hashmap_buckets(hashmap->buckets, hashmap->bucket_count);
 
-    hashmap->buckets = NULL;
+    hashmap->buckets = nullptr;
     hashmap->bucket_count = 0;
 
-    hashmap->hash = NULL;
+    hashmap->hash = nullptr;
     hashmap->object_size = 0;
-    hashmap->cb_info = NULL;
+    hashmap->cb_info = nullptr;
 }
 
 void hashmap_free(struct hashmap *const hashmap) {

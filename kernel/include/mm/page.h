@@ -11,7 +11,7 @@
 #include "slab.h"
 #include "section.h"
 
-enum page_state {
+enum page_state : uint8_t {
     // In free-list is the only state not guaranteed to be set.
     PAGE_STATE_IN_FREE_LIST,
 
@@ -114,11 +114,11 @@ struct page {
 _Static_assert(sizeof(struct page) == SIZEOF_STRUCTPAGE,
                "SIZEOF_STRUCTPAGE is incorrect");
 
-enum struct_page_flags {
+enum struct_page_flags : uint8_t {
     __PAGE_IS_DIRTY = 1 << 0,
 };
 
-enum struct_page_largehead_flags {
+enum struct_page_largehead_flags : uint8_t {
     __PAGE_LARGEHEAD_IS_DIRTY = 1 << 0,
     __PAGE_LARGEHEAD_HAS_DIRTY_PAGE = 1 << 1
 };

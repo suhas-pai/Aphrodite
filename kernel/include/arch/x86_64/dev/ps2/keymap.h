@@ -4,13 +4,15 @@
  */
 
 #pragma once
+#include <stdint.h>
+
 #define PS2_KEYMAP_SIZE 58
 
 extern const char ps2_key_to_char[PS2_KEYMAP_SIZE];
 extern const char ps2_key_to_char_shift[PS2_KEYMAP_SIZE];
 extern const char ps2_key_to_char_capslock[PS2_KEYMAP_SIZE];
 
-enum ps2_scancode_keys {
+enum ps2_scancode_keys : uint8_t {
     PS2_SCANCODE_CTRL = 0x1d,
     PS2_SCANCODE_CTRL_REL = 0x9d,
 
@@ -29,7 +31,7 @@ enum ps2_scancode_keys {
     PS2_SCANNODE_E0 = 0xe0,
 };
 
-enum ps2_scancode_e0_keys {
+enum ps2_scancode_e0_keys : uint8_t {
     PS2_SCANNODE_E0_RIGHT_CTRL = 0x38,
     PS2_SCANNODE_E0_RIGHT_CTRL_REL = 0xb8,
 

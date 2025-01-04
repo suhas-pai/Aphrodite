@@ -21,7 +21,7 @@
 
 static struct list g_entity_list = LIST_INIT(g_entity_list);
 
-enum parse_bar_result {
+enum parse_bar_result : uint8_t {
     E_PARSE_BAR_OK,
     E_PARSE_BAR_IGNORE,
 
@@ -45,7 +45,7 @@ enum parse_bar_result {
                          ((index) * sizeof(uint32_t)), \
                         (value))
 
-enum pci_bar_masks {
+enum pci_bar_masks : uint32_t {
     PCI_BAR_32B_ADDR_SIZE_MASK = 0xfffffff0,
     PCI_BAR_PORT_ADDR_SIZE_MASK = 0xfffffffc
 };
@@ -468,7 +468,7 @@ parse_function(struct pci_bus *const bus,
                const uint16_t vendor_id)
 {
     struct pci_entity_info *const entity = kmalloc(sizeof(*entity));
-    if (entity == NULL) {
+    if (entity == nullptr) {
         printk(LOGLEVEL_WARN,
                "pci: failed to allocate pci-entity-info struct\n");
 
@@ -552,7 +552,7 @@ parse_function(struct pci_bus *const bus,
                 kmalloc(sizeof(struct pci_entity_bar_info)
                         * entity->max_bar_count);
 
-            if (entity->bar_list == NULL) {
+            if (entity->bar_list == nullptr) {
                 pci_entity_info_destroy(entity);
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
@@ -607,7 +607,7 @@ parse_function(struct pci_bus *const bus,
                 kmalloc(sizeof(struct pci_entity_bar_info)
                         * entity->max_bar_count);
 
-            if (entity->bar_list == NULL) {
+            if (entity->bar_list == nullptr) {
                 pci_entity_info_destroy(entity);
                 printk(LOGLEVEL_WARN,
                        "pci: failed to allocate memory for bar list\n");
@@ -706,7 +706,7 @@ parse_function(struct pci_bus *const bus,
         uint64_t *const bitset =
             kmalloc(bitset_size_for_count(entity->msix.table_size));
 
-        if (bitset == NULL) {
+        if (bitset == nullptr) {
             pci_entity_info_destroy(entity);
             printk(LOGLEVEL_WARN, "pcie: failed to alloc msix table bitset\n");
 
@@ -776,12 +776,12 @@ void pci_find_entities(struct pci_bus *const bus) {
 
 void pci_init_drivers() {
     driver_foreach(driver) {
-        if (driver->pci == NULL) {
+        if (driver->pci == nullptr) {
             continue;
         }
 
         const struct pci_driver *const pci_driver = driver->pci;
-        struct pci_entity_info *entity = NULL;
+        struct pci_entity_info *entity = nullptr;
 
         list_foreach(entity, &g_entity_list, list_in_entities) {
             if (pci_driver->match == PCI_DRIVER_MATCH_VENDOR) {
@@ -868,14 +868,14 @@ __debug_optimize(3) void pci_init() {
         struct pci_domain *const legacy_domain =
             kmalloc(sizeof(*legacy_domain));
 
-        assert_msg(legacy_domain != NULL,
+        assert_msg(legacy_domain != nullptr,
                    "pci: failed to allocate pci-legacy root domain");
 
         legacy_domain->kind = PCI_DOMAIN_LEGACY;
         struct pci_bus *const root_bus =
             pci_bus_create(legacy_domain, /*bus_id=*/0, /*segment=*/0);
 
-        assert_msg(root_bus != NULL,
+        assert_msg(root_bus != nullptr,
                    "pci: failed to allocate pci-legacy root bus");
 
         pci_find_entities(root_bus);
@@ -898,7 +898,7 @@ __debug_optimize(3) void pci_init() {
             struct pci_bus *const root_bus =
                 pci_bus_create(domain, /*bus_id=*/0, /*segment=*/0);
 
-            assert_msg(root_bus != NULL,
+            assert_msg(root_bus != nullptr,
                        "pci: failed to allocate pci root bus");
 
             pci_find_entities(root_bus);

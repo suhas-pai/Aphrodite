@@ -8,7 +8,7 @@
 #include "lib/adt/string_view.h"
 #include "lib/macros.h"
 
-enum cause_flags {
+enum cause_flags : uint64_t {
     __MCAUSE_CODE = mask_for_n_bits(11),
     __MCAUSE_PREV_INTR_LVL = 0xFFull << 16,
     __MCAUSE_PREV_MPIE = 1ull << 27,
@@ -17,7 +17,7 @@ enum cause_flags {
     __MCAUSE_IS_INT = 1ull << 63,
 };
 
-enum scause_flags {
+enum scause_flags : uint64_t {
     __SCAUSE_CODE = mask_for_n_bits(11),
     __SCAUSE_PREV_INTR_LVL = 0xFFull << 16,
     __SCAUSE_PREV_SPIE = 1ull << 27,
@@ -26,7 +26,7 @@ enum scause_flags {
     __SCAUSE_IS_INTR = 1ull << 63,
 };
 
-enum ucause_flags {
+enum ucause_flags : uint64_t {
     __UCAUSE_CODE = mask_for_n_bits(11),
     __UCAUSE_PREV_INTR_LVL = 0xFFull << 16,
     __UCAUSE_PREV_UPIE = 1ull << 27,
@@ -34,7 +34,7 @@ enum ucause_flags {
     __UCAUSE_IS_INT = 1ull << 63,
 };
 
-enum cause_exception_kind {
+enum cause_exception_kind : int8_t {
     CAUSE_EXCEPTION_NONE = -1,
     CAUSE_EXCEPTION_INST_ADDR_MI,
     CAUSE_EXCEPTION_INST_ACCESS_FAULT,
@@ -58,7 +58,7 @@ enum cause_exception_kind {
     CAUSE_EXCEPTION_STORE_GUEST_AMO_ACCESS_FAULT,
 };
 
-enum cause_interrupt_kind {
+enum cause_interrupt_kind : uint8_t {
     CAUSE_INTERRUPT_USER_SW_INTR,
     CAUSE_INTERRUPT_SUPERVISOR_SW_INTR = 1,
     CAUSE_INTERRUPT_MACHINE_SW_INTR = 3,

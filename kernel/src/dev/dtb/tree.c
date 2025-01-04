@@ -12,18 +12,18 @@
 
 __debug_optimize(3) struct devicetree *devicetree_alloc() {
     struct devicetree_node *const root = kmalloc(sizeof(*root));
-    if (root == NULL) {
-        return NULL;
+    if (root == nullptr) {
+        return nullptr;
     }
 
     struct devicetree *const tree = kmalloc(sizeof(*tree));
-    if (tree == NULL) {
+    if (tree == nullptr) {
         kfree(root);
-        return NULL;
+        return nullptr;
     }
 
     devicetree_node_init_fields(root,
-                                /*parent=*/NULL,
+                                /*parent=*/nullptr,
                                 /*name=*/SV_EMPTY(),
                                 /*nodeoff=*/0);
 
@@ -43,7 +43,7 @@ devicetree_init_fields(struct devicetree *const tree,
         HASHMAP_INIT(sizeof(struct devicetree_node *),
                      DEVICETREE_PHANDLE_MAP_BUCKET_COUNT,
                      hashmap_no_hash,
-                     /*hash_cb_info=*/NULL);
+                     /*hash_cb_info=*/nullptr);
 }
 
 __debug_optimize(3) const struct devicetree_node *
@@ -53,11 +53,11 @@ devicetree_get_node_for_phandle(const struct devicetree *const tree,
     const struct devicetree_node *const *const node_ptr =
         hashmap_get(&tree->phandle_map, hashmap_key_create(phandle));
 
-    if (node_ptr != NULL) {
+    if (node_ptr != nullptr) {
         return *node_ptr;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 struct devicetree_node *
@@ -65,7 +65,7 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
                             const struct string_view path)
 {
     if (__builtin_expect(path.length == 0 || sv_front(path) != '/', 0)) {
-        return NULL;
+        return nullptr;
     }
 
     struct devicetree_node *node = tree->root;
@@ -73,8 +73,8 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
         return node;
     }
 
-    if (__builtin_expect(node == NULL, 0)) {
-        return NULL;
+    if (__builtin_expect(node == nullptr, 0)) {
+        return nullptr;
     }
 
     uint32_t component_begin = 1;
@@ -84,7 +84,7 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
             component_length -= component_begin;
             if (__builtin_expect(component_length == 0, 0)) {
                 // `//` component found in path string.
-                return NULL;
+                return nullptr;
             }
         } else {
             component_length = path.length - component_begin;
@@ -102,7 +102,7 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
         }
 
         if (!found) {
-            return NULL;
+            return nullptr;
         }
 
         if (component_begin + component_length == path.length) {
@@ -113,13 +113,13 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
         node = iter;
     } while (true);
 
-    return NULL;
+    return nullptr;
 }
 
 void devicetree_node_free(struct devicetree_node *const node) {
     hashmap_foreach_bucket(&node->known_props, bucket_ptr) {
         struct hashmap_bucket *const bucket = *bucket_ptr;
-        if (bucket == NULL) {
+        if (bucket == nullptr) {
             continue;
         }
 

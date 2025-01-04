@@ -48,8 +48,8 @@ arch_make_mapping(struct pagemap *const pagemap,
         .leaf_pte_flags = flags_from_info(pagemap, prot, cachekind),
         .large_pte_flags = options.leaf_pte_flags,
 
-        .alloc_pgtable_cb_info = NULL,
-        .free_pgtable_cb_info = NULL,
+        .alloc_pgtable_cb_info = nullptr,
+        .free_pgtable_cb_info = nullptr,
 
         .supports_largepage_at_level_mask =
             PAGING_MODE > 3 ? (1 << 2 | 1 << 3 | 1 << 4) : (1 << 2 | 1 << 3),

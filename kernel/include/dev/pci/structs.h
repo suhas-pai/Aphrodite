@@ -15,7 +15,7 @@
 
 #define PCI_READ_FAIL (uint32_t)-1
 
-enum pci_entity_class_code {
+enum pci_entity_class_code : uint8_t {
     PCI_ENTITY_CLASS_NONE,
     PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
     PCI_ENTITY_CLASS_NETWORK_CONTROLLER,
@@ -36,7 +36,7 @@ enum pci_entity_class_code {
     PCI_ENTITY_CLASS_DATA_ACQ_AND_SIGNAL_PROCESSING_CONTROLLER,
 };
 
-enum pci_entity_storage_subclass {
+enum pci_entity_storage_subclass : uint8_t {
     PCI_ENTITY_SUBCLASS_SCSI,
     PCI_ENTITY_SUBCLASS_IDE,
     PCI_ENTITY_SUBCLASS_FLOPPY,
@@ -50,7 +50,7 @@ enum pci_entity_storage_subclass {
     PCI_ENTITY_SUBCLASS_NVME = 0x08
 };
 
-enum pci_entity_bridge_subclass {
+enum pci_entity_bridge_subclass : uint8_t {
     PCI_ENTITY_SUBCLASS_HOST_BRIDGE,
     PCI_ENTITY_SUBCLASS_ISA_BRIDGE,
     PCI_ENTITY_SUBCLASS_EISA_BRIDGE,
@@ -64,23 +64,23 @@ enum pci_entity_bridge_subclass {
     PCI_ENTITY_SUBCLASS_INFINIBAND_PCI_HOST_BRIDGE,
 };
 
-enum pci_spec_entity_header_kind {
+enum pci_spec_entity_header_kind : uint8_t {
     PCI_SPEC_ENTITY_HDR_KIND_GENERAL,
     PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE,
     PCI_SPEC_ENTITY_HDR_KIND_CARDBUS_BRIDGE,
 };
 
-enum pci_spec_device_header_kind_flags {
+enum pci_spec_device_header_kind_flags : uint8_t {
     __PCI_ENTITY_HDR_MULTFUNC = 1ull << 7,
 };
 
-enum pci_spec_device_bist_flags {
+enum pci_spec_device_bist_flags : uint8_t {
     __PCI_DEVBIST_COMPLETION_CODE = 0b1111,
     __PCI_DEVBIST_ENABLE = 1ull << 6,
     __PCI_DEVBIST_CAPABLE = 1ull << 7,
 };
 
-enum pci_spec_entity_cmdreg_flags {
+enum pci_spec_entity_cmdreg_flags : uint16_t {
     // If set to 1 the device can respond to I/O Space accesses; otherwise, the
     // device's response is disabled.
     __PCI_DEVCMDREG_IOSPACE = 1ull << 0,
@@ -142,7 +142,7 @@ enum pci_spec_entity_cmdreg_flags {
     __PCI_DEVCMDREG_PIN_INTR_DISABLE = 1ull << 10,
 };
 
-enum pci_spec_device_status_flags {
+enum pci_spec_device_status_flags : uint16_t {
     __PCI_DEVSTATUS_INTERRUPT = 1ull << 3,
     __PCI_DEVSTATUS_CAPABILITIES = 1ull << 4,
     __PCI_DEVSTATUS_66MHZ_SUPPORT = 1ull << 5,
@@ -157,16 +157,16 @@ enum pci_spec_device_status_flags {
     __PCI_DEVSTATUS_PARITY_ERR_DETECTED = 1ull << 15,
 };
 
-enum pci_spec_devbar_memspace_kind {
+enum pci_spec_devbar_memspace_kind : uint8_t {
     PCI_DEVBAR_MEMSPACE_32B = 0,
     PCI_DEVBAR_MEMSPACE_64B = 2,
 };
 
-enum pci_spec_device_bar_shifts {
+enum pci_spec_device_bar_shifts : uint8_t {
     PCI_DEVBAR_MEMKIND_SHIFT = 1,
 };
 
-enum pci_spec_device_bar_flags {
+enum pci_spec_device_bar_flags : uint8_t {
     __PCI_DEVBAR_IO = 1ull << 0,
     __PCI_DEVBAR_MEMKIND_MASK = 0b11 << PCI_DEVBAR_MEMKIND_SHIFT,
     __PCI_DEVBAR_PREFETCHABLE = 1ull << 3,
@@ -286,7 +286,7 @@ struct pci_spec_pci_to_cardbus_bridge_entity_info {
     uint32_t legacy_base_address;
 } __packed;
 
-enum pci_spec_cap_id {
+enum pci_spec_cap_id : uint8_t {
     PCI_SPEC_CAP_ID_NULL,
     PCI_SPEC_CAP_ID_POWER_MANAGEMENT,
     PCI_SPEC_CAP_ID_AGP,
@@ -316,7 +316,7 @@ struct pci_spec_capability {
     uint8_t offset_to_next;
 } __packed;
 
-enum pci_spec_cap_msi_control_flags {
+enum pci_spec_cap_msi_control_flags : uint16_t {
     __PCI_CAP_MSI_CTRL_ENABLE = 1 << 0,
     __PCI_CAP_MSI_CTRL_MULTIMSG_CAPABLE = 0b111 << 1,
     __PCI_CAP_MSI_CTRL_MULTIMSG_ENABLE = 0b111 << 4,
@@ -325,7 +325,7 @@ enum pci_spec_cap_msi_control_flags {
     __PCI_CAP_MSI_CTRL_PER_VECTOR_MASK = 1 << 8
 };
 
-enum pci_spec_cap_msix_control_flags {
+enum pci_spec_cap_msix_control_flags : uint16_t {
     __PCI_CAP_MSIX_CTRL_TABLE_SIZE = mask_for_n_bits(11),
     __PCI_CAP_MSIX_CTRL_FUNC_MASK = 1 << 14,
     __PCI_CAP_MSIX_CTRL_ENABLE = 1 << 15
@@ -360,7 +360,7 @@ struct pci_spec_cap_msi {
 
 } __packed;
 
-enum pci_spec_bar_table_offset_flags {
+enum pci_spec_bar_table_offset_flags : uint8_t {
     __PCI_BARSPEC_TABLE_OFFSET_BIR = 0b111
 };
 
@@ -370,7 +370,7 @@ struct pci_spec_cap_msix {
     uint32_t table_offset; // Lower 3 Bits are the BIR
 } __packed;
 
-enum pci_spec_cap_pcie_dev_port_kind {
+enum pci_spec_cap_pcie_dev_port_kind : uint8_t {
     PCI_SPEC_CAP_PCIE_DEVPORT_PCIE_ENDPOINT,
     PCI_SPEC_CAP_PCIE_DEVPORT_LEGACY_PCIE_ENDPOINT,
     PCI_SPEC_CAP_PCIE_DEVPORT_ROOT_PORT_PCIE_ROOT_COMPLEX = 4,
@@ -381,13 +381,13 @@ enum pci_spec_cap_pcie_dev_port_kind {
     PCI_SPEC_CAP_PCIE_DEVPORT_ROOT_COMPLEX_EVENT_COLLECTOR,
 };
 
-enum pci_spec_cap_pcie_capability_shifts {
+enum pci_spec_cap_pcie_capability_shifts : uint8_t {
     __PCIE_SPEC_CAP_PCIE_CAP_VERSION_SHIFT,
     __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_SHIFT = 4,
     __PCIE_SPEC_CAP_PCIE_CAP_INTR_MSG_NUM_SHIFT = 9
 };
 
-enum pci_spec_cap_pcie_capability_masks {
+enum pci_spec_cap_pcie_capability_masks : uint8_t {
     __PCIE_SPEC_CAP_PCIE_CAP_VERSION_MASK = 0b1111,
     __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_TYPE_MASK =
         0b1111 << __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_SHIFT,
@@ -395,7 +395,7 @@ enum pci_spec_cap_pcie_capability_masks {
         0b1111 << __PCIE_SPEC_CAP_PCIE_CAP_DEV_PORT_SHIFT
 };
 
-enum pcie_spec_cap_pcie_capability_flags {
+enum pcie_spec_cap_pcie_capability_flags : uint16_t {
     /*
      * When Set, this bit indicates that the PCI Express Link associated with
      * this Port is connected to a slot (as compared to being connected to an
@@ -429,7 +429,7 @@ enum pcie_spec_cap_pcie_capability_flags {
     __PCIE_SPEC_CAP_PCIE_CAP_TCS_ROUTING_SUPPORTED = 1 << 14
 };
 
-enum pci_spec_cap_pcie_devcap_max_payload_size {
+enum pci_spec_cap_pcie_devcap_max_payload_size : uint8_t {
     PCI_SPEC_CAP_PCIE_DEVCAP_MAX_PAYLOAD_128B,
     PCI_SPEC_CAP_PCIE_DEVCAP_MAX_PAYLOAD_256B,
     PCI_SPEC_CAP_PCIE_DEVCAP_MAX_PAYLOAD_512B,
@@ -439,7 +439,7 @@ enum pci_spec_cap_pcie_devcap_max_payload_size {
     PCI_SPEC_CAP_PCIE_DEVCAP_MAX_PAYLOAD_4KiB,
 };
 
-enum pci_spec_cap_pcie_devcap_phantom_func_kind {
+enum pci_spec_cap_pcie_devcap_phantom_func_kind : uint8_t {
     PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_NONE,
 
     /*
@@ -469,7 +469,7 @@ enum pci_spec_cap_pcie_devcap_phantom_func_kind {
     PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_3,
 };
 
-enum pci_spec_cap_pcie_devcap_l0_acceptable_latency {
+enum pci_spec_cap_pcie_devcap_l0_acceptable_latency : uint8_t {
     PCI_SPEC_CAP_PCIE_DEVCAP_L0_ACCEPTABLE_LATENCY_64NS_MAX,
     PCI_SPEC_CAP_PCIE_DEVCAP_L0_ACCEPTABLE_LATENCY_128NS_MAX,
     PCI_SPEC_CAP_PCIE_DEVCAP_L0_ACCEPTABLE_LATENCY_256NS_MAX,
@@ -480,7 +480,7 @@ enum pci_spec_cap_pcie_devcap_l0_acceptable_latency {
     PCI_SPEC_CAP_PCIE_DEVCAP_L0_ACCEPTABLE_LATENCY_NO_LIMIT,
 };
 
-enum pci_spec_cap_pcie_devcap_l1_acceptable_latency {
+enum pci_spec_cap_pcie_devcap_l1_acceptable_latency : uint8_t {
     PCI_SPEC_CAP_PCIE_DEVCAP_L1_ACCEPTABLE_LATENCY_1US_MAX,
     PCI_SPEC_CAP_PCIE_DEVCAP_L1_ACCEPTABLE_LATENCY_2US_MAX,
     PCI_SPEC_CAP_PCIE_DEVCAP_L1_ACCEPTABLE_LATENCY_4US_MAX,
@@ -491,7 +491,7 @@ enum pci_spec_cap_pcie_devcap_l1_acceptable_latency {
     PCI_SPEC_CAP_PCIE_DEVCAP_L1_ACCEPTABLE_LATENCY_NO_LIMIT,
 };
 
-enum pci_spec_cap_pcie_devcap_shifts {
+enum pci_spec_cap_pcie_devcap_shifts : uint8_t {
     __PCI_SPEC_CAP_PCIE_DEVCAP_MAX_PAYLOAD_SIZE_SHIFT,
     __PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_SHIFT = 3,
     __PCI_SPEC_CAP_PCIE_DEVCAP_ENDPOINT_L0_ACCEPTABLE_LATENCY_SHIFT = 6,
@@ -499,7 +499,7 @@ enum pci_spec_cap_pcie_devcap_shifts {
     __PCI_SPEC_CAP_PCIE_DEVCAP_CAPTURED_SLOT_PWR_LIMIT_SHIFT = 18
 };
 
-enum pci_spec_cap_pcie_devcap_masks {
+enum pci_spec_cap_pcie_devcap_masks : uint32_t {
     __PCI_SPEC_CAP_PCIE_DEVCAP_MAX_PAYLOAD_SIZE_MASK = 0b111,
     __PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_MASK =
         0b11 << __PCI_SPEC_CAP_PCIE_DEVCAP_PHANTOM_FUNC_SHIFT,
@@ -513,7 +513,7 @@ enum pci_spec_cap_pcie_devcap_masks {
         0xff << __PCI_SPEC_CAP_PCIE_DEVCAP_CAPTURED_SLOT_PWR_LIMIT_SHIFT,
 };
 
-enum pci_spec_cap_pcie_devcap_flags {
+enum pci_spec_cap_pcie_devcap_flags : uint32_t {
     // 8-bit Tag field supported if set, otherwise 5-bit Tag field supported.
     __PCI_SPEC_CAP_PCIE_DEVCAP_EXT_TAG_SUPPORTED = 1 << 5,
     __PCI_SPEC_CAP_PCIE_DEVCAP_FUNC_LVL_RESET_CAP = 1 << 28,

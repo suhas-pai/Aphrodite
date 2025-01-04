@@ -12,8 +12,8 @@ struct rtc_time_info {
     uint8_t hour;
     uint8_t day;
 
-    enum month month : 8;
-    enum weekday weekday : 8;
+    enum month month;
+    enum weekday weekday;
 
     uint64_t year;
 };

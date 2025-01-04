@@ -97,7 +97,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     });
 
     struct nvme_controller *const controller = kmalloc(sizeof(*controller));
-    if (controller == NULL) {
+    if (controller == nullptr) {
         pci_entity_disable_msi(pci_entity);
         pci_entity_disable_privls(pci_entity);
 
@@ -138,6 +138,6 @@ static const struct pci_driver pci_driver = {
 
 __driver static const struct driver driver = {
     .name = SV_STATIC("nvme-driver"),
-    .dtb = NULL,
+    .dtb = nullptr,
     .pci = &pci_driver
 };

@@ -29,7 +29,7 @@ __debug_optimize(3) void cpu_info_base_init(struct cpu_info *const cpu) {
     list_init(&cpu->cpu_list);
     list_init(&cpu->pagemap_node);
 
-    cpu->idle_thread = NULL;
+    cpu->idle_thread = nullptr;
     cpu->spur_intr_count = 0;
     cpu->sched_info = SCHED_PERCPU_INFO_INIT();
 }

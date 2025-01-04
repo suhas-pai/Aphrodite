@@ -97,12 +97,12 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
     __page_size_level_result__; \
 })
 
-enum pte_shifts {
+enum pte_shifts : uint8_t {
     PTE_PRIVL_SHIFT = 2,
     PTE_MEM_ACCESS_CTRL_SHIFT = 4,
 };
 
-enum pte_flags {
+enum pte_flags : uint64_t {
     __PTE_VALID  = 1ull << 0,
     __PTE_DIRTY = 1ull << 1,
 

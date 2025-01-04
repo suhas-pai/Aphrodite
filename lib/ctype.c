@@ -8,7 +8,7 @@
 #include "ctype.h"
 #include "macros.h"
 
-enum ctype_masks {
+enum ctype_masks : uint16_t {
     __ALPHA_LOWER = 1 << 0,
     __ALPHA_UPPER = 1 << 1,
 

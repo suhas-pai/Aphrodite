@@ -259,16 +259,16 @@ timespec_add(const struct timespec left,
     struct timespec result = TIMESPEC_NULL();
     if (nano_to_seconds(left.tv_nsec + right.tv_nsec) != 0) {
         result.tv_nsec = nano_mod_seconds(left.tv_nsec + right.tv_nsec);
-        if (!check_add(left.tv_sec, 1, &result.tv_sec)) {
+        if (!ckd_add(&result.tv_sec, left.tv_sec, 1)) {
             return false;
         }
     } else {
-        if (!check_add(left.tv_nsec, right.tv_nsec, &result.tv_nsec)) {
+        if (!ckd_add(&result.tv_nsec, left.tv_nsec, right.tv_nsec)) {
             return false;
         }
     }
 
-    if (!check_add(left.tv_sec, right.tv_sec, &result.tv_sec)) {
+    if (!ckd_add(&result.tv_sec, left.tv_sec, right.tv_sec)) {
         return false;
     }
 
@@ -324,7 +324,7 @@ int timespec_compare(const struct timespec left, const struct timespec right) {
     return 0;
 }
 
-enum weekday {
+enum weekday : int8_t {
     WEEKDAY_INVALID = -1,
 
     WEEKDAY_SUNDAY,
@@ -336,7 +336,7 @@ enum weekday {
     WEEKDAY_SATURDAY,
 };
 
-enum month {
+enum month : uint8_t {
     MONTH_INVALID,
 
     MONTH_JANUARY = 1,

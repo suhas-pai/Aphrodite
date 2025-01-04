@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum id_aa64isar0_el1_shifts {
+enum id_aa64isar0_el1_shifts : uint8_t {
     ID_AA64ISAR0_EL1_AES_SUPPORT_SHIFT = 4,
     ID_AA64ISAR0_EL1_SHA2_SUPPORT_SHIFT = 12,
     ID_AA64ISAR0_EL1_ATOMIC_SUPPORT_SHIFT = 20,
@@ -14,7 +14,7 @@ enum id_aa64isar0_el1_shifts {
     ID_AA64ISAR0_EL1_TLB_SUPPORT_SHIFT = 56,
 };
 
-enum id_aa64isar0_el1_aes_support {
+enum id_aa64isar0_el1_aes_support : uint8_t {
     ID_AA64ISAR0_EL1_AES_SUPPORT_NONE,
     // AESE, AESD, AESMC, and AESIMC instructions implemented.
     ID_AA64ISAR0_EL1_AES_SUPPORT_ONLY_AES,
@@ -23,7 +23,7 @@ enum id_aa64isar0_el1_aes_support {
     ID_AA64ISAR0_EL1_AES_SUPPORT_AES_AND_PMULL
 };
 
-enum id_aa64isar0_el1_sha2_support {
+enum id_aa64isar0_el1_sha2_support : uint8_t {
     ID_AA64ISAR0_EL1_SHA2_SUPPORT_NONE,
     // Implements instructions: SHA256H, SHA256H2, SHA256SU0, and SHA256SU1.
     ID_AA64ISAR0_EL1_SHA2_SUPPORT_SHA256,
@@ -33,7 +33,7 @@ enum id_aa64isar0_el1_sha2_support {
     ID_AA64ISAR0_EL1_SHA2_SUPPORT_SHA512,
 };
 
-enum id_aa64isar0_el1_atomic_support {
+enum id_aa64isar0_el1_atomic_support : uint8_t {
     ID_AA64ISAR0_EL1_ATOMIC_SUPPORT_NONE,
     // LDADD, LDCLR, LDEOR, LDSET, LDSMAX, LDSMIN, LDUMAX, LDUMIN, CAS, CASP,
     // and SWP instructions implemented.
@@ -42,7 +42,7 @@ enum id_aa64isar0_el1_atomic_support {
     ID_AA64ISAR0_EL1_ATOMIC_SUPPORT_LSE128,
 };
 
-enum id_aa64isar0_el1_ts_support {
+enum id_aa64isar0_el1_ts_support : uint8_t {
     ID_AA64ISAR0_EL1_TS_SUPPORT_NONE,
     // CFINV, RMIF, SETF16, and SETF8 instructions are implemented.
     ID_AA64ISAR0_EL1_TS_SUPPORT_FLAG_M,
@@ -51,7 +51,7 @@ enum id_aa64isar0_el1_ts_support {
     ID_AA64ISAR0_EL1_TS_SUPPORT_FLAG_M2,
 };
 
-enum id_aa64isar0_el1_tlb_support {
+enum id_aa64isar0_el1_tlb_support : uint64_t {
     ID_AA64ISAR0_EL1_TLB_SUPPORT_NONE,
     // Outer Shareable TLB maintenance instructions are implemented.
     ID_AA64ISAR0_EL1_TLB_SUPPORT_TLBIOS = 1ull << 56,
@@ -60,7 +60,7 @@ enum id_aa64isar0_el1_tlb_support {
     ID_AA64ISAR0_EL1_TLB_SUPPORT_IRANGE,
 };
 
-enum id_aa64isar0_el1_el1_flags {
+enum id_aa64isar0_el1_el1_flags : uint64_t {
     __ID_AA64ISAR0_EL1_AES = 0b1111ull << 4,
     // SHA1C, SHA1P, SHA1M, SHA1H, SHA1SU0, and SHA1SU1 instructions
     // implemented.
@@ -91,7 +91,7 @@ enum id_aa64isar0_el1_el1_flags {
     __ID_AA64ISAR0_EL1_RNDR = 0b1111ull << 60,
 };
 
-enum id_aa64isar1_el1_shifts {
+enum id_aa64isar1_el1_shifts : uint8_t {
     ID_AA64ISAR1_EL1_DPB_SUPPORT_SHIFT = 0,
     ID_AA64ISAR1_EL1_APA_SUPPORT_SHIFT = 4,
     ID_AA64ISAR1_EL1_API_SUPPORT_SHIFT = 8,
@@ -101,7 +101,7 @@ enum id_aa64isar1_el1_shifts {
     ID_AA64ISAR1_EL1_LS64_SUPPORT_SHIFT = 60,
 };
 
-enum id_aa64isar1_el1_dpb_support {
+enum id_aa64isar1_el1_dpb_support : uint8_t {
     ID_AA64ISAR1_EL1_DPB_SUPPORT_NONE,
     // DC CVAP supported.
     ID_AA64ISAR1_EL1_DPB_SUPPORT_FEAT_DPB,
@@ -109,7 +109,7 @@ enum id_aa64isar1_el1_dpb_support {
     ID_AA64ISAR1_EL1_DPB_SUPPORT_FEAT_DPB2,
 };
 
-enum id_aa64isar1_el1_apa_support {
+enum id_aa64isar1_el1_apa_support : uint8_t {
     ID_AA64ISAR1_EL1_APA_SUPPORT_NONE,
     // Address Authentication using the QARMA5 algorithm is implemented, with
     // the HaveEnhancedPAC() and HaveEnhancedPAC2() functions returning FALSE.
@@ -135,7 +135,7 @@ enum id_aa64isar1_el1_apa_support {
     ID_AA64ISAR1_EL1_APA_SUPPORT_FEAT_FPACCOMBINE
 };
 
-enum id_aa64isar1_el1_api_support {
+enum id_aa64isar1_el1_api_support : uint8_t {
     ID_AA64ISAR1_EL1_API_SUPPORT_NONE,
     // Address Authentication using an IMPLEMENTATION DEFINED algorithm is
     // implemented, with the HaveEnhancedPAC() and HaveEnhancedPAC2() functions
@@ -161,7 +161,7 @@ enum id_aa64isar1_el1_api_support {
     ID_AA64ISAR1_EL1_API_SUPPORT_FEAT_FPACCOMBINE
 };
 
-enum id_aa64isar1_el1_lrcpc_support {
+enum id_aa64isar1_el1_lrcpc_support : uint8_t {
     ID_AA64ISAR1_EL1_LRCPC_SUPPORT_NONE,
     // The no offset LDAPR, LDAPRB, and LDAPRH instructions are implemented.
     ID_AA64ISAR1_EL1_LRCPC_SUPPORT_FEAT_LRCPC,
@@ -176,7 +176,7 @@ enum id_aa64isar1_el1_lrcpc_support {
     ID_AA64ISAR1_EL1_LRCPC_SUPPORT_FEAT_LRCPC3,
 };
 
-enum id_aa64isar1_el1_specres_support {
+enum id_aa64isar1_el1_specres_support : uint8_t {
     ID_AA64ISAR1_EL1_SPECRES_SUPPORT_NONE,
     // CFP RCTX, DVP RCTX and CPP RCTX instructions are implemented.
     ID_AA64ISAR1_EL1_SPECRES_SUPPORT_FEAT_SPECRES,
@@ -184,7 +184,7 @@ enum id_aa64isar1_el1_specres_support {
     ID_AA64ISAR1_EL1_SPECRES_SUPPORT_FEAT_SPECRES2,
 };
 
-enum id_aa64isar1_el1_bf16_support {
+enum id_aa64isar1_el1_bf16_support : uint8_t {
     ID_AA64ISAR1_EL1_BF16_SUPPORT_NONE,
     // BFCVT, BFCVTN, BFCVTN2, BFDOT, BFMLALB, BFMLALT, and BFMMLA instructions
     // are implemented.
@@ -193,7 +193,7 @@ enum id_aa64isar1_el1_bf16_support {
     ID_AA64ISAR1_EL1_BF16_SUPPORT_FEAT_EBF16,
 };
 
-enum id_aa64isar1_el1_ls64_support {
+enum id_aa64isar1_el1_ls64_support : uint8_t {
     ID_AA64ISAR1_EL1_LS64_SUPPORT_NONE,
     // The LD64B and ST64B instructions are supported.
     ID_AA64ISAR1_EL1_LS64_SUPPORT_FEAT_LS64,
@@ -205,7 +205,7 @@ enum id_aa64isar1_el1_ls64_support {
     ID_AA64ISAR1_EL1_LS64_SUPPORT_FEAT_LS64_ACCDATA,
 };
 
-enum id_aa64isar1_el1_flags {
+enum id_aa64isar1_el1_flags : uint64_t {
     __ID_AA64ISAR1_EL1_DPB = 0b1111ull << 0,
     __ID_AA64ISAR1_EL1_APA = 0b1111ull << 4,
     __ID_AA64ISAR1_EL1_API = 0b1111ull << 8,
@@ -237,11 +237,11 @@ enum id_aa64isar1_el1_flags {
     __ID_AA64ISAR1_EL1_LS64 = 0b1111ull << 60,
 };
 
-enum id_aa64isar2_el1_shifts {
+enum id_aa64isar2_el1_shifts : uint8_t {
     ID_AA64ISAR2_EL1_APA3_SUPPORT_SHIFT = 12
 };
 
-enum id_aa64isar2_el1_apa3_support {
+enum id_aa64isar2_el1_apa3_support : uint8_t {
     ID_AA64ISAR2_EL1_APA3_SUPPORT_NONE,
     // Address Authentication using the QARMA3 algorithm is implemented, with
     // the HaveEnhancedPAC() and HaveEnhancedPAC2() functions returning FALSE.
@@ -267,7 +267,7 @@ enum id_aa64isar2_el1_apa3_support {
     ID_AA64ISAR2_EL1_APA3_SUPPORT_FEAT_FPACCOMBINE,
 };
 
-enum id_aa64isar2_el1_flags {
+enum id_aa64isar2_el1_flags : uint64_t {
     // WFET and WFIT are supported, and the register number is reported in the
     // ESR_ELx on exceptions.
     __ID_AA64ISAR2_EL1_WFxT = 0b1111ull << 0,
@@ -300,7 +300,7 @@ enum id_aa64isar2_el1_flags {
     __ID_AA64ISAR2_EL1_CSSC = 0b1111ull << 52,
 };
 
-enum id_aa64pfr0_el1_shifts {
+enum id_aa64pfr0_el1_shifts : uint8_t {
     ID_AA64PFR0_EL1_FP_SUPPORT_SHIFT = 16,
     ID_AA64PFR0_EL1_ADV_SIMD_SUPPORT_SHIFT = 20,
     ID_AA64PFR0_EL1_GIC_SUPPORT_SHIFT = 24,
@@ -310,7 +310,7 @@ enum id_aa64pfr0_el1_shifts {
     ID_AA64PFR0_EL1_CSV2_SUPPORT_SHIFT = 56,
 };
 
-enum id_aa64pfr0_el1_fp_support {
+enum id_aa64pfr0_el1_fp_support : uint8_t {
     // Floating-point is implemented, and includes support for:
     //   Single-precision and double-precision floating-point types.
     //   Conversions between single-precision and half-precision data types, and
@@ -323,7 +323,7 @@ enum id_aa64pfr0_el1_fp_support {
     ID_AA64PFR0_EL1_FP_SUPPORT_NONE,
 };
 
-enum id_aa64pfr0_el1_adv_simd_support {
+enum id_aa64pfr0_el1_adv_simd_support : uint8_t {
     // Advanced SIMD is implemented, including support for the following SISD
     // and SIMD operations:
     //   Integer byte, halfword, word and doubleword element operations.
@@ -338,7 +338,7 @@ enum id_aa64pfr0_el1_adv_simd_support {
     ID_AA64PFR0_EL1_ADV_SIMD_SUPPORT_NONE,
 };
 
-enum id_aa64pfr0_el1_gic_support {
+enum id_aa64pfr0_el1_gic_support : uint8_t {
     ID_AA64PFR0_EL1_GIC_SUPPORT_NONE,
     // System register interface to versions 3.0 and 4.0 of the GIC CPU
     // interface is supported.
@@ -348,7 +348,7 @@ enum id_aa64pfr0_el1_gic_support {
     ID_AA64PFR0_EL1_GIC_SUPPORT_V4p1
 };
 
-enum id_aa64pfr0_el1_ras_support {
+enum id_aa64pfr0_el1_ras_support : uint8_t {
     ID_AA64PFR0_EL1_RAS_SUPPORT_NONE,
     // RAS Extension implemented.
     ID_AA64PFR0_EL1_RAS_SUPPORT_FEAT_RAS,
@@ -376,13 +376,13 @@ enum id_aa64pfr0_el1_ras_support {
     ID_AA64PFR0_EL1_RAS_SUPPORT_FEAT_RASv2,
 };
 
-enum id_aa64pfr0_el1_mpan_version {
+enum id_aa64pfr0_el1_mpan_version : uint8_t {
     ID_AA64PFR0_EL1_MPAN_VERSION_NONE,
     // The major version number of the MPAM extension is 1.
     ID_AA64PFR0_EL1_MPAN_VERSION_V1,
 };
 
-enum id_aa64pfr0_el1_amu_support {
+enum id_aa64pfr0_el1_amu_support : uint8_t {
     // System register interface to versions 3.0 and 4.0 of the GIC CPU
     // interface is supported.
     ID_AA64PFR0_EL1_AMU_SUPPORT_NONE,
@@ -394,7 +394,7 @@ enum id_aa64pfr0_el1_amu_support {
     ID_AA64PFR0_EL1_AMU_SUPPORT_FEAT_AMUv1p1,
 };
 
-enum id_aa64pfr0_el1_csv2_support {
+enum id_aa64pfr0_el1_csv2_support : uint8_t {
     ID_AA64PFR0_EL1_CSV2_SUPPORT_NONE,
     // FEAT_CSV2 is implemented, but FEAT_CSV2_2 and FEAT_CSV2_3 are not
     // implemented.
@@ -407,7 +407,7 @@ enum id_aa64pfr0_el1_csv2_support {
     ID_AA64PFR0_EL1_CSV2_SUPPORT_FEAT_CSV2_3,
 };
 
-enum id_aa64pfr0_el1_flags {
+enum id_aa64pfr0_el1_flags : uint64_t {
     // EL0 can be executed in either AArch64 or AArch32 state.
     __ID_AA64PFR0_EL1_EL0_AA32 = 0b1111ull << 0,
     // EL1 can be executed in either AArch64 or AArch32 state.
@@ -441,14 +441,14 @@ enum id_aa64pfr0_el1_flags {
     __ID_AA64PFR0_EL1_CSV3 = 0b1111ull << 60
 };
 
-enum id_aa64pfr1_el1_shifts {
+enum id_aa64pfr1_el1_shifts : uint8_t {
     ID_AA64PFR1_EL1_SSBS_SUPPORT_SHIFT = 4,
     ID_AA64PFR1_EL1_MTE_SUPPORT_SHIFT = 8,
     ID_AA64PFR1_EL1_SME_SUPPORT_SHIFT = 20,
     ID_AA64PFR1_EL1_CSV2_FRAC_SHIFT = 28,
 };
 
-enum id_aa64pfr1_el1_ssbs_support {
+enum id_aa64pfr1_el1_ssbs_support : uint8_t {
     ID_AA64PFR1_EL1_SSBS_SUPPORT_NONE,
     // AArch64 provides the PSTATE.SSBS mechanism to mark regions that are
     // Speculative Store Bypass Safe.
@@ -459,7 +459,7 @@ enum id_aa64pfr1_el1_ssbs_support {
 };
 
 // MTE = Memory Tagging Extension
-enum id_aa64pfr1_el1_mte_support {
+enum id_aa64pfr1_el1_mte_support : uint8_t {
     ID_AA64PFR1_EL1_MTE_SUPPORT_NONE,
     // Instruction-only Memory Tagging Extension is implemented.
     ID_AA64PFR1_EL1_MTE_SUPPORT_FEAT_MTE,
@@ -474,7 +474,7 @@ enum id_aa64pfr1_el1_mte_support {
 };
 
 // SME = Scalable Matrix Extension
-enum id_aa64pfr1_el1_sme_support {
+enum id_aa64pfr1_el1_sme_support : uint8_t {
     ID_AA64PFR1_EL1_SME_SUPPORT_NONE,
     // SME architectural state and programmers' model are implemented.
     ID_AA64PFR1_EL1_SME_SUPPORT_FEAT_SME,
@@ -482,7 +482,7 @@ enum id_aa64pfr1_el1_sme_support {
     ID_AA64PFR1_EL1_SME_SUPPORT_FEAT_SME2,
 };
 
-enum id_aa64pfr1_el1_csv2_frac {
+enum id_aa64pfr1_el1_csv2_frac : uint8_t {
     ID_AA64PFR1_EL1_CSV2_FRAC_NONE,
     // FEAT_CSV2_1p1 is implemented, but FEAT_CSV2_1p2 is not implemented.
     ID_AA64PFR1_EL1_CSV2_FRAC_FEAT_CSV2_1P1,
@@ -490,7 +490,7 @@ enum id_aa64pfr1_el1_csv2_frac {
     ID_AA64PFR1_EL1_CSV2_FRAC_FEAT_CSV2_1P2,
 };
 
-enum id_aa64pfr1_el1_flags {
+enum id_aa64pfr1_el1_flags : uint64_t {
     // The Branch Target Identification mechanism is implemented.
     __ID_AA64PFR1_EL1_BT = 0b1111ull << 0,
     __ID_AA64PFR1_EL1_SSBS = 0b1111ull << 4,
@@ -545,7 +545,7 @@ enum id_aa64pfr1_el1_flags {
     __ID_AA64PFR1_EL1_PFAR = 0b1111ull << 56,
 };
 
-enum id_aar64_pfr2_el1_flags {
+enum id_aar64_pfr2_el1_flags : uint16_t {
     // FEAT_MTE_PERM is supported.
     __ID_AA64PFR2_EL1_MTEPERM = 0b1111ull << 0,
     // FEAT_MTE_STORE_ONLY is supported.
@@ -556,7 +556,7 @@ enum id_aar64_pfr2_el1_flags {
     __ID_AA64PFR2_EL1_MTEFAR = 0b1111ull << 8,
 };
 
-enum id_aa64mmfr0_shifts {
+enum id_aa64mmfr0_shifts : uint8_t {
     ID_AA64MMFR0_PA_RANGE_SHIFT = 0,
     ID_AA64MMFR0_TGRAN16_SUPPORT_SHIFT = 20,
     ID_AA64MMFR0_TGRAN4_SUPPORT_SHIFT = 28,
@@ -567,7 +567,7 @@ enum id_aa64mmfr0_shifts {
     ID_AA64MMFR0_ECV_SUPPORT_SHIFT = 60,
 };
 
-enum id_aa64mmfr0_pa_range {
+enum id_aa64mmfr0_pa_range : uint8_t {
     ID_AA64MMFR0_PA_RANGE_32B_4GIB,
     ID_AA64MMFR0_PA_RANGE_36B_64GIB,
     ID_AA64MMFR0_PA_RANGE_40B_1TIB,
@@ -580,21 +580,21 @@ enum id_aa64mmfr0_pa_range {
     ID_AA64MMFR0_PA_RANGE_56B_64PIB,
 };
 
-enum id_aa64mmfr0_tgran16_support {
+enum id_aa64mmfr0_tgran16_support : uint8_t {
     ID_AA64MMFR0_TGRAN16_SUPPORT_NONE,
     ID_AA64MMFR0_TGRAN16_SUPPORTED,
     // When FEAT_LPA2 is implemented
     ID_AA64MMFR0_TGRAN16_SUPPORTED_52BIT_ADDRESS
 };
 
-enum id_aa64mmfr0_tgran4_support {
+enum id_aa64mmfr0_tgran4_support : uint8_t {
     ID_AA64MMFR0_TGRAN4_SUPPORTED,
     // When FEAT_LPA2 is implemented
     ID_AA64MMFR0_TGRAN4_SUPPORTED_52BIT_ADDRESS,
     ID_AA64MMFR0_TGRAN4_SUPPORT_NONE = 0b1111,
 };
 
-enum id_aa64mmfr0_tgran16_stage_2_support {
+enum id_aa64mmfr0_tgran16_stage_2_support : uint8_t {
     // Support for 16KB granule at stage 2 is identified in the
     // ID_AA64MMFR0_EL1.TGran16 field.
     ID_AA64MMFR0_TGRAN16_STAGE_2_SUPPORTED_WITH_REG,
@@ -606,7 +606,7 @@ enum id_aa64mmfr0_tgran16_stage_2_support {
     ID_AA64MMFR0_TGRAN16_STAGE_2_SUPPORTED_52BIT_ADDRESS
 };
 
-enum id_aa64mmfr0_tgran64_stage_2_support {
+enum id_aa64mmfr0_tgran64_stage_2_support : uint8_t {
     // Support for 64KB granule at stage 2 is identified in the
     // ID_AA64MMFR0_EL1.TGran64 field.
     ID_AA64MMFR0_TGRAN64_STAGE_2_SUPPORTED_WITH_REG,
@@ -616,7 +616,7 @@ enum id_aa64mmfr0_tgran64_stage_2_support {
     ID_AA64MMFR0_TGRAN64_STAGE_2_SUPPORT_NONE,
 };
 
-enum id_aa64mmfr0_tgran4_stage_2_support {
+enum id_aa64mmfr0_tgran4_stage_2_support : uint8_t {
     // Support for 4KB granule at stage 2 is identified in the
     // ID_AA64MMFR0_EL1.TGran4 field.
     ID_AA64MMFR0_TGRAN4_STAGE_2_SUPPORTED_WITH_REG,
@@ -632,7 +632,7 @@ enum id_aa64mmfr0_tgran4_stage_2_support {
 };
 
 // FGT = Fine-Grained Trap
-enum id_aa64mmfr0_fgt_support {
+enum id_aa64mmfr0_fgt_support : uint8_t {
     // FEAT_MTE_PERM is supported.
     ID_AA64MMFR0_FGT_SUPPORT_NONE,
     // Fine-grained trap controls are implemented. Supports:
@@ -651,7 +651,7 @@ enum id_aa64mmfr0_fgt_support {
 };
 
 // ECV = Enhanced Counter Virtualization
-enum id_aa64mmfr0_ecv_support {
+enum id_aa64mmfr0_ecv_support : uint8_t {
     // FEAT_MTE_PERM is supported.
     ID_AA64MMFR0_ECV_SUPPORT_NONE,
     // Enhanced Counter Virtualization is implemented. Supports
@@ -664,7 +664,7 @@ enum id_aa64mmfr0_ecv_support {
     ID_AA64MMFR0_ECV_SUPPORT_FEAT_ECV_FULL,
 };
 
-enum id_aa64mmfr0_flags {
+enum id_aa64mmfr0_flags : uint64_t {
     __ID_AA64MMFR0_PARANGE = 0b1111ull << 0,
     // 16 bits if set, otherwise 8
     __ID_AA64MMFR0_ASID_BITS = 0b1111ull << 4,
@@ -689,7 +689,7 @@ enum id_aa64mmfr0_flags {
     __ID_AA64MMFR0_ECV = 0b1111ull << 60,
 };
 
-enum id_aa64mmfr1_shifts {
+enum id_aa64mmfr1_shifts : uint8_t {
     ID_AA64MMFR1_HAFDBS_SUPPORT_SHIFT = 0,
     ID_AA64MMFR1_HPDS_SUPPORT_SHIFT = 12,
     ID_AA64MMFR1_PAN_SUPPORT_SHIFT = 20,
@@ -697,7 +697,7 @@ enum id_aa64mmfr1_shifts {
 
 // HAFDBS = Hardware updates to Access flag and Dirty state in translation
 // tables
-enum id_aa64mmfr1_hafdbs_support {
+enum id_aa64mmfr1_hafdbs_support : uint8_t {
     ID_AA64MMFR1_HAFDBS_SUPPORT_NONE,
     // Support for hardware update of the Access flag for Block and Page
     // descriptors.
@@ -711,7 +711,7 @@ enum id_aa64mmfr1_hafdbs_support {
 };
 
 // HPDS = Hierarchical Permission Disables
-enum id_aa64mmfr1_hpds_support {
+enum id_aa64mmfr1_hpds_support : uint8_t {
     ID_AA64MMFR1_HPDS_SUPPORT_NONE,
     // Disabling of hierarchical controls supported with the TCR_EL1.{HPD1,
     // HPD0}, TCR_EL2.HPD or TCR_EL2.{HPD1, HPD0}, and TCR_EL3.HPD bits.
@@ -723,7 +723,7 @@ enum id_aa64mmfr1_hpds_support {
 };
 
 // PAN = Privileged Access Never.
-enum id_aa64mmfr1_pan_support {
+enum id_aa64mmfr1_pan_support : uint8_t {
     ID_AA64MMFR1_PAN_SUPPORT_NONE,
     // PAN supported.
     ID_AA64MMFR1_PAN_SUPPORT_FEAT_PAN,
@@ -734,7 +734,7 @@ enum id_aa64mmfr1_pan_support {
     ID_AA64MMFR1_PAN_SUPPORT_FEAT_PAN3,
 };
 
-enum id_aa64mmfr1_flags {
+enum id_aa64mmfr1_flags : uint64_t {
     __ID_AA64MMFR1_HAFDBS = 0b1111ull << 0,
     // 16 if set, otherwise 8
     __ID_AA64MMFR1_VMIDBITS = 0b1111ull << 4,
@@ -774,14 +774,14 @@ enum id_aa64mmfr1_flags {
     __ID_AA64MMFR1_ECBHB = 0b1111ull << 60,
 };
 
-enum id_aa64mmfr2_shifts {
+enum id_aa64mmfr2_shifts : uint8_t {
     ID_AA64MMFR2_VA_RANGE_SHIFT = 16,
     ID_AA64MMFR2_NV_SUPPORT_SHIFT = 24,
     ID_AA64MMFR2_BBM_SUPPORT_SHIFT = 52,
     ID_AA64MMFR2_EVT_SUPPORT_SHIFT = 56,
 };
 
-enum id_aa64mmfr2_va_range {
+enum id_aa64mmfr2_va_range : uint8_t {
     ID_AA64MMFR2_VA_RANGE_48BITS,
     // VMSAv8-64 supports 52-bit VAs when using the 64KB translation granule.
     // The size for other translation granules is not defined by this field.
@@ -791,7 +791,7 @@ enum id_aa64mmfr2_va_range {
 };
 
 // NV = Nested Virtualization
-enum id_aa64mmfr2_nv_support {
+enum id_aa64mmfr2_nv_support : uint8_t {
     ID_AA64MMFR2_NV_SUPPORT_NONE,
     // The HCR_EL2.{AT, NV1, NV} bits are implemented.
     ID_AA64MMFR2_NV_SUPPORT_FEAT_NV,
@@ -801,7 +801,7 @@ enum id_aa64mmfr2_nv_support {
 };
 
 // BBM = break-before-make sequences when changing block size for a translation
-enum id_aa64mmfr2_bbm_support {
+enum id_aa64mmfr2_bbm_support : uint8_t {
     // Level 0 support for changing block size is supported.
     ID_AA64MMFR2_BBM_SUPPORT_LEVEL0,
     // Level 1 support for changing block size is supported.
@@ -810,7 +810,7 @@ enum id_aa64mmfr2_bbm_support {
     ID_AA64MMFR2_BBM_SUPPORT_LEVEL2,
 };
 
-enum id_aa64mmfr2_evt_support {
+enum id_aa64mmfr2_evt_support : uint8_t {
     ID_AA64MMFR2_EVT_SUPPORT_NONE,
     // HCR_EL2.{TOCU, TICAB, TID4} traps are supported. HCR_EL2.{TTLBOS, TTLBIS}
     // traps are not supported.
@@ -819,7 +819,7 @@ enum id_aa64mmfr2_evt_support {
     ID_AA64MMFR2_EVT_SUPPORT_FEAT_EVT_2,
 };
 
-enum id_aa64mmfr2_flags {
+enum id_aa64mmfr2_flags : uint64_t {
     // Common not Private translations supported.
     __ID_AA64MMFR2_CNP = 0b1111ull << 0,
     // User Access Override supported
@@ -854,7 +854,7 @@ enum id_aa64mmfr2_flags {
     __ID_AA64MMFR2_E0PD = 0b1111ull << 60,
 };
 
-enum id_aa64mmfr3_shifts {
+enum id_aa64mmfr3_shifts : uint8_t {
     ID_AA64MMFR3_SNERR_SUPPORT_SHIFT = 40,
     ID_AA64MMFR3_ANERR_SUPPORT_SHIFT = 44,
     ID_AA64MMFR3_SDERR_SUPPORT_SHIFT = 52,
@@ -862,7 +862,7 @@ enum id_aa64mmfr3_shifts {
 };
 
 // SNERR = Synchronous Normal error exceptions
-enum id_aa64mmfr3_snerr_support {
+enum id_aa64mmfr3_snerr_support : uint8_t {
     // If FEAT_RASv2 is not implemented and ID_AA64MMFR3_EL1.ANERR is 0b0000,
     // then the behavior is not described. Otherwise, the behavior is described
     // by ID_AA64MMFR3_EL1.ANERR.
@@ -874,7 +874,7 @@ enum id_aa64mmfr3_snerr_support {
     ID_AA64MMFR3_SNERR_SUPPORT_FEAT_ANERR,
 };
 
-enum id_aa64mmfr3_anerr_support {
+enum id_aa64mmfr3_anerr_support : uint8_t {
     // If FEAT_RASv2 is not implemented and ID_AA64MMFR3_EL1.SNERR is 0b0000,
     // then the behavior is not described. Otherwise, the behavior is describe
     // by ID_AA64MMFR3_EL1.SNERR.
@@ -886,7 +886,7 @@ enum id_aa64mmfr3_anerr_support {
     ID_AA64MMFR3_ANERR_SUPPORT_FEAT_ANERR,
 };
 
-enum id_aa64mmfr3_sderr_support {
+enum id_aa64mmfr3_sderr_support : uint8_t {
     // If FEAT_RASv2 is not implemented and ID_AA64MMFR3_EL1.ADERR is 0b0000,
     // then the behavior is not described. Otherwise, the behavior is described
     // by ID_AA64MMFR3_EL1.ADERR.
@@ -898,7 +898,7 @@ enum id_aa64mmfr3_sderr_support {
     ID_AA64MMFR3_SDERR_SUPPORT_FEAT_ADERR,
 };
 
-enum id_aa64mmfr3_aderr_support {
+enum id_aa64mmfr3_aderr_support : uint8_t {
     // If FEAT_RASv2 is not implemented and ID_AA64MMFR3_EL1.SDERR is 0b0000,
     // then the behavior is not described. Otherwise, the behavior is described
     // by ID_AA64MMFR3_EL1.SDERR.
@@ -910,7 +910,7 @@ enum id_aa64mmfr3_aderr_support {
     ID_AA64MMFR3_ADERR_SUPPORT_FEAT_ADERR,
 };
 
-enum id_aa64mmfr3_flags {
+enum id_aa64mmfr3_flags : uint64_t {
     // TCR2_EL1, TCR2_EL2 and their associated trap controls are implemented.
     __ID_AA64MMFR3_TCRX = 0b1111ull << 0,
     // SCTLR2_EL1, SCTLR2_EL2 and their associated trap controls are
@@ -942,12 +942,12 @@ enum id_aa64mmfr3_flags {
     __ID_AA64MMFR3_SPEC_FPACC = 0b1111ull << 60,
 };
 
-enum id_aa64mmfr4_shifts {
+enum id_aa64mmfr4_shifts : uint8_t {
     ID_AA64MMFR4_EIESB_SHIFT = 0
 };
 
 // EIESB = Early Implicit Error Synchronization event
-enum id_aa64mmfr4_eiesb {
+enum id_aa64mmfr4_eiesb : uint8_t {
     // Behavior is not described.
     ID_AA64MMFR4_EIESB_NO_DESC,
     // When SError exceptions are routed to EL3, and either FEAT_DoubleFault is
@@ -964,13 +964,13 @@ enum id_aa64mmfr4_eiesb {
     ID_AA64MMFR4_EIESB_TAKEN = 0b1111,
 };
 
-enum id_aa64mmfr4_flags {
+enum id_aa64mmfr4_flags : uint8_t {
     __ID_AA64MMFR4_EIESB = 0b1111 << 0,
 };
 
 #define ID_AA64MMFR0_SME_VERSION_SHIFT 56
 
-enum id_aa64mmfr0_sme_version {
+enum id_aa64mmfr0_sme_version : uint8_t {
     ID_AA64MMFR0_SME_VERSION_FEAT_SME,
     // As 0b0000, and adds the mandatory SME2 instructions.
     ID_AA64MMFR0_SME_VERSION_FEAT_SME2,
@@ -978,7 +978,7 @@ enum id_aa64mmfr0_sme_version {
     ID_AA64MMFR0_SME_VERSION_FEAT_SME2p1,
 };
 
-enum id_aa64smfr0_flags {
+enum id_aa64smfr0_flags : uint64_t {
     // The FMOPA and FMOPS instructions that accumulate single-precision outer
     // products into single-precision tiles are implemented.
     __ID_AA64SMFR0_F32F32 = 1ull << 32,
@@ -1027,13 +1027,13 @@ enum id_aa64smfr0_flags {
     __ID_AA64SMFR0_FA64 = 1ull << 57,
 };
 
-enum id_aa64zfr0_el1_shifts {
+enum id_aa64zfr0_el1_shifts : uint8_t {
     ID_AA64ZFR0_EL1_SVE_SUPPORT_SHIFT = 0,
     ID_AA64ZFR0_EL1_SVE_AES_SUPPORT_SHIFT = 4,
     ID_AA64ZFR0_EL1_SVE_BF16_SUPPORT_SHIFT = 20,
 };
 
-enum id_aa64zfr0_el1_sve_support {
+enum id_aa64zfr0_el1_sve_support : uint8_t {
     // The SVE instructions are implemented.
     ID_AA64ZFR0_EL1_SVE_SUPPORT_SVE,
     // As 0b0000, and adds the mandatory SVE2 instructions.
@@ -1042,7 +1042,7 @@ enum id_aa64zfr0_el1_sve_support {
     ID_AA64ZFR0_EL1_SVE_SUPPORT_SVE2p1,
 };
 
-enum id_aa64zfr0_el1_sve_aes_support {
+enum id_aa64zfr0_el1_sve_aes_support : uint8_t {
     // SVE AES* instructions are not implemented.
     ID_AA64ZFR0_EL1_SVE_AVS_SUPPORT_NONE,
     // SVE AESE, AESD, AESMC, and AESIMC instructions are implemented.
@@ -1052,7 +1052,7 @@ enum id_aa64zfr0_el1_sve_aes_support {
     ID_AA64ZFR0_EL1_SVE_AES_SUPPORT_FEAT_SVE_PMULL128,
 };
 
-enum id_aa64zfr0_el1_sve_bf16_support {
+enum id_aa64zfr0_el1_sve_bf16_support : uint8_t {
     // SVE BFloat16 instructions are not implemented.
     ID_AA64ZFR0_EL1_SVE_BF16_SUPPORT_NONE,
     // SVE BFCVT, BFCVTNT, BFDOT, BFMLALB, BFMLALT, and BFMMLA instructions are
@@ -1062,7 +1062,7 @@ enum id_aa64zfr0_el1_sve_bf16_support {
     ID_AA64ZFR0_EL1_SVE_BF16_SUPPORT_FEAT_EBF16,
 };
 
-enum id_aa64zfr0_el1_flags {
+enum id_aa64zfr0_el1_flags : uint64_t {
     __ID_AA64ZFR0_EL1_SVEVER = 0b1111ull << 0,
     __ID_AA64ZFR0_EL1_SVE_AES = 0b1111ull << 4,
     // 8 bits unused
@@ -1092,7 +1092,7 @@ enum id_aa64zfr0_el1_flags {
 #define ID_AA64DFR0_EL1_PMS_SUPPORT_SHIFT 32
 #define ID_AA64DFR0_EL1_MTPMU_SUPPORT_SHIFT 48
 
-enum id_aa64dfr0_el1_debug_version_support {
+enum id_aa64dfr0_el1_debug_version_support : uint8_t {
     // Armv8 debug architecture.
     ID_AA64DFR0_EL1_DEBUG_VERSION_SUPPORT_DEFAULT = 0b110,
     // Armv8 debug architecture with Virtualization Host Extensions.
@@ -1110,7 +1110,7 @@ enum id_aa64dfr0_el1_debug_version_support {
 };
 
 // PMU = Performance Monitors Extension version.
-enum id_aa64dfr0_el1_pmu_support {
+enum id_aa64dfr0_el1_pmu_support : uint8_t {
     // Performance Monitors Extension not implemented.
     ID_AA64DFR0_EL1_PMU_SUPPORT_NONE,
     // Performance Monitors Extension, PMUv3 implemented.
@@ -1146,7 +1146,7 @@ enum id_aa64dfr0_el1_pmu_support {
 };
 
 // PMS = Statistical Profiling Extension
-enum id_aa64dfr0_el1_pms_support {
+enum id_aa64dfr0_el1_pms_support : uint8_t {
     // Statistical Profiling Extension not implemented.
     ID_AA64DFR0_EL1_PMS_SUPPORT_NONE,
     // Statistical Profiling Extension implemented.
@@ -1181,7 +1181,7 @@ enum id_aa64dfr0_el1_pms_support {
 };
 
 // MTPMU = Multi-threaded PMU extension
-enum id_aa64dfr0_el1_mtpmu_support {
+enum id_aa64dfr0_el1_mtpmu_support : uint8_t {
     ID_AA64DFR0_EL1_MTPMU_SUPPORT_NONE,
     // FEAT_MTPMU and FEAT_PMUv3 implemented. PMEVTYPER<n>_EL0.MT and
     // PMEVTYPER<n>.MT are read/write. When FEAT_MTPMU is disabled, the
@@ -1193,7 +1193,7 @@ enum id_aa64dfr0_el1_mtpmu_support {
 };
 
 // BRBE = Branch Record Buffer Extension
-enum id_aa64dfr0_el1_brbe_support {
+enum id_aa64dfr0_el1_brbe_support : uint8_t {
     ID_AA64DFR0_EL1_BRBE_SUPPORT_NONE,
     // Branch Record Buffer Extension implemented.
     ID_AA64DFR0_EL1_BRBE_SUPPORT_FEAT_BRBE,
@@ -1201,7 +1201,7 @@ enum id_aa64dfr0_el1_brbe_support {
     ID_AA64DFR0_EL1_BRBE_SUPPORT_FEAT_BRBEv1p1 = 0b1111,
 };
 
-enum id_aa64dfr0_el1_shifts {
+enum id_aa64dfr0_el1_shifts : uint8_t {
     IO_AA64DFR0_EL1_PMUVER_SHIFT = 8,
     IO_AA64DFR0_EL1_BRPS_SHIFT = 12,
     IO_AA64DFR0_EL1_WRPS_SHIFT = 20,
@@ -1210,7 +1210,7 @@ enum id_aa64dfr0_el1_shifts {
     IO_AA64DFR0_EL1_BRBE_SHIFT = 52,
 };
 
-enum id_aa64dfr0_el1_flags {
+enum id_aa64dfr0_el1_flags : uint64_t {
     __ID_AA64DFR0_EL1_DEBUG_VERSION = 0b1111ull << 0,
     // Trace unit System registers implemented.
     __ID_AA64DFR0_EL1_TRACE_VERSION = 0b1111ull << 4,
@@ -1250,14 +1250,14 @@ enum id_aa64dfr0_el1_flags {
     __ID_AA64DFR0_EL1_HPMN0 = 0b1111ull << 60,
 };
 
-enum id_aa64dfr1_el1_shifts {
+enum id_aa64dfr1_el1_shifts : uint8_t {
     __ID_AA64DFR1_EL1_BRPS_SHIFT = 8,
     __ID_AA64DFR1_EL1_WRPS_SHIFT = 16,
     __ID_AA64DFR1_EL1_CTX_CMPS_SHIFT = 24,
     __ID_AA64DFR1_EL1_ABL_CMPS_SHIFT = 56,
 };
 
-enum id_aa64dfr1_el1_flags {
+enum id_aa64dfr1_el1_flags : uint64_t {
     // The largest supported value that can be written to SPMSELR_EL0.SYSPMUSEL.
     __ID_AA64DFR1_EL1_SYSPMUID = 0xffull << 0,
     // If 0, ID_AA64DFR0_EL1.BRPs is the number of breakpoints, minus 1,

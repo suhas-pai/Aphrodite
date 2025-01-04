@@ -21,7 +21,7 @@
 #include "sched/thread.h"
 #include "sys/mmio.h"
 
-enum gicv3_control_flags {
+enum gicv3_control_flags : uint32_t {
     __GICDV3_CTRL_ENABLE_GROUP_0 = 1ull << 0,
     __GICDV3_CTRL_ENABLE_GROUP_1_NON_SECURE = 1ull << 1,
     __GICDV3_CTRL_ENABLE_GROUP_1_SECURE = 1ull << 2,
@@ -61,16 +61,16 @@ struct gicd_v3_registers {
     volatile _Atomic uint32_t irq_router[32];
 };
 
-enum gicv3_redist_control_flags {
+enum gicv3_redist_control_flags : uint8_t {
     __GICV3_REDIST_CONTROL_ENABLE_LPIS = 1ull << 0,
     __GICV3_REDIST_CONTROL_RWP = 1ull << 3,
 };
 
-enum gicv3_redist_typer_shifts {
+enum gicv3_redist_typer_shifts : uint8_t {
     GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT = 8,
 };
 
-enum gicv3_redist_typer_flags {
+enum gicv3_redist_typer_flags : uint64_t{
     __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS = 1ull << 0,
     __GICV3_REDIST_TYPER_LAST = 1ull << 4,
     __GICV3_REDIST_TYPER_AFFINITY = 0xFFFFFFFFull << 32,
@@ -78,25 +78,25 @@ enum gicv3_redist_typer_flags {
         0xFFFFull << GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT,
 };
 
-enum gicv3_redist_waker_flags {
+enum gicv3_redist_waker_flags : uint8_t {
     __GICV3_REDIST_WAKER_PROCESSOR_ASLEEP = 1ull << 1,
     __GICV3_REDIST_WAKER_CHILDREN_ASLEEP = 1ull << 2,
 };
 
-enum gicv3_redist_prop_baser_shifts {
+enum gicv3_redist_prop_baser_shifts : uint8_t {
     GICV3_REDIST_PROP_BASER_PHYS_ADDR_SHIFT = 12
 };
 
-enum gicv3_redist_pend_baser_shifts {
+enum gicv3_redist_pend_baser_shifts : uint8_t {
     GICV3_REDIST_PEND_BASER_PHYS_ADDR_SHIFT = 16
 };
 
-enum gicv3_redist_prop_baser_flags {
+enum gicv3_redist_prop_baser_flags : uint64_t {
     __GICV3_REDIST_PROP_BASER_PHYS_ADDR =
         mask_for_n_bits(40) << GICV3_REDIST_PROP_BASER_PHYS_ADDR_SHIFT
 };
 
-enum gicv3_redist_pend_baser_flags {
+enum gicv3_redist_pend_baser_flags : uint64_t {
     __GICV3_REDIST_PEND_BASER_PHYS_ADDR =
         mask_for_n_bits(36) << GICV3_REDIST_PEND_BASER_PHYS_ADDR_SHIFT
 };
@@ -118,22 +118,22 @@ struct gicv3_redist_registers {
     volatile struct gicd_v3_registers dist;
 };
 
-enum icc_sre_flags {
+enum icc_sre_flags : uint8_t {
     __ICC_SRE_ENABLE = 1 << 0,
     __ICC_SRE_DISABLE_IRQ_BYPASS = 1 << 1,
     __ICC_SRE_DISABLE_FIQ_BYPASS = 1 << 2
 };
 
-enum icc_ctlr_flags {
+enum icc_ctlr_flags : uint8_t {
     __ICC_CTLR_EOI_DEACTIVATE = 1 << 1
 };
 
-enum icc_sgi1r_routing_mode {
+enum icc_sgi1r_routing_mode : uint8_t {
     ICC_SGI1R_ROUTING_MODE_TARGET_LIST,
     ICC_SGI1R_ROUTING_MODE_ALL_BUT_SELF,
 };
 
-enum icc_sgi1r_shifts {
+enum icc_sgi1r_shifts : uint8_t {
     ICC_SGI1R_AFF1_SHIFT = 16,
     ICC_SGI1R_INTR_ID_SHIFT = 24,
     ICC_SGI1R_AFF2_SHIFT = 32,
@@ -141,7 +141,7 @@ enum icc_sgi1r_shifts {
     ICC_SGI1R_AFF3_SHIFT = 48,
 };
 
-enum icc_sgi1r_flags {
+enum icc_sgi1r_flags : uint64_t {
     __ICC_SGI1R_TARGET_LIST = 0xFFFFull,
     __ICC_SGI1R_AFF1 = 0xFFull << ICC_SGI1R_AFF1_SHIFT,
     __ICC_SGI1R_INTR_ID = 0xFull << ICC_SGI1R_AFF1_SHIFT,
@@ -150,10 +150,10 @@ enum icc_sgi1r_flags {
     __ICC_SGI1R_AFF3 = 0xFFull << ICC_SGI1R_AFF3_SHIFT,
 };
 
-volatile static struct gicd_v3_registers *g_dist_regs = NULL;
+volatile static struct gicd_v3_registers *g_dist_regs = nullptr;
 
-static struct mmio_region *g_dist_mmio = NULL;
-static struct mmio_region *g_redist_mmio = NULL;
+static struct mmio_region *g_dist_mmio = nullptr;
+static struct mmio_region *g_redist_mmio = nullptr;
 
 static bool g_gic_initialized = false;
 
@@ -207,7 +207,7 @@ __debug_optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
 
 __debug_optimize(3) isr_vector_t
 gicdv3_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
-    struct gic_its_info *its = NULL;
+    struct gic_its_info *its = nullptr;
     list_foreach(its, gic_its_get_list(), list) {
         const isr_vector_t vector =
             gic_its_alloc_msi_vector(its, device, msi_index);
@@ -225,7 +225,7 @@ gicdv3_free_msi_vector(struct device *const device,
                        const isr_vector_t vector,
                        const uint16_t msi_index)
 {
-    struct gic_its_info *its = NULL;
+    struct gic_its_info *its = nullptr;
     list_foreach(its, gic_its_get_list(), list) {
         gic_its_free_msi_vector(its, device, vector, msi_index);
     }
@@ -340,13 +340,13 @@ __debug_optimize(3)
 volatile uint64_t *gicdv3_get_msi_address(const isr_vector_t vector) {
     (void)vector;
 
-    struct gic_its_info *its = NULL;
+    struct gic_its_info *its = nullptr;
     list_foreach(its, gic_its_get_list(), list) {
         volatile uint64_t *const address = gic_its_get_msi_address(its);
         return address;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 __debug_optimize(3) enum isr_msi_support gicdv3_get_msi_support() {
@@ -425,7 +425,7 @@ void gic_redist_init_on_this_cpu() {
                                  /*align=*/16,
                                  GIC_REDIST_PENDING_ALLOC_ORDER);
 
-        assert_msg(pend_page != NULL,
+        assert_msg(pend_page != nullptr,
                    "gicv3: failed to alloc pending page for redistributor\n");
 
         struct page *const prop_page =
@@ -433,7 +433,7 @@ void gic_redist_init_on_this_cpu() {
                         __ALLOC_ZERO,
                         GIC_REDIST_PROP_ALLOC_ORDER);
 
-        assert_msg(prop_page != NULL,
+        assert_msg(prop_page != nullptr,
                    "gicv3: failed to alloc pending page for redistributor\n");
 
         const uint64_t pend_phys = page_to_phys(pend_page);
@@ -560,7 +560,7 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
     }
 
     g_dist_mmio = vmap_mmio(mmio_range, PROT_READ | PROT_WRITE, /*flags=*/0);
-    if (g_dist_mmio == NULL) {
+    if (g_dist_mmio == nullptr) {
         printk(LOGLEVEL_WARN, "gic: failed to mmio-map dist registers\n");
         return false;
     }
@@ -568,7 +568,7 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
     g_redist_mmio =
         vmap_mmio(redist_range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
-    if (g_redist_mmio == NULL) {
+    if (g_redist_mmio == nullptr) {
         printk(LOGLEVEL_WARN, "gic: failed to mmio-map redist range\n");
         vunmap_mmio(g_dist_mmio);
 
@@ -596,7 +596,7 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
     const struct devicetree_prop *const intr_controller_node =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
-    if (intr_controller_node == NULL) {
+    if (intr_controller_node == nullptr) {
         printk(LOGLEVEL_WARN,
                "gicv3: dtb-node is missing interrupt-controller property\n");
         return false;
@@ -606,7 +606,7 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
-    if (reg_prop == NULL) {
+    if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN, "gicv3: dtb-node is missing reg property\n");
         return false;
     }
@@ -643,7 +643,7 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
         devicetree_node_get_other_prop(node,
                                        SV_STATIC("#redistributor-regions"));
 
-    if (redist_count_prop == NULL) {
+    if (redist_count_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "gicv3: '#redistributor-regions' prop is missing\n");
         return false;

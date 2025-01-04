@@ -63,12 +63,12 @@ string_append_char(struct string *const string,
                    const uint32_t amount)
 {
     if (__builtin_expect(!prepare_append(string, amount), 0)) {
-        return NULL;
+        return nullptr;
     }
 
     if (__builtin_expect(!gbuffer_append_byte(&string->gbuffer, ch, amount), 0))
     {
-        return NULL;
+        return nullptr;
     }
 
     set_null_terminator(string);
@@ -79,12 +79,12 @@ __debug_optimize(3) struct string *
 string_append_sv(struct string *const string, const struct string_view sv) {
     if (__builtin_expect(!prepare_append(string, sv.length), 0)) {
         gbuffer_destroy(&string->gbuffer);
-        return NULL;
+        return nullptr;
     }
 
     if (__builtin_expect(!gbuffer_append_sv(&string->gbuffer, sv), 0)) {
         gbuffer_destroy(&string->gbuffer);
-        return NULL;
+        return nullptr;
     }
 
     set_null_terminator(string);
@@ -114,13 +114,13 @@ string_append_vformat(struct string *const string,
 __debug_optimize(3) struct string *
 string_append(struct string *const string, const struct string *const append) {
     if (__builtin_expect(!prepare_append(string, string_length(*string)), 0)) {
-        return NULL;
+        return nullptr;
     }
 
     if (__builtin_expect(
             gbuffer_append_gbuffer_data(&string->gbuffer, &append->gbuffer), 0))
     {
-        return NULL;
+        return nullptr;
     }
 
     set_null_terminator(string);
@@ -168,7 +168,7 @@ string_remove_range(struct string *const string, const struct range range) {
 __debug_optimize(3)
 int64_t string_find_char(struct string *const string, char ch) {
     char *const result = strchr(string->gbuffer.begin, ch);
-    if (result != NULL) {
+    if (result != nullptr) {
         return ((int64_t)result - (int64_t)string->gbuffer.begin);
     }
 
@@ -213,7 +213,7 @@ struct string_view string_to_sv(const struct string string) {
 }
 
 __debug_optimize(3) const char *string_to_cstr(const struct string string) {
-    assert(string.gbuffer.begin != NULL);
+    assert(string.gbuffer.begin != nullptr);
     return string.gbuffer.begin;
 }
 

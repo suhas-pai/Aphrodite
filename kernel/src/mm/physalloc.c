@@ -71,7 +71,7 @@ __debug_optimize(3) uint64_t physalloc(const uint32_t size) {
     uint64_t offset = 0;
     struct page *const page = slab_alloc2(allocator, &offset);
 
-    if (page == NULL) {
+    if (page == nullptr) {
         return INVALID_PHYS;
     }
 
@@ -105,7 +105,7 @@ uint64_t physalloc_size(const uint32_t size, uint32_t *const size_out) {
     uint64_t offset = 0;
     struct page *const page = slab_alloc2(allocator, &offset);
 
-    if (page == NULL) {
+    if (page == nullptr) {
         return INVALID_PHYS;
     }
 

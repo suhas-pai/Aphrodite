@@ -46,7 +46,7 @@
 #define PHZ_SV_ABBREV SV_STATIC(C_STR_PHZ_ABBREV)
 #define EHZ_SV_ABBREV SV_STATIC(C_STR_EHZ_ABBREV)
 
-enum freq_unit_kind {
+enum freq_unit_kind : uint64_t {
     FREQ_UNIT_KIND_HZ = 1,
     FREQ_UNIT_KIND_KHZ = khz(1),
     FREQ_UNIT_KIND_MHZ = mhz(1),

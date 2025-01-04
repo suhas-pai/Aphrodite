@@ -17,7 +17,7 @@
 static struct address_space mmio_space = ADDRSPACE_INIT(mmio_space);
 static struct spinlock g_mmio_space_lock = SPINLOCK_INIT();
 
-enum prot_fail {
+enum prot_fail : uint8_t {
     PROT_FAIL_NONE,
     PROT_FAIL_PROT_NONE,
     PROT_FAIL_PROT_EXEC,
@@ -88,12 +88,12 @@ map_mmio_region(const struct range phys_range,
         range_create_end(VMAP_BASE + GUARD_PAGE_SIZE, VMAP_END);
 
     struct mmio_region *const mmio = kmalloc(sizeof(*mmio));
-    if (mmio == NULL) {
+    if (mmio == nullptr) {
         printk(LOGLEVEL_WARN,
                "vmap_mmio(): failed to allocate mmio_region to map phys-range "
                RANGE_FMT "\n",
                RANGE_FMT_ARGS(phys_range));
-        return NULL;
+        return nullptr;
     }
 
     mmio->node = ADDRSPACE_NODE_INIT(mmio->node, &mmio_space);
@@ -111,7 +111,7 @@ map_mmio_region(const struct range phys_range,
                "to map phys-range " RANGE_FMT "\n",
                RANGE_FMT_ARGS(phys_range));
 
-        return NULL;
+        return nullptr;
     }
 
     struct range virt_range = RANGE_EMPTY();
@@ -124,7 +124,7 @@ map_mmio_region(const struct range phys_range,
                "phys-range " RANGE_FMT " overflows\n",
                RANGE_FMT_ARGS(phys_range));
 
-        return NULL;
+        return nullptr;
     }
 
     const bool map_success =
@@ -145,7 +145,7 @@ map_mmio_region(const struct range phys_range,
                RANGE_FMT_ARGS(phys_range),
                RANGE_FMT_ARGS(virt_range));
 
-        return NULL;
+        return nullptr;
     }
 
     mmio->base = (volatile void *)virt_addr;
@@ -162,7 +162,7 @@ vmap_mmio(const struct range phys_range,
     if (__builtin_expect(range_empty(phys_range), 0)) {
         printk(LOGLEVEL_WARN,
                "vmap_mmio(): attempting to map empty phys-range\n");
-        return NULL;
+        return nullptr;
     }
 
     if (__builtin_expect(!range_has_align(phys_range, PAGE_SIZE), 0)) {
@@ -170,7 +170,7 @@ vmap_mmio(const struct range phys_range,
                "vmap_mmio(): phys-range " RANGE_FMT " isn't aligned to the "
                "page size\n",
                RANGE_FMT_ARGS(phys_range));
-        return NULL;
+        return nullptr;
     }
 
     switch (verify_prot(prot)) {
@@ -181,19 +181,19 @@ vmap_mmio(const struct range phys_range,
                    "vmap_mmio(): attempting to map mmio range " RANGE_FMT " "
                    "w/o access permissions\n",
                    RANGE_FMT_ARGS(phys_range));
-            return NULL;
+            return nullptr;
         case PROT_FAIL_PROT_EXEC:
             printk(LOGLEVEL_WARN,
                    "vmap_mmio(): attempting to map mmio range " RANGE_FMT " "
                    "with execute permissions\n",
                    RANGE_FMT_ARGS(phys_range));
-            return NULL;
+            return nullptr;
         case PROT_FAIL_PROT_USER:
             printk(LOGLEVEL_WARN,
                    "vmap_mmio(): attempting to map mmio range " RANGE_FMT " "
                    "with user permissions\n",
                    RANGE_FMT_ARGS(phys_range));
-            return NULL;
+            return nullptr;
     }
 
     return map_mmio_region(phys_range, prot, flags);
@@ -211,7 +211,7 @@ bool vunmap_mmio(struct mmio_region *const region) {
     const bool result =
         pgunmap_at(&kernel_process.pagemap,
                    virt_range,
-                   /*map_options=*/NULL,
+                   /*map_options=*/nullptr,
                    &options);
 
     if (!result) {

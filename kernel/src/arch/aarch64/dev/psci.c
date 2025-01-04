@@ -118,7 +118,7 @@ psci_init_from_dtb(const struct devicetree *const tree,
     const struct devicetree_prop_other *const method_prop =
         devicetree_node_get_other_prop(node, SV_STATIC("method"));
 
-    if (method_prop == NULL) {
+    if (method_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "psci: dtb node is missing \"method\" prop in dtb\n");
         return false;
@@ -154,7 +154,7 @@ psci_init_from_dtb(const struct devicetree *const tree,
         const struct devicetree_prop_other *const key_prop =
             devicetree_node_get_other_prop(node, key);
 
-        if (key_prop == NULL) {
+        if (key_prop == nullptr) {
             continue;
         }
 

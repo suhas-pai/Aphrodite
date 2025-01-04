@@ -218,7 +218,7 @@ __debug_optimize(3) void gic_set_version(const uint8_t version) {
 
 void gic_init_from_dtb() {
     struct devicetree *const tree = dtb_get_tree();
-    if (boot_get_dtb() == NULL) {
+    if (boot_get_dtb() == nullptr) {
         return;
     }
 

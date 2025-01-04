@@ -10,12 +10,12 @@
 #include "cpu/util.h"
 #include "lib/assert.h"
 
-__noreturn void cpu_idle() {
+[[noreturn]] void cpu_idle() {
     assert(intr_are_enabled());
     cpu_halt();
 }
 
-__noreturn void cpu_halt() {
+[[noreturn]] void cpu_halt() {
     while (true) {
         asm volatile ("idle 0");
     }

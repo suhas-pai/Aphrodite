@@ -15,7 +15,7 @@
 #define PCI_ENTITY_MAX_BAR_COUNT 6
 #define PCI_ENTITY_MAX_MSIX_TABLE_SIZE 2048
 
-enum pci_entity_msi_support {
+enum pci_entity_msi_support : uint8_t {
     PCI_ENTITY_MSI_SUPPORT_NONE,
     PCI_ENTITY_MSI_SUPPORT_MSI,
     PCI_ENTITY_MSI_SUPPORT_MSIX,
@@ -104,7 +104,7 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *entity,
                                   isr_vector_t vector,
                                   bool mask);
 
-enum pci_entity_privilege {
+enum pci_entity_privilege : uint16_t {
     __PCI_ENTITY_PRIVL_PIO_ACCESS = 1ull << 0,
     __PCI_ENTITY_PRIVL_MEM_ACCESS = 1ull << 1,
     __PCI_ENTITY_PRIVL_BUS_MASTER = 1ull << 2,

@@ -30,7 +30,7 @@
 #define CPUID_VENDOR_MICROSOFT_HV "Microsoft Hv"
 #define CPUID_VENDOR_PARALLELS    " lrpepyh vr"
 
-enum {
+enum : uint32_t {
     __CPUID_FEAT_EAX_AVXVNNI = 1ull << 4,
     __CPUID_FEAT_EAX_AVX512BF16 = 1ull << 5,
     __CPUID_FEAT_EAX_HRESET = 1ull << 22,
@@ -678,7 +678,7 @@ enum {
     __CPUID_FEAT_XSAVE_ECX1_EAX_SUPPORTS_XFD = 1ull << 4
 };
 
-enum cpuid_requests {
+enum cpuid_requests : uint32_t {
     CPUID_GET_VENDOR_STRING,
     CPUID_GET_FEATURES,
     CPUID_GET_CACHE_DESCRIPTORS,

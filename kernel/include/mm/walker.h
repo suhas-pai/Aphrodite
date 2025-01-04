@@ -42,8 +42,8 @@ struct pg_walker {
         .indices = {0}, \
         .level = 0, \
         .top_level = 0, \
-        .alloc_pgtable = NULL, \
-        .free_pgtable = NULL \
+        .alloc_pgtable = nullptr, \
+        .free_pgtable = nullptr \
     })
 
 uint64_t
@@ -87,7 +87,7 @@ pgwalker_create_from_toplevel(struct pg_walker *walker,
                               pgwalker_alloc_pgtable_t alloc_pgtable,
                               pgwalker_free_pgtable_t free_pgtable);
 
-enum pgwalker_result {
+enum pgwalker_result : uint8_t {
     E_PGWALKER_OK,
     E_PGWALKER_REACHED_END,
     E_PGWALKER_ALLOC_FAIL,

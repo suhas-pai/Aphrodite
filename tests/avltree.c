@@ -33,15 +33,15 @@ static void insert_node(struct avltree *const tree, const uint32_t number) {
         avltree_insert(tree,
                        (struct avlnode *)avl_node,
                        compare,
-                       /*update=*/NULL,
-                       /*added_node=*/NULL);
+                       /*update=*/nullptr,
+                       /*added_node=*/nullptr);
 
     assert(result);
 }
 
 void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
     (void)cb_info;
-    if (avlnode == NULL) {
+    if (avlnode == nullptr) {
         printf("(null)");
         return;
     }
@@ -60,7 +60,7 @@ void avlnode_print_sv_cb(const struct string_view sv, void *const cb_info) {
 }
 
 static void print_tree(struct avltree *const tree) {
-    avltree_print(tree, avlnode_print_node_cb, avlnode_print_sv_cb, NULL);
+    avltree_print(tree, avlnode_print_node_cb, avlnode_print_sv_cb, nullptr);
 }
 
 void test_avltree() {
@@ -79,16 +79,16 @@ void test_avltree() {
     print_tree(&tree);
     const avlnode_compare_key_t compare_identity = identify;
 
-    free(avltree_delete(&tree, (void *)53, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)11, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)21, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)9, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)8, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)61, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)33, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)73, compare_identity, NULL));
-    free(avltree_delete(&tree, (void *)71, compare_identity, NULL));
+    free(avltree_delete(&tree, (void *)53, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)11, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)21, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)9, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)8, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)61, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)33, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)73, compare_identity, nullptr));
+    free(avltree_delete(&tree, (void *)71, compare_identity, nullptr));
 
     printf("After deleting, tree should be null\n");
-    assert(tree.root == NULL);
+    assert(tree.root == nullptr);
 }

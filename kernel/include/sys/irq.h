@@ -8,12 +8,12 @@
 #include "cpu/isr.h"
 #include "sys/irqdef.h"
 
-enum irq_polarity {
+enum irq_polarity : uint8_t {
     IRQ_POLARITY_LOW,
     IRQ_POLARITY_HIGH,
 };
 
-enum irq_trigger_mode {
+enum irq_trigger_mode : uint8_t {
     IRQ_TRIGGER_MODE_EDGE,
     IRQ_TRIGGER_MODE_LEVEL,
 };

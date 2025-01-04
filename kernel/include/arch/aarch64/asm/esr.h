@@ -6,7 +6,7 @@
 #pragma once
 #include "lib/macros.h"
 
-enum esr_instr_length_encoding {
+enum esr_instr_length_encoding : uint8_t {
     ESR_INSTR_LENGTH_ENCODING_16B,
 
     /*
@@ -28,7 +28,7 @@ enum esr_instr_length_encoding {
     ESR_INSTR_LENGTH_ENCODING_32B,
 };
 
-enum esr_error_code {
+enum esr_error_code : uint8_t {
     ESR_ERROR_CODE_UNKNOWN,
     ESR_ERROR_CODE_TRAPPED_WF,
 
@@ -99,7 +99,7 @@ enum esr_error_code {
     ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH64 = 0b111100,
 };
 
-enum esr_serror_aet_kind {
+enum esr_serror_aet_kind : uint8_t {
     ESR_SERROR_AET_KIND_UNCONTAINABLE,
     ESR_SERROR_AET_KIND_UNRECOVERABLE,
     ESR_SERROR_AET_KIND_RESTARTABLE,
@@ -107,12 +107,12 @@ enum esr_serror_aet_kind {
     ESR_SERROR_AET_KIND_CORRECTED = 6,
 };
 
-enum esr_serror_dfsc_kind {
+enum esr_serror_dfsc_kind : uint8_t {
     ESR_SERROR_DFSC_KIND_UNCATEGORIZED,
     ESR_SERROR_DFSC_KIND_ASYNC_ERROR = 0b10001
 };
 
-enum esr_serror_shifts {
+enum esr_serror_shifts : uint8_t {
     ESR_SERROR_EXT_ABORT_SHIFT = 9,
     ESR_SERROR_AET_SHIFT,
     ESR_SERROR_IESB_SHIFT = 13,
@@ -120,13 +120,13 @@ enum esr_serror_shifts {
     ESR_SERROR_IDS_SHIFT,
 };
 
-enum esr_shifts {
+enum esr_shifts : uint8_t {
     ESR_INSTR_LENGTH_ENCODING_SHIFT,
     ESR_ERROR_CODE_SHIFT,
     ESR_ISS2_SHIFT = 32
 };
 
-enum esr_flags {
+enum esr_flags : uint64_t {
     __ESR_INSTR_LENGTH_ENCODING = 0b1 << ESR_INSTR_LENGTH_ENCODING_SHIFT,
     __ESR_ERROR_CODE = mask_for_n_bits(6) << ESR_ERROR_CODE_SHIFT,
 

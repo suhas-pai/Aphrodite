@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 
-enum scsi_command {
+enum scsi_command : uint8_t {
     SCSI_CMD_IDENTIFY,
     SCSI_CMD_READ,
     SCSI_CMD_WRITE,

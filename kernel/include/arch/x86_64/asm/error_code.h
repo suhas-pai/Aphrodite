@@ -4,8 +4,9 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-enum page_fault_error_code_flags {
+enum page_fault_error_code_flags : uint16_t {
     __PAGE_FAULT_ERROR_CODE_PRESENT = 1 << 0,
     __PAGE_FAULT_ERROR_CODE_WRITE = 1 << 1,
     __PAGE_FAULT_ERROR_CODE_USER = 1 << 2,

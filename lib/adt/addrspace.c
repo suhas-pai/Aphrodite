@@ -15,9 +15,9 @@
 
 __debug_optimize(3)
 struct addrspace_node *addrspace_node_prev(struct addrspace_node *const node) {
-    assert(node->list.prev != NULL);
+    assert(node->list.prev != nullptr);
     if (node->list.prev == &node->addrspace->list) {
-        return NULL;
+        return nullptr;
     }
 
     return parent_of(node->list.prev, struct addrspace_node, list);
@@ -26,13 +26,13 @@ struct addrspace_node *addrspace_node_prev(struct addrspace_node *const node) {
 __debug_optimize(3)
 struct addrspace_node *addrspace_node_next(struct addrspace_node *const node) {
     if (node->list.prev == &node->addrspace->list) {
-        return NULL;
+        return nullptr;
     }
 
     return parent_of(node->list.next, struct addrspace_node, list);
 }
 
-enum traversal_result {
+enum traversal_result : uint8_t {
     TRAVERSAL_DONE,
     TRAVERSAL_CONTINUE,
 };
@@ -51,7 +51,7 @@ traverse_tree(const struct address_space *const addrspace,
     while (true) {
         struct addrspace_node *const prev = addrspace_node_prev(node);
         const uint64_t prev_end =
-            prev != NULL ? range_get_end_assert(prev->range) : 0;
+            prev != nullptr ? range_get_end_assert(prev->range) : 0;
 
         // prev_end is the lowest possible address we can find a hole at, so if
         // prev_end is above in_range, then we can't find an acceptable free
@@ -84,7 +84,7 @@ traverse_tree(const struct address_space *const addrspace,
         // We fell outside of the free area we found, but we can proceed to the
         // right and find another free area (then from the left).
 
-        if (node->avlnode.right != NULL) {
+        if (node->avlnode.right != nullptr) {
             struct addrspace_node *const right =
                 addrspace_node_of(node->avlnode.right);
 
@@ -98,7 +98,7 @@ traverse_tree(const struct address_space *const addrspace,
         // node and proceed with the loop from there.
 
         while (true) {
-            if (node->avlnode.parent == NULL) {
+            if (node->avlnode.parent == nullptr) {
                 // Since we're at the root, we can only see if there's space to
                 // our right.
 
@@ -118,7 +118,7 @@ traverse_tree(const struct address_space *const addrspace,
                 }
 
                 uint64_t end = 0;
-                if (!check_add(aligned_result, size, &end)) {
+                if (!ckd_add(&end, aligned_result, size)) {
                     *result_out = ADDRSPACE_INVALID_ADDR;
                     return TRAVERSAL_DONE;
                 }
@@ -152,7 +152,7 @@ find_from_start(const struct address_space *const addrspace,
                 const uint8_t pagesize_order,
                 struct addrspace_node **const prev_out)
 {
-    if (addrspace->avltree.root == NULL) {
+    if (addrspace->avltree.root == nullptr) {
         const uint64_t aligned_front =
             align_up_assert(in_range.front, PAGE_SIZE << pagesize_order);
 
@@ -161,7 +161,7 @@ find_from_start(const struct address_space *const addrspace,
             return ADDRSPACE_INVALID_ADDR;
         }
 
-        *prev_out = NULL;
+        *prev_out = nullptr;
         return aligned_front;
     }
 
@@ -175,7 +175,7 @@ find_from_start(const struct address_space *const addrspace,
         // Move to the very left of the address space to find the left-most free
         // area available.
 
-        if (node->avlnode.left != NULL
+        if (node->avlnode.left != nullptr
          && range_is_loc_above(in_range, node->range.front))
         {
             struct addrspace_node *const left =
@@ -212,10 +212,10 @@ __debug_optimize(3) static void avltree_update(struct avlnode *const avlnode) {
     struct addrspace_node *const prev = addrspace_node_prev(node);
 
     const uint64_t prev_end =
-        prev != NULL ? range_get_end_assert(prev->range) : 0;
+        prev != nullptr ? range_get_end_assert(prev->range) : 0;
 
     uint64_t largest_free_to_prev = distance(prev_end, node->range.front);
-    if (node->avlnode.left != NULL) {
+    if (node->avlnode.left != nullptr) {
         struct addrspace_node *const left =
             addrspace_node_of(node->avlnode.left);
 
@@ -223,7 +223,7 @@ __debug_optimize(3) static void avltree_update(struct avlnode *const avlnode) {
             max(largest_free_to_prev, left->largest_free_to_prev);
     }
 
-    if (node->avlnode.right != NULL) {
+    if (node->avlnode.right != nullptr) {
         struct addrspace_node *const right =
             addrspace_node_of(node->avlnode.right);
 
@@ -254,7 +254,7 @@ addrspace_find_space_and_add_node(struct address_space *const addrspace,
                                   struct addrspace_node *const node,
                                   const uint8_t pagesize_order)
 {
-    struct addrspace_node *prev = NULL;
+    struct addrspace_node *prev = nullptr;
     const uint64_t addr =
         find_from_start(addrspace,
                         in_range,
@@ -268,7 +268,7 @@ addrspace_find_space_and_add_node(struct address_space *const addrspace,
 
     node->range.front = addr;
 
-    if (prev != NULL) {
+    if (prev != nullptr) {
         list_add(&prev->list, &node->list);
         avltree_insert_at_loc(&addrspace->avltree,
                               &node->avlnode,
@@ -281,7 +281,7 @@ addrspace_find_space_and_add_node(struct address_space *const addrspace,
                            &node->avlnode,
                            avltree_compare,
                            avltree_update,
-                           /*added_node=*/NULL);
+                           /*added_node=*/nullptr);
 
         assert(result);
         list_add(&addrspace->list, &node->list);
@@ -294,7 +294,7 @@ __debug_optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
     struct addrspace_node *const node = addrspace_node_of(avlnode);
     struct avlnode *const parent = avlnode->parent;
 
-    if (parent == NULL) {
+    if (parent == nullptr) {
         list_add(&node->addrspace->list, &node->list);
         return;
     }
@@ -305,7 +305,7 @@ __debug_optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
         struct addrspace_node *const prev =
             addrspace_node_prev(addrspace_node_of(parent));
 
-        assert(prev != NULL);
+        assert(prev != nullptr);
         list_add(&prev->list, &node->list);
     }
 }
@@ -335,7 +335,7 @@ void addrspace_remove_node(struct addrspace_node *const node) {
 __debug_optimize(3)
 void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
     (void)cb_info;
-    if (avlnode == NULL) {
+    if (avlnode == nullptr) {
         printk(LOGLEVEL_INFO, "(null)");
         return;
     }
@@ -360,6 +360,6 @@ void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
         avltree_print(&addrspace->avltree,
                       avlnode_print_node_cb,
                       avlnode_print_sv_cb,
-                      /*cb_info=*/NULL);
+                      /*cb_info=*/nullptr);
     }
 #endif /* defined(BUILD_KERNEL) */
