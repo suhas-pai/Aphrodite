@@ -3,11 +3,12 @@
  * © suhas pai
  */
 
-#include "../init.h"
-#include "../transport.h"
+#include "dev/virtio/drivers/scsi.h"
+
+#include "dev/virtio/init.h"
+#include "dev/virtio/transport.h"
 
 #include "dev/printk.h"
-#include "scsi.h"
 
 struct virtio_scsi_config {
     const le32_t num_queues;

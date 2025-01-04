@@ -6,6 +6,7 @@
 #include "dev/ata/atapi.h"
 #include "dev/ata/defines.h"
 
+#include "dev/ahci/device.h"
 #include "dev/scsi/swap.h"
 
 #include "apic/lapic.h"
@@ -21,7 +22,6 @@
 #include "mm/zone.h"
 
 #include "sys/mmio.h"
-#include "device.h"
 
 #define AHCI_HBA_PORT_MAX_COUNT mib(4)
 #define AHCI_HBA_CMD_TABLE_PAGE_ORDER 1

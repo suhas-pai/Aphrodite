@@ -4,7 +4,7 @@
  */
 
 #include "sched/alarm.h"
-#include "sleep.h"
+#include "sched/sleep.h"
 
 __debug_optimize(3) void sched_sleep_us(const usec_t usecs) {
     struct alarm alarm;

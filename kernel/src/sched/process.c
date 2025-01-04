@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "process.h"
+#include "sched/process.h"
 
 __hidden struct process kernel_process = {
     .pagemap = (struct pagemap){

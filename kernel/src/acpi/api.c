@@ -7,16 +7,16 @@
     #include "acpi/gtdt.h"
 #endif /* defined(__aarch64__)*/
 
+#include "acpi/api.h"
+#include "acpi/fadt.h"
+#include "acpi/madt.h"
 #include "acpi/mcfg.h"
+#include "acpi/pptt.h"
+#include "acpi/spcr.h"
+
 #include "dev/printk.h"
 #include "mm/mm_types.h"
 #include "sys/boot.h"
-
-#include "api.h"
-#include "fadt.h"
-#include "madt.h"
-#include "pptt.h"
-#include "spcr.h"
 
 static struct acpi_info g_info = {
     .madt = NULL,

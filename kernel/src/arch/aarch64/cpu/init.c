@@ -6,13 +6,13 @@
 #include "asm/id_regs.h"
 #include "asm/tcr.h"
 
+#include "cpu/features.h"
+#include "cpu/info.h"
+#include "cpu/init.h"
+
 #include "dev/printk.h"
 #include "mm/page_alloc.h"
 #include "sched/thread.h"
-
-#include "features.h"
-#include "info.h"
-#include "init.h"
 
 static struct cpu_features g_cpu_features = {0};
 void sched_set_current_thread(struct thread *thread);

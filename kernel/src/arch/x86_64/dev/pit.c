@@ -7,12 +7,12 @@
 #include "asm/irqs.h"
 
 #include "cpu/isr.h"
+
+#include "dev/pio.h"
+#include "dev/pit.h"
+
 #include "dev/printk.h"
-
 #include "sched/thread.h"
-
-#include "pio.h"
-#include "pit.h"
 
 #define PIT_DIVIDEND 1193180
 

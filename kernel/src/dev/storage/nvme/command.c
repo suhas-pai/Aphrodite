@@ -3,9 +3,9 @@
  * © suhas pai
  */
 
-#include "controller.h"
-#include "command.h"
-#include "namespace.h"
+#include "dev/storage/nvme/controller.h"
+#include "dev/storage/nvme/command.h"
+#include "dev/storage/nvme/namespace.h"
 
 bool
 nvme_identify(struct nvme_controller *const controller,

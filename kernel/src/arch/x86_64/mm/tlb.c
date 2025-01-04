@@ -4,9 +4,9 @@
  */
 
 #include "asm/tlb.h"
-#include "mm/page_alloc.h"
 
-#include "tlb.h"
+#include "mm/page_alloc.h"
+#include "mm/tlb.h"
 
 __debug_optimize(3) static void tlb_flush_range(const struct range range) {
     range_iterate(range, addr, PAGE_SIZE) {

@@ -3,16 +3,16 @@
  * © suhas pai
  */
 
+#include "dev/pci/bar.h"
+#include "dev/pci/entity.h"
+
 #include "dev/printk.h"
 
 #include "sys/mmio.h"
 #include "sys/pio.h"
 
-#include "bar.h"
-#include "entity.h"
-
 #if !defined(__x86_64__)
-    #include "resource.h"
+    #include "dev/pci/resource.h"
 #endif /* !defined(__x86_64__) */
 
 bool pci_map_bar(struct pci_entity_bar_info *const bar) {

@@ -4,6 +4,8 @@
  */
 
 #include "dev/ps2/keymap.h"
+#include "dev/ps2/keyboard.h"
+
 #include "lib/adt/string.h"
 
 #include "asm/irqs.h"
@@ -11,8 +13,6 @@
 
 #include "dev/printk.h"
 #include "lib/util.h"
-
-#include "keyboard.h"
 
 const char ps2_key_to_char[PS2_KEYMAP_SIZE] = {
     '\0', '\e', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',

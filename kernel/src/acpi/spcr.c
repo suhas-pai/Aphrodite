@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "acpi/spcr.h"
 #include "dev/printk.h"
-#include "spcr.h"
 
 void spcr_init(const struct acpi_spcr *const spcr) {
     if (spcr->sdt.length < sizeof(*spcr)) {

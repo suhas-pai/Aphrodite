@@ -9,9 +9,9 @@
 
 #include "cpu/util.h"
 #include "dev/printk.h"
-#include "lib/align.h"
 
-#include "ubsan.h"
+#include "lib/align.h"
+#include "san/ubsan.h"
 
 static const char *const type_check_kind_list[] = {
     "load of",

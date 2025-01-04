@@ -3,12 +3,11 @@
  * © suhas pai
  */
 
-#include "../transport.h"
+#include "dev/virtio/drivers/block.h"
+#include "dev/virtio/transport.h"
 
 #include "dev/printk.h"
 #include "lib/size.h"
-
-#include "block.h"
 
 struct virtio_block_config {
     le64_t capacity;

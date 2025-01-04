@@ -17,10 +17,11 @@
 #endif /* defined(__x86_64__) */
 
 #include "cpu/info.h"
-#include "mm/walker.h"
-#include "sched/process.h"
 
-#include "pgmap.h"
+#include "mm/walker.h"
+#include "mm/pgmap.h"
+
+#include "sched/process.h"
 
 __debug_optimize(3) struct pagemap pagemap_empty() {
     struct pagemap result = {

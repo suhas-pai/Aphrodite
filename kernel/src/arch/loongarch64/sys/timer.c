@@ -6,7 +6,7 @@
 #include "asm/timer.h"
 #include "asm/csr.h"
 
-#include "timer.h"
+#include "sys/timer.h"
 
 void timer_oneshot(const uint32_t seconds) {
     const uint32_t config =

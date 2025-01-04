@@ -4,17 +4,17 @@
  */
 
 #include "dev/dtb/init.h"
-#include "cpu/info.h"
 
 #include "acpi/api.h"
 #include "acpi/rhct.h"
 
+#include "cpu/info.h"
+
 #include "dev/printk.h"
+#include "dev/syscon.h"
 
 #include "lib/freq.h"
 #include "lib/time.h"
-
-#include "syscon.h"
 
 extern struct cpus_info g_cpus_info;
 void arch_init_from_dtb() {

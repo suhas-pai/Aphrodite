@@ -4,9 +4,9 @@
  */
 
 #include <stdatomic.h>
-#include "sched/scheduler.h"
 
-#include "alarm.h"
+#include "sched/alarm.h"
+#include "sched/scheduler.h"
 
 void
 alarm_create(struct alarm *const alarm,

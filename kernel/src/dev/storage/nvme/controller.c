@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include "dev/storage/nvme/command.h"
+#include "dev/storage/nvme/namespace.h"
+
 #include "asm/pause.h"
 
 #include "cpu/isr.h"
@@ -15,9 +18,6 @@
 #include "mm/phalloc.h"
 
 #include "sys/mmio.h"
-
-#include "command.h"
-#include "namespace.h"
 
 // Recommended values from spec
 #define NVME_SUBMIT_QUEUE_SIZE 6

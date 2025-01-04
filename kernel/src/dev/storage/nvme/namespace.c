@@ -1,7 +1,10 @@
 /*
- * kernel/src/dev/nvme/namespace.h
+ * kernel/src/dev/storage/nvme/namespace.h
  * © suhas pai
  */
+
+#include "dev/storage/nvme/command.h"
+#include "dev/storage/nvme/namespace.h"
 
 #include "dev/printk.h"
 
@@ -9,9 +12,6 @@
 #include "lib/util.h"
 
 #include "mm/phalloc.h"
-
-#include "command.h"
-#include "namespace.h"
 
 #define NVME_IO_QUEUE_COUNT 1024ul
 

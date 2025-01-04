@@ -10,9 +10,9 @@
 
 #include "mm/kmalloc.h"
 #include "sched/thread.h"
-#include "sys/mmio.h"
 
-#include "imsic.h"
+#include "sys/imsic.h"
+#include "sys/mmio.h"
 
 enum aplic_domain_config_flags {
     __APLIC_DOMAIN_CFG_BIG_ENDIAN = 1 << 0,

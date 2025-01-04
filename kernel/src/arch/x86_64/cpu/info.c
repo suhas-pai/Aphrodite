@@ -3,10 +3,9 @@
  * © suhas pai
  */
 
+#include "cpu/info.h"
 #include "mm/kmalloc.h"
 #include "sched/scheduler.h"
-
-#include "info.h"
 
 static struct cpu_info g_base_cpu_info = {
     CPU_INFO_BASE_INIT(g_base_cpu_info),

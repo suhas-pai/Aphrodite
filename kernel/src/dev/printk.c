@@ -8,8 +8,8 @@
 #include "cpu/cpu_info.h"
 #include "cpu/spinlock.h"
 
+#include "dev/printk.h"
 #include "lib/parse_printf.h"
-#include "printk.h"
 
 static struct terminal *g_first_term = NULL;
 

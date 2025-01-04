@@ -7,9 +7,9 @@
 #include "dev/printk.h"
 #include "lib/align.h"
 
-#include "page_alloc.h"
-#include "pgmap.h"
-#include "walker.h"
+#include "mm/page_alloc.h"
+#include "mm/pgmap.h"
+#include "mm/walker.h"
 
 enum map_result {
     MAP_DONE,

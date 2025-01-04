@@ -4,11 +4,10 @@
  */
 
 #include "dev/storage/partitions/partition.h"
+#include "fs/ext2/structs.h"
 
 #include "dev/printk.h"
 #include "fs/driver.h"
-
-#include "structs.h"
 
 __debug_optimize(3) static bool try_init(struct partition *const partition) {
     struct ext2fs_superblock superblock;

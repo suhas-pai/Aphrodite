@@ -1,7 +1,9 @@
 /*
- * kernel/src/dev/nvme/init.c
+ * kernel/src/dev/storage/nvme/init.c
  * © suhas pai
  */
+
+#include "dev/storage/nvme/controller.h"
 
 #include "dev/pci/structs.h"
 #include "cpu/isr.h"
@@ -12,8 +14,6 @@
 #include "lib/util.h"
 #include "mm/kmalloc.h"
 #include "sched/thread.h"
-
-#include "controller.h"
 
 #define NVME_BAR_INDEX 0
 

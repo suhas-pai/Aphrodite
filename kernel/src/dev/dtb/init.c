@@ -3,11 +3,12 @@
  * © suhas pai
  */
 
+#include "dev/dtb/parse.h"
+
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "sys/boot.h"
-#include "parse.h"
 
 static struct devicetree_node g_device_tree_root;
 static struct devicetree g_device_tree;

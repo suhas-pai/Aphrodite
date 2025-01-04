@@ -5,8 +5,7 @@
 
 #include "dev/printk.h"
 #include "lib/parse_strftime.h"
-
-#include "kstrftime.h"
+#include "time/kstrftime.h"
 
 static uint64_t
 time_format_to_string_sv_callback(

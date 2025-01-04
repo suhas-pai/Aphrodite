@@ -8,7 +8,7 @@
 #include "lib/math.h"
 #include "lib/overflow.h"
 
-#include "clock.h"
+#include "time/clock.h"
 
 static struct list g_clock_list = LIST_INIT(g_clock_list);
 static struct spinlock g_lock = SPINLOCK_INIT();

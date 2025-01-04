@@ -3,14 +3,13 @@
  * © suhas pai
  */
 
+#include "dev/pci/ecam.h"
 #if defined(__x86_64__)
     #include "dev/pci/legacy.h"
 #endif /* defined(__x86_64__) */
 
 #include "lib/adt/array.h"
-
 #include "cpu/spinlock.h"
-#include "ecam.h"
 
 static struct array g_domain_list = ARRAY_INIT(sizeof(struct pci_domain *));
 static struct spinlock g_domain_lock = SPINLOCK_INIT();

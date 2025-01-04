@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include "dev/dtb/init.h"
+#include "dev/pci/init.h"
+
 #if defined(__x86_64__)
     #include "dev/uart/com1.h"
 #elif defined(__aarch64__)
@@ -12,11 +15,7 @@
 #endif /* defined(__x86_64__) */
 
 #include "acpi/api.h"
-#include "dtb/init.h"
-
 #include "dev/printk.h"
-#include "pci/init.h"
-
 #include "time/time.h"
 
 void serial_init() {

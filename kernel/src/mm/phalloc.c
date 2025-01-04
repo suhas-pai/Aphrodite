@@ -4,10 +4,10 @@
  */
 
 #include "dev/printk.h"
-#include "mm/mm_types.h"
-#include "mm/slab.h"
 
-#include "phalloc.h"
+#include "mm/mm_types.h"
+#include "mm/phalloc.h"
+#include "mm/slab.h"
 
 static struct slab_allocator phalloc_slabs[14] = {0};
 static bool phalloc_is_initialized = false;

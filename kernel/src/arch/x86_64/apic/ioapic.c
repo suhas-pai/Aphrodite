@@ -4,11 +4,11 @@
  */
 
 #include "acpi/api.h"
+#include "apic/ioapic.h"
+
 #include "dev/printk.h"
 #include "lib/align.h"
 #include "sys/mmio.h"
-
-#include "ioapic.h"
 
 static struct array g_ioapic_list = ARRAY_INIT(sizeof(struct ioapic_info));
 

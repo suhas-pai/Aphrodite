@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "partition.h"
+#include "dev/storage/partitions/partition.h"
 
 __debug_optimize(3) void
 partition_init(struct partition *const partition,

@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "atapi.h"
+#include "dev/ata/atapi.h"
 
 __debug_optimize(3)
 const char *atapi_sense_to_cstr(const enum atapi_sense sense) {

@@ -6,13 +6,13 @@
 #include <stdatomic.h>
 #include "lib/overflow.h"
 
+#include "mm/page.h"
+#include "mm/section.h"
+
 #if defined(__riscv64)
     #include "cpu/info.h"
     #include "sched/thread.h"
 #endif /* defined(__riscv64) */
-
-#include "page.h"
-#include "section.h"
 
 __debug_optimize(3) void zero_page(void *page) {
 #if defined(__x86_64__)

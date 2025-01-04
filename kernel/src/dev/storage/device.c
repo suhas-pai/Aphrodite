@@ -3,16 +3,16 @@
  * © suhas pai
  */
 
+#include "dev/storage/partitions/gpt.h"
+#include "dev/storage/partitions/mbr.h"
+#include "dev/storage/partitions/partition.h"
+
 #include "dev/printk.h"
 #include "fs/driver.h"
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
 #include "mm/phalloc.h"
-
-#include "partitions/gpt.h"
-#include "partitions/mbr.h"
-#include "partitions/partition.h"
 
 static bool
 parse_gpt_entries(struct storage_device *const device,

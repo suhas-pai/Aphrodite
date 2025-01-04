@@ -4,6 +4,8 @@
  * © suhas pai
  */
 
+#include "dev/storage/nvme/controller.h"
+
 #include "dev/printk.h"
 #include "lib/align.h"
 
@@ -11,7 +13,6 @@
 #include "mm/phalloc.h"
 
 #include "sys/mmio.h"
-#include "controller.h"
 
 bool
 nvme_queue_create(struct nvme_queue *const queue,

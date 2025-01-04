@@ -13,7 +13,7 @@
 #include "mm/mmio.h"
 
 #include "sys/aplic.h"
-#include "imsic.h"
+#include "sys/imsic.h"
 
 enum {
     EP_BASE = 0x80,

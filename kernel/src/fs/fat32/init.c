@@ -4,10 +4,10 @@
  */
 
 #include "dev/storage/partitions/partition.h"
-#include "dev/printk.h"
+#include "fs/fat32/structs.h"
 
+#include "dev/printk.h"
 #include "fs/driver.h"
-#include "structs.h"
 
 __debug_optimize(3) static bool try_init(struct partition *const partition) {
     struct fat32_bootrecord record;

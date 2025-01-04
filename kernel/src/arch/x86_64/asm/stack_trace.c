@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "asm/stack_trace.h"
 #include "dev/printk.h"
-#include "stack_trace.h"
 
 __debug_optimize(3) struct stack_trace *stacktrace_top() {
     struct stack_trace *stk = NULL;

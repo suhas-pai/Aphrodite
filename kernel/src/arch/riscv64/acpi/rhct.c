@@ -3,14 +3,13 @@
  * © suahs pai
  */
 
+#include "acpi/rhct.h"
 #include "cpu/info.h"
 #include "dev/printk.h"
 
 #include "lib/freq.h"
 #include "lib/time.h"
 #include "lib/util.h"
-
-#include "rhct.h"
 
 void
 print_rhct_node(const struct acpi_rhct *const rhct,

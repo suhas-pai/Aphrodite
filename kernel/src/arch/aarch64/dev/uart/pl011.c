@@ -3,12 +3,12 @@
  * © suhas pai
  */
 
+#include "dev/uart/pl011.h"
+
 #include "cpu/spinlock.h"
 #include "dev/printk.h"
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
-
-#include "pl011.h"
 
 struct pl011_device {
     volatile uint32_t dr_offset;

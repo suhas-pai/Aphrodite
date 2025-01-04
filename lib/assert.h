@@ -7,7 +7,7 @@
 #include "macros.h"
 
 #if defined(BUILD_KERNEL)
-    #include "kernel/src/cpu/panic.h"
+    #include "cpu/panic.h"
 
     #define assert(cond) \
         if (__builtin_expect(!(cond), 0)) panic(TO_STRING(cond) "\n")

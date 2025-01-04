@@ -3,13 +3,13 @@
  * © suhas pai
  */
 
+#include "dev/uart/8250.h"
 #include "cpu/spinlock.h"
 
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
-#include "8250.h"
 
 #define UART_RBR_OFFSET 0  // In:  Receive Buffer Register
 #define UART_THR_OFFSET 0  // Out: Transmitter Holding Register

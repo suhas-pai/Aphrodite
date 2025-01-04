@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "dev/storage/cache.h"
 #include "dev/printk.h"
-#include "cache.h"
 
 #define NVME_CACHE_HASHMAP_BUCKET_COUNT 15
 

@@ -4,4 +4,4 @@
 /bin-*
 /obj-*
 
-/src/dev/pci/vendors.h
+/include/dev/pci/vendors.h

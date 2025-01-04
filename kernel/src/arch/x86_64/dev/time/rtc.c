@@ -3,12 +3,11 @@
  * © suhas pai
  */
 
+#include "dev/time/rtc.h"
 #include "acpi/api.h"
 
 #include "dev/cmos.h"
 #include "dev/printk.h"
-
-#include "rtc.h"
 
 enum cmos_rtc_reg_status_a_masks {
     __CMOS_RTC_REGSTATUS_A_UPDATE_IN_PROG = 1 << 7

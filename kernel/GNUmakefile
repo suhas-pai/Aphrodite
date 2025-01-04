@@ -91,7 +91,7 @@ LDFLAGS :=
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -d cc-runtime || ! test -f src/limine.h ); echo $$?),0)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -d cc-runtime || ! test -f include/limine.h ); echo $$?),0)
         $(error Please run the ./get-deps script first)
     endif
 endif
@@ -117,7 +117,8 @@ override CFLAGS += \
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
 	-I include \
-	-I src \
+	-I include/arch/$(ARCH) \
+	-I src/extern \
 	-isystem freestnd-c-hdrs-0bsd \
 	$(CPPFLAGS) \
 	-DLIMINE_API_REVISION=2 \
@@ -268,7 +269,7 @@ cc-runtime-$(ARCH)/cc-runtime.a: GNUmakefile cc-runtime/*
 		CFLAGS="$(filter-out -Wsign-conversion -Wundef,$(CFLAGS))" \
 		CPPFLAGS='-isystem ../freestnd-c-hdrs-0bsd -DCC_RUNTIME_NO_FLOAT'
 
-src/dev/pci/vendors.h:
+include/dev/pci/vendors.h:
 	curl -Lo src/dev/pci/pci.ids https://pci-ids.ucw.cz/v2.2/pci.ids
 	awk '/^[^#[:blank:]C]/ { num=""$$1; name=$$0; sub("^"num, "", name); sub("[[:blank:]]+", "", name); print "PCI_VENDOR(0x"num",\""name"\")" }' src/dev/pci/pci.ids > $@
 	sed -i -e 's/(???)//g' $@
@@ -287,7 +288,7 @@ bin-$(ARCH)/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ) cc-runtime-
 	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
 
 # Compilation rules for *.c files.
-obj-$(ARCH)/%.c.o: src/%.c GNUmakefile src/dev/pci/vendors.h
+obj-$(ARCH)/%.c.o: src/%.c GNUmakefile include/dev/pci/vendors.h
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 

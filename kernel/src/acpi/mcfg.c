@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include "acpi/mcfg.h"
+
 #include "dev/pci/ecam.h"
 #include "dev/printk.h"
-
-#include "mcfg.h"
 
 void mcfg_init(const struct acpi_mcfg *const mcfg) {
     const uint32_t length = mcfg->sdt.length - sizeof(*mcfg);

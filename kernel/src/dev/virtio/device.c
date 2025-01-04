@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "dev/virtio/device.h"
 #include "dev/printk.h"
-#include "device.h"
 
 bool
 virtio_device_shmem_region_map(struct virtio_device_shmem_region *const region)

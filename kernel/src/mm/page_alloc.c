@@ -9,12 +9,12 @@
 #include "lib/align.h"
 #include "lib/util.h"
 
+#include "mm/page.h"
+#include "mm/section.h"
+#include "mm/zone.h"
+
 #include "sys/boot.h"
 #include "sched/process.h"
-
-#include "page.h"
-#include "section.h"
-#include "zone.h"
 
 // Caller is required to set section->min_order
 __debug_optimize(3) static void

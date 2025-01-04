@@ -8,7 +8,9 @@
     #include "acpi/api.h"
 #endif /* defined(__x86_64__) */
 
+#include "dev/pci/structs.h"
 #include "lib/adt/bitset.h"
+
 #include "cpu/isr.h"
 
 #include "dev/driver.h"
@@ -16,8 +18,6 @@
 
 #include "lib/util.h"
 #include "mm/kmalloc.h"
-
-#include "structs.h"
 
 static struct list g_entity_list = LIST_INIT(g_entity_list);
 

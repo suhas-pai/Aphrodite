@@ -15,8 +15,8 @@
 
 #include "dev/printk.h"
 
-#include "gdt.h"
-#include "pic.h"
+#include "sys/gdt.h"
+#include "sys/pic.h"
 
 struct idt_entry {
     uint16_t offset_low;

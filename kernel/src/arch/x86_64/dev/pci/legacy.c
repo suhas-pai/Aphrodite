@@ -6,7 +6,7 @@
 #include "dev/pci/location.h"
 #include "lib/align.h"
 
-#include "../pio.h"
+#include "dev/pio.h"
 
 enum pci_config_address_flags {
     __PCI_CONFIG_ADDR_ENABLE = 1ull << 31,

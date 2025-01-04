@@ -5,8 +5,7 @@
 
 #include "dev/printk.h"
 #include "mm/mmio.h"
-
-#include "plic.h"
+#include "sys/plic.h"
 
 enum plic_irq_kind {
     PLIC_IRQ_SOFTWARE_USER,

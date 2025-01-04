@@ -5,8 +5,8 @@
 
 #include "dev/printk.h"
 
-#include "kmalloc.h"
-#include "slab.h"
+#include "mm/kmalloc.h"
+#include "mm/slab.h"
 
 static struct slab_allocator kmalloc_slabs[19] = {0};
 static bool kmalloc_is_initialized = false;

@@ -8,7 +8,7 @@
 #include "lib/string.h"
 #include "lib/util.h"
 
-#include "page_alloc.h"
+#include "mm/page_alloc.h"
 
 struct free_slab_object {
     uint32_t header;

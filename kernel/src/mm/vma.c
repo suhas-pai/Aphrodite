@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include "kmalloc.h"
-#include "pagemap.h"
+#include "mm/kmalloc.h"
+#include "mm/pagemap.h"
 
 __debug_optimize(3) struct vm_area *vma_prev(struct vm_area *const vma) {
     struct addrspace_node *const node = addrspace_node_prev(&vma->node);

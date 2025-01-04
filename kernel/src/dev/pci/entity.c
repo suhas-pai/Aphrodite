@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include "dev/pci/entity.h"
+#include "dev/pci/structs.h"
+
 #include "lib/adt/bitset.h"
 
 #include "cpu/isr.h"
@@ -10,9 +13,6 @@
 
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
-
-#include "entity.h"
-#include "structs.h"
 
 __debug_optimize(3) uint16_t
 pci_entity_get_requester_id(const struct pci_entity_info *const entity) {

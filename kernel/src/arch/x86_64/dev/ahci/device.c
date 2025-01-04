@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "dev/ahci/device.h"
 #include "sys/mmio.h"
-#include "device.h"
 
 static struct ahci_hba_device g_device = {
     .pci_entity = NULL,

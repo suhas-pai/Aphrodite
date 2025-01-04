@@ -6,8 +6,8 @@
 #include "asm/irqs.h"
 #include "asm/pause.h"
 
-#include "cmos.h"
-#include "pio.h"
+#include "dev/cmos.h"
+#include "dev/pio.h"
 
 __debug_optimize(3)
 static inline void select_cmos_register(const enum cmos_register reg) {

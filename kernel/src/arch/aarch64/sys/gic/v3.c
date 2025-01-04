@@ -5,6 +5,9 @@
 
 #include <stdatomic.h>
 
+#include "sys/gic/api.h"
+#include "sys/gic/its.h"
+
 #include "asm/irqs.h"
 #include "asm/pause.h"
 #include "asm/sync.h"
@@ -17,9 +20,6 @@
 
 #include "sched/thread.h"
 #include "sys/mmio.h"
-
-#include "api.h"
-#include "its.h"
 
 enum gicv3_control_flags {
     __GICDV3_CTRL_ENABLE_GROUP_0 = 1ull << 0,

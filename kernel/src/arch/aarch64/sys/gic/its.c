@@ -4,6 +4,7 @@
  */
 
 #include "lib/adt/bitset.h"
+#include "sys/gic/its.h"
 
 #include "asm/irqs.h"
 #include "dev/printk.h"
@@ -16,8 +17,6 @@
 
 #include "sched/thread.h"
 #include "sys/mmio.h"
-
-#include "its.h"
 
 enum gic_its_baser_page_size {
     GIC_ITS_BASER_PAGE_SIZE_4KIB,

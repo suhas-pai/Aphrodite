@@ -3,11 +3,11 @@
  * © suhas pai
  */
 
+#include "dev/pci/bus.h"
+#include "dev/pci/resource.h"
+
 #include "cpu/spinlock.h"
 #include "mm/kmalloc.h"
-
-#include "bus.h"
-#include "resource.h"
 
 static struct array g_root_bus_list = ARRAY_INIT(sizeof(struct pci_bus *));
 static struct spinlock g_root_bus_list_lock = SPINLOCK_INIT();

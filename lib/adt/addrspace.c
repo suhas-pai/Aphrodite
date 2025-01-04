@@ -4,7 +4,7 @@
  */
 
 #if defined(BUILD_KERNEL)
-    #include "kernel/src/dev/printk.h"
+    #include "kernel/include/dev/printk.h"
     #include "mm/mm_types.h"
 #else
     #define PAGE_SIZE 4096ull

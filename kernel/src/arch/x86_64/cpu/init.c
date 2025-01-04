@@ -8,11 +8,11 @@
 #include "asm/msr.h"
 #include "asm/xsave.h"
 
+#include "cpu/info.h"
 #include "dev/printk.h"
+
 #include "sched/thread.h"
 #include "sys/gdt.h"
-
-#include "info.h"
 
 static struct cpu_capabilities g_cpu_capabilities = {
     .supports_avx512 = false,

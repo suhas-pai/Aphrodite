@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "dev/time/hpet.h"
 #include "lib/adt/bitset.h"
 
 #include "asm/irqs.h"
@@ -16,8 +17,6 @@
 #include "mm/mmio.h"
 #include "sched/event.h"
 #include "sys/mmio.h"
-
-#include "hpet.h"
 
 struct hpet_addrspace_timer_info {
     volatile uint64_t config_and_capability;

@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include "dev/dtb/tree.h"
 #include "lib/adt/string_view.h"
-#include "mm/kmalloc.h"
 
-#include "tree.h"
+#include "mm/kmalloc.h"
 
 #define DEVICETREE_PHANDLE_MAP_BUCKET_COUNT 10
 

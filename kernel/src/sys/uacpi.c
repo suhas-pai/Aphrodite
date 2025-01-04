@@ -21,11 +21,11 @@
 #include "sched/sleep.h"
 #include "sched/thread.h"
 
+#include "sys/boot.h"
 #include "sys/mmio.h"
-#include "time/time.h"
 
+#include "time/time.h"
 #include "uacpi/kernel_api.h"
-#include "boot.h"
 
 uacpi_status uacpi_kernel_get_rsdp(uacpi_phys_addr *const out_rsdp_address) {
     *out_rsdp_address = virt_to_phys(boot_get_rsdp());

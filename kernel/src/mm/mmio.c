@@ -8,11 +8,11 @@
 #include "lib/align.h"
 #include "lib/size.h"
 
-#include "sched/process.h"
+#include "mm/kmalloc.h"
+#include "mm/mmio.h"
+#include "mm/pgmap.h"
 
-#include "kmalloc.h"
-#include "mmio.h"
-#include "pgmap.h"
+#include "sched/process.h"
 
 static struct address_space mmio_space = ADDRSPACE_INIT(mmio_space);
 static struct spinlock g_mmio_space_lock = SPINLOCK_INIT();

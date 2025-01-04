@@ -3,14 +3,15 @@
  * © suhas pai
  */
 
+#include "../fdt/libfdt.h"
+
+#include "dev/dtb/gic_compat.h"
+#include "dev/dtb/parse.h"
+
 #include "lib/adt/string.h"
 
 #include "dev/printk.h"
-#include "fdt/libfdt.h"
 #include "mm/kmalloc.h"
-
-#include "gic_compat.h"
-#include "parse.h"
 
 __debug_optimize(3) static inline bool
 parse_array_prop(const struct fdt_property *const fdt_prop,

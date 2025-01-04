@@ -4,10 +4,10 @@
  */
 
 #include "asm/csr.h"
+#include "cpu/info.h"
+
 #include "mm/kmalloc.h"
 #include "sched/scheduler.h"
-
-#include "info.h"
 
 __hidden struct cpu_info g_base_cpu_info = {
     CPU_INFO_BASE_INIT(g_base_cpu_info),

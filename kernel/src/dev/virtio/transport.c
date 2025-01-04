@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include "dev/virtio/device.h"
+
 #include "dev/printk.h"
 #include "sys/mmio.h"
-
-#include "device.h"
 
 uint8_t virtio_pci_read_device_status(struct virtio_device *const device) {
     return mmio_read(&device->pci.common_cfg->device_status);

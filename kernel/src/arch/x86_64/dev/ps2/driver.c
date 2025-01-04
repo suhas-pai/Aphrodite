@@ -4,12 +4,12 @@
  */
 
 #include "dev/ps2/keyboard.h"
+#include "dev/ps2/driver.h"
+
 #include "asm/pause.h"
 
 #include "dev/pio.h"
 #include "dev/printk.h"
-
-#include "driver.h"
 
 #define RETRY_LIMIT 10
 

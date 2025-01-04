@@ -7,12 +7,12 @@
 
 #include "asm/irqs.h"
 #include "asm/pause.h"
+
+#include "cpu/smp.h"
 #include "dev/printk.h"
 
 #include "sched/scheduler.h"
 #include "sys/boot.h"
-
-#include "smp.h"
 
 extern void arch_init_for_smp();
 

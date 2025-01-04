@@ -6,7 +6,7 @@
 #include <stdatomic.h>
 
 #include "cpu/info.h"
-#include "thread.h"
+#include "sched/thread.h"
 
 __hidden struct thread kernel_main_thread = {
     .process = &kernel_process,

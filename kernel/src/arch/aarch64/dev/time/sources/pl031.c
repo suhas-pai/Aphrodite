@@ -3,13 +3,13 @@
  * © suhas pai
  */
 
+#include "dev/time/sources/pl031.h"
+
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "sys/mmio.h"
 #include "time/kstrftime.h"
-
-#include "pl031.h"
 
 struct pl031_header {
     volatile const uint32_t data;

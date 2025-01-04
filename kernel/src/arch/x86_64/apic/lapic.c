@@ -8,6 +8,7 @@
 #include "asm/irqs.h"
 #include "asm/msr.h"
 
+#include "apic/lapic.h"
 #include "cpu/info.h"
 
 #include "dev/pit.h"
@@ -18,8 +19,6 @@
 
 #include "sched/thread.h"
 #include "sys/mmio.h"
-
-#include "lapic.h"
 
 static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
 static volatile struct lapic_registers *g_lapic_regs = NULL;

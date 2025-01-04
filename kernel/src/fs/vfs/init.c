@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "fs/vfs/node.h"
 #include "cpu/spinlock.h"
-#include "node.h"
 
 static struct spinlock g_lock = SPINLOCK_INIT();
 static struct vfs_node *g_root = NULL;

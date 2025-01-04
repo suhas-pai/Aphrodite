@@ -3,11 +3,12 @@
  * © suhas pai
  */
 
+#include "dev/virtio/init.h"
+
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "sys/mmio.h"
-#include "init.h"
 
 static
 struct virtio_device *virtio_mmio_init(struct virtio_device *const device) {

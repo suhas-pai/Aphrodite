@@ -3,12 +3,13 @@
  * © suhas pai
  */
 
+#include "dev/virtio/queue/split.h"
+
+#include "dev/virtio/driver.h"
+#include "dev/virtio/transport.h"
+
 #include "dev/printk.h"
 #include "mm/kmalloc.h"
-#include "queue/split.h"
-
-#include "driver.h"
-#include "transport.h"
 
 static struct list g_device_list = LIST_INIT(g_device_list);
 static uint32_t g_device_count = 0;

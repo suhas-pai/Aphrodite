@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include "dev/pci/ecam.h"
+#include "dev/pci/resource.h"
+
 #include "cpu/spinlock.h"
 
 #include "dev/driver.h"
@@ -12,9 +15,6 @@
 
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
-
-#include "ecam.h"
-#include "resource.h"
 
 static struct list g_ecam_entity_list = LIST_INIT(g_ecam_entity_list);
 static struct spinlock g_ecam_domain_lock = SPINLOCK_INIT();

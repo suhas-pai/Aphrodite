@@ -3,12 +3,12 @@
  * © suhas pai
  */
 
+#include "acpi/fadt.h"
 #include "dev/printk.h"
+
 #if defined(__aarch64__)
     #include "dev/psci.h"
 #endif /* defined(__aarch64__) */
-
-#include "fadt.h"
 
 void fadt_init(const struct acpi_fadt *const fadt) {
     printk(LOGLEVEL_INFO,

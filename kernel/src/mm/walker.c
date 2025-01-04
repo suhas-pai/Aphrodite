@@ -6,11 +6,11 @@
 #include "lib/align.h"
 #include "lib/util.h"
 
-#include "sched/thread.h"
+#include "mm/early.h"
+#include "mm/page_alloc.h"
+#include "mm/walker.h"
 
-#include "early.h"
-#include "page_alloc.h"
-#include "walker.h"
+#include "sched/thread.h"
 
 __debug_optimize(3) static uint64_t
 pgwalker_alloc_pgtable_cb(struct pg_walker *const walker,

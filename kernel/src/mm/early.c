@@ -8,15 +8,15 @@
 #include "lib/align.h"
 #include "lib/size.h"
 
+#include "mm/early.h"
+#include "mm/kmalloc.h"
+#include "mm/memmap.h"
+#include "mm/phalloc.h"
+#include "mm/walker.h"
+#include "mm/zone.h"
+
 #include "sched/process.h"
 #include "sys/boot.h"
-
-#include "early.h"
-#include "kmalloc.h"
-#include "memmap.h"
-#include "phalloc.h"
-#include "walker.h"
-#include "zone.h"
 
 struct freepage_list_info {
     struct list list;

@@ -4,9 +4,9 @@
  */
 
 #include "dev/dtb/node.h"
-#include "dev/printk.h"
 
-#include "psci.h"
+#include "dev/printk.h"
+#include "dev/psci.h"
 
 static enum psci_invoke_method g_invoke_method = PSCI_INVOKE_METHOD_NONE;
 static uint32_t g_func_to_cmd[] = {

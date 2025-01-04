@@ -6,6 +6,8 @@
 #include <stdatomic.h>
 
 #include "sys/gic/api.h"
+#include "sys/gic/v2.h"
+
 #include "dev/printk.h"
 
 #include "lib/align.h"
@@ -16,8 +18,6 @@
 
 #include "sys/mmio.h"
 #include "sched/thread.h"
-
-#include "v2.h"
 
 #define GIC_DIST_IMPLEMENTER_ID_RESET 0x0001043B
 

@@ -7,8 +7,8 @@
 #include "cpu/util.h"
 #include "mm/kmalloc.h"
 
-#include "irq.h"
-#include "scheduler.h"
+#include "sched/irq.h"
+#include "sched/scheduler.h"
 
 void sched_init() {
     assert(array_append(&kernel_process.threads, &kernel_main_thread));

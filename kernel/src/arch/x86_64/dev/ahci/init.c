@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include "dev/ahci/device.h"
+#include "dev/ahci/irq.h"
+
 #include "dev/pci/structs.h"
 
 #include "asm/pause.h"
@@ -17,9 +20,6 @@
 #include "mm/kmalloc.h"
 #include "sched/thread.h"
 #include "sys/mmio.h"
-
-#include "device.h"
-#include "irq.h"
 
 #define MAX_ATTEMPTS 100
 static isr_vector_t g_hba_vector = 0;

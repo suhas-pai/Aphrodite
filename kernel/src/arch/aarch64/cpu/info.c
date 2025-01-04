@@ -4,9 +4,9 @@
  */
 
 #include "sys/gic/v2.h"
-#include "cpu/cpu_info.h"
 
-#include "info.h"
+#include "cpu/cpu_info.h"
+#include "cpu/info.h"
 
 __hidden struct cpu_info g_base_cpu_info = {
     CPU_INFO_BASE_INIT(g_base_cpu_info),

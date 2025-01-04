@@ -12,10 +12,9 @@
 
 #include "sched/thread.h"
 
-#include "pagemap.h"
-#include "page_alloc.h"
-
-#include "walker.h"
+#include "mm/pagemap.h"
+#include "mm/page_alloc.h"
+#include "mm/walker.h"
 
 __debug_optimize(3) void
 pageop_init(struct pageop *const pageop,

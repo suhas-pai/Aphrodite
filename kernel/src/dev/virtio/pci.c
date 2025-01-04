@@ -3,14 +3,16 @@
  * © suhas pai
  */
 
+#include "dev/pci/driver.h"
+
+#include "dev/virtio/driver.h"
+#include "dev/virtio/init.h"
+#include "dev/virtio/transport.h"
+
 #include "dev/driver.h"
 #include "dev/printk.h"
 
 #include "lib/util.h"
-
-#include "driver.h"
-#include "init.h"
-#include "transport.h"
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
     enum virtio_device_kind device_kind = pci_entity->id;

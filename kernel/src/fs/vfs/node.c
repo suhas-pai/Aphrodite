@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include "fs/vfs/node.h"
 #include "mm/kmalloc.h"
-#include "node.h"
 
 struct vfs_node *
 vfs_node_create(struct vfs_node *const parent,

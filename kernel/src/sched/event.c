@@ -4,9 +4,9 @@
  */
 
 #include "asm/irqs.h"
-#include "sched/scheduler.h"
 
-#include "event.h"
+#include "sched/event.h"
+#include "sched/scheduler.h"
 
 __debug_optimize(3) static inline void
 lock_events(struct event *const *const events, const uint32_t event_count) {

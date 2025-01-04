@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "node.h"
+#include "dev/dtb/node.h"
 #define DEVICETREE_PROP_MAP_BUCKET_COUNT 6
 
 __debug_optimize(3) void
