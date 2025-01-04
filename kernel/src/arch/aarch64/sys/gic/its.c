@@ -10,7 +10,7 @@
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
-#include "mm/phalloc.h"
+#include "mm/physalloc.h"
 
 #include "mm/mmio.h"
 #include "mm/page_alloc.h"
@@ -240,7 +240,7 @@ fill_out_device_table(struct gic_its_info *const its,
             sizeof(struct gic_its_intr_table_entry)
           * GIC_MAX_ITS_INTR_TABLE_ENTRIES;
 
-        phys = phalloc(alloc_size);
+        phys = physalloc(alloc_size);
         if (phys == INVALID_PHYS) {
             return false;
         }

@@ -11,7 +11,7 @@
 #include "lib/size.h"
 #include "lib/util.h"
 
-#include "mm/phalloc.h"
+#include "mm/physalloc.h"
 
 #define NVME_IO_QUEUE_COUNT 1024ul
 
@@ -52,7 +52,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
                       const uint16_t max_queue_entry_count,
                       const uint32_t max_transfer_shift)
 {
-    const uint64_t identity_phys = phalloc(sizeof(struct nvme_nsidentity));
+    const uint64_t identity_phys = physalloc(sizeof(struct nvme_nsidentity));
     if (identity_phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc page for identify-namespace command\n");
@@ -64,7 +64,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
                        NVME_IDENTIFY_CNS_NAMESPACE,
                        identity_phys))
     {
-        phalloc_free(identity_phys);
+        physalloc_free(identity_phys);
         printk(LOGLEVEL_WARN,
                "nvme: identify-namespace command failed for nsid %" PRIu32 "\n",
                nsid);
@@ -164,7 +164,7 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
            identity->nvm_set_id,
            identity->iee_uid);
 
-    phalloc_free(identity_phys);
+    physalloc_free(identity_phys);
     if (!nvme_queue_create(&namespace->io_queue,
                            controller,
                            /*id=*/nsid,

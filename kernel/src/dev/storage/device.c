@@ -12,7 +12,7 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
-#include "mm/phalloc.h"
+#include "mm/physalloc.h"
 
 static bool
 parse_gpt_entries(struct storage_device *const device,
@@ -223,7 +223,7 @@ find_in_cache_or_read_block(struct storage_device *const device,
         return block;
     }
 
-    const uint64_t phys = phalloc(device->lba_size);
+    const uint64_t phys = physalloc(device->lba_size);
     if (phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc phys-memory while reading\n");
@@ -231,7 +231,7 @@ find_in_cache_or_read_block(struct storage_device *const device,
     }
 
     if (device->read(device, phys, RANGE_INIT(lba, 1)) != 1) {
-        phalloc_free(phys);
+        physalloc_free(phys);
         return NULL;
     }
 
@@ -288,7 +288,7 @@ storage_device_write(struct storage_device *const device,
     uint64_t copy_size = device->lba_size - lba_offset;
     uint64_t offset = 0;
 
-    const uint64_t phys = phalloc(SECTOR_SIZE);
+    const uint64_t phys = physalloc(SECTOR_SIZE);
     if (phys == INVALID_PHYS) {
         return UINT64_MAX;
     }
@@ -302,7 +302,7 @@ storage_device_write(struct storage_device *const device,
             if (should_break) {
                 void *const block = find_in_cache_or_read_block(device, lba);
                 if (block == NULL) {
-                    phalloc_free(phys);
+                    physalloc_free(phys);
                     return offset;
                 }
 
@@ -323,7 +323,7 @@ storage_device_write(struct storage_device *const device,
             }
 
             if (device->write(device, phys, RANGE_INIT(lba, 1)) != 1) {
-                phalloc_free(phys);
+                physalloc_free(phys);
                 return offset;
             }
 
@@ -339,6 +339,6 @@ storage_device_write(struct storage_device *const device,
         }
     }
 
-    phalloc_free(phys);
+    physalloc_free(phys);
     return range.size;
 }

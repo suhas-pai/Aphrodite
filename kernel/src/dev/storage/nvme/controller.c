@@ -15,7 +15,7 @@
 #include "lib/size.h"
 
 #include "mm/kmalloc.h"
-#include "mm/phalloc.h"
+#include "mm/physalloc.h"
 
 #include "sys/mmio.h"
 
@@ -160,7 +160,7 @@ identify_namespaces(struct nvme_controller *const controller,
                     const uint16_t max_queue_cmd_count)
 {
     volatile struct nvme_registers *const regs = controller->regs;
-    const uint64_t identity_phys = phalloc(sizeof(struct nvme_identity));
+    const uint64_t identity_phys = physalloc(sizeof(struct nvme_identity));
 
     if (identity_phys == INVALID_PHYS) {
         printk(LOGLEVEL_WARN, "nvme: failed to alloc page for identity cmd\n");
@@ -172,7 +172,7 @@ identify_namespaces(struct nvme_controller *const controller,
                        NVME_IDENTIFY_CNS_CONTROLLER,
                        identity_phys))
     {
-        phalloc_free(identity_phys);
+        physalloc_free(identity_phys);
         printk(LOGLEVEL_WARN, "nvme: failed to alloc page for identity cmd\n");
 
         return false;
@@ -212,14 +212,14 @@ identify_namespaces(struct nvme_controller *const controller,
                        NVME_IDENTIFY_CNS_ACTIVE_NSID_LIST,
                        identity_phys))
     {
-        phalloc_free(identity_phys);
+        physalloc_free(identity_phys);
         printk(LOGLEVEL_WARN, "nvme: failed to identify controller\n");
 
         return false;
     }
 
     if (!nvme_set_number_of_queues(controller, /*queue_count=*/4)) {
-        phalloc_free(identity_phys);
+        physalloc_free(identity_phys);
         printk(LOGLEVEL_WARN, "nvme: failed to set number of queues\n");
 
         return false;
@@ -252,7 +252,7 @@ identify_namespaces(struct nvme_controller *const controller,
                namespace->nsid);
     }
 
-    phalloc_free(identity_phys);
+    physalloc_free(identity_phys);
     return true;
 }
 

@@ -10,7 +10,7 @@
 #include "lib/align.h"
 
 #include "mm/page_alloc.h"
-#include "mm/phalloc.h"
+#include "mm/physalloc.h"
 
 #include "sys/mmio.h"
 
@@ -128,12 +128,12 @@ nvme_queue_create(struct nvme_queue *const queue,
           * queue->entry_count
           * sizeof(uint64_t);
 
-        const uint64_t prp_phys = phalloc(phys_region_page_list_size);
+        const uint64_t prp_phys = physalloc(phys_region_page_list_size);
         if (prp_phys == INVALID_PHYS) {
             vunmap_mmio(submit_queue_mmio);
 
-            phalloc_free(submit_queue_phys);
-            phalloc_free(completion_queue_phys);
+            physalloc_free(submit_queue_phys);
+            physalloc_free(completion_queue_phys);
 
             printk(LOGLEVEL_WARN,
                    "nvme: failed to alloc list of physical region pages\n");
@@ -166,7 +166,7 @@ uint16_t nvme_queue_get_cmdid(struct nvme_queue *const queue) {
 
 __debug_optimize(3) void nvme_queue_destroy(struct nvme_queue *const queue) {
     if (queue->phys_region_page_list != NULL) {
-        phalloc_free(virt_to_phys(queue->phys_region_page_list));
+        physalloc_free(virt_to_phys(queue->phys_region_page_list));
 
         queue->phys_region_page_list = NULL;
         queue->phys_region_pages_count = 0;
