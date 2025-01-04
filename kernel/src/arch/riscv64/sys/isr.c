@@ -97,8 +97,8 @@ __debug_optimize(3) void isr_unmask_irq(struct irq_pin *const pin) {
 void isr_eoi(const uint64_t int_no) {
     (void)int_no;
 
-    const uint8_t code = this_cpu()->isr_oode;
-    this_cpu_mut()->isr_oode = 0;
+    const uint8_t code = this_cpu()->isr_code;
+    this_cpu_mut()->isr_code = 0;
 
     csr_write(sip, rm_mask(csr_read(sip), 1ull << code));
 }
@@ -110,7 +110,7 @@ __debug_optimize(3) void
 isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
 {
     const isr_vector_t code = cause & __SCAUSE_CODE;
-    this_cpu_mut()->isr_oode = code;
+    this_cpu_mut()->isr_code = code;
 
     if ((cause & __SCAUSE_IS_INTR) == 0) {
         this_cpu_mut()->in_exception = true;

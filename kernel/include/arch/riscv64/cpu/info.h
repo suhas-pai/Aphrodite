@@ -20,7 +20,7 @@ struct cpu_info {
     usec_t timer_start;
     bool in_exception : 1;
 
-    uint8_t isr_oode;
+    uint8_t isr_code;
     uint64_t imsic_phys;
 
     volatile uint32_t *imsic_page;
