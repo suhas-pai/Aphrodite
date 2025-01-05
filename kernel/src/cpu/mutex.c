@@ -68,16 +68,16 @@ atomic_compare_exchange_flags(struct mutex *const mutex,
                                               memory_order_acquire);
 }
 
-// To acquire a mutex, we must first contend for the mutex. Contention is an
-// exclusive state that grants us the right to run operations on behalf of the
-// mutex. With contention, we can add ourselves to the wait-queue, while also
-// taking care of other operations on behalf of our threads, such as waking up
-// the next waiter for mutex_unlock().
+// We must first contend for the mutex before acquiring it. Contention grants us
+// the right to run operations on behalf of the mutex, so while in contention,
+// we can add ourselves to the wait-queue, while also taking care of other
+// operations on behalf of our threads, such as waking up next waiter for
+// mutex_unlock().
 
 enum contention_result : uint8_t {
-    CONTENTION_SUCCESS,
-    CONTENTION_FAILURE,
-    CONTENTION_RETRY,
+    CONTENTION_AND_ACQ_SUCCESS,
+    CONTENTION_AND_ACQ_FAILURE,
+    CONTENTION_AND_ACQ_RETRY,
 };
 
 static enum contention_result
@@ -93,7 +93,7 @@ try_contention(struct mutex *const mutex,
         cpu_pause();
         *flags = atomic_load_explicit(&mutex->flags, memory_order_relaxed);
 
-        return CONTENTION_RETRY;
+        return CONTENTION_AND_ACQ_RETRY;
     }
 
     // Signal our contention. We do a compare-and-exchange to ensure no
@@ -106,21 +106,21 @@ try_contention(struct mutex *const mutex,
 
     if (atomic_compare_exchange_flags(mutex, flags,desired)) {
         // As the sole contender, we can now attempt to acquire the lock.
-        // If there is no owner, the lock can be acquired, which the
-        // caller will do by atomically-storing either our thread pointer or
-        // the thread pointer of the head of the waiter-queue.
+        // If there is no owner, the lock can be acquired, which the caller will
+        // do by atomically-storing either our thread pointer or the
+        // thread pointer of the head of the waiter-queue.
         //
         // If we got here, but there is already an owner, then we'll have to
         // join the waiter-queue.
 
         if ((*flags & __MUTEX_FLAGS_OWNER_MASK) == 0) {
-            return CONTENTION_SUCCESS;
+            return CONTENTION_AND_ACQ_SUCCESS;
         }
 
-        return CONTENTION_FAILURE;
+        return CONTENTION_AND_ACQ_FAILURE;
     }
 
-    return CONTENTION_RETRY;
+    return CONTENTION_AND_ACQ_RETRY;
 }
 
 static bool
@@ -130,11 +130,11 @@ try_contention_and_hold(struct mutex *const mutex, uintptr_t *const flags) {
             try_contention(mutex, flags, /*remove_has_waiter=*/true);
 
         switch (result) {
-            case CONTENTION_SUCCESS:
+            case CONTENTION_AND_ACQ_SUCCESS:
                 return (*flags & __MUTEX_FLAGS_IN_CONTENTION) == 0;
-            case CONTENTION_FAILURE:
+            case CONTENTION_AND_ACQ_FAILURE:
                 return false;
-            case CONTENTION_RETRY:
+            case CONTENTION_AND_ACQ_RETRY:
                 continue;
         }
     }
@@ -168,7 +168,7 @@ mutex_lock_slow(struct mutex *const mutex,
     }
 
     uintptr_t desired =
-        rm_mask((flags | __MUTEX_FLAGS_HAS_WAITER), __MUTEX_FLAGS_CONTENDED);
+        rm_mask(flags | __MUTEX_FLAGS_HAS_WAITER, __MUTEX_FLAGS_CONTENDED);
 
     list_radd(&mutex->waiters, &waiter->list);
     if (!atomic_compare_exchange_flags(mutex, &flags, desired)) {
@@ -176,10 +176,10 @@ mutex_lock_slow(struct mutex *const mutex,
         // have modified mutex->flags. In this case, the owner thread has called
         // mutex_unlock().
         //
-        // mutex_unlock() will set the HAS_WAITER bit in mutex->flags when the
-        // it finds the contention bit has been set to signal to us, the
-        // contender that it is our responsibility find and wake a waiter thread
-        // on behalf of mutex_unlock().
+        // mutex_unlock() will set the HAS_WAITER bit in mutex->flags when it
+        // finds the contention bit has been set, so it becomes our
+        // responsibility to find and wake a waiter thread on behalf of
+        // mutex_unlock().
 
         struct mutex_waiter *const head_waiter =
             list_head(&mutex->waiters, struct mutex_waiter, list);
@@ -207,8 +207,10 @@ mutex_lock_slow(struct mutex *const mutex,
     struct alarm alarm;
     if (timeout != 0) {
         alarm_create(&alarm, timeout, mutex_alarm_callback, waiter);
-        alarm_post(&alarm, /*await=*/true);
+        alarm_post(&alarm, /*await=*/false);
     }
+
+    sched_await();
 
     // We've reached here in some combination of the following cases:
     //  1. We were able to acquire the lock.
@@ -235,7 +237,8 @@ mutex_lock_slow(struct mutex *const mutex,
         // before removing us from the wait-queue and waking our thread.
         // Wait for the mutex's flags to reflect our new ownership and exit.
 
-        if (atomic_load_explicit(&waiter->thread, memory_order_relaxed) == nullptr)
+        if (atomic_load_explicit(
+                &waiter->thread, memory_order_relaxed) == nullptr)
         {
             uintptr_t mutex_owner =
                 atomic_load_explicit(&mutex->flags, memory_order_relaxed) &
@@ -258,10 +261,10 @@ mutex_lock_slow(struct mutex *const mutex,
             try_contention(mutex, &flags, /*remove_has_waiter=*/false);
 
         switch (result) {
-            case CONTENTION_SUCCESS:
+            case CONTENTION_AND_ACQ_SUCCESS:
                 goto try_acquire;
-            case CONTENTION_FAILURE:
-            case CONTENTION_RETRY:
+            case CONTENTION_AND_ACQ_FAILURE:
+            case CONTENTION_AND_ACQ_RETRY:
                 continue;
         }
 
@@ -278,8 +281,8 @@ try_acquire:
     assert(waiter->thread != nullptr);
     if (waiter->list.prev != &mutex->waiters) {
         assert_msg(timed_out,
-                   "mutex_lock(%p): waiter is not at the front of waiter-queue, "
-                   "and lock was not timed out",
+                   "mutex_lock(%p): waiter is not at the front of "
+                   "waiter-queue, and lock was not timed out",
                    mutex);
         return false;
     }
