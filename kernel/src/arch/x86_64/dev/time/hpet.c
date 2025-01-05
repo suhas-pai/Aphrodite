@@ -64,8 +64,12 @@ static struct spinlock g_lock = SPINLOCK_INIT();
 static uint8_t g_timer_count = 0;
 static struct event g_bitset_event = EVENT_INIT();
 
+__debug_optimize(3) bool hpet_initialized() {
+    return g_addrspace != nullptr;
+}
+
 __debug_optimize(3) fsec_t hpet_get_femto() {
-    assert_msg(g_addrspace != nullptr,
+    assert_msg(hpet_initialized(),
                "hpet: hpet_get_femto() called before init");
 
     return mmio_read(&g_addrspace->main_counter_value);
@@ -103,7 +107,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
     });
 }
 
-void hpet_init(const struct acpi_hpet *const hpet) {
+void hpet_init(const struct os_acpi_hpet *const hpet) {
     if (hpet->base_address.addr_space != ACPI_GAS_ADDRSPACE_KIND_SYSMEM) {
         printk(LOGLEVEL_WARN,
                "hpet: address space is not system-memory. init failed\n");

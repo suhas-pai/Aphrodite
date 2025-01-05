@@ -134,14 +134,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     // Map all 'good' regions into the hhdm, except the kernel, which goes in
     // its own range.
 
-    const struct mm_memmap *const memmap_begin = mm_get_memmap_list();
-    const struct mm_memmap *const memmap_end =
-        &memmap_begin[mm_get_memmap_count()];
-
-    for (const struct mm_memmap *memmap = memmap_begin;
-         memmap != memmap_end;
-         memmap++)
-    {
+    mm_for_each_memmap(memmap) {
         // ACPI's RSDP pointer and other ACPI information is currently stored in
         // a reserved memmap, so map reserved memmaps in the HHDM for now.
 
@@ -177,10 +170,9 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     // to go through each table used, and setup all pgtable metadata inside a
     // struct page
 
-    for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
-         || memmap->kind == MM_MEMMAP_KIND_RESERVED)
+    mm_for_each_memmap(memmap) {
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
+            memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }

@@ -24,6 +24,10 @@ __debug_optimize(3) struct array array_copy(const struct array array) {
     return result;
 }
 
+__debug_optimize(3) bool array_initialized(const struct array array) {
+    return array.object_size != 0;
+}
+
 __debug_optimize(3)
 bool array_append(struct array *const array, const void *const item) {
     return gbuffer_append_data(&array->gbuffer, item, array->object_size);
@@ -71,6 +75,14 @@ __debug_optimize(3) void *array_front(const struct array array) {
 __debug_optimize(3) void *array_back(const struct array array) {
     assert(!array_empty(array));
     return gbuffer_current_ptr(array.gbuffer) - array.object_size;
+}
+
+__debug_optimize(3)
+uint32_t array_indexof(struct array array, const void *item) {
+    assert(item >= array_begin(array));
+    assert(item + array.object_size <= array_end(array));
+
+    return (item - array_begin(array)) / array.object_size;
 }
 
 __debug_optimize(3) uint32_t array_item_count(const struct array array) {

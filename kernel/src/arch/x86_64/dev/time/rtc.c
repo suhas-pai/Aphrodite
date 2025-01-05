@@ -20,7 +20,7 @@ enum cmos_rtc_reg_status_b_masks {
     __CMOS_RTC_REGSTATUS_B_24HR_MODE = 1 << 1,
     __CMOS_RTC_REGSTATUS_B_DATE_BINFMT  = 1 << 2,
 
-    __CMOS_RTC_REGSTATUS_B_SQUAREWAVE = 1 << 0,
+    __CMOS_RTC_REGSTATUS_B_SQUARE_WAVE = 1 << 0,
     __CMOS_RTC_REGSTATUS_B_INTR_ON_UPDATE_COMP = 1 << 3,
     __CMOS_RTC_REGSTATUS_B_INTR_ON_ALARM_COMP  = 1 << 4,
 
@@ -70,7 +70,7 @@ __debug_optimize(3) bool rtc_init() {
     uint8_t reg_b = 0;
     if (get_acpi_info()->fadt == nullptr) {
         printk(LOGLEVEL_WARN,
-               "rtc: acpi tables missing cruicial 'fadt' entry\n");
+               "rtc: acpi tables missing crucial 'fadt' entry\n");
         return false;
     }
 
@@ -82,7 +82,7 @@ __debug_optimize(3) bool rtc_init() {
     reg_b |= __CMOS_RTC_REGSTATUS_B_DATE_BINFMT;
 
     cmos_write(CMOS_REGISTER_RTC_STATUS_B, reg_b);
-    printk(LOGLEVEL_INFO, "rtc: succesfully initialized\n");
+    printk(LOGLEVEL_INFO, "rtc: successfully initialized\n");
 
     return true;
 }

@@ -6,4 +6,4 @@
 #pragma once
 #include "structs.h"
 
-void pptt_init(const struct acpi_pptt *pptt);
+void pptt_init(const struct os_acpi_pptt *pptt);

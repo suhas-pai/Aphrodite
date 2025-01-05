@@ -30,13 +30,13 @@
     #include "sys/imsic.h"
 #endif /* defined(__aarch64__) */
 
-void madt_init(const struct acpi_madt *const madt) {
-    const struct acpi_madt_entry_header *iter = nullptr;
+void madt_init(const struct os_acpi_madt *const madt) {
+    const struct os_acpi_madt_entry_header *iter = nullptr;
 
 #if defined(__x86_64__)
     uint64_t local_apic_base = madt->local_apic_base;
 #elif defined(__aarch64__)
-    const struct acpi_madt_entry_gic_distributor *gic_dist = nullptr;
+    const struct os_acpi_madt_entry_gic_distributor *gic_dist = nullptr;
     struct array msi_frame_list =
         ARRAY_INIT(sizeof(struct acpi_madt_entry_gic_msi_frame *));
 
@@ -46,28 +46,32 @@ void madt_init(const struct acpi_madt *const madt) {
 
     uint64_t gicv2_cpu_intr_phys_addr = 0;
 #elif defined(__riscv64)
-    struct array plic_list = ARRAY_INIT(sizeof(struct acpi_madt_riscv_plic *));
+    struct array plic_list =
+        ARRAY_INIT(sizeof(struct os_acpi_madt_riscv_plic *));
     struct array aplic_list =
-        ARRAY_INIT(sizeof(struct acpi_madt_riscv_aplic *));
+        ARRAY_INIT(sizeof(struct os_acpi_madt_riscv_aplic *));
     struct array hart_irq_ctlr_list =
-        ARRAY_INIT(sizeof(struct acpi_madt_riscv_hart_irq_controller *));
+        ARRAY_INIT(sizeof(struct os_acpi_madt_riscv_hart_irq_controller *));
 
-    const struct acpi_madt_riscv_imsic *supervisor_imsic = nullptr;
+    const struct os_acpi_madt_riscv_imsic *supervisor_imsic = nullptr;
 #endif /* defined(_-x86_64__) */
 
     uint32_t length = madt->sdt.length - sizeof(*madt);
     bool found_nmi_lint = false;
 
     for (uint32_t offset = 0, index = 0;
-         offset + sizeof(struct acpi_madt_entry_header) <= length;
+         offset + sizeof(struct os_acpi_madt_entry_header) <= length;
          offset += iter->length, index++)
     {
         iter =
-            (const struct acpi_madt_entry_header *)&madt->madt_entries[offset];
+            (const struct os_acpi_madt_entry_header *)
+                &madt->madt_entries[offset];
 
         switch (iter->kind) {
             case ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC: {
-                if (iter->length != sizeof(struct acpi_madt_entry_cpu_lapic)) {
+                if (iter->length !=
+                        sizeof(struct os_acpi_madt_entry_cpu_lapic))
+                {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid local-apic entry at "
                            "index: %" PRIu32 "\n",
@@ -76,8 +80,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const struct acpi_madt_entry_cpu_lapic *const hdr =
-                    (const struct acpi_madt_entry_cpu_lapic *)iter;
+                const struct os_acpi_madt_entry_cpu_lapic *const hdr =
+                    (const struct os_acpi_madt_entry_cpu_lapic *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found madt-entry cpu local-apic\n"
@@ -103,7 +107,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_IO_APIC: {
-                if (iter->length != sizeof(struct acpi_madt_entry_ioapic)) {
+                if (iter->length != sizeof(struct os_acpi_madt_entry_ioapic)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid io-apic entry at "
                            "index: %" PRIu32 "\n",
@@ -112,8 +116,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const struct acpi_madt_entry_ioapic *const hdr =
-                    (const struct acpi_madt_entry_ioapic *)iter;
+                const struct os_acpi_madt_entry_ioapic *const hdr =
+                    (const struct os_acpi_madt_entry_ioapic *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry io-apic\n"
@@ -131,7 +135,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE: {
-                if (iter->length != sizeof(struct acpi_madt_entry_iso)) {
+                if (iter->length != sizeof(struct os_acpi_madt_entry_iso)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid int-src override entry at "
                            "index: %" PRIu32,
@@ -139,9 +143,7 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
 
-                const struct acpi_madt_entry_iso *const hdr =
-                    (const struct acpi_madt_entry_iso *)iter;
-
+                const auto hdr = (const struct os_acpi_madt_entry_iso *)iter;
                 printk(LOGLEVEL_INFO,
                        "madt: found entry interrupt source override\n"
                        "\tbus source: %" PRIu8 "\n"
@@ -171,7 +173,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR_SRC: {
-                if (iter->length != sizeof(struct acpi_madt_entry_nmi_src)) {
+                if (iter->length != sizeof(struct os_acpi_madt_entry_nmi_src)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid nmi source entry at "
                            "index: %" PRIu32 "\n",
@@ -179,8 +181,8 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
 
-                const struct acpi_madt_entry_nmi_src *const hdr =
-                    (const struct acpi_madt_entry_nmi_src *)iter;
+                const auto hdr =
+                    (const struct os_acpi_madt_entry_nmi_src *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry non-maskable interrupt source\n"
@@ -199,7 +201,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR: {
-                if (iter->length != sizeof(struct acpi_madt_entry_nmi)) {
+                if (iter->length != sizeof(struct os_acpi_madt_entry_nmi)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid nmi override entry at "
                            "index: %" PRIu32 "\n",
@@ -207,9 +209,7 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
 
-                const struct acpi_madt_entry_nmi *const hdr =
-                    (const struct acpi_madt_entry_nmi *)iter;
-
+                const auto hdr = (const struct os_acpi_madt_entry_nmi *)iter;
                 printk(LOGLEVEL_INFO,
                        "madt: found entry non-maskable interrupt\n"
                        "\tprocessor: %" PRIu8 "\n"
@@ -237,9 +237,10 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_LOCAL_APIC_ADDR_OVERRIDE: {
-                if (iter->length
-                        != sizeof(struct acpi_madt_entry_lapic_addr_override))
-                {
+                const auto size =
+                    sizeof(struct os_acpi_madt_entry_lapic_addr_override);
+
+                if (iter->length != size) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid lapic addr override entry at "
                            "index: %" PRIu32 "\n",
@@ -248,8 +249,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const struct acpi_madt_entry_lapic_addr_override *const hdr =
-                    (const struct acpi_madt_entry_lapic_addr_override *)iter;
+                const auto hdr =
+                    (const struct os_acpi_madt_entry_lapic_addr_override *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry local-apic address override\n"
@@ -267,7 +268,7 @@ void madt_init(const struct acpi_madt *const madt) {
             }
             case ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC: {
                 if (iter->length
-                        != sizeof(struct acpi_madt_entry_cpu_local_x2apic))
+                        != sizeof(struct os_acpi_madt_entry_cpu_local_x2apic))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid local x2apic entry at "
@@ -277,8 +278,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const struct acpi_madt_entry_cpu_local_x2apic *const hdr =
-                    (const struct acpi_madt_entry_cpu_local_x2apic *)iter;
+                const struct os_acpi_madt_entry_cpu_local_x2apic *const hdr =
+                    (const struct os_acpi_madt_entry_cpu_local_x2apic *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry local-x2apic\n"
@@ -295,9 +296,10 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC_NMI: {
-                if (iter->length
-                        != sizeof(struct acpi_madt_entry_cpu_local_x2apic_nmi))
-                {
+                const auto size =
+                    sizeof(struct os_acpi_madt_entry_cpu_local_x2apic_nmi);
+
+                if (iter->length != size) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid local x2apic nmi entry at "
                            "index: %" PRIu32 "\n",
@@ -306,8 +308,9 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const struct acpi_madt_entry_cpu_local_x2apic_nmi *const hdr =
-                    (const struct acpi_madt_entry_cpu_local_x2apic_nmi *)iter;
+                const auto hdr =
+                    (const struct os_acpi_madt_entry_cpu_local_x2apic_nmi *)
+                        iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry local-x2apic nmi\n"
@@ -326,7 +329,7 @@ void madt_init(const struct acpi_madt *const madt) {
             }
             case ACPI_MADT_ENTRY_KIND_GIC_CPU_INTERFACE: {
                 if (iter->length
-                        != sizeof(struct acpi_madt_entry_gic_cpu_interface))
+                        != sizeof(struct os_acpi_madt_entry_gic_cpu_interface))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic cpu-interface entry at "
@@ -335,8 +338,8 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const struct acpi_madt_entry_gic_cpu_interface *const cpu =
-                    (const struct acpi_madt_entry_gic_cpu_interface *)iter;
+                const auto cpu =
+                    (const struct os_acpi_madt_entry_gic_cpu_interface *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gic cpu-interface:\n"
@@ -408,7 +411,7 @@ void madt_init(const struct acpi_madt *const madt) {
             }
             case ACPI_MADT_ENTRY_KIND_GIC_DISTRIBUTOR: {
                 if (iter->length
-                        != sizeof(struct acpi_madt_entry_gic_distributor))
+                        != sizeof(struct os_acpi_madt_entry_gic_distributor))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic distributor entry at "
@@ -417,8 +420,8 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const struct acpi_madt_entry_gic_distributor *const dist =
-                    (const struct acpi_madt_entry_gic_distributor *)iter;
+                const auto dist =
+                    (const struct os_acpi_madt_entry_gic_distributor *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gic distributor\n"
@@ -441,7 +444,7 @@ void madt_init(const struct acpi_madt *const madt) {
             }
             case ACPI_MADT_ENTRY_KIND_GIC_MSI_FRAME: {
                 if (iter->length
-                        != sizeof(struct acpi_madt_entry_gic_msi_frame))
+                        != sizeof(struct os_acpi_madt_entry_gic_msi_frame))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic msi-frame entry at "
@@ -450,8 +453,8 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const struct acpi_madt_entry_gic_msi_frame *const frame =
-                    (const struct acpi_madt_entry_gic_msi_frame *)iter;
+                const auto frame =
+                    (const struct os_acpi_madt_entry_gic_msi_frame *)iter;
 
                 assert (array_append(&msi_frame_list, &frame));
                 printk(LOGLEVEL_INFO,
@@ -478,9 +481,10 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_GIC_REDISTRIBUTOR: {
-                if (iter->length
-                        != sizeof(struct acpi_madt_entry_gicv3_redistributor))
-                {
+                const auto size =
+                    sizeof(struct os_acpi_madt_entry_gicv3_redistributor);
+
+                if (iter->length != size) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gicv3 redistributor entry at "
                            "index: %" PRIu32 "\n",
@@ -488,8 +492,8 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const struct acpi_madt_entry_gicv3_redistributor *const redist =
-                    (const struct acpi_madt_entry_gicv3_redistributor *)iter;
+                const auto redist =
+                    (const struct os_acpi_madt_entry_gicv3_redistributor *)iter;
 
                 if (!range_create_and_verify(
                         redist->discovery_range_base_address,
@@ -517,7 +521,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_GIC_INTR_TRANSLATE_SERVICE: {
-                if (iter->length != sizeof(struct acpi_madt_entry_gic_its)) {
+                if (iter->length != sizeof(struct os_acpi_madt_entry_gic_its)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid gic interrupt translation service "
                            "entry at index: %" PRIu32 "\n",
@@ -525,8 +529,8 @@ void madt_init(const struct acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const struct acpi_madt_entry_gic_its *const its =
-                    (const struct acpi_madt_entry_gic_its *)iter;
+                const auto its =
+                    (const struct os_acpi_madt_entry_gic_its *)iter;
 
                 assert(array_append(&its_list, &its));
                 printk(LOGLEVEL_INFO,
@@ -545,9 +549,10 @@ void madt_init(const struct acpi_madt *const madt) {
             case ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE:
                 continue;
             case ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER: {
-                if (iter->length
-                        != sizeof(struct acpi_madt_riscv_hart_irq_controller))
-                {
+                const auto size =
+                    sizeof(struct os_acpi_madt_riscv_hart_irq_controller);
+
+                if (iter->length != size) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid riscv-hart irq-controllers at "
                            "index: %" PRIu32 "\n",
@@ -556,8 +561,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const struct acpi_madt_riscv_hart_irq_controller *const ctrlr =
-                    (const struct acpi_madt_riscv_hart_irq_controller *)iter;
+                const auto ctrlr =
+                    (const struct os_acpi_madt_riscv_hart_irq_controller *)iter;
 
                 struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
                 printk(LOGLEVEL_INFO,
@@ -610,7 +615,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_RISCV_IMSIC: {
-                if (iter->length != sizeof(struct acpi_madt_riscv_imsic)) {
+                if (iter->length != sizeof(struct os_acpi_madt_riscv_imsic)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid riscv imsic at index: %" PRIu32 "\n",
                            index);
@@ -618,8 +623,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const struct acpi_madt_riscv_imsic *const imsic =
-                    (const struct acpi_madt_riscv_imsic *)iter;
+                const auto imsic =
+                    (const struct os_acpi_madt_riscv_imsic *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv imsic\n"
@@ -648,7 +653,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_RISCV_APLIC: {
-                if (iter->length != sizeof(struct acpi_madt_riscv_aplic)) {
+                if (iter->length != sizeof(struct os_acpi_madt_riscv_aplic)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid riscv aplic at index: %" PRIu32 "\n",
                            index);
@@ -656,8 +661,8 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const struct acpi_madt_riscv_aplic *const aplic =
-                    (const struct acpi_madt_riscv_aplic *)iter;
+                const auto aplic =
+                    (const struct os_acpi_madt_riscv_aplic *)iter;
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv aplic\n"
@@ -688,7 +693,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 continue;
             }
             case ACPI_MADT_ENTRY_KIND_RISCV_PLIC: {
-                if (iter->length != sizeof(struct acpi_madt_riscv_plic)) {
+                if (iter->length != sizeof(struct os_acpi_madt_riscv_plic)) {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid riscv plic at index: %" PRIu32 "\n",
                            index);
@@ -696,9 +701,7 @@ void madt_init(const struct acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const struct acpi_madt_riscv_plic *const plic =
-                    (const struct acpi_madt_riscv_plic *)iter;
-
+                const auto plic = (const struct os_acpi_madt_riscv_plic *)iter;
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv plic\n"
                        "\tversion: %" PRIu8 "\n"
@@ -734,133 +737,143 @@ void madt_init(const struct acpi_madt *const madt) {
                iter->kind);
     }
 
-#if defined(__x86_64__)
-    assert_msg(local_apic_base != 0,
-               "madt: failed to find local-apic registers");
+    #if defined(__x86_64__)
+        assert_msg(local_apic_base != 0,
+                   "madt: failed to find local-apic registers");
 
-    apic_init(local_apic_base);
-    isr_setup_irq_pins();
-#elif defined(__aarch64__)
-    assert_msg(gic_dist != nullptr, "madt: failed to find gic-distributor");
-    gic_set_version(gic_dist->gic_version);
+        apic_init(local_apic_base);
+        isr_setup_irq_pins();
+    #elif defined(__aarch64__)
+        assert_msg(gic_dist != nullptr, "madt: failed to find gic-distributor");
+        gic_set_version(gic_dist->gic_version);
 
-    switch (gic_dist->gic_version) {
-        case 2: {
-            struct range gicv2_cpu_intr_range = RANGE_EMPTY();
-            if (!range_create_and_verify(gicv2_cpu_intr_phys_addr,
-                                         PAGE_SIZE,
-                                         &gicv2_cpu_intr_range))
-            {
-                printk(LOGLEVEL_WARN,
-                       "madt: specified gicv2 cpu-interface range overflows\n");
+        switch (gic_dist->gic_version) {
+            case 2: {
+                struct range gicv2_cpu_intr_range = RANGE_EMPTY();
+                if (!range_create_and_verify(gicv2_cpu_intr_phys_addr,
+                                             PAGE_SIZE,
+                                             &gicv2_cpu_intr_range))
+                {
+                    printk(LOGLEVEL_WARN,
+                           "madt: specified gicv2 cpu-interface range "
+                           "overflows\n");
+
+                    array_destroy(&its_list);
+                    array_destroy(&msi_frame_list);
+
+                    return;
+                }
+
+                gicv2_init_from_info(gicv2_cpu_intr_range,
+                                     gic_dist->phys_base_address);
+
+                array_foreach(&its_list,
+                              struct os_acpi_madt_entry_gic_msi_frame *,
+                              frame)
+                {
+                    gicv2_add_msi_frame((*frame)->phys_base_address);
+                }
 
                 array_destroy(&its_list);
                 array_destroy(&msi_frame_list);
 
                 return;
             }
+            case 3:
+                assert_msg(!range_empty(gicv3_redist_discovery_range),
+                           "madt; couldn't find gicv3 redistributor memory "
+                           "region");
 
-            gicv2_init_from_info(gicv2_cpu_intr_range,
-                                 gic_dist->phys_base_address);
+                gicv3_init_from_info(gic_dist->phys_base_address,
+                                     gicv3_redist_discovery_range);
 
-            array_foreach(&its_list,
-                          struct acpi_madt_entry_gic_msi_frame *,
-                          frame)
-            {
-                gicv2_add_msi_frame((*frame)->phys_base_address);
-            }
+                array_foreach(&its_list,
+                              struct os_acpi_madt_entry_gic_its *,
+                              its)
+                {
+                    gic_its_init_from_info((*its)->id,
+                                           (*its)->phys_base_address);
+                }
 
-            array_destroy(&its_list);
-            array_destroy(&msi_frame_list);
+                array_destroy(&its_list);
+                array_destroy(&msi_frame_list);
 
-            return;
-        }
-        case 3:
-            assert_msg(!range_empty(gicv3_redist_discovery_range),
-                       "madt; couldn't find gicv3 redistributor memory region");
-
-            gicv3_init_from_info(gic_dist->phys_base_address,
-                                 gicv3_redist_discovery_range);
-
-            array_foreach(&its_list, struct acpi_madt_entry_gic_its *, its) {
-                gic_its_init_from_info((*its)->id, (*its)->phys_base_address);
-            }
-
-            array_destroy(&its_list);
-            array_destroy(&msi_frame_list);
-
-            return;
-    }
-
-    panic("GIC with unsupported version %" PRIu8 " found",
-          gic_dist->gic_version);
-#elif defined(__riscv64)
-    if (!array_empty(aplic_list)) {
-        assert_msg(supervisor_imsic != nullptr,
-                   "madt: no imsic found, required for aplic\n");
-
-        array_foreach(&hart_irq_ctlr_list,
-                      struct acpi_madt_riscv_hart_irq_controller *,
-                      ctrlr_iter)
-        {
-            struct range range = RANGE_EMPTY();
-            struct acpi_madt_riscv_hart_irq_controller *const ctrlr =
-                *ctrlr_iter;
-
-            if (!range_create_and_verify(ctrlr->imsic_base,
-                                         ctrlr->imsic_size,
-                                         &range))
-            {
-                printk(LOGLEVEL_WARN,
-                       "madt: found hart irq controller with overflowing imsic "
-                       "range\n");
-                continue;
-            }
-
-            struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
-            if (cpu == nullptr) {
-                printk(LOGLEVEL_WARN,
-                       "madt: found hart irq controller pointing to unknown "
-                       "cpu, with hart-id: %" PRIu64 "\n",
-                       ctrlr->hart_id);
-
-                continue;
-            }
-
-            cpu->imsic_phys = ctrlr->imsic_base;
-            cpu->imsic_page = imsic_add_region(ctrlr->hart_id, range);
+                return;
         }
 
-        imsic_init_from_acpi(RISCV64_PRIVL_SUPERVISOR,
-                             supervisor_imsic->guest_index_bits,
-                             supervisor_imsic->guest_node_irq_identity_count);
+        panic("GIC with unsupported version %" PRIu8 " found",
+              gic_dist->gic_version);
+    #elif defined(__riscv64)
+        if (!array_empty(aplic_list)) {
+            assert_msg(supervisor_imsic != nullptr,
+                    "madt: no imsic found, required for aplic\n");
 
-        imsic_enable(RISCV64_PRIVL_SUPERVISOR);
-        array_foreach(&aplic_list, struct acpi_madt_riscv_aplic *, aplic_iter) {
-            struct acpi_madt_riscv_aplic *const aplic = *aplic_iter;
-            struct range range = RANGE_EMPTY();
-
-            if (!range_create_and_verify(aplic->aplic_base,
-                                         aplic->aplic_size,
-                                         &range))
+            array_foreach(&hart_irq_ctlr_list,
+                          struct os_acpi_madt_riscv_hart_irq_controller *,
+                          ctrlr_iter)
             {
-                printk(LOGLEVEL_WARN,
-                       "madt: found aplic with overflowing register range\n");
-                continue;
+                struct range range = RANGE_EMPTY();
+                const auto ctrlr= *ctrlr_iter;
+
+                if (!range_create_and_verify(ctrlr->imsic_base,
+                                             ctrlr->imsic_size,
+                                             &range))
+                {
+                    printk(LOGLEVEL_WARN,
+                           "madt: found hart irq controller with overflowing "
+                           "imsic range\n");
+                    continue;
+                }
+
+                struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
+                if (cpu == nullptr) {
+                    printk(LOGLEVEL_WARN,
+                           "madt: found hart irq controller pointing to "
+                           "unknown cpu, with hart-id: %" PRIu64 "\n",
+                           ctrlr->hart_id);
+
+                    continue;
+                }
+
+                cpu->imsic_phys = ctrlr->imsic_base;
+                cpu->imsic_page = imsic_add_region(ctrlr->hart_id, range);
             }
 
-            aplic_init_from_acpi(range,
-                                 aplic->ext_irq_source_count,
-                                 aplic->gsi_base);
-        }
-    } else if (!array_empty(plic_list)) {
-        // TODO:
-    } else {
-        panic("No [a]plics found. Aborting init");
-    }
+            imsic_init_from_acpi(
+                RISCV64_PRIVL_SUPERVISOR,
+                supervisor_imsic->guest_index_bits,
+                supervisor_imsic->guest_node_irq_identity_count);
 
-    array_destroy(&aplic_list);
-    array_destroy(&plic_list);
-    array_destroy(&hart_irq_ctlr_list);
-#endif /* defined(__riscv64) */
+            imsic_enable(RISCV64_PRIVL_SUPERVISOR);
+            array_foreach(&aplic_list,
+                          struct os_acpi_madt_riscv_aplic *,
+                          aplic_iter)
+            {
+                const auto aplic = *aplic_iter;
+                struct range range = RANGE_EMPTY();
+
+                if (!range_create_and_verify(aplic->aplic_base,
+                                             aplic->aplic_size,
+                                             &range))
+                {
+                    printk(LOGLEVEL_WARN,
+                           "madt: found aplic with overflowing register "
+                           "range\n");
+                    continue;
+                }
+
+                aplic_init_from_acpi(range,
+                                     aplic->ext_irq_source_count,
+                                     aplic->gsi_base);
+            }
+        } else if (!array_empty(plic_list)) {
+            // TODO:
+        } else {
+            panic("No [a]plics found. Aborting init");
+        }
+
+        array_destroy(&aplic_list);
+        array_destroy(&plic_list);
+        array_destroy(&hart_irq_ctlr_list);
+    #endif /* defined(__riscv64) */
 }

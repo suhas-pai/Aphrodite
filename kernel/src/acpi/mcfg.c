@@ -8,12 +8,12 @@
 #include "dev/pci/ecam.h"
 #include "dev/printk.h"
 
-void mcfg_init(const struct acpi_mcfg *const mcfg) {
+void mcfg_init(const struct os_acpi_mcfg *const mcfg) {
     const uint32_t length = mcfg->sdt.length - sizeof(*mcfg);
-    const uint32_t entry_count = length / sizeof(struct acpi_mcfg_entry);
+    const uint32_t entry_count = length / sizeof(struct os_acpi_mcfg_entry);
 
-    const struct acpi_mcfg_entry *iter = mcfg->entries;
-    const struct acpi_mcfg_entry *const end = &mcfg->entries[entry_count];
+    const struct os_acpi_mcfg_entry *iter = mcfg->entries;
+    const struct os_acpi_mcfg_entry *const end = &mcfg->entries[entry_count];
 
     for (uint32_t index = 0; iter != end; iter++, index++) {
         printk(LOGLEVEL_INFO,

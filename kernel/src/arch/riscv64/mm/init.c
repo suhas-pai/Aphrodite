@@ -136,8 +136,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
 
     // Map all 'good' regions into the hhdm
     uint64_t kernel_memmap_size = 0;
-    for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
+    mm_for_each_memmap(memmap) {
         if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY) {
             continue;
         }
@@ -166,10 +165,9 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     // struct page
 
     mm_early_refcount_alloced_map(kib(64), gib(4) - kib(64));
-    for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
-         || memmap->kind == MM_MEMMAP_KIND_RESERVED)
+    mm_for_each_memmap(memmap) {
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
+            memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }

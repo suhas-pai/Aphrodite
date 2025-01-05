@@ -13,17 +13,24 @@ struct array {
     uint32_t object_size;
 };
 
-#define array_foreach(array, type, item) \
-    assert(sizeof(type) == (array)->object_size);                              \
-    type *const h_var(begin) = (type *)array_begin(*(array));                  \
-    type *const h_var(end) = (type *)(uint64_t)array_end(*(array));            \
+#define array_foreach(list, type, item) \
+    struct array h_var(array) = *(list);                                       \
+    assert(sizeof(type) == h_var(array).object_size);                          \
+                                                                               \
+    type *const h_var(begin) = (type *)array_begin(h_var(array));              \
+    type *const h_var(end) = (type *)(uint64_t)array_end(h_var(array));        \
+                                                                               \
     for (type *item = h_var(begin); item != h_var(end); item++)
 
-#define array_foreach_from_index(array, type, item, index) \
-    assert(sizeof(type) == (array)->object_size);                              \
-    type *const h_var(begin) = (type *)array_begin(*(array));                  \
-    type *const h_var(end) = (type *)(uint64_t)array_end(*(array));            \
-    assert(h_var(begin) + index <= h_var(end));                                \
+#define array_foreach_from_index(list, type, item, index) \
+    struct array h_var(array) = *(list);                                       \
+                                                                               \
+    assert(sizeof(type) == h_var(array)->object_size);                         \
+    assert(index_in_bounds(index, array_item_count(h_var(array))));            \
+                                                                               \
+    type *const h_var(begin) = (type *)array_begin(h_var(array));              \
+    type *const h_var(end) = (type *)(uint64_t)array_end(h_var(array));        \
+                                                                               \
     for (type *item = h_var(begin) + index; item != h_var(end); item++)
 
 #define ARRAY_INIT(size) \
@@ -38,6 +45,8 @@ struct array {
 struct array *array_alloc(uint32_t object_size, uint32_t item_capacity);
 struct array array_copy(struct array array);
 
+bool array_initialized(struct array array);
+
 bool array_append(struct array *array, const void *item);
 void array_remove_index(struct array *array, uint32_t index);
 bool array_remove_range(struct array *array, struct range range);
@@ -49,6 +58,8 @@ void *array_at(struct array array, uint32_t index);
 
 void *array_front(struct array array);
 void *array_back(struct array array);
+
+uint32_t array_indexof(struct array array, const void *item);
 
 uint32_t array_item_count(struct array array);
 uint32_t array_free_count(struct array array);

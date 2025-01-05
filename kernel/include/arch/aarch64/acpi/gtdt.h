@@ -6,4 +6,4 @@
 #pragma once
 #include "acpi/structs.h"
 
-void gtdt_init(const struct acpi_gtdt *gtdt);
+void gtdt_init(const struct os_acpi_gtdt *gtdt);

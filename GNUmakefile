@@ -20,7 +20,7 @@ endif
 ARCH := x86_64
 
 # Default user QEMU flags. These are appended to the QEMU command calls.
-QEMUFLAGS := -M $(MACHINE) -m 4G -smp $(SMP)
+QEMUFLAGS := -M $(MACHINE) -m $(MEM) -smp $(SMP)
 
 # Check if the architecture is supported.
 ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)

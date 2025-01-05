@@ -4,28 +4,31 @@
  */
 
 #include <stdatomic.h>
+#include <uacpi/kernel_api.h>
 
 #include "dev/pci/ecam.h"
-#include "lib/adt/array.h"
 
 #include "cpu/isr.h"
 #include "cpu/mutex.h"
-#include "cpu/spinlock.h"
 
 #include "dev/printk.h"
-#include "lib/assert.h"
+
+#include "lib/align.h"
+#include "lib/util.h"
 
 #include "mm/kmalloc.h"
+
+#include "mm/memmap.h"
 #include "mm/mmio.h"
 
+#include "mm/simple_alloc.h"
 #include "sched/sleep.h"
 #include "sched/thread.h"
 
 #include "sys/boot.h"
-#include "sys/mmio.h"
+#include "sys/pio.h"
 
 #include "time/time.h"
-#include "uacpi/kernel_api.h"
 
 uacpi_status uacpi_kernel_get_rsdp(uacpi_phys_addr *const out_rsdp_address) {
     *out_rsdp_address = virt_to_phys(boot_get_rsdp());
@@ -33,12 +36,12 @@ uacpi_status uacpi_kernel_get_rsdp(uacpi_phys_addr *const out_rsdp_address) {
 }
 
 struct uacpi_pci_handle {
-    struct pci_domain *domain;
+    const struct pci_domain *domain;
     uacpi_pci_address address;
 };
 
 struct uacpi_pci_handle *
-uacpi_pci_handle_create(struct pci_domain *const domain,
+uacpi_pci_handle_create(const struct pci_domain *const domain,
                         const uacpi_pci_address address)
 {
     struct uacpi_pci_handle *const handle = kmalloc(sizeof(*handle));
@@ -52,7 +55,7 @@ uacpi_pci_handle_create(struct pci_domain *const domain,
     return handle;
 }
 
-inline void uacpi_pci_handle_destroy(struct uacpi_pci_handle *const handle) {
+void uacpi_pci_handle_destroy(struct uacpi_pci_handle *const handle) {
     kfree(handle);
 }
 
@@ -62,9 +65,10 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
 {
     int flag = 0;
     array_foreach(pci_get_domain_list_locked(&flag),
-                  struct pci_domain,
-                  domain)
+                  const struct pci_domain *,
+                  iter)
     {
+        const struct pci_domain *const domain = *iter;
         if (domain->segment != address.segment) {
             continue;
         }
@@ -87,8 +91,8 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
         #endif /* defined(__x86_64__) */
 
             case PCI_DOMAIN_ECAM: {
-                struct pci_domain_ecam *const ecam =
-                    (struct pci_domain_ecam *)domain;
+                const struct pci_domain_ecam *const ecam =
+                    (const struct pci_domain_ecam *)domain;
 
                 if (!range_has_loc(ecam->bus_range, address.bus)) {
                     continue;
@@ -133,7 +137,7 @@ uacpi_kernel_pci_read(const uacpi_handle handle,
         .function = address.function,
     };
 
-    struct pci_domain *const domain = (struct pci_domain *)handle;
+    const struct pci_domain *const domain = the_handle->domain;
     switch (byte_width) {
         case sizeof(uint8_t):
             *value = pci_domain_read_8(domain, &location, offset);
@@ -168,7 +172,7 @@ uacpi_kernel_pci_write(const uacpi_handle device,
         .function = address.function,
     };
 
-    struct pci_domain *const domain = (struct pci_domain *)handle;
+    const struct pci_domain *const domain = handle->domain;
     switch (byte_width) {
         case sizeof(uint8_t):
             pci_domain_write_8(domain, &location, offset, value);
@@ -187,24 +191,41 @@ uacpi_kernel_pci_write(const uacpi_handle device,
     verify_not_reached();
 }
 
+struct pio_range {
+    port_t base;
+    size_t len;
+};
+
+static inline
+struct pio_range *pio_range_create(const port_t base, const size_t len) {
+    struct pio_range *const range = (struct pio_range *)kmalloc(sizeof(*range));
+    if (range == nullptr) {
+        return nullptr;
+    }
+
+    range->base = base;
+    range->len = len;
+
+    return range;
+}
+
 uacpi_status
 uacpi_kernel_io_map(const uacpi_io_addr base,
                     const uacpi_size len,
                     uacpi_handle *const out_handle)
 {
-    struct mmio_region *const region =
-        vmap_mmio(RANGE_INIT(base, len), PROT_READ | PROT_WRITE, /*flags=*/0);
-
-    if (region == nullptr) {
+    struct pio_range *const range = pio_range_create((port_t)base, len);
+    if (range == nullptr) {
         return UACPI_STATUS_OUT_OF_MEMORY;
     }
 
-    *out_handle = (uacpi_handle)region;
+    *out_handle = (uacpi_handle)range;
     return UACPI_STATUS_OK;
 }
 
 void uacpi_kernel_io_unmap(const uacpi_handle handle) {
-    vunmap_mmio((struct mmio_region *)handle);
+    struct pio_range *const range = (struct pio_range *)handle;
+    kfree(range);
 }
 
 uacpi_status
@@ -213,9 +234,12 @@ uacpi_kernel_io_read(const uacpi_handle handle,
                      const uacpi_u8 byte_width,
                      uacpi_u64 *const value)
 {
-    struct mmio_region *const region = (struct mmio_region *)handle;
-    *value = mmio_read_size(region->base + offset, byte_width);
+    const struct pio_range *const range = (struct pio_range *)handle;
+    if (!index_range_in_bounds(RANGE_INIT(offset, byte_width), range->len)) {
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
 
+    *value = pio_read_size(range->base + offset, byte_width);
     return UACPI_STATUS_OK;
 }
 
@@ -225,24 +249,114 @@ uacpi_kernel_io_write(const uacpi_handle handle,
                       const uacpi_u8 byte_width,
                       const uacpi_u64 value)
 {
-    struct mmio_region *const region = (struct mmio_region *)handle;
-    mmio_write_size(region->base + offset, byte_width, value);
+    const struct pio_range *const range = (struct pio_range *)handle;
+    if (!index_range_in_bounds(RANGE_INIT(offset, byte_width), range->len)) {
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
 
+    pio_write_size(range->base + offset, byte_width, value);
     return UACPI_STATUS_OK;
 }
 
+static struct list g_vmap_list = LIST_INIT(g_vmap_list);
+static struct spinlock g_vmap_lock = SPINLOCK_INIT();
+
+struct uacpi_vmap {
+    struct mmio_region *region;
+    struct list list;
+
+    struct refcount refcount;
+};
+
+void *
+create_and_add_vmap(const uacpi_phys_addr addr,
+                    const uacpi_size len,
+                    const int flag)
+{
+    struct uacpi_vmap *const vmap = (struct uacpi_vmap *)kmalloc(sizeof(*vmap));
+    if (vmap == nullptr) {
+        spin_release_restore_intr(&g_vmap_lock, flag);
+        return nullptr;
+    }
+
+    vmap->region =
+        vmap_mmio(RANGE_INIT(addr, len), PROT_READ | PROT_WRITE, /*flags=*/0);
+
+    if (vmap->region == nullptr) {
+        spin_release_restore_intr(&g_vmap_lock, flag);
+        return nullptr;
+    }
+
+    list_init(&vmap->list);
+    list_add(&g_vmap_list, &vmap->list);
+
+    refcount_init(&vmap->refcount);
+    spin_release_restore_intr(&g_vmap_lock, flag);
+
+    return (void *)(uint64_t)vmap->region->base;
+}
+
 void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
-    (void)len;
-    return phys_to_virt(addr);
+    mm_for_each_memmap(memmap) {
+        if (range_has_loc(memmap->range, addr)) {
+            return phys_to_virt(addr);
+        }
+    }
+
+    const uacpi_phys_addr align_addr = align_down(addr, PAGE_SIZE);
+    const uacpi_size align_len = align_up_assert(len, PAGE_SIZE);
+
+    const int flag = spin_acquire_save_intr(&g_vmap_lock);
+    struct uacpi_vmap *vmap = NULL;
+
+    list_foreach(vmap, &g_vmap_list, list) {
+        if (range_has_loc(mmio_region_get_range(vmap->region), align_addr)) {
+            ref_up(&vmap->refcount);
+            spin_release_restore_intr(&g_vmap_lock, flag);
+
+            return (void *)(uint64_t)vmap->region->base;
+        }
+    }
+
+    return create_and_add_vmap(align_addr, align_len, flag);
 }
 
 void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
-    (void)addr;
-    (void)len;
+    const struct range range = RANGE_INIT((uacpi_u64)addr, len);
+    struct uacpi_vmap *vmap = NULL;
+
+    list_foreach(vmap, &g_vmap_list, list) {
+        if (range_has(mmio_region_get_range(vmap->region), range)) {
+            if (ref_down(&vmap->refcount)) {
+                list_deinit(&vmap->list);
+                kfree(vmap);
+            }
+
+            return;
+        }
+    }
 }
 
+static struct simple_alloc g_alloc;
+static struct spinlock g_alloc_lock = SPINLOCK_INIT();
+
+#define MAX_SIMPLE_ALLOC_SIZE 512
+
 void *uacpi_kernel_alloc(const uacpi_size size) {
-    return kmalloc(size);
+    if (!array_initialized(g_alloc.page_list)) {
+        simple_alloc_create(&g_alloc);
+    }
+
+    if (size > MAX_SIMPLE_ALLOC_SIZE) {
+        return kmalloc(size);
+    }
+
+    void *result = NULL;
+    with_spinlock_intr_disabled(&g_alloc_lock, {
+        result = simple_alloc(&g_alloc, size);
+    });
+
+    return result;
 }
 
 #ifdef UACPI_NATIVE_ALLOC_ZEROED
@@ -251,19 +365,39 @@ void *uacpi_kernel_alloc(const uacpi_size size) {
  * The returned memory block is expected to be zero-filled.
  */
 void *uacpi_kernel_alloc_zeroed(const uacpi_size size) {
-    // Potential FIXME:
     return kmalloc(size);
 }
 #endif
 
 #ifndef UACPI_SIZED_FREES
 void uacpi_kernel_free(void *const mem) {
-    kfree(mem);
+    if (mem == nullptr) {
+        return;
+    }
+
+    bool result = false;
+    with_spinlock_intr_disabled(&g_alloc_lock, {
+        result = simple_try_free(&g_alloc, mem);
+    });
+
+    if (!result) {
+        kfree(mem);
+    }
 }
 #else
 void uacpi_kernel_free(void *const mem, const uacpi_size size_hint) {
-    (void)size_hint;
-    kfree(mem);
+    if (mem == nullptr || size_hint == 0) {
+        return;
+    }
+
+    bool result = false;
+    with_spinlock_intr_disabled(&g_alloc_lock, {
+        result = simple_try_free(&g_alloc, mem);
+    });
+
+    if (!result) {
+        kfree(mem);
+    }
 }
 #endif
 
@@ -299,8 +433,10 @@ uacpi_kernel_log(const uacpi_log_level log_level,
                  const uacpi_char *const str,
                  ...)
 {
+    va_list list;
+
     va_start(list, str);
-    uacpi_kernel_vlog(prink_level, str, list);
+    uacpi_kernel_vlog(log_level, str, list);
     va_end(list);
 }
 
@@ -334,7 +470,7 @@ uacpi_kernel_vlog(const uacpi_log_level log_level,
 #endif
 
 uacpi_u64 uacpi_kernel_get_nanoseconds_since_boot(void) {
-    return nsec_since_boot();
+    return (uacpi_u64)nsec_since_boot();
 }
 
 void uacpi_kernel_stall(const uacpi_u8 usec) {
@@ -556,7 +692,7 @@ uacpi_kernel_uninstall_interrupt_handler(
     struct irq_pin *const pin =
         isr_get_irq_pin((uacpi_u32)(uintptr_t)irq_handle);
 
-    isr_uninstall_irq(pin);
+    kfree(isr_uninstall_irq(pin));
     return UACPI_STATUS_OK;
 }
 

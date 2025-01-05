@@ -6,7 +6,7 @@
 #include "acpi/spcr.h"
 #include "dev/printk.h"
 
-void spcr_init(const struct acpi_spcr *const spcr) {
+void spcr_init(const struct os_acpi_spcr *const spcr) {
     if (spcr->sdt.length < sizeof(*spcr)) {
         printk(LOGLEVEL_WARN, "spcr: table too short\n");
         return;

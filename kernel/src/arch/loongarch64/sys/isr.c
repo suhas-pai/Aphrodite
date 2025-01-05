@@ -14,7 +14,6 @@
 #define ISR_MSI_COUNT 256
 
 static bitset_decl(g_msi_bitset, ISR_MSI_COUNT);
-
 static struct spinlock g_lock = SPINLOCK_INIT();
 
 struct intr_callback {
@@ -22,6 +21,7 @@ struct intr_callback {
     void *ctx;
 };
 
+static struct irq_pin g_irq_pin_list[ISR_IRQ_COUNT] = {0};
 static struct intr_callback g_funcs[ISR_IRQ_COUNT] = {0};
 static struct intr_callback g_msi_funcs[ISR_MSI_COUNT] = {0};
 
@@ -116,6 +116,11 @@ void isr_eoi(const uint64_t intr_info) {
     (void)intr_info;
 }
 
+struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
+    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+    return &g_irq_pin_list[irq];
+}
+
 bool
 isr_install_irq(struct irq_pin *const pin,
                 const isr_func_t handler,
@@ -130,9 +135,13 @@ isr_install_irq(struct irq_pin *const pin,
     return true;
 }
 
-void isr_uninstall_irq(struct irq_pin *const pin) {
+void *isr_uninstall_irq(struct irq_pin *const pin) {
+    void *const result = g_funcs[pin->irq].ctx;
+
     isr_free_vector(pin->vector);
     pin->vector = ISR_INVALID_VECTOR;
+
+    return result;
 }
 
 __debug_optimize(3) void isr_mask_intr(const isr_vector_t intr) {

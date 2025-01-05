@@ -14,7 +14,6 @@
 #include "mm/pgmap.h"
 
 #include "sched/process.h"
-#include "sys/boot.h"
 
 __debug_optimize(3) static uint64_t alloc_page(void *const info) {
     (void)info;
@@ -156,10 +155,9 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
 
     // Map all 'good' regions into the hhdm
     uint64_t kernel_memmap_size = 0;
-    for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
-         || memmap->kind == MM_MEMMAP_KIND_RESERVED)
+    mm_for_each_memmap(memmap) {
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
+            memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {
             continue;
         }
@@ -194,8 +192,7 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     mm_early_refcount_alloced_map(ident_map_range.front, ident_map_range.size);
     mm_early_refcount_alloced_map(VMAP_BASE, (VMAP_END - VMAP_BASE));
 
-    for (uint64_t i = 0; i != mm_get_memmap_count(); i++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[i];
+    mm_for_each_memmap(memmap) {
         if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY
          || memmap->kind == MM_MEMMAP_KIND_RESERVED)
         {

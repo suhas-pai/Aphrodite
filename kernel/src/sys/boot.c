@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "lib/size.h"
+
 #include "mm/memmap.h"
 #include "mm/mm_types.h"
 #include "mm/section.h"
@@ -78,7 +80,7 @@ static volatile struct limine_mp_request mp_request = {
     .revision = 0,
     .response = nullptr,
 #if defined(__x86_64__)
-    .flags = 1 << 0, // Use x2apic (when available)
+    .flags = LIMINE_MP_X2APIC, // Use x2apic (when available)
 #else
     .flags = 0,
 #endif /* defined(__x86_64__) */
@@ -183,11 +185,15 @@ void boot_init() {
     }
 
     mp_response = mp_request.response;
-    if (dtb_request.response != nullptr && dtb_request.response->dtb_ptr != nullptr) {
+    if (dtb_request.response != nullptr &&
+        dtb_request.response->dtb_ptr != nullptr)
+    {
         dtb = dtb_request.response->dtb_ptr;
     }
 
-    if (rsdp_request.response != nullptr && rsdp_request.response->address != 0) {
+    if (rsdp_request.response != nullptr &&
+        rsdp_request.response->address != 0)
+    {
         rsdp = phys_to_virt((uint64_t)rsdp_request.response->address);
     }
 
@@ -284,7 +290,9 @@ void boot_post_early_init() {
            mm_page_section_count);
 
 #if !defined(__x86_64__)
-    if (dtb_request.response == nullptr || dtb_request.response->dtb_ptr == nullptr) {
+    if (dtb_request.response == nullptr ||
+        dtb_request.response->dtb_ptr == nullptr)
+    {
         printk(LOGLEVEL_WARN, "boot: device tree is missing\n");
     }
 #endif /* !defined(__x86_64__) */

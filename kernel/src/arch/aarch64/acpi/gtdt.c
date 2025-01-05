@@ -10,7 +10,7 @@
 #include "lib/util.h"
 
 
-void gtdt_init(const struct acpi_gtdt *const gtdt) {
+void gtdt_init(const struct os_acpi_gtdt *const gtdt) {
     const enum irq_trigger_mode secure_el1_trigger_mode =
         (gtdt->secure_el1_timer_flags & __ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;

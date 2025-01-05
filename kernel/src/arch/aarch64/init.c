@@ -22,8 +22,8 @@
 
 __debug_optimize(3) void arch_early_init() {
 #if !defined(AARCH64_USE_16K_PAGES)
-    const struct acpi_spcr *const spcr =
-        (const struct acpi_spcr *)acpi_lookup_sdt("SPCR");
+    const auto spcr =
+        (const struct os_acpi_spcr *)acpi_lookup_sdt("SPCR");
 
     uint64_t address = QEMU_SERIAL_PHYS;
     if (spcr != nullptr) {

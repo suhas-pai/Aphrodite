@@ -205,9 +205,12 @@ isr_install_irq(struct irq_pin *const pin,
     return true;
 }
 
-void isr_uninstall_irq(struct irq_pin *const pin) {
+void *isr_uninstall_irq(struct irq_pin *const pin) {
+    void *const result = g_callbacks[pin->irq].ctx;
     isr_free_vector(pin->vector);
+
     pin->vector = ISR_INVALID_VECTOR;
+    return result;
 }
 
 __debug_optimize(3) uint64_t

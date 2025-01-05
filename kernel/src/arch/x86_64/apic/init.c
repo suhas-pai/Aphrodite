@@ -22,6 +22,8 @@ enum : uint16_t {
 static struct mmio_region *g_lapic_region = nullptr;
 static volatile struct lapic_registers *g_lapic_regs;
 
+extern bool using_x2apic;
+
 void apic_init(const uint64_t local_apic_base) {
     g_lapic_region =
         vmap_mmio(RANGE_INIT(local_apic_base, PAGE_SIZE),
@@ -48,7 +50,7 @@ void apic_init(const uint64_t local_apic_base) {
     // Use x2apic if available
     if (get_cpu_capabilities()->supports_x2apic) {
         apic_msr |= __IA32_MSR_APIC_BASE_X2APIC;
-        get_acpi_info_mut()->using_x2apic = true;
+        using_x2apic = true;
     } else {
         printk(LOGLEVEL_INFO,
                "apic: x2apic not supported. reverting to xapic instead\n");

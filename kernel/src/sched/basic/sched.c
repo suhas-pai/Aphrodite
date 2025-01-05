@@ -163,7 +163,6 @@ static void update_alarm_list(struct thread *const current_thread) {
         atomic_store_explicit(&iter->posted, true, memory_order_relaxed);
 
         list_remove(&iter->list);
-        kfree(iter);
     }
 }
 

@@ -64,5 +64,9 @@ bool
 addrspace_add_node(struct address_space *addrspace,
                    struct addrspace_node *node);
 
+struct avlnode *
+addrspace_find_node_with_range(struct address_space *addrspace,
+                               struct range range);
+
 void addrspace_remove_node(struct addrspace_node *node);
 void addrspace_print(struct address_space *addrspace);

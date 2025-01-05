@@ -17,13 +17,13 @@
 
 static uint64_t g_frequency = 0;
 
-enum cntp_ctl : uint8_t {
+enum cntp_ctl : uint64_t {
     __CNTP_CTL_ENABLE = 1 << 0,
     __CNTP_CTL_INTR_MASK = 1 << 1,
     __CNTP_CTL_COND_MET = 1 << 2,
 };
 
-enum cntv_ctl : uint8_t {
+enum cntv_ctl : uint64_t {
     __CNTV_CTL_ENABLE = 1 << 0,
 };
 
@@ -189,7 +189,7 @@ enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
 
 }
 
-void arch_init_time() {
+void arch_init_time_pre_acpi() {
     asm volatile ("mrs %0, cntfrq_el0" : "=r"(g_frequency));
     printk(LOGLEVEL_INFO,
            "time: frequency is " FREQ_TO_UNIT_FMT "\n",
@@ -197,20 +197,26 @@ void arch_init_time() {
 
     // Enable and unmask generic timers
     asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
-    asm volatile ("msr cntp_ctl_el0, %0" :: "r"((uint64_t)__CNTP_CTL_ENABLE));
+    asm volatile ("msr cntp_ctl_el0, %0" :: "r"(__CNTP_CTL_ENABLE));
 
     asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
-    asm volatile ("msr cntv_ctl_el0, %0" :: "r"((uint64_t)__CNTV_CTL_ENABLE));
+    asm volatile ("msr cntv_ctl_el0, %0" :: "r"(__CNTV_CTL_ENABLE));
 
     if (boot_get_dtb() != nullptr) {
         enable_dtb_timer_irqs();
-    } else {
-        const struct acpi_gtdt *const gtdt = get_acpi_info()->gtdt;
-        assert_msg(gtdt != nullptr,
-                   "time: dtb is missing and acpi is missing a 'gtdt' table");
     }
 
     printk(LOGLEVEL_INFO,
            "time: syscount is %" PRIu64 "\n",
            system_timer_get_count_ns());
+}
+
+void arch_init_time() {
+    if (boot_get_dtb() != nullptr) {
+        return;
+    }
+
+    const struct os_acpi_gtdt *const gtdt = get_acpi_info()->gtdt;
+    assert_msg(gtdt != nullptr,
+               "time: dtb is missing and acpi is missing a 'gtdt' table");
 }

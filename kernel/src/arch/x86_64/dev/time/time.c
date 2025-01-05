@@ -12,6 +12,10 @@
 #include "sys/boot.h"
 
 __debug_optimize(3) nsec_t nsec_since_boot() {
+    if (!hpet_initialized()) {
+        return 0;
+    }
+
     return seconds_to_nano((sec_t)boot_get_time())
          + femto_to_nano(hpet_get_femto());
 }
@@ -23,6 +27,7 @@ __debug_optimize(3) void stall_for_usec(const usec_t usec) {
     }
 }
 
+void arch_init_time_pre_acpi() {}
 void arch_init_time() {
     // No longer used with multi-processor setups, but used to calculate LAPIC
     // frequency

@@ -7,25 +7,25 @@
 #include "lib/macros.h"
 
 // rsdp = "Root System Description Pointer"
-struct acpi_rsdp_v2_info {
+struct os_acpi_rsdp_v2_info {
     uint32_t length;
     uint64_t xsdt_addr;
     uint8_t ext_checksum;
     uint8_t reserved[3];
 } __packed;
 
-struct acpi_rsdp {
+struct os_acpi_rsdp {
     char signature[8];
     uint8_t checksum;
     char oem_id[6];
     uint8_t revision;
     uint32_t rsdt_addr;
     // ver 2.0 only
-    struct acpi_rsdp_v2_info v2;
+    struct os_acpi_rsdp_v2_info v2;
 } __packed;
 
 // sdt = "System Description Table"
-struct acpi_sdt {
+struct os_acpi_sdt {
     char signature[4];
     uint32_t length;
     uint8_t rev;
@@ -38,19 +38,19 @@ struct acpi_sdt {
 } __packed;
 
 // rsdt = "Root System Description Table"
-struct acpi_rsdt {
-    struct acpi_sdt sdt;
+struct os_acpi_rsdt {
+    struct os_acpi_sdt sdt;
     char ptrs[];
 } __packed;
 
-struct acpi_madt {
-    struct acpi_sdt sdt;
+struct os_acpi_madt {
+    struct os_acpi_sdt sdt;
     uint32_t local_apic_base;
     uint32_t flags;
     char madt_entries[];
 } __packed;
 
-enum acpi_madt_entry_kind : uint8_t {
+enum os_acpi_madt_entry_kind : uint8_t {
     ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC,
     ACPI_MADT_ENTRY_KIND_IO_APIC,
     ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE,
@@ -72,51 +72,51 @@ enum acpi_madt_entry_kind : uint8_t {
     ACPI_MADT_ENTRY_KIND_RISCV_PLIC,
 };
 
-struct acpi_madt_entry_header {
-    enum acpi_madt_entry_kind kind;
+struct os_acpi_madt_entry_header {
+    enum os_acpi_madt_entry_kind kind;
     uint8_t length;
 } __packed;
 
-enum acpi_madt_entry_cpu_lapic_flags {
+enum os_acpi_madt_entry_cpu_lapic_flags {
     __ACPI_MADT_ENTRY_CPU_LAPIC_ENABLED = 1 << 0,
     __ACPI_MADT_ENTRY_CPU_LAPIC_ONLINE_CAPABLE = 1 << 1
 };
 
-struct acpi_madt_entry_cpu_lapic {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_cpu_lapic {
+    struct os_acpi_madt_entry_header header;
     uint8_t processor_id;
     uint8_t apic_id;
     uint32_t flags;
 } __packed;
 
-struct acpi_madt_entry_ioapic {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_ioapic {
+    struct os_acpi_madt_entry_header header;
     uint8_t apic_id;
     uint8_t reserved;
     uint32_t base;
     uint32_t gsib; // gsib = "Global System Interrupt Base"
 } __packed;
 
-enum acpi_madt_entry_iso_flags {
+enum os_acpi_madt_entry_iso_flags {
     __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW = 1 << 1,
     __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER = 0b11 << 2,
 };
 
-struct acpi_madt_entry_iso {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_iso {
+    struct os_acpi_madt_entry_header header;
     uint8_t bus_source;
     uint8_t irq_source;
     uint32_t gsi; // gsi = "Global System Interrupt"
     uint16_t flags;
 } __packed;
 
-enum acpi_madt_entry_nmi_src_flags {
+enum os_acpi_madt_entry_nmi_src_flags {
     __ACPI_MADT_ENTRY_NMI_SRC_ACTIVE_LOW = 1 << 1,
     __ACPI_MADT_ENTRY_NMI_SRC_LEVEL_TRIGGER = 1 << 4,
 };
 
-struct acpi_madt_entry_nmi_src {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_nmi_src {
+    struct os_acpi_madt_entry_header header;
 
     uint8_t source;
     uint8_t reserved;
@@ -124,26 +124,26 @@ struct acpi_madt_entry_nmi_src {
     uint32_t gsi; // gsi = "Global System Interrupt"
 } __packed;
 
-struct acpi_madt_entry_nmi {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_nmi {
+    struct os_acpi_madt_entry_header header;
     uint8_t processor;
     uint16_t flags;
     uint8_t lint;
 } __packed;
 
-struct acpi_madt_entry_lapic_addr_override {
+struct os_acpi_madt_entry_lapic_addr_override {
     uint16_t reserved;
     uint64_t base;
 } __packed;
 
-struct acpi_madt_entry_cpu_local_x2apic {
+struct os_acpi_madt_entry_cpu_local_x2apic {
     uint16_t reserved;
     uint32_t x2apic_id;
     uint32_t flags;
     uint32_t acpi_uid;
 } __packed;
 
-struct acpi_madt_entry_cpu_local_x2apic_nmi {
+struct os_acpi_madt_entry_cpu_local_x2apic_nmi {
     uint16_t reserved;
     uint32_t flags;
     uint32_t acpi_uid;
@@ -151,21 +151,21 @@ struct acpi_madt_entry_cpu_local_x2apic_nmi {
     uint8_t reserved_2[3];
 } __packed;
 
-enum acpi_madt_entry_gic_cpu_flags {
+enum os_acpi_madt_entry_gic_cpu_flags {
     __ACPI_MADT_ENTRY_GIC_CPU_ENABLED = 1 << 0,
     __ACPI_MADT_ENTRY_GIC_CPU_PERF_INTR_EDGE_TRIGGER = 1 << 1,
     __ACPI_MADT_ENTRY_GIC_CPU_VGIC_INTR_EDGE_TRIGGER = 1 << 2,
 };
 
-enum acpi_madt_entry_gic_cpu_mpidr_flags {
+enum os_acpi_madt_entry_gic_cpu_mpidr_flags {
     __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF0 = 0xff,
     __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF1 = 0xff << 8,
     __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF2 = 0xff << 16,
     __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF3 = 0xffull << 32,
 };
 
-struct acpi_madt_entry_gic_cpu_interface {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_gic_cpu_interface {
+    struct os_acpi_madt_entry_header header;
 
     // Must be 0
     uint16_t reserved;
@@ -198,8 +198,8 @@ struct acpi_madt_entry_gic_cpu_interface {
     uint16_t spe_overflow_interrupt;
 } __packed;
 
-struct acpi_madt_entry_gic_distributor {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_gic_distributor {
+    struct os_acpi_madt_entry_header header;
 
     uint16_t reserved;
     uint32_t gic_hardware_id;
@@ -209,12 +209,12 @@ struct acpi_madt_entry_gic_distributor {
     uint8_t reserved_2[3];
 } __packed;
 
-enum acpi_madt_entry_gic_msi_frame_flags {
+enum os_acpi_madt_entry_gic_msi_frame_flags {
     __ACPI_MADT_GICMSI_FRAME_OVERRIDE_MSI_TYPERR = 1 << 0,
 };
 
-struct acpi_madt_entry_gic_msi_frame {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_gic_msi_frame {
+    struct os_acpi_madt_entry_header header;
 
     uint16_t reserved;
     uint32_t msi_frame_id;
@@ -224,16 +224,16 @@ struct acpi_madt_entry_gic_msi_frame {
     uint16_t spi_base;
 } __packed;
 
-struct acpi_madt_entry_gicv3_redistributor {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_gicv3_redistributor {
+    struct os_acpi_madt_entry_header header;
     uint16_t reserved;
 
     uint64_t discovery_range_base_address;
     uint32_t discovery_range_length;
 } __packed;
 
-struct acpi_madt_entry_gic_its {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_entry_gic_its {
+    struct os_acpi_madt_entry_header header;
     uint16_t reserved;
 
     uint32_t id;
@@ -241,13 +241,13 @@ struct acpi_madt_entry_gic_its {
     uint32_t reserved_2;
 } __packed;
 
-enum acpi_madt_riscv_hart_irq_controller_flags {
+enum os_acpi_madt_riscv_hart_irq_controller_flags {
     __ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED = 1 << 0,
     __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE = 1 << 1,
 };
 
-struct acpi_madt_riscv_hart_irq_controller {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_riscv_hart_irq_controller {
+    struct os_acpi_madt_entry_header header;
 
     uint8_t version;
     uint8_t reserved;
@@ -261,8 +261,8 @@ struct acpi_madt_riscv_hart_irq_controller {
     uint32_t imsic_size;
 } __packed;
 
-struct acpi_madt_riscv_imsic {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_riscv_imsic {
+    struct os_acpi_madt_entry_header header;
 
     uint8_t version;
     uint8_t reserved;
@@ -277,8 +277,8 @@ struct acpi_madt_riscv_imsic {
     uint8_t group_index_shift;
 } __packed;
 
-struct acpi_madt_riscv_aplic {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_riscv_aplic {
+    struct os_acpi_madt_entry_header header;
 
     uint8_t version;
     uint8_t id;
@@ -293,8 +293,8 @@ struct acpi_madt_riscv_aplic {
     uint32_t aplic_size;
 } __packed;
 
-struct acpi_madt_riscv_plic {
-    struct acpi_madt_entry_header header;
+struct os_acpi_madt_riscv_plic {
+    struct os_acpi_madt_entry_header header;
 
     uint8_t version;
     uint8_t id;
@@ -310,7 +310,7 @@ struct acpi_madt_riscv_plic {
 } __packed;
 
 
-enum acpi_gas_addrspace_kind : uint8_t {
+enum os_acpi_gas_addrspace_kind : uint8_t {
     ACPI_GAS_ADDRSPACE_KIND_SYSMEM,
     ACPI_GAS_ADDRSPACE_KIND_SYS_IO,
     ACPI_GAS_ADDRSPACE_KIND_PCI_CONFIG,
@@ -324,7 +324,7 @@ enum acpi_gas_addrspace_kind : uint8_t {
     ACPI_GAS_ADDRSPACE_KIND_SYS_PLATFORM_COMM_CHANNEL,
 };
 
-enum acpi_gas_access_size_kind : uint8_t {
+enum os_acpi_gas_access_size_kind : uint8_t {
     ACPI_GAS_ACCESS_SIZE_UNDEFINED,
 
     ACPI_GAS_ACCESS_SIZE_1_BYTE,
@@ -334,17 +334,17 @@ enum acpi_gas_access_size_kind : uint8_t {
 };
 
 // gas = Generic Address Structure
-struct acpi_gas {
-    enum acpi_gas_addrspace_kind addr_space;
+struct os_acpi_gas {
+    enum os_acpi_gas_addrspace_kind addr_space;
 
     uint8_t bit_width;
     uint8_t bit_offset;
 
-    enum acpi_gas_access_size_kind access_size;
+    enum os_acpi_gas_access_size_kind access_size;
     uint64_t address;
 } __packed;
 
-enum acpi_fadt_preferred_pm_profile : uint8_t {
+enum os_acpi_fadt_preferred_pm_profile : uint8_t {
     ACPI_FADT_PREFERRED_PM_PROFILE_UNSPECIFIED,
     ACPI_FADT_PREFERRED_PM_PROFILE_DESKTOP,
     ACPI_FADT_PREFERRED_PM_PROFILE_MOBILE,
@@ -356,7 +356,7 @@ enum acpi_fadt_preferred_pm_profile : uint8_t {
     ACPI_FADT_PREFERRED_PM_PROFILE_TABLET
 };
 
-enum acpi_fadt_flags : uint32_t {
+enum os_acpi_fadt_flags : uint32_t {
     __ACPI_FADT_WBINVD                             = 1 << 0,
     __ACPI_FADT_WBINVD_FLUSH                       = 1 << 1,
     __ACPI_FADT_PROC_C1                            = 1 << 2,
@@ -381,7 +381,7 @@ enum acpi_fadt_flags : uint32_t {
     __ACPI_FADT_FORCE_HW_LOW_POWER_S0_IDLE_CAPABLE = 1 << 21,
 };
 
-enum acpi_fadt_iapc_boot_flags : uint8_t {
+enum os_acpi_fadt_iapc_boot_flags : uint8_t {
     __ACPI_FADT_IAPC_BOOT_LEGACY_DEVICES          = 1 << 0,
     __ACPI_FADT_IAPC_BOOT_8042                    = 1 << 1,
     __ACPI_FADT_IAPC_BOOT_VGA_NOT_PRESENT         = 1 << 2,
@@ -390,12 +390,12 @@ enum acpi_fadt_iapc_boot_flags : uint8_t {
     __ACPI_FADT_IAPC_BOOT_CMOS_NOT_PRESENT        = 1 << 5,
 };
 
-enum acpi_fadt_arm_boot_flags : uint8_t {
+enum os_acpi_fadt_arm_boot_flags : uint8_t {
     __ACPI_FADT_ARM_BOOT_PSCI_COMPLIANT = 1 << 0,
     __ACPI_FADT_ARM_BOOT_PSCI_USE_HVC = 1 << 1,
 };
 
-enum acpi_fadt_pm1_status : uint16_t {
+enum os_acpi_fadt_pm1_status : uint16_t {
     // This bit gets set any time the most significant bit of a 24/32-bit
     // counter changes from clear to set or set to clear.
     __ACPI_FADT_PM1_STATUS_TIMER_CARRY_STATUS = 1 << 0,
@@ -523,7 +523,7 @@ enum acpi_fadt_pm1_status : uint16_t {
  * feature, then software treats these bits as ignored.
  */
 
-enum acpi_fadt_pm1_enable_registers : uint16_t {
+enum os_acpi_fadt_pm1_enable_registers : uint16_t {
     __ACPI_FADT_PM1_ENABLE_TMR_EN     = 1 << 0,
     __ACPI_FADT_PM1_ENABLE_GBL_EN     = 1 << 5,
     __ACPI_FADT_PM1_ENABLE_PWR_BTN_EN = 1 << 8,
@@ -545,7 +545,7 @@ enum acpi_fadt_pm1_enable_registers : uint16_t {
     __ACPI_FADT_PM1_ENABLE_PCIEXP_WAKE_EN = 1 << 14,
 };
 
-enum acpi_fadt_pm1_control_registers  : uint16_t {
+enum os_acpi_fadt_pm1_control_registers  : uint16_t {
     /*
      * Selects the power management event to be either an SCI or SMI interrupt
      * for the following events. When this bit is set, then power management
@@ -594,8 +594,8 @@ enum acpi_fadt_pm1_control_registers  : uint16_t {
     __ACPI_FADT_PM1_CONTROL_SLP_EN = 1 << 13,
 };
 
-struct acpi_fadt {
-    struct acpi_sdt sdt;
+struct os_acpi_fadt {
+    struct os_acpi_sdt sdt;
 
     uint32_t firmware_ctrl;
     uint32_t dsdt;
@@ -674,7 +674,7 @@ struct acpi_fadt {
     uint8_t reserved2;
     uint32_t flags;
 
-    struct acpi_gas reset_reg;
+    struct os_acpi_gas reset_reg;
 
     uint8_t reset_value;
     uint16_t arm_boot_arch_flags;
@@ -684,24 +684,24 @@ struct acpi_fadt {
     uint64_t x_firmware_ctrl;
     uint64_t x_dsdt;
 
-    struct acpi_gas x_pm1a_event_block;
-    struct acpi_gas x_pm1b_event_block;
-    struct acpi_gas x_pm1a_ctrl_block;
-    struct acpi_gas x_pm1b_ctrl_block;
-    struct acpi_gas x_pm2_ctrl_block;
-    struct acpi_gas x_pm_timer_block;
-    struct acpi_gas x_gpe0_block;
-    struct acpi_gas x_gpe1_block;
-    struct acpi_gas sleep_control_reg;
-    struct acpi_gas sleep_status_reg;
+    struct os_acpi_gas x_pm1a_event_block;
+    struct os_acpi_gas x_pm1b_event_block;
+    struct os_acpi_gas x_pm1a_ctrl_block;
+    struct os_acpi_gas x_pm1b_ctrl_block;
+    struct os_acpi_gas x_pm2_ctrl_block;
+    struct os_acpi_gas x_pm_timer_block;
+    struct os_acpi_gas x_gpe0_block;
+    struct os_acpi_gas x_gpe1_block;
+    struct os_acpi_gas sleep_control_reg;
+    struct os_acpi_gas sleep_status_reg;
     uint64_t hypervisor_vendor_identity;
 } __packed;
 
-enum acpi_fadt_pm2_control_registers : uint8_t {
+enum os_acpi_fadt_pm2_control_registers : uint8_t {
     __ACPI_FADT_PM2_CONTROL_ABR_DISABLE = 1 << 0,
 };
 
-struct acpi_mcfg_entry {
+struct os_acpi_mcfg_entry {
     uint64_t base_addr;
     uint16_t segment_num;
 
@@ -709,14 +709,14 @@ struct acpi_mcfg_entry {
     uint8_t bus_end_num;
 } __packed;
 
-struct acpi_mcfg {
-    struct acpi_sdt sdt;
+struct os_acpi_mcfg {
+    struct os_acpi_sdt sdt;
     uint64_t reserved;
 
-    struct acpi_mcfg_entry entries[];
+    struct os_acpi_mcfg_entry entries[];
 } __packed;
 
-enum acpi_gtdt_flags : uint8_t {
+enum os_acpi_gtdt_flags : uint8_t {
     __ACPI_GTDT_EDGE_TRIGGER_IRQ = 1 << 0,
     __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ = 1 << 1,
 
@@ -729,8 +729,8 @@ enum acpi_gtdt_flags : uint8_t {
     __ACPI_GTDT_ALWAYS_ON_CAP = 1 << 2,
 };
 
-struct acpi_gtdt {
-    struct acpi_sdt sdt;
+struct os_acpi_gtdt {
+    struct os_acpi_sdt sdt;
 
     uint64_t ctrl_base_phys_address;
     uint32_t reserved;
@@ -758,15 +758,15 @@ struct acpi_gtdt {
     char buffer[];
 } __packed;
 
-enum acpi_gtdt_platform_timer_kind : uint8_t {
+enum os_acpi_gtdt_platform_timer_kind : uint8_t {
     ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK,
 };
 
-struct acpi_gtdt_platform_timer_base {
-    enum acpi_gtdt_platform_timer_kind kind;
+struct os_acpi_gtdt_platform_timer_base {
+    enum os_acpi_gtdt_platform_timer_kind kind;
 } __packed;
 
-enum acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags : uint8_t {
+enum os_acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags : uint8_t {
     __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ =
         1 << 0,
 
@@ -774,12 +774,12 @@ enum acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags : uint8_t {
         1 << 1,
 };
 
-enum acpi_gtdt_platform_timer_gt_block_timer_common_flags : uint8_t {
+enum os_acpi_gtdt_platform_timer_gt_block_timer_common_flags : uint8_t {
     __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_COMMON_SECURE = 1 << 0,
     __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_ALWAYS_ON_CAP = 1 << 1,
 };
 
-struct acpi_gtdt_platform_timer_gt_block_timer {
+struct os_acpi_gtdt_platform_timer_gt_block_timer {
     uint8_t gt_frame_number;
     uint8_t reserved[3];
 
@@ -795,8 +795,8 @@ struct acpi_gtdt_platform_timer_gt_block_timer {
     uint32_t gt_common_flags;
 } __packed;
 
-struct acpi_gtdt_platform_timer_gt_block {
-    struct acpi_gtdt_platform_timer_base base;
+struct os_acpi_gtdt_platform_timer_gt_block {
+    struct os_acpi_gtdt_platform_timer_base base;
 
     uint16_t length;
     uint8_t reserved;
@@ -807,15 +807,15 @@ struct acpi_gtdt_platform_timer_gt_block {
     uint32_t gt_block_timer_offset;
 } __packed;
 
-enum acpi_gtdt_platform_timer_generic_watchdog_flags : uint8_t {
+enum os_acpi_gtdt_platform_timer_generic_watchdog_flags : uint8_t {
     __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_EDGE_TRIGGER_IRQ = 1 << 0,
     __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_ACTIVE_LOW_POLARITY_IRQ =
         1 << 1,
     __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_SECURE_TIMER_IRQ = 1 << 2,
 };
 
-struct acpi_gtdt_platform_timer_generic_watchdog {
-    struct acpi_gtdt_platform_timer_base base;
+struct os_acpi_gtdt_platform_timer_generic_watchdog {
+    struct os_acpi_gtdt_platform_timer_base base;
 
     uint16_t length;
     uint8_t reserved;
@@ -827,16 +827,16 @@ struct acpi_gtdt_platform_timer_generic_watchdog {
     uint32_t watchdog_timer_flags;
 } __packed;
 
-enum acpi_pptt_node_kind : uint8_t {
+enum os_acpi_pptt_node_kind : uint8_t {
     ACPI_PPTT_NODE_PROCESSOR_HIERARCHY,
     ACPI_PPTT_NODE_CACHE_TYPE
 };
 
-struct acpi_pptt_node_base {
-    enum acpi_pptt_node_kind kind;
+struct os_acpi_pptt_node_base {
+    enum os_acpi_pptt_node_kind kind;
 } __packed;
 
-enum acpi_pptt_processor_hierarchy_node_flags : uint8_t {
+enum os_acpi_pptt_processor_hierarchy_node_flags : uint8_t {
     // This node of the processor topology represents the boundary of a physical
     // package, whether socketed or surface mounted.
     __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG = 1 << 0,
@@ -879,8 +879,8 @@ enum acpi_pptt_processor_hierarchy_node_flags : uint8_t {
     __ACPI_PPTT_PROCESSOR_HIERARCHY_IDENTICAL_IMPL = 1 << 4,
 };
 
-struct acpi_pptt_processor_hierarchy_node {
-    struct acpi_pptt_node_base base;
+struct os_acpi_pptt_processor_hierarchy_node {
+    struct os_acpi_pptt_node_base base;
 
     uint8_t length;
     uint16_t reserved;
@@ -892,31 +892,31 @@ struct acpi_pptt_processor_hierarchy_node {
     uint32_t private_resource_offsets[];
 } __packed;
 
-enum acpi_pptt_cache_type_node_attr_alloc_kind : uint8_t {
+enum os_acpi_pptt_cache_type_node_attr_alloc_kind : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2,
 };
 
-enum acpi_pptt_cache_type_node_attr_cache_kind : uint8_t {
+enum os_acpi_pptt_cache_type_node_attr_cache_kind : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2,
 };
 
-enum acpi_pptt_cache_type_node_attr_write_policy : uint8_t {
+enum os_acpi_pptt_cache_type_node_attr_write_policy : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_THROUGH
 };
 
-enum acpi_pptt_cache_type_node_attr_write_shifts : uint8_t {
+enum os_acpi_pptt_cache_type_node_attr_write_shifts : uint8_t {
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT = 2,
     ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT = 4
 };
 
-enum acpi_pptt_cache_type_node_attr_write_masks : uint8_t {
+enum os_acpi_pptt_cache_type_node_attr_write_masks : uint8_t {
     __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND = 0b11,
     __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND =
         0b11 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT,
@@ -924,7 +924,7 @@ enum acpi_pptt_cache_type_node_attr_write_masks : uint8_t {
         0b1 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT
 };
 
-enum acpi_pptt_cache_type_node_flags : uint8_t {
+enum os_acpi_pptt_cache_type_node_flags : uint8_t {
     __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID = 1 << 0,
     __ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID = 1 << 1,
     __ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID = 1 << 2,
@@ -935,8 +935,8 @@ enum acpi_pptt_cache_type_node_flags : uint8_t {
     __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_ID_VALID = 1 << 7,
 };
 
-struct acpi_pptt_cache_type_node {
-    struct acpi_pptt_node_base base;
+struct os_acpi_pptt_cache_type_node {
+    struct os_acpi_pptt_node_base base;
 
     uint8_t length;
     uint16_t reserved;
@@ -953,12 +953,12 @@ struct acpi_pptt_cache_type_node {
     uint32_t cache_id;
 } __packed;
 
-struct acpi_pptt {
-    struct acpi_sdt sdt;
+struct os_acpi_pptt {
+    struct os_acpi_sdt sdt;
     char buffer[];
 };
 
-enum acpi_spcr_interface_kind : uint8_t {
+enum os_acpi_spcr_interface_kind : uint8_t {
     ACPI_SPCR_INTERFACE_16550_COMPATIBLE,
     ACPI_SPCR_INTERFACE_16550_SUBSET,
     ACPI_SPCR_INTERFACE_MAX311XE_SPI,
@@ -981,7 +981,7 @@ enum acpi_spcr_interface_kind : uint8_t {
     ACPI_SPCR_INTERFACE_INTEL_LPSS,
 };
 
-enum acpi_spcr_irq_kind : uint8_t {
+enum os_acpi_spcr_irq_kind : uint8_t {
     __ACPI_SPCR_IRQ_8259 = 1 << 0,
     __ACPI_SPCR_IRQ_IOAPIC = 1 << 1,
     __ACPI_SPCR_IRQ_IO_SAPIC = 1 << 2,
@@ -989,7 +989,7 @@ enum acpi_spcr_irq_kind : uint8_t {
     __ACPI_SPCR_IRQ_RISCV_PLIC = 1 << 4,
 };
 
-enum acpi_spcr_baud_rate : uint8_t {
+enum os_acpi_spcr_baud_rate : uint8_t {
     ACPI_SPCR_BAUD_RATE_OS_DEPENDENT,
     ACPI_SPCR_BAUD_RATE_9600 = 3,
     ACPI_SPCR_BAUD_RATE_19200,
@@ -997,35 +997,35 @@ enum acpi_spcr_baud_rate : uint8_t {
     ACPI_SPCR_BAUD_RATE_115200,
 };
 
-enum acpi_spcr_terminal_kind : uint8_t {
+enum os_acpi_spcr_terminal_kind : uint8_t {
     ACPI_SPCR_TERMINAL_VT100,
     ACPI_SPCR_TERMINAL_VT100_EXT,
     ACPI_SPCR_TERMINAL_VT_UTF8,
     ACPI_SPCR_TERMINAL_ANSI,
 };
 
-enum acpi_spcr_pci_flags : uint8_t {
+enum os_acpi_spcr_pci_flags : uint8_t {
     __ACPI_SPCR_PCI_DONT_SUPPRESS_PNP = 1 << 0
 };
 
-struct acpi_spcr {
-    struct acpi_sdt sdt;
-    enum acpi_spcr_interface_kind interface_kind;
+struct os_acpi_spcr {
+    struct os_acpi_sdt sdt;
+    enum os_acpi_spcr_interface_kind interface_kind;
 
     uint8_t reserved[3];
-    struct acpi_gas serial_port;
+    struct os_acpi_gas serial_port;
 
     uint8_t interrupt_kind : 8;
     uint8_t pc_interrupt;
 
     uint32_t gsiv;
-    enum acpi_spcr_baud_rate baud_rate;
+    enum os_acpi_spcr_baud_rate baud_rate;
 
     uint8_t parity;
     uint8_t stop_bits;
     uint8_t flow_control;
 
-    enum acpi_spcr_terminal_kind terminal_kind;
+    enum os_acpi_spcr_terminal_kind terminal_kind;
     uint8_t reserved1;
 
     uint16_t pci_device_id;

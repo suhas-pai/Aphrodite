@@ -315,6 +315,28 @@ void mutex_lock(struct mutex *const mutex) {
     assert_msg(result, "mutex_lock(%p) somehow failed", mutex);
 }
 
+bool mutex_lock_with_timeout(struct mutex *mutex, usec_t timeout) {
+    struct mutex_waiter waiter = MUTEX_WAITER_INIT(waiter);
+    uintptr_t flags = 0;
+
+    if (mutex_lock_fast(mutex, waiter.thread, &flags)) {
+        return true;
+    }
+
+    assert_msg(intr_are_enabled(),
+               "mutex_lock_with_timeout(%p, " TSEC_FMT ") must be called with "
+               "interrupts enabled",
+               mutex,
+               timeout);
+
+    bool result = false;
+    with_preempt_disabled({
+        result = mutex_lock_slow(mutex, &waiter, flags, timeout);
+    });
+
+    return result;
+}
+
 static bool
 mutex_unlock_fast(struct mutex *const mutex,
                   struct thread *const thread,

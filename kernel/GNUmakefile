@@ -37,7 +37,7 @@ COMMON_CFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 				 -Isrc/arch/$(ARCH) -DBUILD_KERNEL -Wno-microsoft \
 				 -Wno-address-of-packed-member -fno-omit-frame-pointer \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
-				 -fsanitize=undefined
+				 -fsanitize=undefined -DUSE_UACPI
 
 ifeq ($(ARCH), riscv64)
 	override COMMON_CFLAGS += -D__riscv64
@@ -57,6 +57,8 @@ endif
 
 ifeq ($(RELEASE), 1)
 	override COMMON_CFLAGS += -O3
+else
+	override COMMON_CFLAGS += -O0
 endif
 
 ifeq ($(USE_16K_PAGES), 1)
@@ -65,6 +67,10 @@ endif
 
 ifeq ($(DISABLE_FLANTERM), 1)
 	override COMMON_CFLAGS += -DDISABLE_FLANTERM
+endif
+
+ifeq ($(DEBUG), 1)
+	override COMMON_CFLAGS += -DDEBUG=1
 endif
 
 ifeq ($(DEBUG_LOCKS), 1)
@@ -118,7 +124,7 @@ override CFLAGS += \
 override CPPFLAGS := \
 	-I include \
 	-I include/arch/$(ARCH) \
-	-I src/extern \
+	-isystem src/extern \
 	-isystem freestnd-c-hdrs-0bsd \
 	$(CPPFLAGS) \
 	-DLIMINE_API_REVISION=2 \
@@ -298,11 +304,11 @@ obj-$(ARCH)/cc-runtime.c.o: src/cc-runtime.c GNUmakefile
 
 obj-$(ARCH)/extern/flanterm/%.c.o: src/extern/flanterm/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
-	$(CC) $(filter-out "-Wsign-conversion -fsanitize=undefined",$(CFLAGS)) -O3 $(CPPFLAGS) -c $< -o $@
+	$(CC) $(filter-out "-Wsign-conversion -fsanitize=undefined",$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
-	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -fsanitize=undefined,$(CFLAGS)) -O3 $(CPPFLAGS) -c $< -o $@
+	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -fsanitize=undefined,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)

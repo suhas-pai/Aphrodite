@@ -74,6 +74,14 @@
     #endif /* __has_attribute(visibility) */
 #endif /* !defined(__hidden) */
 
+#if !defined(__no_sanitize)
+    #if __has_attribute(no_sanitize)
+        #define __no_sanitize(name) __attribute__((no_sanitize(name)))
+    #else
+        #define __no_sanitize(name)
+    #endif /* __has_attribute(nosanitize) */
+#endif
+
 #define typeof_field(type, field) typeof(((type *)0)->field)
 #define sizeof_field(type, field) sizeof(((type *)0)->field)
 #define sizeof_bits_field(type, field) bytes_to_bits(sizeof_field(type, field))

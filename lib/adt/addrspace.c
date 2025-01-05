@@ -322,6 +322,26 @@ addrspace_add_node(struct address_space *const addrspace,
                        /*added_node=*/add_node_cb);
 }
 
+static int
+addrspace_node_range_compare(struct avlnode *const avlnode,
+                             void *const key)
+{
+    struct addrspace_node *const node = addrspace_node_of(avlnode);
+    const struct range range = *(struct range *)key;
+
+    return
+        range_below(node->range, range) ? -1 :
+        range_above(node->range, range) ? 1 : 0;
+}
+
+struct avlnode *
+addrspace_find_node_with_range(struct address_space *const addrspace,
+                               struct range range)
+{
+    return
+        avltree_find(&addrspace->avltree, &range, addrspace_node_range_compare);
+}
+
 __debug_optimize(3)
 void addrspace_remove_node(struct addrspace_node *const node) {
     avltree_delete_node(&node->addrspace->avltree,

@@ -208,6 +208,8 @@ typedef uint64_t usec_t;
 typedef uint64_t msec_t;
 typedef uint64_t sec_t;
 
+#define TSEC_FMT "%" PRIu64
+
 typedef sec_t timestamp_t;
 
 #define TIMESTAMP_FMT "%" PRIu64

@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include "flanterm/backends/fb.h"
-#include "flanterm/flanterm.h"
+#include <flanterm/backends/fb.h>
+#include <flanterm/flanterm.h>
 
 #include "dev/printk.h"
 #include "sys/boot.h"

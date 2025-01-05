@@ -298,9 +298,7 @@ __debug_optimize(3) uint64_t mm_get_total_page_count() {
 __hidden uint64_t KERNEL_BASE = 0;
 
 __debug_optimize(3) void mm_early_init() {
-    const uint64_t memmap_count = mm_get_memmap_count();
-    for (uint64_t index = 0; index != memmap_count; index++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[index];
+    mm_for_each_memmap(memmap) {
         switch (memmap->kind) {
             case MM_MEMMAP_KIND_NONE:
                 verify_not_reached();
@@ -332,11 +330,9 @@ __debug_optimize(3) void mm_init() {
     printk(LOGLEVEL_INFO, "mm: hhdm at %p\n", (void *)HHDM_OFFSET);
     printk(LOGLEVEL_INFO, "mm: kernel at %p\n", (void *)KERNEL_BASE);
 
-    const uint64_t memmap_count = mm_get_memmap_count();
-    for (uint64_t index = 0; index != memmap_count; index++) {
-        const struct mm_memmap *const memmap = &mm_get_memmap_list()[index];
+    uint32_t index = 0;
+    mm_for_each_memmap(memmap) {
         const char *type_desc = "<unknown>";
-
         switch (memmap->kind) {
             case MM_MEMMAP_KIND_NONE:
                 verify_not_reached();
@@ -372,10 +368,11 @@ __debug_optimize(3) void mm_init() {
         }
 
         printk(LOGLEVEL_INFO,
-               "mm: memmap %" PRIu64 ": [" RANGE_FMT "] %s\n",
+               "mm: memmap %" PRIu32 ": [" RANGE_FMT "] %s\n",
                index + 1,
                RANGE_FMT_ARGS(memmap->range),
                type_desc);
+        index++;
     }
 
     printk(LOGLEVEL_INFO,
@@ -891,9 +888,7 @@ void mm_post_arch_init() {
     // pagemap.
     // FIXME: Avoid claiming thees pages until we setup our own stack.
 
-    const uint64_t memmap_count = mm_get_memmap_count();
-    for (uint64_t index = 0; index != memmap_count; index++) {
-        const struct mm_memmap *const memmap = mm_get_memmap_list() + index;
+    mm_for_each_memmap(memmap) {
         if (memmap->kind == MM_MEMMAP_KIND_BOOTLOADER_RECLAIMABLE) {
             //claim_pages(memmap);
         }

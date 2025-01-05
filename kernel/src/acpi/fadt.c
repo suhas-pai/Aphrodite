@@ -10,7 +10,7 @@
     #include "dev/psci.h"
 #endif /* defined(__aarch64__) */
 
-void fadt_init(const struct acpi_fadt *const fadt) {
+void fadt_init(const struct os_acpi_fadt *const fadt) {
     printk(LOGLEVEL_INFO,
            "fadt: version %" PRIu8 ".%" PRIu8 "\n",
            fadt->sdt.rev,

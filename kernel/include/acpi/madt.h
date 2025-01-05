@@ -6,4 +6,4 @@
 #pragma once
 #include "structs.h"
 
-void madt_init(const struct acpi_madt *madt);
+void madt_init(const struct os_acpi_madt *madt);

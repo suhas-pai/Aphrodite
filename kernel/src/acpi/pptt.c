@@ -7,16 +7,16 @@
 #include "dev/printk.h"
 #include "lib/util.h"
 
-void pptt_init(const struct acpi_pptt *const pptt) {
-    uint32_t offset = offsetof(struct acpi_pptt, buffer);
+void pptt_init(const struct os_acpi_pptt *const pptt) {
+    uint32_t offset = offsetof(struct os_acpi_pptt, buffer);
     while (index_in_bounds(offset, pptt->sdt.length)) {
-        struct acpi_pptt_node_base *const base =
-            reg_to_ptr(struct acpi_pptt_node_base, pptt, offset);
+        const auto base =
+            reg_to_ptr(struct os_acpi_pptt_node_base, pptt, offset);
 
         switch (base->kind) {
             case ACPI_PPTT_NODE_PROCESSOR_HIERARCHY: {
-                struct acpi_pptt_processor_hierarchy_node *const node =
-                    (struct acpi_pptt_processor_hierarchy_node *)base;
+                const auto node =
+                    (struct os_acpi_pptt_processor_hierarchy_node *)base;
 
                 offset += sizeof(*node);
                 if (!ordinal_in_bounds(offset, pptt->sdt.length)) {
@@ -73,18 +73,17 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                 continue;
             }
             case ACPI_PPTT_NODE_CACHE_TYPE: {
-                struct acpi_pptt_cache_type_node *const node =
-                    (struct acpi_pptt_cache_type_node *)base;
-
+                const auto node = (struct os_acpi_pptt_cache_type_node *)base;
                 offset += sizeof(*node);
+
                 if (!ordinal_in_bounds(offset, pptt->sdt.length)) {
                     printk(LOGLEVEL_WARN,
                            "pptt: cache-type node goes beyond end of node\n");
                     return;
                 }
 
-                const enum acpi_pptt_cache_type_node_attr_alloc_kind
-                    alloc_kind =
+                const auto alloc_kind =
+                    (enum os_acpi_pptt_cache_type_node_attr_alloc_kind)
                         node->attributes &
                             __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND;
 
@@ -102,8 +101,8 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                         break;
                 }
 
-                const enum acpi_pptt_cache_type_node_attr_cache_kind
-                    cache_kind =
+                const auto cache_kind =
+                    (enum os_acpi_pptt_cache_type_node_attr_cache_kind)
                         node->attributes &
                             __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
 
@@ -121,8 +120,8 @@ void pptt_init(const struct acpi_pptt *const pptt) {
                         break;
                 }
 
-                const enum acpi_pptt_cache_type_node_attr_write_policy
-                    wr_policy =
+                const auto wr_policy =
+                    (enum os_acpi_pptt_cache_type_node_attr_write_policy)
                         node->attributes &
                             __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
 

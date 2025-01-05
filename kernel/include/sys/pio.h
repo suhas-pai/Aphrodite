@@ -4,6 +4,8 @@
  */
 
 #pragma once
+
+#include <stddef.h>
 #include <stdint.h>
 
 #if defined(__x86_64__)
@@ -20,6 +22,8 @@ uint32_t pio_read32(port_t port);
     uint64_t pio_read64(port_t port);
 #endif /* defined(HAS_64B_PORTS) */
 
+uint64_t pio_read_size(port_t port, size_t size);
+
 void pio_write8(port_t port, uint8_t value);
 void pio_write16(port_t port, uint16_t value);
 void pio_write32(port_t port, uint32_t value);
@@ -27,3 +31,5 @@ void pio_write32(port_t port, uint32_t value);
 #if defined(HAS_64B_PORTS)
     void pio_write64(port_t port, uint64_t value);
 #endif /* defined(HAS_64B_PORTS) */
+
+void pio_write_size(port_t port, size_t size, uint64_t value);

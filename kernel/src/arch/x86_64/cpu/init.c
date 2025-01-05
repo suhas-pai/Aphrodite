@@ -65,6 +65,10 @@ uint8_t g_xsave_feat_flags[XSAVE_FEAT_MAX] = {
    | __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILECFG) \
    | __XSAVE_FEAT_MASK(XSAVE_FEAT_AMX_TILEDATA))
 
+#if defined(DEBUG)
+__unused
+#endif /* defined(DEBUG) */
+
 static void xsave_init() {
     static bool initialized = false;
     const xsave_feat_mask_t xsave_supervisor_features =
@@ -451,7 +455,13 @@ static void init_cpuid_features() {
               (msr_read(IA32_MSR_MISC_ENABLE)
             | __IA32_MSR_MISC_FAST_STRING_ENABLE));
 
+#if !defined(DEBUG)
+    // This breaks in debug builds for some reason, the xgetbv instruction
+    // is not available.
+
     xsave_init();
+#endif /* !defined(DEBUG) */
+
     if (!initialized) {
         printk(LOGLEVEL_INFO,
                "cpu: xsave compacted size is %" PRIu16 " bytes\n",

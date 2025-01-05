@@ -90,9 +90,7 @@ void arch_init_dev() {
         dtb_init_nodes_for_driver(&reboot_dtb_driver, tree, tree->root);
     }
 
-    const struct acpi_rhct *const rhct =
-        (const struct acpi_rhct *)acpi_lookup_sdt("RHCT");
-
+    const auto rhct = (const struct os_acpi_rhct *)acpi_lookup_sdt("RHCT");
     if (rhct != nullptr) {
         acpi_rhct_init(rhct);
     } else {

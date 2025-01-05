@@ -6,4 +6,4 @@
 #pragma once
 #include "structs.h"
 
-void spcr_init(const struct acpi_spcr *spcr);
+void spcr_init(const struct os_acpi_spcr *spcr);

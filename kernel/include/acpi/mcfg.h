@@ -6,4 +6,4 @@
 #pragma once
 #include "structs.h"
 
-void mcfg_init(const struct acpi_mcfg *mcfg);
+void mcfg_init(const struct os_acpi_mcfg *mcfg);

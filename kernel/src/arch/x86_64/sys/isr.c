@@ -273,9 +273,13 @@ isr_install_irq(struct irq_pin *const pin,
     return true;
 }
 
-void isr_uninstall_irq(struct irq_pin *const pin) {
+void *isr_uninstall_irq(struct irq_pin *const pin) {
+    void *const result = g_funcs[pin->irq].ctx;
+
     isr_free_vector(pin->vector);
     pin->vector = ISR_INVALID_VECTOR;
+
+    return result;
 }
 
 __debug_optimize(3) void isr_eoi(const uint64_t intr_no) {
@@ -303,10 +307,10 @@ isr_get_msix_address(const struct cpu_info *const cpu,
 }
 
 __debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
-    const struct acpi_fadt *const fadt = get_acpi_info()->fadt;
+    const struct os_acpi_fadt *const fadt = get_acpi_info()->fadt;
     if (fadt != nullptr) {
-        if (fadt->iapc_boot_arch_flags
-              & __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
+        if (fadt->iapc_boot_arch_flags &
+                __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
         {
             return ISR_MSI_SUPPORT_NONE;
         }

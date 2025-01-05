@@ -15,5 +15,5 @@ void stall_for_usec(const usec_t usec)  {
     // TODO:
 }
 
-void arch_init_time() {
-}
+void arch_init_time_pre_acpi() {}
+void arch_init_time() {}

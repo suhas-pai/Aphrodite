@@ -6,4 +6,4 @@
 #pragma once
 #include "extra_structs.h"
 
-void acpi_rhct_init(const struct acpi_rhct *rhct);
+void acpi_rhct_init(const struct os_acpi_rhct *rhct);

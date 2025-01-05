@@ -12,7 +12,6 @@
 #include "dev/pit.h"
 
 #include "dev/printk.h"
-#include "sched/thread.h"
 
 #define PIT_DIVIDEND 1193180
 

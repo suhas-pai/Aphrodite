@@ -23,6 +23,8 @@
 static struct array g_lapic_list = ARRAY_INIT(sizeof(struct lapic_info));
 static volatile struct lapic_registers *g_lapic_regs = nullptr;
 
+bool using_x2apic = false;
+
 __debug_optimize(3) static inline uint32_t
 create_timer_register(const enum lapic_timer_mode timer_mode,
                       const uint8_t vector,
@@ -61,7 +63,7 @@ static void calibrate_timer() {
         const uint16_t pit_init_tick_number = pit_get_current_tick();
         pit_set_reload_value(0xFFFF);
 
-        if (get_acpi_info()->using_x2apic) {
+        if (using_x2apic) {
             x2apic_write(X2APIC_LAPIC_REG_TIMER_CURR_COUNT, 0);
             x2apic_write(X2APIC_LAPIC_REG_TIMER_DIVIDE_CONFIG,
                          LAPIC_TIMER_DIV_CONFIG_BY_2);
@@ -121,7 +123,7 @@ void lapic_enable() {
     const uint32_t spur_vector_mask =
         (uint32_t)isr_get_spur_vector() | __LAPIC_SPURVEC_ENABLE;
 
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         uint64_t lint0_value = x2apic_read(X2APIC_LAPIC_REG_LVT_LINT0);
         uint64_t lint1_value = x2apic_read(X2APIC_LAPIC_REG_LVT_LINT1);
 
@@ -168,7 +170,7 @@ __debug_optimize(3) void lapic_eoi() {
     }
 
     this_cpu_mut()->called_eoi = true;
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_EOI, 0);
         return;
     } else if (__builtin_expect(g_lapic_regs != nullptr, 1)) {
@@ -181,7 +183,7 @@ __debug_optimize(3) void lapic_eoi() {
 
 __debug_optimize(3)
 void lapic_send_ipi(const uint32_t lapic_id, const uint32_t vector) {
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_ICR, (uint64_t)lapic_id << 32 | vector);
     } else {
         mmio_write(&g_lapic_regs->icr[1].value, lapic_id << 24);
@@ -190,7 +192,7 @@ void lapic_send_ipi(const uint32_t lapic_id, const uint32_t vector) {
 }
 
 __debug_optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_SELF_IPI, vector);
     } else {
         uint32_t lapic_id = 0;
@@ -203,7 +205,7 @@ __debug_optimize(3) void lapic_send_self_ipi(const uint32_t vector) {
 }
 
 __debug_optimize(3) void lapic_timer_stop() {
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, 0);
         x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER,
                      create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,
@@ -225,7 +227,7 @@ __debug_optimize(3) usec_t lapic_timer_remaining() {
             this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
     });
 
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         return x2apic_read(X2APIC_LAPIC_REG_TIMER_INIT_COUNT)
              / lapic_timer_freq_in_microseconds;
     }
@@ -243,7 +245,7 @@ void lapic_timer_one_shot(const usec_t usec, const isr_vector_t vector) {
         this_cpu()->lapic_timer_frequency / MICRO_IN_SECONDS;
 
     const uint64_t count = ckd_mul_assert(lapic_timer_freq_in_us, usec);
-    if (get_acpi_info()->using_x2apic) {
+    if (using_x2apic) {
         x2apic_write(X2APIC_LAPIC_REG_TIMER_INIT_COUNT, count);
         x2apic_write(X2APIC_LAPIC_REG_LVT_TIMER,
                      create_timer_register(LAPIC_TIMER_MODE_ONE_SHOT,

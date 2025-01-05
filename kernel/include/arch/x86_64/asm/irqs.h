@@ -11,7 +11,7 @@ enum irq_number {
     IRQ_KEYBOARD = 1,
 };
 
-__debug_optimize(3) static inline bool intr_are_enabled() {
+__debug_optimize(3) static bool intr_are_enabled() {
     return rflags_read() & __RFLAGS_INTERRUPTS_ENABLED;
 }
 

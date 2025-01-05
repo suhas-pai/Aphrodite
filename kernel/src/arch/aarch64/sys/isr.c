@@ -174,9 +174,19 @@ isr_install_irq(struct irq_pin *const pin,
     return true;
 }
 
-void isr_uninstall_irq(struct irq_pin *const pin) {
+void *isr_uninstall_irq(struct irq_pin *const pin) {
+    void *result = NULL;
+    if (pin->vector >= GIC_ITS_LPI_INTERRUPT_START) {
+        const uint16_t index = pin->vector - GIC_ITS_LPI_INTERRUPT_START;
+        result = g_lpi_irq_info_list[index].ctx;
+    } else {
+        result = g_irq_info_list[pin->vector].ctx;
+    }
+
     isr_free_vector(pin->vector);
     pin->vector = ISR_INVALID_VECTOR;
+
+    return result;
 }
 
 __debug_optimize(3) void isr_mask_intr(const isr_vector_t intr) {

@@ -156,6 +156,8 @@ __debug_optimize(3) void *krealloc(void *const buffer, const uint32_t size) {
 }
 
 __debug_optimize(3) void kfree(void *const buffer) {
+    assert_msg(buffer != NULL, "mm: kfree() called with NULL buffer");
+
     kmalloc_check_slabs();
     assert_msg(kmalloc_is_initialized,
                "mm: kfree() called before kmalloc_init()");

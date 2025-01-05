@@ -23,8 +23,8 @@ void serial_init() {
     com1_init();
 #elif defined(__aarch64__)
     #if !defined(AARCH64_USE_16K_PAGES)
-        const struct acpi_spcr *const spcr =
-            (const struct acpi_spcr *)acpi_lookup_sdt("SPCR");
+        const auto spcr =
+            (const struct os_acpi_spcr *)acpi_lookup_sdt("SPCR");
 
         uint64_t address = 0x9000000;
         uint32_t baudrate = 9600;
@@ -73,13 +73,16 @@ void serial_init() {
 
 void arch_init_dev();
 void arch_init_dev_drivers();
+
 void arch_init_time();
+void arch_init_time_pre_acpi();
 
 void dev_init() {
+    arch_init_time_pre_acpi();
     acpi_init();
 
-    arch_init_dev();
     arch_init_time();
+    arch_init_dev();
 
     printk(LOGLEVEL_INFO,
            "dev: initialized time, seconds since boot: %" PRIu64 "\n",

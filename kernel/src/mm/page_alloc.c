@@ -69,6 +69,21 @@ add_to_freelist_order_from_higher(struct page_section *const section,
     freelist->count++;
 }
 
+__no_sanitize("undefined")
+static inline void update_section_max(struct page_section *const section) {
+    const struct page_freelist *iter = carr_rbegin(section->freelist_list);
+    const struct page_freelist *const end =
+        carr_rend(section->freelist_list);
+
+    for (; iter != end; iter--) {
+        if (iter->count != 0) {
+            break;
+        }
+    }
+
+    section->max_order = (iter - section->freelist_list) + 1;
+}
+
 __debug_optimize(3) struct page *
 take_off_freelist_to_add_later(struct page_section *const section,
                                const uint8_t freelist_order,
@@ -98,17 +113,7 @@ take_off_freelist_to_add_later(struct page_section *const section,
     }
 
     if (section->max_order == freelist_order) {
-        const struct page_freelist *iter = carr_rbegin(section->freelist_list);
-        const struct page_freelist *const end =
-            carr_rend(section->freelist_list);
-
-        for (; iter != end; iter--) {
-            if (iter->count != 0) {
-                break;
-            }
-        }
-
-        section->max_order = (iter - section->freelist_list) + 1;
+        update_section_max(section);
     }
 
     return page;
@@ -988,14 +993,12 @@ find_nearby_free_pages(struct page *const page,
                        uint64_t *const amount_out)
 {
     struct page_section *const section = page_to_section(page);
-
     uint64_t page_pfn = page_to_pfn(page);
-    page_pfn = ckd_sub_assert(page_pfn, section->pfn);
 
     struct page *free_page = page;
     bool merged_range = false;
 
-    if (__builtin_expect(page_pfn != 0, 1)) {
+    if (__builtin_expect(page_pfn != section->pfn, 1)) {
         const enum page_state prev_state = page_get_state(free_page - 1);
         if (prev_state == PAGE_STATE_FREE_LIST_TAIL) {
             struct page *const free_head = (free_page - 1)->freelist_tail.head;
@@ -1006,8 +1009,8 @@ find_nearby_free_pages(struct page *const page,
             // Only take off freelist if we can add the combined range to a
             // higher order.
 
-            if (__builtin_expect(order < MAX_ORDER - 1, 1)
-             && (1ull << order) + extra >= (1ull << (order + 1)))
+            if (__builtin_expect(order < MAX_ORDER - 1, 1) &&
+                (1ull << order) + extra >= (1ull << (order + 1)))
             {
                 take_off_freelist_to_add_later(section, order, free_head);
 

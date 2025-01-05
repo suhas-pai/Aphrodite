@@ -369,6 +369,24 @@ avltree_insert_at_loc(struct avltree *const tree,
     insert_at_loc(tree, node, parent, link, update, /*added_node=*/nullptr);
 }
 
+struct avlnode *
+avltree_find(struct avltree *const tree,
+             void *const key,
+             const avlnode_compare_key_t comparator)
+{
+    struct avlnode *curr_node = tree->root;
+    while (curr_node != nullptr) {
+        const int compare = comparator(curr_node, key);
+        if (compare == 0) {
+            return curr_node;
+        }
+
+        curr_node = compare < 0 ? curr_node->left : curr_node->right;
+    }
+
+    return nullptr;
+}
+
 __debug_optimize(3) struct avlnode *
 avltree_delete(struct avltree *const tree,
                void *const key,

@@ -50,7 +50,7 @@ isr_install_irq(struct irq_pin *pin,
                 void *ctx,
                 bool masked);
 
-void isr_uninstall_irq(struct irq_pin *pin);
+void *isr_uninstall_irq(struct irq_pin *pin);
 
 void isr_mask_irq(struct irq_pin *pin);
 void isr_unmask_irq(struct irq_pin *irq);
