@@ -24,22 +24,22 @@ __debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
 }
 
 __debug_optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
-    uint32_t index = 0;
-    const int flag = spin_acquire_save_intr(&g_domain_lock);
+    bool result = false;
+    with_spinlock_intr_disabled(&g_domain_lock, {
+        uint32_t index = 0;
+        array_foreach(&g_domain_list, const struct pci_domain *, iter) {
+            if (*iter == domain) {
+                array_remove_index(&g_domain_list, index);
+                result = true;
 
-    array_foreach(&g_domain_list, const struct pci_domain *, iter) {
-        if (*iter == domain) {
-            array_remove_index(&g_domain_list, index);
-            spin_release_restore_intr(&g_domain_lock, flag);
+                break;
+            }
 
-            return true;
+            index++;
         }
+    });
 
-        index++;
-    }
-
-    spin_release_restore_intr(&g_domain_lock, flag);
-    return false;
+    return result;
 }
 
 __debug_optimize(3)

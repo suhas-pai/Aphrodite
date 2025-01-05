@@ -43,28 +43,25 @@ __debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
 }
 
 __debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
-    const int flag = spin_acquire_save_intr(&g_root_bus_list_lock);
-    if (!list_empty(&bus->entity_list)) {
-        spin_release_restore_intr(&g_root_bus_list_lock, flag);
-        return false;
-    }
+    bool result = false;
+    with_spinlock_intr_disabled(&g_root_bus_list_lock, {
+        if (list_empty(&bus->entity_list)) {
+            uint32_t index = 0;
+            array_foreach(&g_root_bus_list, const struct pci_bus *, iter) {
+                if (*iter == bus) {
+                    array_remove_index(&g_root_bus_list, index);
+                    result = true;
 
-    uint32_t index = 0;
-    array_foreach(&g_root_bus_list, const struct pci_bus *, iter) {
-        if (*iter == bus) {
-            array_remove_index(&g_root_bus_list, index);
-            spin_release_restore_intr(&g_root_bus_list_lock, flag);
+                    break;
+                }
 
-            return true;
+                index++;
+            }
         }
+    });
 
-        index++;
-    }
-
-    spin_release_restore_intr(&g_root_bus_list_lock, flag);
     kfree(bus);
-
-    return false;
+    return result;
 }
 
 __debug_optimize(3)

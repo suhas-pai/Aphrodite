@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include "cpu/spinlock.h"
 #include "dev/ata/atapi.h"
 #include "dev/ata/defines.h"
 
@@ -35,22 +36,15 @@ _Static_assert(
 
 __debug_optimize(3)
 static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
-    const int flag = spin_acquire_save_intr(&port->lock);
-    if (port->ports_bitset == UINT32_MAX) {
-        spin_release_restore_intr(&port->lock, flag);
-        return UINT8_MAX;
-    }
-
-    const uint8_t slot =
-       find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
-
-    if (!index_in_bounds(slot, sizeof_bits(uint32_t))) {
-        spin_release_restore_intr(&port->lock, flag);
-        return UINT8_MAX;
-    }
-
-    port->ports_bitset |= 1ul << slot;
-    spin_release_restore_intr(&port->lock, flag);
+    uint8_t slot = UINT8_MAX;
+    with_spinlock_intr_disabled(&port->lock, {
+        if (port->ports_bitset != UINT32_MAX) {
+            slot = find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
+            if (index_in_bounds(slot, sizeof_bits(uint32_t))) {
+                port->ports_bitset |= 1ul << slot;
+            }
+        }
+    });
 
     return slot;
 }

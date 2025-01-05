@@ -206,28 +206,26 @@ bool vunmap_mmio(struct mmio_region *const region) {
     };
 
     const struct range virt_range = mmio_region_get_range(region);
+    bool result = false;
 
-    const int flag = spin_acquire_save_intr(&g_mmio_space_lock);
-    const bool result =
-        pgunmap_at(&kernel_process.pagemap,
-                   virt_range,
-                   /*map_options=*/nullptr,
-                   &options);
+    with_spinlock_intr_disabled(&g_mmio_space_lock, {
+        result =
+            pgunmap_at(&kernel_process.pagemap,
+                       virt_range,
+                       /*map_options=*/nullptr,
+                       &options);
 
-    if (!result) {
-        spin_release_restore_intr(&g_mmio_space_lock, flag);
-        printk(LOGLEVEL_WARN,
-               "mm: failed to unmap mmio region at " RANGE_FMT "\n",
-               RANGE_FMT_ARGS(virt_range));
+        if (result) {
+            addrspace_remove_node(&region->node);
+        }
+    });
 
-        return false;
+    if (result) {
+        kfree(region);
+        return true;
     }
 
-    addrspace_remove_node(&region->node);
-    spin_release_restore_intr(&g_mmio_space_lock, flag);
-    kfree(region);
-
-    return true;
+    return false;
 }
 
 __debug_optimize(3)

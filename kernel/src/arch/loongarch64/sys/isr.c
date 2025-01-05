@@ -9,6 +9,7 @@
 #include "cpu/spinlock.h"
 
 #include "sys/irq.h"
+#include "sys/isr.h"
 
 #define ISR_IRQ_COUNT 2
 #define ISR_MSI_COUNT 256
@@ -30,19 +31,16 @@ void isr_init() {
 }
 
 __debug_optimize(3) isr_vector_t isr_alloc_vector() {
-    const int flag = spin_acquire_save_intr(&g_lock);
-    if (g_funcs[0].handler == nullptr) {
-        spin_release_restore_intr(&g_lock, flag);
-        return 0;
-    }
+    isr_vector_t result = ISR_INVALID_VECTOR;
+    with_spinlock_intr_disabled(&g_lock, {
+        if (g_funcs[0].handler == nullptr) {
+            result = 0;
+        } else if (g_funcs[1].handler == nullptr) {
+            result = 1;
+        }
+    });
 
-    if (g_funcs[1].handler == nullptr) {
-        spin_release_restore_intr(&g_lock, flag);
-        return 1;
-    }
-
-    spin_release_restore_intr(&g_lock, flag);
-    return ISR_INVALID_VECTOR;
+    return result;
 }
 
 __debug_optimize(3) isr_vector_t
