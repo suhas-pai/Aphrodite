@@ -37,7 +37,7 @@ COMMON_CFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 				 -Isrc/arch/$(ARCH) -DBUILD_KERNEL -Wno-microsoft \
 				 -Wno-address-of-packed-member -fno-omit-frame-pointer \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
-				 -fsanitize=undefined -DUSE_UACPI
+				 -fsanitize=undefined
 
 ifeq ($(ARCH), riscv64)
 	override COMMON_CFLAGS += -D__riscv64
@@ -79,6 +79,10 @@ endif
 
 ifeq ($(CHECK_SLABS), 1)
 	override COMMON_CFLAGS += -DCHECK_SLABS
+endif
+
+ifeq ($(USE_UACPI), 1)
+	override COMMON_CFLAGS += -DUSE_UACPI
 endif
 
 # User controllable C flags.

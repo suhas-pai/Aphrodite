@@ -315,7 +315,7 @@ void mutex_lock(struct mutex *const mutex) {
     assert_msg(result, "mutex_lock(%p) somehow failed", mutex);
 }
 
-bool mutex_lock_with_timeout(struct mutex *mutex, usec_t timeout) {
+bool mutex_lock_with_timeout(struct mutex *const mutex, const usec_t timeout) {
     struct mutex_waiter waiter = MUTEX_WAITER_INIT(waiter);
     uintptr_t flags = 0;
 

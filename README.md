@@ -1,16 +1,17 @@
 # Aphrodite
 
 An operating system written in C17 (gnu17), for `x86_64`, `aarch64`, and `riscv64`.
-`loongarch64` is supported but isn't currently functional.
+`loongarch64` is being worked on but isn't currently functional.
 
 `x86_64` is the most feature complete, while `aarch64` and `riscv64` are catching up
 
-Migrated from older repository: https://github.com/suhas-pai/operating-system-old
+Migrated from older repository: <https://github.com/suhas-pai/operating-system-old>
 Check older repository for full commit history
 
 ## Features
 
 The project has the implemented all of the following:
+
 * Has serial UART drivers; `uart8250` on x86_64, riscv64 and `pl011` on aarch64
 * Full abstract virtual memory manager with large page support.
 * Implements `kmalloc()` using a slab allocator.
@@ -21,6 +22,7 @@ The project has the implemented all of the following:
 And more
 
 The following is currently being thought out and worked on.
+
 * IDE, AHCI, SATA, NVME controllers to read disks
 * VirtIO drivers
 * Virtual File System (VFS)
@@ -28,6 +30,7 @@ The following is currently being thought out and worked on.
 * User processes and threads
 
 ## Building
+
 ### Prerequisites
 
 It's recommended that LLVM/Clang be used as the toolchain and compiler, GCC may not
@@ -40,7 +43,7 @@ Ubuntu (Linux) to build this project.
 
 Run the following command to install the required packages from Homebrew.
 
-```brew install llvm make nasm xorriso coreutils mtools gptfdisk```
+```brew install llvm make nasm xorriso coreutils mtools gptfdisk lld```
 
 Note that `mtools` and `gptfdisk` are only required to build the `hdd` targets.
 
@@ -52,6 +55,7 @@ paths to your `$PATH` environment variable:
 /opt/homebrew/opt/make/libexec/gnubin
 /usr/local/opt/coreutils/libexec/gnubin
 ```
+
 #### On Linux
 
 Install the latest version of LLVM available. The best option is from llvm.org.
@@ -66,19 +70,21 @@ Note that `mtools` and `sgdisk` are only required to build the `hdd` targets.
 #### Targets
 
 The GNUmakefile provides the following targets to use with `make` for building:
- * `all` target builds the system for the given architecture in `ARCH`, creating
-   a bootable .iso image containing the built system.
- * `all-hdd` target builds a flat hard disk/USB image instead.
- * `install` target can install the system into a directory provided by the variable `DESTDIR`.
+
+* `all` target builds the system for the given architecture in `ARCH`, creating
+  a bootable .iso image containing the built system.
+* `all-hdd` target builds a flat hard disk/USB image instead.
+* `install` target can install the system into a directory provided by the variable `DESTDIR`.
 
 #### Variables
 
 Several variables are available to configure how the project is built:
- * `ARCH=` specifies the architecture the project is built for. Default is `x86_64`,
-    but also accepts `aarch64`, `riscv64`, `loongarch64` as inputs to run the
-    project on the respective architecture.
- * `CC=`, `LD=` detail the compiler and linker used to build the *kernel*.
-   Default is `CC=cc` `LD=ld`.
+
+* `ARCH=` specifies the architecture the project is built for. Default is `x86_64`,
+   but also accepts `aarch64`, `riscv64`, `loongarch64` as inputs to run the
+   project on the respective architecture.
+* `CC=`, `LD=` detail the compiler and linker used to build the *kernel*.
+  Default is `CC=cc` `LD=ld`, though these are *unlikely* to be able to build this project.
 
 ## Running
 
@@ -93,28 +99,30 @@ bootable ISO, run the following command instead:
 ``` make run-hdd ARCH=x86_64 CC=clang LD=ld.lld```
 
 On `x86_64`, additional options are available:
- * `run-bios`, `run-hdd-bios` Makefile targets are equivalent to their non `-bios` counterparts
-   except that they boot QEMU using the default `SeaBIOS` firmware instead of `OVMF`.
+
+* `run-bios`, `run-hdd-bios` Makefile targets are equivalent to their non `-bios` counterparts
+  except that they boot QEMU using the default `SeaBIOS` firmware instead of `OVMF`.
 
 Several variables are also available to configure the system provided by QEMU.
 If not provided, they are given a default value that is detailed below:
 
-  * `MEM=` to configure memory size (in QEMU units). Default is `4G`
-  * `SMP=` to configure amount of cpus. Default is `4`
-  * `DEBUG=` to build in debug mode and to start in QEMU in debugger mode. Default is `0`
-  * `RELEASE=` to build in release mode with full optimizations (though `ubsan` is still enabled). Default is `0`
-  * `CONSOLE=` to start in QEMU's console mode. Default is `0`
-  * `DISABLE_ACPI=` to start QEMU's machine without ACPI, relying exclusively on the DTB (Flattened Device Tree).
-    Default is `0`
-  * `DISABLE_FLANTERM=` to disable [flanterm](https://github.com/mintsuki/flanterm), the terminal emulator used in this project.
-    This option helps improve bootup performance. Default is `0`
-  * `DRIVE_KIND=` to specify what drives are available from QEMU. Default is `scsi` for riscv64, and `nvme` for all other archs.
-    Available options are:
-     * `block` which provides the default `cdrom`/`hda` access from QEMU
-     * `scsi` which provides `VirtIO` to access drives through the `virtio-scsi` interface
-     * `nvme` which provides nvme drives instead
-  * `NVME_MAX_QUEUE_COUNT=` to set nvme's max queue count. Only available when `DRIVE_KIND` is nvme. Default is `64`
-  * `TRACE=` to trace certain logs in qemu to `log.txt`. Takes a space separated string and provides qemu
-    with the list in the correct format. Default is `""`
-  * `CHECK_SLABS=` to enable pervasive slab checks in `kmalloc()` and other slab allocators. Default is `0`
-  * `DEBUG_LOCKS=` to enable pervasive lock integrity checks. Default is `0`
+* `MEM=` to configure memory size (in QEMU units). Default is `4G`
+* `SMP=` to configure amount of cpus. Default is `4`
+* `DEBUG=` to build in debug mode and to start in QEMU in debugger mode. Default is `0`
+* `RELEASE=` to build in release mode with full optimizations (though `ubsan` is still enabled). Default is `0`
+* `CONSOLE=` to start in QEMU's console mode. Default is `0`
+* `DISABLE_ACPI=` to start QEMU's machine without ACPI, relying exclusively on the DTB (Flattened Device Tree).
+  Default is `0`
+* `DISABLE_FLANTERM=` to disable [flanterm](https://github.com/mintsuki/flanterm), the terminal emulator used in this project.
+  This option helps improve bootup performance. Default is `0`
+* `DRIVE_KIND=` to specify what drives are available from QEMU. Default is `scsi` for riscv64, and `nvme` for all other archs.
+  Available options are:
+  * `block` which provides the default `cdrom`/`hda` access from QEMU
+  * `scsi` which provides `VirtIO` to access drives through the `virtio-scsi` interface
+  * `nvme` which provides nvme drives instead
+* `NVME_MAX_QUEUE_COUNT=` to set nvme's max queue count. Only available when `DRIVE_KIND` is nvme. Default is `64`
+* `TRACE=` to trace certain logs in qemu to `log.txt`. Takes a space separated string and provides qemu
+  with the list in the correct format. Default is `""`
+* `CHECK_SLABS=` to enable pervasive slab checks in `kmalloc()` and other slab allocators. Default is `0`
+* `DEBUG_LOCKS=` to enable pervasive lock integrity checks. Default is `0`
+* `USE_UACPI=` to use [uACPI](https://github.com/UltraOS/uACPI), an implementation of ACPI necessary for full device driver and hardware support. Default is `1`
