@@ -22,6 +22,7 @@
 #include "mm/mmio.h"
 
 #include "mm/simple_alloc.h"
+
 #include "sched/sleep.h"
 #include "sched/thread.h"
 
@@ -44,7 +45,7 @@ struct uacpi_pci_handle *
 uacpi_pci_handle_create(const struct pci_domain *const domain,
                         const uacpi_pci_address address)
 {
-    struct uacpi_pci_handle *const handle = kmalloc(sizeof(*handle));
+    struct uacpi_pci_handle *const handle = uacpi_kernel_alloc(sizeof(*handle));
     if (handle == nullptr) {
         return UACPI_NULL;
     }
@@ -56,7 +57,7 @@ uacpi_pci_handle_create(const struct pci_domain *const domain,
 }
 
 void uacpi_pci_handle_destroy(struct uacpi_pci_handle *const handle) {
-    kfree(handle);
+    uacpi_kernel_free(handle);
 }
 
 uacpi_status
@@ -198,7 +199,7 @@ struct pio_range {
 
 static inline
 struct pio_range *pio_range_create(const port_t base, const size_t len) {
-    struct pio_range *const range = (struct pio_range *)kmalloc(sizeof(*range));
+    struct pio_range *const range = uacpi_kernel_alloc(sizeof(*range));
     if (range == nullptr) {
         return nullptr;
     }
@@ -225,7 +226,7 @@ uacpi_kernel_io_map(const uacpi_io_addr base,
 
 void uacpi_kernel_io_unmap(const uacpi_handle handle) {
     struct pio_range *const range = (struct pio_range *)handle;
-    kfree(range);
+    uacpi_kernel_free(range);
 }
 
 uacpi_status
@@ -273,7 +274,7 @@ create_and_add_vmap(const uacpi_phys_addr addr,
                     const uacpi_size len,
                     const int flag)
 {
-    struct uacpi_vmap *const vmap = (struct uacpi_vmap *)kmalloc(sizeof(*vmap));
+    struct uacpi_vmap *const vmap = uacpi_kernel_alloc(sizeof(*vmap));
     if (vmap == nullptr) {
         spin_release_restore_intr(&g_vmap_lock, flag);
         return nullptr;
@@ -284,6 +285,8 @@ create_and_add_vmap(const uacpi_phys_addr addr,
 
     if (vmap->region == nullptr) {
         spin_release_restore_intr(&g_vmap_lock, flag);
+        uacpi_kernel_free(vmap);
+
         return nullptr;
     }
 
@@ -329,7 +332,7 @@ void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
         if (range_has(mmio_region_get_range(vmap->region), range)) {
             if (ref_down(&vmap->refcount)) {
                 list_deinit(&vmap->list);
-                kfree(vmap);
+                uacpi_kernel_free(vmap);
             }
 
             return;
@@ -482,7 +485,7 @@ void uacpi_kernel_sleep(const uacpi_u64 usec) {
 }
 
 uacpi_handle uacpi_kernel_create_mutex(void) {
-    struct mutex *const result = kmalloc(sizeof(*result));
+    struct mutex *const result = uacpi_kernel_alloc(sizeof(*result));
     if (result == nullptr) {
         return UACPI_NULL;
     }
@@ -493,7 +496,7 @@ uacpi_handle uacpi_kernel_create_mutex(void) {
 
 void uacpi_kernel_free_mutex(const uacpi_handle handle) {
     struct mutex *const mutex = (struct mutex *)handle;
-    kfree(mutex);
+    uacpi_kernel_free(mutex);
 }
 
 struct uacpi_event {
@@ -525,7 +528,7 @@ bool uacpi_event_try_decrement(struct uacpi_event *const event) {
 }
 
 uacpi_handle uacpi_kernel_create_event(void) {
-    struct uacpi_event *const result = kmalloc(sizeof(*result));
+    struct uacpi_event *const result = uacpi_kernel_alloc(sizeof(*result));
     if (result == nullptr) {
         return UACPI_NULL;
     }
@@ -535,7 +538,8 @@ uacpi_handle uacpi_kernel_create_event(void) {
 }
 
 void uacpi_kernel_free_event(const uacpi_handle handle) {
-    kfree((struct uacpi_event *)handle);
+    struct uacpi_event *const event = handle;
+    uacpi_kernel_free(event);
 }
 
 uacpi_thread_id uacpi_kernel_get_thread_id(void) {
@@ -635,7 +639,9 @@ struct uacpi_irq_context {
 
 struct uacpi_irq_context *
 uacpi_irq_context_create(const uacpi_handle handler, const uacpi_handle ctx) {
-    struct uacpi_irq_context *const result = kmalloc(sizeof(*result));
+    struct uacpi_irq_context *const result =
+        uacpi_kernel_alloc(sizeof(*result));
+
     if (result == nullptr) {
         return UACPI_NULL;
     }
@@ -692,12 +698,12 @@ uacpi_kernel_uninstall_interrupt_handler(
     struct irq_pin *const pin =
         isr_get_irq_pin((uacpi_u32)(uintptr_t)irq_handle);
 
-    kfree(isr_uninstall_irq(pin));
+    uacpi_kernel_free(isr_uninstall_irq(pin));
     return UACPI_STATUS_OK;
 }
 
 uacpi_handle uacpi_kernel_create_spinlock(void) {
-    struct spinlock *const lock = kmalloc(sizeof(*lock));
+    struct spinlock *const lock = uacpi_kernel_alloc(sizeof(*lock));
     if (lock == nullptr) {
         return UACPI_NULL;
     }
@@ -708,7 +714,7 @@ uacpi_handle uacpi_kernel_create_spinlock(void) {
 
 void uacpi_kernel_free_spinlock(const uacpi_handle handle) {
     struct spinlock *const spinlock = (struct spinlock *)handle;
-    kfree(spinlock);
+    uacpi_kernel_free(spinlock);
 }
 
 uacpi_cpu_flags uacpi_kernel_lock_spinlock(const uacpi_handle handle) {
