@@ -80,7 +80,7 @@ static volatile struct limine_mp_request mp_request = {
     .revision = 0,
     .response = nullptr,
 #if defined(__x86_64__)
-    .flags = LIMINE_MP_X2APIC, // Use x2apic (when available)
+    .flags = LIMINE_MP_X2APIC,
 #else
     .flags = 0,
 #endif /* defined(__x86_64__) */

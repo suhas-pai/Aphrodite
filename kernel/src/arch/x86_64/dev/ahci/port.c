@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "cpu/spinlock.h"
 #include "dev/ata/atapi.h"
 #include "dev/ata/defines.h"
 
@@ -62,8 +61,8 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     bool cmdlist_stopped = false;
 
     for (int i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status)
-                & __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
+        if ((mmio_read(&spec->cmd_status) &
+                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
             cmdlist_stopped = true;
             break;
@@ -79,15 +78,15 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     }
 
     mmio_write(&spec->cmd_status,
-               mmio_read(&spec->cmd_status)
-             | __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
+               mmio_read(&spec->cmd_status) |
+               __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE);
 
     mmio_write(&spec->cmd_status,
                mmio_read(&spec->cmd_status) | __AHCI_HBA_PORT_CMDSTATUS_START);
 
     mmio_write(&spec->cmd_status,
-               mmio_read(&spec->cmd_status)
-             | __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE);
+               mmio_read(&spec->cmd_status) |
+               __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_OVERRIDE);
 
     flush_writes(spec);
     return true;
@@ -122,8 +121,8 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
 
     bool fis_stopped = false;
     for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status)
-                & __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING) == 0)
+        if ((mmio_read(&spec->cmd_status) &
+                __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING) == 0)
         {
             fis_stopped = true;
             break;
@@ -143,8 +142,8 @@ inline void clear_error_bits(volatile struct ahci_spec_hba_port *const port) {
 __debug_optimize(3)
 static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
     const uint32_t tfd_flags =
-        __AHCI_HBA_TFD_STATUS_BUSY
-      | __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED;
+        __AHCI_HBA_TFD_STATUS_BUSY |
+        __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED;
 
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {

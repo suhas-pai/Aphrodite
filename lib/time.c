@@ -70,7 +70,7 @@ get_week_count_at_day(const enum weekday weekday,
     // Based on implementation specified here:
     // https://github.com/arnoldrobbins/strftime/blob/master/strftime.c#L990-L1032
 
-    const uint64_t delta =
+    const uint8_t delta =
         is_monday_first ?
             ((weekday != WEEKDAY_SUNDAY) ? (WEEKDAY_COUNT + 1) : 1) :
             WEEKDAY_COUNT;

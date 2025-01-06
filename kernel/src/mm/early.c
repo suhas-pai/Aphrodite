@@ -352,11 +352,6 @@ __debug_optimize(3) void mm_init() {
                 type_desc = "bad-memory";
                 break;
             case MM_MEMMAP_KIND_BOOTLOADER_RECLAIMABLE:
-                // Don't claim bootloader-reclaimable memmaps until after we
-                // switch to our own pagemap, because there is a slight chance
-                // we allocate the root physical page of the bootloader's
-                // page tables.
-
                 type_desc = "bootloader-reclaimable";
                 break;
             case MM_MEMMAP_KIND_EXEC_AND_MODULES:
@@ -890,11 +885,16 @@ void mm_post_arch_init() {
 
     mm_for_each_memmap(memmap) {
         if (memmap->kind == MM_MEMMAP_KIND_BOOTLOADER_RECLAIMABLE) {
+            // Don't claim bootloader-reclaimable memmaps until after we
+            // switch to our own pagemap, because there is a slight chance
+            // we allocate the root physical page of the bootloader's
+            // page tables.
+
             //claim_pages(memmap);
         }
     }
 
-    // Iterate over the usable-memmaps (sections)  times:
+    // Iterate over the usable-memmaps (sections) 2 times:
     //  1. Iterate to mark used-pages first. This must be done first because
     //     it needs to be done before memmaps are merged, as before the merge,
     //     its obvious which pages are used.
