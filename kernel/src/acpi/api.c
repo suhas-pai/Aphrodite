@@ -200,9 +200,9 @@ void acpi_init(void) {
 
     acpi_recurse(acpi_init_each_sdt);
 
-    const auto oem_id_length =
+    const __auto_type oem_id_length =
         strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));
-    const auto oem_id =
+    const __auto_type oem_id =
         sv_create_nocheck(g_info.rsdp->oem_id, oem_id_length);
 
     printk(LOGLEVEL_INFO,
@@ -218,10 +218,9 @@ void acpi_init(void) {
 
     acpi_recurse(acpi_print_each_sdt);
 
-    const auto spcr_sdt = acpi_lookup_sdt("SPCR");
-    if (spcr_sdt != nullptr) {
-        const auto spcr = (const struct os_acpi_spcr *)spcr_sdt;
-        spcr_init(spcr);
+    const __auto_type spcr = acpi_lookup_sdt("SPCR");
+    if (spcr != nullptr) {
+        spcr_init((const struct os_acpi_spcr *)spcr);
     }
 
     if (get_acpi_info()->madt != nullptr) {

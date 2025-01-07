@@ -23,7 +23,7 @@ void serial_init() {
     com1_init();
 #elif defined(__aarch64__)
     #if !defined(AARCH64_USE_16K_PAGES)
-        const auto spcr =
+        const __auto_type spcr =
             (const struct os_acpi_spcr *)acpi_lookup_sdt("SPCR");
 
         uint64_t address = 0x9000000;

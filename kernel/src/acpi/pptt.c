@@ -10,12 +10,12 @@
 void pptt_init(const struct os_acpi_pptt *const pptt) {
     uint32_t offset = offsetof(struct os_acpi_pptt, buffer);
     while (index_in_bounds(offset, pptt->sdt.length)) {
-        const auto base =
+        const __auto_type base =
             reg_to_ptr(struct os_acpi_pptt_node_base, pptt, offset);
 
         switch (base->kind) {
             case ACPI_PPTT_NODE_PROCESSOR_HIERARCHY: {
-                const auto node =
+                const __auto_type node =
                     (struct os_acpi_pptt_processor_hierarchy_node *)base;
 
                 offset += sizeof(*node);
@@ -73,16 +73,17 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                 continue;
             }
             case ACPI_PPTT_NODE_CACHE_TYPE: {
-                const auto node = (struct os_acpi_pptt_cache_type_node *)base;
-                offset += sizeof(*node);
+                const __auto_type node =
+                    (struct os_acpi_pptt_cache_type_node *)base;
 
+                offset += sizeof(*node);
                 if (!ordinal_in_bounds(offset, pptt->sdt.length)) {
                     printk(LOGLEVEL_WARN,
                            "pptt: cache-type node goes beyond end of node\n");
                     return;
                 }
 
-                const auto alloc_kind =
+                const __auto_type alloc_kind =
                     (enum os_acpi_pptt_cache_type_node_attr_alloc_kind)
                         node->attributes &
                             __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND;
@@ -101,7 +102,7 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                         break;
                 }
 
-                const auto cache_kind =
+                const __auto_type cache_kind =
                     (enum os_acpi_pptt_cache_type_node_attr_cache_kind)
                         node->attributes &
                             __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
@@ -120,7 +121,7 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                         break;
                 }
 
-                const auto wr_policy =
+                const __auto_type wr_policy =
                     (enum os_acpi_pptt_cache_type_node_attr_write_policy)
                         node->attributes &
                             __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;

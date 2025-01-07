@@ -18,7 +18,7 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
 {
     switch (node->kind) {
         case ACPI_RHCT_NODE_KIND_ISA_STRING: {
-            const auto isa_str = (struct os_acpi_rhct_isa_string *)node;
+            const __auto_type isa_str = (struct os_acpi_rhct_isa_string *)node;
             const struct string_view isa_sv =
                 sv_create_length(isa_str->isa_string, isa_str->isa_length);
 
@@ -32,7 +32,7 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
             break;
         }
         case ACPI_RHCT_NODE_KIND_CMO: {
-            const auto cmo_node = (struct os_acpi_rhct_cmo_node *)node;
+            const __auto_type cmo_node = (struct os_acpi_rhct_cmo_node *)node;
 
             if (!index_in_bounds(cmo_node->cbom_shift, sizeof_bits(uint64_t))
              || !index_in_bounds(cmo_node->cbop_shift, sizeof_bits(uint64_t))
@@ -58,7 +58,7 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
             break;
         }
         case ACPI_RHCT_NODE_KIND_MMU: {
-            const auto mmu_node = (struct os_acpi_rhct_mmu_node *)node;
+            const __auto_type mmu_node = (struct os_acpi_rhct_mmu_node *)node;
             const char *mmu_kind = "unknown";
 
             switch ((enum acpi_rhct_mmu_kind)mmu_node->mmu_kind) {
@@ -82,7 +82,7 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
             break;
         }
         case ACPI_RHCT_NODE_KIND_HART_INFO: {
-            const auto hart = (struct os_acpi_rhct_hart_info *)node;
+            const __auto_type hart = (struct os_acpi_rhct_hart_info *)node;
 
             printk(LOGLEVEL_INFO,
                    "%srhct: found hart info:\n"
@@ -93,7 +93,7 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
                    prefix, hart->acpi_processor_uid);
 
             for (uint16_t j = 0; j != hart->offset_count; j++) {
-                const auto hart_node =
+                const __auto_type hart_node =
                     reg_to_ptr(struct os_acpi_rhct_node,
                                rhct,
                                hart->offsets[j]);
@@ -117,7 +117,9 @@ void acpi_rhct_init(const struct os_acpi_rhct *const rhct) {
            rhct->node_count,
            rhct->node_offset);
 
-    auto node = reg_to_ptr(struct os_acpi_rhct_node, rhct, rhct->node_offset);
+    __auto_type node =
+        reg_to_ptr(struct os_acpi_rhct_node, rhct, rhct->node_offset);
+
     for (uint32_t i = 0; i != rhct->node_count; i++) {
         print_rhct_node(rhct, node, /*prefix=*/"");
         node = reg_to_ptr(struct os_acpi_rhct_node, node, node->length);
