@@ -328,21 +328,19 @@ void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
     const struct range range = RANGE_INIT((uacpi_u64)addr, len);
     struct uacpi_vmap *vmap = NULL;
 
-    const int flag = spin_acquire_save_intr(&g_vmap_lock);
-    list_foreach(vmap, &g_vmap_list, list) {
-        if (range_has(mmio_region_get_range(vmap->region), range)) {
-            vmap->refcount--;
-            if (vmap->refcount == 0) {
-                list_deinit(&vmap->list);
-                uacpi_kernel_free(vmap);
+    with_spinlock_intr_disabled(&g_vmap_lock, {
+        list_foreach(vmap, &g_vmap_list, list) {
+            if (range_has(mmio_region_get_range(vmap->region), range)) {
+                vmap->refcount--;
+                if (vmap->refcount == 0) {
+                    list_deinit(&vmap->list);
+                    uacpi_kernel_free(vmap);
+                }
+
+                break;
             }
-
-            spin_release_restore_intr(&g_vmap_lock, flag);
-            return;
         }
-    }
-
-    spin_release_restore_intr(&g_vmap_lock, flag);
+    });
 }
 
 static struct simple_alloc g_alloc;
