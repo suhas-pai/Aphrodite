@@ -245,6 +245,7 @@ void acpi_init(void) {
     if (get_acpi_info()->mcfg != nullptr) {
         mcfg_init(get_acpi_info()->mcfg);
     }
+
 #ifdef USE_UACPI
     /*
      * Start with this as the first step of the initialization. This loads

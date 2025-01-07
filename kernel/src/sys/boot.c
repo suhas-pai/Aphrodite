@@ -3,8 +3,6 @@
  * © suhas pai
  */
 
-#include "lib/size.h"
-
 #include "mm/memmap.h"
 #include "mm/mm_types.h"
 #include "mm/section.h"

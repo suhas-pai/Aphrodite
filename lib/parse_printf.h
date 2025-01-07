@@ -34,12 +34,12 @@ struct printf_spec_info {
         .length_sv = SV_EMPTY() \
     })
 
-/*
- * All callbacks should return length written-out.
- * should_continue_out is initialized to true.
- *
- * spec_info is NULL for callbacks to write unformatted strings.
- */
+//
+// All callbacks should return length written-out.
+// should_continue_out is initialized to true.
+//
+// spec_info is NULL for callbacks to write unformatted strings.
+//
 
 typedef uint32_t
 (*printf_write_char_callback_t)(struct printf_spec_info *spec_info,

@@ -4,14 +4,14 @@
  */
 
 #pragma once
-
 #include "lib/adt/array.h"
-#include "lib/macros.h"
 
 #define SIMPLE_ALLOC_MAX 512
 
 // Simple allocator for small allocations, not thread-safe by default.
 // Uses a linked list of free pages, with each page having a bump allocator.
+//
+// Note that for this reason allocations cannot be larger than PAGE_SIZE.
 //
 // Objects are never freed, instead each page has a refcount and the page is
 // freed when the refcount hits 0.
