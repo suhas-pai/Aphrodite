@@ -266,7 +266,7 @@ struct uacpi_vmap {
     struct mmio_region *region;
     struct list list;
 
-    struct refcount refcount;
+    uint32_t refcount;
 };
 
 void *
@@ -293,7 +293,7 @@ create_and_add_vmap(const uacpi_phys_addr addr,
     list_init(&vmap->list);
     list_add(&g_vmap_list, &vmap->list);
 
-    refcount_init(&vmap->refcount);
+    vmap->refcount = 1;
     spin_release_restore_intr(&g_vmap_lock, flag);
 
     return (void *)(uint64_t)vmap->region->base;
@@ -314,7 +314,7 @@ void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
 
     list_foreach(vmap, &g_vmap_list, list) {
         if (range_has_loc(mmio_region_get_range(vmap->region), align_addr)) {
-            ref_up(&vmap->refcount);
+            vmap->refcount++;
             spin_release_restore_intr(&g_vmap_lock, flag);
 
             return (void *)(uint64_t)vmap->region->base;
@@ -328,16 +328,21 @@ void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
     const struct range range = RANGE_INIT((uacpi_u64)addr, len);
     struct uacpi_vmap *vmap = NULL;
 
+    const int flag = spin_acquire_save_intr(&g_vmap_lock);
     list_foreach(vmap, &g_vmap_list, list) {
         if (range_has(mmio_region_get_range(vmap->region), range)) {
-            if (ref_down(&vmap->refcount)) {
+            vmap->refcount--;
+            if (vmap->refcount == 0) {
                 list_deinit(&vmap->list);
                 uacpi_kernel_free(vmap);
             }
 
+            spin_release_restore_intr(&g_vmap_lock, flag);
             return;
         }
     }
+
+    spin_release_restore_intr(&g_vmap_lock, flag);
 }
 
 static struct simple_alloc g_alloc;
@@ -374,7 +379,7 @@ void *uacpi_kernel_alloc_zeroed(const uacpi_size size) {
 
 #ifndef UACPI_SIZED_FREES
 void uacpi_kernel_free(void *const mem) {
-    if (mem == nullptr) {
+    if (__builtin_expect(mem == nullptr, 0)) {
         return;
     }
 

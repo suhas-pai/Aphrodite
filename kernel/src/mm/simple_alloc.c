@@ -4,9 +4,7 @@
  */
 
 #include "dev/printk.h"
-
 #include "lib/align.h"
-#include "lib/refcount.h"
 
 #include "mm/page_alloc.h"
 #include "mm/simple_alloc.h"
@@ -15,7 +13,7 @@ struct simple_page {
     void *virt;
 
     uint16_t index;
-    struct refcount count;
+    uint32_t refcount;
 };
 
 #define ALIGNMENT 16
@@ -26,11 +24,12 @@ __debug_optimize(3) void simple_alloc_create(struct simple_alloc *const alloc) {
 
 void simple_alloc_destroy(struct simple_alloc *const alloc) {
     array_foreach(&alloc->page_list, struct simple_page, page) {
-        if (!ref_down(&page->count)) {
+        page->refcount--;
+        if (page->refcount == 0) {
             printk(LOGLEVEL_WARN,
                    "mm: leaks detected in page %p, count: %d\n",
                    virt_to_page(page->virt),
-                   ref_get(&page->count));
+                   page->refcount);
         }
 
         free_page(virt_to_page(page->virt));
@@ -38,9 +37,7 @@ void simple_alloc_destroy(struct simple_alloc *const alloc) {
 }
 
 void *add_new_page(struct simple_alloc *const alloc, const uint32_t size) {
-    struct page *const page =
-        alloc_page(PAGE_STATE_USED, /*alloc_flags=*/__ALLOC_ZERO);
-
+    struct page *const page = alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
     if (page == nullptr) {
         return nullptr;
     }
@@ -48,7 +45,7 @@ void *add_new_page(struct simple_alloc *const alloc, const uint32_t size) {
     const struct simple_page simple_page = {
         .virt = page_to_virt(page),
         .index = size,
-        .count = REFCOUNT_CREATE(1),
+        .refcount = 1,
     };
 
     if (!array_append(&alloc->page_list, &simple_page)) {
@@ -75,9 +72,10 @@ void *simple_alloc(struct simple_alloc *const alloc, const uint32_t bad_size) {
     }
 
     void *const result = page->virt + page->index;
-    page->index += size;
 
-    ref_up(&page->count);
+    page->index += size;
+    page->refcount++;
+
     return result;
 }
 
@@ -96,9 +94,8 @@ bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
             RANGE_INIT((uint64_t)page->virt, PAGE_SIZE);
 
         if (range_has_loc(page_range, (uint64_t)buffer)) {
-            if (ref_down(&page->count) &&
-                array_item_count(alloc->page_list) > 1)
-            {
+            page->refcount--;
+            if (page->refcount == 0 && array_item_count(alloc->page_list) > 1) {
                 free_page(virt_to_page(page->virt));
                 array_remove_index(&alloc->page_list,
                                    array_indexof(alloc->page_list, page));
