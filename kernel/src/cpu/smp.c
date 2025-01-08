@@ -41,9 +41,15 @@ void smp_init() {
     const uint64_t cpu_count = smp_resp->cpu_count;
 
     for (uint64_t i = 0; i != cpu_count; i++) {
+    #ifdef __aarch64__
+        const uint64_t processor_id = cpu_list[i]->mpidr;
+    #else
+        const uint64_t processor_id = cpu_list[i]->processor_id;
+    #endif
+
         printk(LOGLEVEL_INFO,
-               "smp: found cpu with processor-id %" PRIu32 "\n",
-               cpu_list[i]->processor_id);
+               "smp: found cpu with processor-id %" PRIu64 "\n",
+               processor_id);
 
         if (cpu_list[i]->field != smp_resp->bsp_field) {
             cpu_add(cpu_list[i]);
@@ -73,13 +79,19 @@ void smp_boot_all_cpus() {
             continue;
         }
 
-        struct cpu_info *const cpu = cpu_for_id_mut(info->mpidr);
+    #ifdef __aarch64__
+        const uint64_t processor_id = info->mpidr;
+    #else
+        const uint64_t processor_id = info->processor_id;
+    #endif
+
+        struct cpu_info *const cpu = cpu_for_id_mut(processor_id);
         struct smp_boot_info boot_info = SMP_BOOT_INFO_INIT(cpu);
 
         assert_msg(cpu != nullptr,
                    "smp: failed to find cpu-info for "
-                   "processor-id %" PRIu32 "\n",
-                   cpu->processor_id);
+                   "processor-id %" PRIu64 "\n",
+                   processor_id);
 
         sched_init_on_cpu(cpu);
         with_intr_disabled({
