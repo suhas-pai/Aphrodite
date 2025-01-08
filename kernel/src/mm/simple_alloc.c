@@ -94,6 +94,16 @@ bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
             RANGE_INIT((uint64_t)page->virt, PAGE_SIZE);
 
         if (range_has_loc(page_range, (uint64_t)buffer)) {
+            if (page->refcount == 0) {
+                printk(LOGLEVEL_WARN,
+                       "mm: double free detected in page %p, for allocator %p, "
+                       "caller alloc: %p\n",
+                       virt_to_page(page->virt),
+                       alloc,
+                       buffer);
+                return true;
+            }
+
             page->refcount--;
             if (page->refcount == 0 && array_item_count(alloc->page_list) > 1) {
                 free_page(virt_to_page(page->virt));
