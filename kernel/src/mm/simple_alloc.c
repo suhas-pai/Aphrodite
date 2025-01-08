@@ -24,10 +24,9 @@ __debug_optimize(3) void simple_alloc_create(struct simple_alloc *const alloc) {
 
 void simple_alloc_destroy(struct simple_alloc *const alloc) {
     array_foreach(&alloc->page_list, struct simple_page, page) {
-        page->refcount--;
-        if (page->refcount == 0) {
+        if (page->refcount != 0) {
             printk(LOGLEVEL_WARN,
-                   "mm: leaks detected in page %p, count: %d\n",
+                   "mm: leaks detected in simple_alloc page %p, count: %d\n",
                    virt_to_page(page->virt),
                    page->refcount);
         }
