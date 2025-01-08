@@ -16,6 +16,16 @@ ifeq ($(ARCH),riscv64)
 	MACHINE := $(MACHINE),aclint=on,aia=aplic-imsic,aia-guests=1
 endif
 
+ifeq ($(ARCH),x86_64)
+ifeq ($(DISABLE_ACPI),1)
+$(error ACPI cannot be disabled on x86_64)
+endif
+else
+	ifeq ($(DISABLE_ACPI),1)
+		MACHINE := $(MACHINE),acpi=off
+	endif
+endif
+
 # Target architecture to build for. Default to x86_64.
 ARCH := x86_64
 
@@ -35,16 +45,6 @@ HOST_CFLAGS := -g -O2 -pipe
 HOST_CPPFLAGS :=
 HOST_LDFLAGS :=
 HOST_LIBS :=
-
-ifeq ($(ARCH),x86_64)
-ifeq ($(DISABLE_ACPI),1)
-$(error ACPI cannot be disabled on x86_64)
-endif
-else
-	ifeq ($(DISABLE_ACPI),1)
-		MACHINE := $(MACHINE),acpi=off
-	endif
-endif
 
 EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime
 ifeq ($(DEBUG),1)
