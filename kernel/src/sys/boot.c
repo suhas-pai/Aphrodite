@@ -305,7 +305,7 @@ void boot_post_early_init() {
     }
 
     if (mp_response != nullptr) {
-        printk(LOGLEVEL_WARN,
+        printk(LOGLEVEL_INFO,
                "boot: found %" PRIu64 " cpus\n",
                mp_response->cpu_count);
     }
