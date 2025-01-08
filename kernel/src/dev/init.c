@@ -76,13 +76,15 @@ void arch_init_dev_drivers();
 
 void arch_init_time();
 void arch_init_time_pre_acpi();
+void arch_init_time_pre_dev_init();
 
 void dev_init() {
     arch_init_time_pre_acpi();
     acpi_init();
 
-    arch_init_time();
+    arch_init_time_pre_dev_init();
     arch_init_dev();
+    arch_init_time();
 
     printk(LOGLEVEL_INFO,
            "dev: initialized time, seconds since boot: %" PRIu64 "\n",

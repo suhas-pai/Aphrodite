@@ -6,7 +6,6 @@
 #include "asm/irqs.h"
 #include "cpu/util.h"
 
-#include "dev/printk.h"
 #include "dev/psci.h"
 #include "mm/kmalloc.h"
 
@@ -40,7 +39,7 @@ struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     cpu_info_base_init(cpu);
 
     cpu->mpidr = info->mpidr;
-    cpu->processor_id = info->processor_id;
+    cpu->processor_id = info->mpidr; // processor-id is always 0
     cpu->affinity = ((cpu->mpidr >> 32) & 0xFF) << 24 | (cpu->mpidr & 0xFFFFFF);
 
     cpu->spe_overflow_interrupt = 0;

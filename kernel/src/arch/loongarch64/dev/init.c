@@ -4,10 +4,5 @@
  */
 
 
-void arch_init_dev() {
-
-}
-
-void arch_init_dev_drivers() {
-
-}
+void arch_init_dev() {}
+void arch_init_dev_drivers() {}

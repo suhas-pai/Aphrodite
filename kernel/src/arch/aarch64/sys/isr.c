@@ -231,18 +231,18 @@ __debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
 __debug_optimize(3)
 void handle_interrupt(struct thread_context *const context) {
     uint8_t cpu_id = 0;
-    const irq_number_t irq = gic_cpu_get_irq_number(&cpu_id);
+    const irq_number_t intr = gic_cpu_get_irq_number(&cpu_id);
 
     this_cpu_mut()->called_eoi = false;
-    if (irq >= GIC_ITS_LPI_INTERRUPT_START) {
-        const uint16_t index = irq - GIC_ITS_LPI_INTERRUPT_START;
+    if (intr >= GIC_ITS_LPI_INTERRUPT_START) {
+        const uint16_t index = intr - GIC_ITS_LPI_INTERRUPT_START;
         this_cpu_mut()->in_lpi = true;
 
         if (!index_in_bounds(index, GIC_ITS_MAX_LPIS_SUPPORTED)) {
             printk(LOGLEVEL_WARN,
                    "isr: got lpi beyond end of supported lpis\n");
 
-            gic_cpu_eoi(cpu_id, irq);
+            gic_cpu_eoi(cpu_id, intr);
             return;
         }
 
@@ -255,58 +255,58 @@ void handle_interrupt(struct thread_context *const context) {
                 printk(LOGLEVEL_WARN,
                        "isr: lpi handler for irq " IRQ_NUMBER_FMT ", "
                        "lpi %" PRIu16 " did not call eoi\n",
-                       irq,
+                       intr,
                        index);
 
-                gic_cpu_eoi(cpu_id, irq);
+                gic_cpu_eoi(cpu_id, intr);
             }
         } else {
             printk(LOGLEVEL_WARN,
                    "isr: got unhandled lpi interrupt " ISR_VECTOR_FMT " on "
                    "cpu %" PRIu8 "\n",
-                   irq,
+                   intr,
                    cpu_id);
 
-            gic_cpu_eoi(cpu_id, irq);
+            gic_cpu_eoi(cpu_id, intr);
         }
 
         return;
     }
 
-    if (__builtin_expect(irq >= ISR_IRQ_COUNT, 0)) {
+    if (__builtin_expect(intr >= ISR_IRQ_COUNT, 0)) {
         printk(LOGLEVEL_WARN,
                "isr: got spurious interrupt " ISR_VECTOR_FMT " on "
                "cpu %" PRIu8 "\n",
-               irq,
+               intr,
                cpu_id);
 
         cpu_for_id_mut(cpu_id)->spur_intr_count++;
-        gic_cpu_eoi(cpu_id, irq);
+        gic_cpu_eoi(cpu_id, intr);
 
         return;
     }
 
-    const isr_func_t handler = g_irq_info_list[irq].handler;
-    void *const ctx = g_irq_info_list[irq].ctx;
+    const isr_func_t handler = g_irq_info_list[intr].handler;
+    void *const ctx = g_irq_info_list[intr].ctx;
 
     if (handler != nullptr) {
-        handler((uint64_t)cpu_id << 16 | irq, context, ctx);
+        handler((uint64_t)cpu_id << 16 | intr, context, ctx);
         if (!this_cpu_mut()->called_eoi) {
             printk(LOGLEVEL_WARN,
                    "isr: lpi handler for irq " IRQ_NUMBER_FMT "did not call "
                    "eoi\n",
-                   irq);
+                   intr);
 
-            gic_cpu_eoi(cpu_id, irq);
+            gic_cpu_eoi(cpu_id, intr);
         }
     } else {
         printk(LOGLEVEL_WARN,
                "isr: got unhandled interrupt " ISR_VECTOR_FMT " on "
                "cpu %" PRIu8 "\n",
-               irq,
+               intr,
                cpu_id);
 
-        gic_cpu_eoi(cpu_id, irq);
+        gic_cpu_eoi(cpu_id, intr);
     }
 }
 
@@ -318,7 +318,7 @@ void handle_sync_exception(struct thread_context *const context) {
     const enum esr_error_code error_code =
         (esr & __ESR_ERROR_CODE) >> ESR_ERROR_CODE_SHIFT;
 
-    printk(LOGLEVEL_WARN,
+    printk(LOGLEVEL_ERROR,
            "isr: received sync exception\n"
            "\telr_el1: %p\n"
            "\tfar_el1: %p\n"
@@ -329,116 +329,116 @@ void handle_sync_exception(struct thread_context *const context) {
 
     switch (error_code) {
         case ESR_ERROR_CODE_UNKNOWN:
-            printk(LOGLEVEL_WARN, "kind: recognized unknown\n");
+            printk(LOGLEVEL_ERROR, "kind: unknown\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_WF:
-            printk(LOGLEVEL_WARN, "kind: trapped wf* instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: trapped wf* instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_MCR_OR_MRC_EC0:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: trapped mcrr/mrrc with ec0 instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_MCRR_OR_MRRC:
-            printk(LOGLEVEL_WARN, "kind: trapped mcrr/mrrc instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: trapped mcrr/mrrc instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_MCR_OR_MRC:
-            printk(LOGLEVEL_WARN, "kind: trapped mcr/mrc instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: trapped mcr/mrc instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_LDC_OR_SDC:
-            printk(LOGLEVEL_WARN, "kind: trapped ldc/sdc instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: trapped ldc/sdc instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_SVE:
-            printk(LOGLEVEL_WARN, "kind: trapped sve instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: trapped sve instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_LD64B_OR_SD64B:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: trapped ld64b, st64b, st64bv, or st64bv0 "
                    "instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_MRRC:
-            printk(LOGLEVEL_WARN, "kind: trapped mrrc instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: trapped mrrc instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_BRANCH_TARGET_EXCEPTION:
-            printk(LOGLEVEL_WARN, "kind: branch target\n");
+            printk(LOGLEVEL_ERROR, "kind: branch target\n");
             cpu_halt();
         case ESR_ERROR_CODE_ILLEGAL_EXEC_STATE:
-            printk(LOGLEVEL_WARN, "kind: illegal exec\n");
+            printk(LOGLEVEL_ERROR, "kind: illegal exec\n");
             cpu_halt();
         case ESR_ERROR_CODE_SVC_IN_AARCH32:
-            printk(LOGLEVEL_WARN, "kind: svc in aarch32\n");
+            printk(LOGLEVEL_ERROR, "kind: svc in aarch32\n");
             cpu_halt();
         case ESR_ERROR_CODE_SVC_IN_AARCH64:
-            printk(LOGLEVEL_WARN, "kind: svc in aarch64\n");
+            printk(LOGLEVEL_ERROR, "kind: svc in aarch64\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_MSR_OR_MRS:
-            printk(LOGLEVEL_WARN, "kind: msr/mrs or other sys instruction\n");
+            printk(LOGLEVEL_ERROR, "kind: msr/mrs or other sys instruction\n");
             cpu_halt();
         case ESR_ERROR_CODE_TRAPPED_SVE_EC0:
-            printk(LOGLEVEL_WARN, "kind: svc with ec 0\n");
+            printk(LOGLEVEL_ERROR, "kind: svc with ec 0\n");
             cpu_halt();
         case ESR_ERROR_CODE_TSTART_ACCESS:
-            printk(LOGLEVEL_WARN, "kind: tstart access\n");
+            printk(LOGLEVEL_ERROR, "kind: tstart access\n");
             cpu_halt();
         case ESR_ERROR_CODE_PTR_AUTH_FAIL:
-            printk(LOGLEVEL_WARN, "kind: ptr auth\n");
+            printk(LOGLEVEL_ERROR, "kind: ptr auth\n");
             cpu_halt();
         case ESR_ERROR_CODE_INSTR_ABORT_LOWER_EL:
-            printk(LOGLEVEL_WARN, "kind: instr abort from a lower el\n");
+            printk(LOGLEVEL_ERROR, "kind: instr abort from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_INSTR_ABORT_SAME_EL:
-            printk(LOGLEVEL_WARN, "kind: instr abort from the same el\n");
+            printk(LOGLEVEL_ERROR, "kind: instr abort from the same el\n");
             cpu_halt();
         case ESR_ERROR_CODE_PC_ALIGNMENT_FAULT:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: pc alignment fault from a lower el\n");
             cpu_halt();
         case ESR_ERROR_PAGE_TABLE_WALK_EL1:
-            printk(LOGLEVEL_WARN, "kind: page table walk error at el1\n");
+            printk(LOGLEVEL_ERROR, "kind: page table walk error at el1\n");
             cpu_halt();
         case ESR_ERROR_CODE_DATA_ABORT_LOWER_EL:
-            printk(LOGLEVEL_WARN, "kind: data abort fault from a lower el\n");
+            printk(LOGLEVEL_ERROR, "kind: data abort fault from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_DATA_ABORT_SAME_EL:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: data abort fault from the same el\n");
             cpu_halt();
         case ESR_ERROR_CODE_SP_ALIGNMENT_FAULT:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: sp alignment fault from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_FP_ON_AARCH32_TRAP:
-            printk(LOGLEVEL_WARN, "kind: fp on aarch32 trap\n");
+            printk(LOGLEVEL_ERROR, "kind: fp on aarch32 trap\n");
             cpu_halt();
         case ESR_ERROR_CODE_FP_ON_AARCH64_TRAP:
-            printk(LOGLEVEL_WARN, "kind: fp on aarch64 trap\n");
+            printk(LOGLEVEL_ERROR, "kind: fp on aarch64 trap\n");
             cpu_halt();
         case ESR_ERROR_CODE_SERROR_INTERRUPT:
-            printk(LOGLEVEL_WARN, "kind: serror trap\n");
+            printk(LOGLEVEL_ERROR, "kind: serror trap\n");
             cpu_halt();
         case ESR_ERROR_CODE_BREAKPOINT_LOWER_EL:
-            printk(LOGLEVEL_WARN, "kind: breakpoint from a lower el\n");
+            printk(LOGLEVEL_ERROR, "kind: breakpoint from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_BREAKPOINT_SAME_EL:
-            printk(LOGLEVEL_WARN, "kind: breakpoint from the same el\n");
+            printk(LOGLEVEL_ERROR, "kind: breakpoint from the same el\n");
             cpu_halt();
         case ESR_ERROR_CODE_SOFTWARE_STEP_LOWER_EL:
-            printk(LOGLEVEL_WARN, "kind: software step from a lower el\n");
+            printk(LOGLEVEL_ERROR, "kind: software step from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_SOFTWARE_STEP_SAME_EL:
-            printk(LOGLEVEL_WARN, "kind: software step from the same el\n");
+            printk(LOGLEVEL_ERROR, "kind: software step from the same el\n");
             cpu_halt();
         case ESR_ERROR_CODE_WATCHPOINT_LOWER_EL:
-            printk(LOGLEVEL_WARN, "kind: watchpoint from a lower el\n");
+            printk(LOGLEVEL_ERROR, "kind: watchpoint from a lower el\n");
             cpu_halt();
         case ESR_ERROR_CODE_WATCHPOINT_SAME_EL:
-            printk(LOGLEVEL_WARN, "kind: watchpoint from the same el\n");
+            printk(LOGLEVEL_ERROR, "kind: watchpoint from the same el\n");
             cpu_halt();
         case ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH32:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: bkpt instruction exec on aarch32 fault\n");
             cpu_halt();
         case ESR_ERROR_CODE_BKPT_EXEC_ON_AARCH64:
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_ERROR,
                    "kind: bkpt instruction exec on aarch64 fault\n");
             cpu_halt();
     }
@@ -483,7 +483,7 @@ void handle_async_exception(struct thread_context *const context) {
     }
 
     if (esr & __ESR_SERROR_IDS) {
-        printk(LOGLEVEL_INFO,
+        printk(LOGLEVEL_WARN,
                "isr: received async exception with impl-defined info\n");
         cpu_halt();
     }
@@ -496,7 +496,7 @@ void handle_async_exception(struct thread_context *const context) {
     const enum esr_serror_aet_kind aet =
         (esr & __ESR_SERROR_AET) >> ESR_SERROR_AET_SHIFT;
 
-    printk(LOGLEVEL_INFO,
+    printk(LOGLEVEL_ERROR,
            "isr: received async exception: %s%sserror\n"
            "\text-abort? %s\n"
            "\timplicit error synchronized? %s\n"

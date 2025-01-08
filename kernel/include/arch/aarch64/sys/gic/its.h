@@ -29,13 +29,13 @@ struct gic_its_info {
 
     uint16_t queue_free_slot_count;
     uint16_t device_table_entry_size;
-    uint16_t int_collection_table_entry_count;
+    uint16_t int_collect_table_entry_count;
 
     struct mmio_region *mmio;
     uint64_t *bitset;
 
     void *device_table;
-    void *int_collection_table;
+    void *int_collect_table;
 };
 
 struct gic_its_info *

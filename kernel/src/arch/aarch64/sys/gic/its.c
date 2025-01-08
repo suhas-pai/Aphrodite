@@ -169,14 +169,14 @@ struct gic_its_intr_table_entry {
     uint32_t doorbell;
 };
 
-enum gic_its_collection_table_entry_shifts {
-    GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT = 1,
+enum gic_its_collect_table_entry_shifts {
+    GIC_ITS_COLLECT_TABLE_ENTRY_RDBASE_SHIFT = 1,
 };
 
-enum gic_its_collection_table_entry_flags {
-    __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID = 1 << 0,
-    __GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE =
-        0xFFFFull << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
+enum gic_its_collect_table_entry_flags {
+    __GIC_ITS_COLLECT_TABLE_ENTRY_VALID = 1 << 0,
+    __GIC_ITS_COLLECT_TABLE_ENTRY_RDBASE =
+        0xFFFFull << GIC_ITS_COLLECT_TABLE_ENTRY_RDBASE_SHIFT
 };
 
 enum gic_its_lpi_config_table_entry_shifts {
@@ -189,7 +189,7 @@ enum gic_its_lpi_config_table_entry_flags {
         mask_for_n_bits(5) << GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT
 };
 
-struct gic_its_collection_table_entry {
+struct gic_its_collect_table_entry {
     uint64_t flags;
 };
 
@@ -197,7 +197,7 @@ struct gic_its_collection_table_entry {
 #define GICD_DEFAULT_PRIO 0xA0
 
 #define DEVICE_TABLE_PAGE_ORDER 7
-#define COLLECTION_TABLE_PAGE_ORDER 0
+#define COLLECT_TABLE_PAGE_ORDER 0
 #define CMD_QUEUE_PAGE_ORDER 0
 
 static struct list g_list = LIST_INIT(g_list);
@@ -208,16 +208,14 @@ void send_command(struct gic_its_cmd_queue_entry *const command) {
 }
 
 static bool
-fill_out_collection_table(struct gic_its_info *const its, const uint16_t icid) {
-    struct gic_its_collection_table_entry *const entry =
-        its->int_collection_table
-      + (its->int_collection_table_entry_count * icid);
+fill_out_collect_table(struct gic_its_info *const its, const uint16_t icid) {
+    struct gic_its_collect_table_entry *const entry =
+        its->int_collect_table + (its->int_collect_table_entry_count * icid);
 
     with_preempt_disabled({
         entry->flags =
-            this_cpu()->processor_id
-                << GIC_ITS_COLLECTION_TABLE_ENTRY_RDBASE_SHIFT
-          | __GIC_ITS_COLLECTION_TABLE_ENTRY_VALID;
+            this_cpu()->processor_id << GIC_ITS_COLLECT_TABLE_ENTRY_RDBASE_SHIFT
+          | __GIC_ITS_COLLECT_TABLE_ENTRY_VALID;
     });
 
     return true;
@@ -316,7 +314,7 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
         return ISR_INVALID_VECTOR;
     }
 
-    if (!fill_out_collection_table(its, icid)) {
+    if (!fill_out_collect_table(its, icid)) {
         bitset_unset(its->bitset, vector);
         return ISR_INVALID_VECTOR;
     }
@@ -364,8 +362,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
     info->id = id;
     info->phys_addr = phys_addr;
     info->queue_free_slot_count =
-        PAGE_SIZE << CMD_QUEUE_PAGE_ORDER
-      / sizeof(struct gic_its_cmd_queue_entry);
+        (PAGE_SIZE << CMD_QUEUE_PAGE_ORDER) /
+        sizeof(struct gic_its_cmd_queue_entry);
 
     struct range range =
         RANGE_INIT(phys_addr, sizeof(struct gic_its_registers));
@@ -455,8 +453,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
 
         const char *page_size_desc = "unknown";
         const enum gic_its_baser_page_size page_size =
-            (baser & __GIC_ITS_BASER_PAGE_SIZE)
-                >> GIC_ITS_BASER_PAGE_SIZE_SHIFT;
+            (baser & __GIC_ITS_BASER_PAGE_SIZE) >>
+                GIC_ITS_BASER_PAGE_SIZE_SHIFT;
 
         switch (page_size) {
             case GIC_ITS_BASER_PAGE_SIZE_4KIB:
@@ -490,8 +488,8 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
         }
 
         const uint16_t entry_size =
-            ((baser & __GIC_ITS_BASER_ENTRY_SIZE_MINUS_ONE)
-                >> GIC_ITS_BASER_ENTRY_SIZE_SHIFT_MINUS_ONE) + 1;
+            ((baser & __GIC_ITS_BASER_ENTRY_SIZE_MINUS_ONE) >>
+                GIC_ITS_BASER_ENTRY_SIZE_SHIFT_MINUS_ONE) + 1;
 
         printk(LOGLEVEL_INFO,
                "\tbaser %" PRIu64 "\n"
@@ -537,7 +535,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                 struct page *const table_page =
                     alloc_pages(PAGE_STATE_USED,
                                 __ALLOC_ZERO,
-                                COLLECTION_TABLE_PAGE_ORDER);
+                                COLLECT_TABLE_PAGE_ORDER);
 
                 if (table_page == nullptr) {
                     return nullptr;
@@ -545,9 +543,9 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
 
                 mmio_write(baser_iter, page_to_phys(table_page) | baser);
 
-                info->int_collection_table = page_to_virt(table_page);
-                info->int_collection_table_entry_count =
-                    (PAGE_SIZE << COLLECTION_TABLE_PAGE_ORDER) / entry_size;
+                info->int_collect_table = page_to_virt(table_page);
+                info->int_collect_table_entry_count =
+                    (PAGE_SIZE << COLLECT_TABLE_PAGE_ORDER) / entry_size;
 
                 break;
             }

@@ -198,7 +198,7 @@ identify_namespaces(struct nvme_controller *const controller,
            "\tsubsystem vendor-id: 0x%" PRIx16 "\n"
            "\tserial number: " SV_FMT "\n"
            "\tmodel number: " SV_FMT "\n"
-           "\tfirmare revision: " SV_FMT "\n"
+           "\tfirmware revision: " SV_FMT "\n"
            "\tnamespace count: %" PRIu32 "\n",
            ident->vendor_id,
            ident->subsystem_vendor_id,
@@ -300,7 +300,7 @@ nvme_controller_create(struct nvme_controller *const controller,
     controller->stride = 2ull << (2 + stride_offset);
     const uint32_t version = mmio_read(&regs->version);
 
-    printk(LOGLEVEL_WARN,
+    printk(LOGLEVEL_INFO,
            "nvme: version is " NVME_VERSION_FMT "\n",
            NVME_VERSION_FMT_ARGS(version));
 

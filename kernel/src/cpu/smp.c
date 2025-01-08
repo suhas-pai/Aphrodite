@@ -41,6 +41,10 @@ void smp_init() {
     const uint64_t cpu_count = smp_resp->cpu_count;
 
     for (uint64_t i = 0; i != cpu_count; i++) {
+        printk(LOGLEVEL_INFO,
+               "smp: found cpu with processor-id %" PRIu32 "\n",
+               cpu_list[i]->processor_id);
+
         if (cpu_list[i]->field != smp_resp->bsp_field) {
             cpu_add(cpu_list[i]);
         }
@@ -55,20 +59,21 @@ void smp_boot_all_cpus() {
         return;
     }
 
-    struct limine_mp_info *const *const cpu_list = mp_resp->cpus;
+    struct limine_mp_info *const *const info_list = mp_resp->cpus;
     const uint64_t cpu_count = mp_resp->cpu_count;
 
     if (cpu_count == 1) {
         return;
     }
 
-    printk(LOGLEVEL_INFO, "smp: booting all cpus\n");
+    printk(LOGLEVEL_INFO, "smp: booting all %" PRIu64 " cpus\n", cpu_count);
     for (uint64_t i = 0; i != cpu_count; i++) {
-        if (cpu_list[i]->field == mp_resp->bsp_field) {
+        struct limine_mp_info *const info = info_list[i];
+        if (info->field == mp_resp->bsp_field) {
             continue;
         }
 
-        struct cpu_info *const cpu = cpu_for_id_mut(cpu_list[i]->processor_id);
+        struct cpu_info *const cpu = cpu_for_id_mut(info->mpidr);
         struct smp_boot_info boot_info = SMP_BOOT_INFO_INIT(cpu);
 
         assert_msg(cpu != nullptr,
@@ -78,9 +83,9 @@ void smp_boot_all_cpus() {
 
         sched_init_on_cpu(cpu);
         with_intr_disabled({
-            cpu_list[i]->extra_argument = (uint64_t)&boot_info;
+            info->extra_argument = (uint64_t)&boot_info;
             atomic_store_explicit(
-                (_Atomic uint64_t *)&cpu_list[i]->goto_address,
+                (_Atomic uint64_t *)&info->goto_address,
                 (uint64_t)arch_init_for_smp,
                 memory_order_seq_cst);
 

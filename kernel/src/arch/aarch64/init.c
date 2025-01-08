@@ -48,7 +48,7 @@ __debug_optimize(3) void arch_post_mm_init() {
 #endif /* !defined(AARCH64_USE_16K_PAGES) */
 }
 
-void arch_init_time();
+void arch_init_time_for_smp();
 void sched_set_current_thread(struct thread *thread);
 
 __debug_optimize(3) void arch_init_for_smp(struct limine_mp_info *const info) {
@@ -66,7 +66,7 @@ __debug_optimize(3) void arch_init_for_smp(struct limine_mp_info *const info) {
     isr_install_vbar();
 
     gic_init_on_this_cpu();
-    arch_init_time();
+    arch_init_time_for_smp();
 
     atomic_store_explicit(&boot_info->booted, true, memory_order_seq_cst);
 

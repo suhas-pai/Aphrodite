@@ -223,7 +223,7 @@ nvme_queue_submit_command(struct nvme_queue *const queue,
 void nvme_queue_await(struct nvme_queue *const queue) {
     struct event *const event = &queue->event;
     events_await(&event,
-                    /*events_count=*/1,
-                    /*block=*/true,
-                    /*drop_after_recv=*/true);
+                 /*events_count=*/1,
+                 /*block=*/true,
+                 /*drop_after_recv=*/true);
 }

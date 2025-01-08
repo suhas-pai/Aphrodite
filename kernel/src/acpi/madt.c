@@ -507,7 +507,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     printk(LOGLEVEL_INFO,
                            "madt: found gicv3 redistributor: (with overflowing "
                            "range)\n"
-                           "\tdiscovery range: " RANGE_FMT "\n",
+                           "\t\tdiscovery range: " RANGE_FMT "\n",
                            RANGE_FMT_ARGS(gicv3_redist_discovery_range));
 
                     continue;
@@ -515,7 +515,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gicv3 redistributor:\n"
-                       "\tdiscovery range: " RANGE_FMT "\n",
+                       "\t\tdiscovery range: " RANGE_FMT "\n",
                        RANGE_FMT_ARGS(gicv3_redist_discovery_range));
             #else
                 printk(LOGLEVEL_WARN,
@@ -539,8 +539,8 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 assert(array_append(&its_list, &its));
                 printk(LOGLEVEL_INFO,
                        "madt: found gic interrupt translation service:\n"
-                       "\tid: %" PRIu32 "\n"
-                       "\tphysical base address: %p\n",
+                       "\t\tid: %" PRIu32 "\n"
+                       "\t\tphysical base address: %p\n",
                        its->id,
                        (void *)its->phys_base_address);
             #else
@@ -571,15 +571,15 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv hart irq controller\n"
-                       "\tversion: %" PRIu8 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\t\tenabled: %s\n"
-                       "\t\tonline capable: %s\n"
-                       "\thart id: %" PRIu64 "%s\n"
-                       "\tacpi processor uid: %" PRIu32 "\n"
-                       "\texternal irq controller id: %" PRIu32 "\n"
-                       "\timsic base address: %p\n"
-                       "\timsic size: %" PRIu32 "\n",
+                       "\t\tversion: %" PRIu8 "\n"
+                       "\t\tflags: 0x%" PRIx32 "\n"
+                       "\t\t\tenabled: %s\n"
+                       "\t\t\tonline capable: %s\n"
+                       "\t\thart id: %" PRIu64 "%s\n"
+                       "\t\tacpi processor uid: %" PRIu32 "\n"
+                       "\t\texternal irq controller id: %" PRIu32 "\n"
+                       "\t\timsic base address: %p\n"
+                       "\t\timsic size: %" PRIu32 "\n",
                        ctrlr->version,
                        ctrlr->flags,
                        ctrlr->flags &
@@ -632,14 +632,14 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv imsic\n"
-                       "\tversion: %" PRIu8 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\tguest node irq identity count: %" PRIu16 "\n"
-                       "\tsupervisor node irq identity count: %" PRIu16 "\n"
-                       "\tguest index bits: %" PRIu8 "\n"
-                       "\thart index bits: %" PRIu8 "\n"
-                       "\tgroup index bits: %" PRIu8 "\n"
-                       "\tgroup index shift: %" PRIu8 "\n",
+                       "\t\tversion: %" PRIu8 "\n"
+                       "\t\tflags: 0x%" PRIx32 "\n"
+                       "\t\tguest node irq identity count: %" PRIu16 "\n"
+                       "\t\tsupervisor node irq identity count: %" PRIu16 "\n"
+                       "\t\tguest index bits: %" PRIu8 "\n"
+                       "\t\thart index bits: %" PRIu8 "\n"
+                       "\t\tgroup index bits: %" PRIu8 "\n"
+                       "\t\tgroup index shift: %" PRIu8 "\n",
                        imsic->version,
                        imsic->flags,
                        imsic->guest_node_irq_identity_count,
@@ -670,15 +670,15 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv aplic\n"
-                       "\tversion: %" PRIu8 "\n"
-                       "\tid: %" PRIu8 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\thardware id: %" PRIu64 "\n"
-                       "\tidc count: %" PRIu16 "\n"
-                       "\texternal irq source count: %" PRIu16 "\n"
-                       "\tgsi base: %" PRIu32 "\n"
-                       "\taplic base: %p\n"
-                       "\taplic size: %" PRIu32 "\n",
+                       "\t\tversion: %" PRIu8 "\n"
+                       "\t\tid: %" PRIu8 "\n"
+                       "\t\tflags: 0x%" PRIx32 "\n"
+                       "\t\thardware id: %" PRIu64 "\n"
+                       "\t\tidc count: %" PRIu16 "\n"
+                       "\t\texternal irq source count: %" PRIu16 "\n"
+                       "\t\tgsi base: %" PRIu32 "\n"
+                       "\t\taplic base: %p\n"
+                       "\t\taplic size: %" PRIu32 "\n",
                        aplic->version,
                        aplic->id,
                        aplic->flags,
@@ -710,15 +710,15 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv plic\n"
-                       "\tversion: %" PRIu8 "\n"
-                       "\tid: %" PRIu8 "\n"
-                       "\thardware id: %" PRIu64 "\n"
-                       "\ttotal external irq sources supported: %" PRIu16 "\n"
-                       "\tmax priority: %" PRIu8 "\n"
-                       "\tflags: %" PRIu8 "\n"
-                       "\tplic base: %p\n"
-                       "\tplic size: %" PRIu32 "\n"
-                       "\tgsi base: %" PRIu32 "\n",
+                       "\t\tversion: %" PRIu8 "\n"
+                       "\t\tid: %" PRIu8 "\n"
+                       "\t\thardware id: %" PRIu64 "\n"
+                       "\t\ttotal external irq sources supported: %" PRIu16 "\n"
+                       "\t\tmax priority: %" PRIu8 "\n"
+                       "\t\tflags: %" PRIu8 "\n"
+                       "\t\tplic base: %p\n"
+                       "\t\tplic size: %" PRIu32 "\n"
+                       "\t\tgsi base: %" PRIu32 "\n",
                        plic->version,
                        plic->id,
                        plic->hardware_id,

@@ -29,12 +29,12 @@ __debug_optimize(3) void sched_init_irq() {
                    &ARCH_ISR_INFO_NONE());
 }
 
-__debug_optimize(3) void sched_self_ipi() {
-
-}
-
 __debug_optimize(3) isr_vector_t sched_get_isr_sgi_vector() {
     return g_sched_sgi_vector;
+}
+
+__debug_optimize(3) void sched_self_ipi() {
+    gicd_send_sipi(sched_get_isr_sgi_vector());
 }
 
 __debug_optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {

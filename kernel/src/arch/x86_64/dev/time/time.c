@@ -28,9 +28,11 @@ __debug_optimize(3) void stall_for_usec(const usec_t usec) {
 }
 
 void arch_init_time_pre_acpi() {}
-void arch_init_time() {
+void arch_init_time_pre_dev_init() {
     // No longer used with multi-processor setups, but used to calculate LAPIC
     // frequency
 
     pit_init(PIT_DEFAULT_FLAGS, PIT_GRANULARITY_5_MS);
 }
+
+void arch_init_time() {}

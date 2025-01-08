@@ -300,7 +300,7 @@ char *strncpy(char *dst, const char *src, unsigned long n) {
     return ret;
 }
 
-char *strdup(const char *str) {
+char *strdup(const char *const str) {
     char *result = (char *)malloc(strlen(str) + 1);
     if (result == nullptr) {
         return nullptr;

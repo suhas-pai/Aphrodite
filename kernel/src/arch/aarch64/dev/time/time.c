@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
-#include "asm/pause.h"
 #include "dev/dtb/tree.h"
 #include "sys/gic/api.h"
 
+#include "asm/pause.h"
 #include "acpi/api.h"
 #include "cpu/isr.h"
 #include "dev/printk.h"
@@ -163,7 +163,6 @@ enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
                    interrupt_handler,
                    /*ctx=*/nullptr,
                    &ARCH_ISR_INFO_NONE());
-
     isr_set_vector(non_secure_el1_timer_gsiv,
                    interrupt_handler,
                    /*ctx=*/nullptr,
@@ -186,7 +185,15 @@ enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
     gicd_unmask_irq(secure_el1_timer_gsiv);
     gicd_unmask_irq(non_secure_el1_timer_gsiv);
     gicd_unmask_irq(virtual_el1_timer_gsiv);
+}
 
+static void init_core_local_time_registers() {
+    asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
+    asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
+
+    printk(LOGLEVEL_INFO,
+           "time: syscount is %" PRIu64 "\n",
+           system_timer_get_count_ns());
 }
 
 void arch_init_time_pre_acpi() {
@@ -195,24 +202,21 @@ void arch_init_time_pre_acpi() {
            "time: frequency is " FREQ_TO_UNIT_FMT "\n",
            FREQ_TO_UNIT_FMT_ARGS_ABBREV(g_frequency));
 
-    // Enable and unmask generic timers
-    asm volatile ("msr cntp_cval_el0, %0" :: "r"(UINT64_MAX));
     asm volatile ("msr cntp_ctl_el0, %0" :: "r"(__CNTP_CTL_ENABLE));
-
-    asm volatile ("msr cntv_cval_el0, %0" :: "r"(UINT64_MAX));
     asm volatile ("msr cntv_ctl_el0, %0" :: "r"(__CNTV_CTL_ENABLE));
 
-    if (boot_get_dtb() != nullptr) {
-        enable_dtb_timer_irqs();
-    }
-
-    printk(LOGLEVEL_INFO,
-           "time: syscount is %" PRIu64 "\n",
-           system_timer_get_count_ns());
+    init_core_local_time_registers();
 }
+
+void arch_init_time_for_smp() {
+    arch_init_time_pre_acpi();
+}
+
+void arch_init_time_pre_dev_init() {}
 
 void arch_init_time() {
     if (boot_get_dtb() != nullptr) {
+        enable_dtb_timer_irqs();
         return;
     }
 

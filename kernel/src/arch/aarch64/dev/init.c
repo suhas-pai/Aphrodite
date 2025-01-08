@@ -38,6 +38,4 @@ void arch_init_dev() {
                "dtb: psci not found or was malformed");
 }
 
-void arch_init_dev_drivers() {
-
-}
+void arch_init_dev_drivers() {}

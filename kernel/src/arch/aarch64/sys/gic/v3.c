@@ -159,7 +159,7 @@ static bool g_gic_initialized = false;
 
 #define MAX_ATTEMPTS 100
 #define GICD_BITS_PER_IFACE 8
-#define GICD_DEFAULT_PRIO 0x80
+#define GICD_DEFAULT_PRIO 0xA0
 #define GIC_REDIST_IDBITS 16
 
 #define GIC_REDIST_PROP_ALLOC_ORDER 1
@@ -386,7 +386,7 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 }
 
 void gic_redist_init_on_this_cpu() {
-    volatile struct gicv3_redist_registers *redist = g_redist_mmio->base;
+    volatile struct gicv3_redist_registers *const redist = g_redist_mmio->base;
     with_intr_disabled({
         const uint64_t typer = mmio_read(&redist->typer);
 
@@ -397,8 +397,8 @@ void gic_redist_init_on_this_cpu() {
 
         bool cleared = false;
         for (int i = 0; i != MAX_ATTEMPTS; i++) {
-            if ((mmio_read(&redist->waker)
-                    & __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
+            if ((mmio_read(&redist->waker) &
+                    __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
             {
                 cleared = true;
                 break;
@@ -415,10 +415,10 @@ void gic_redist_init_on_this_cpu() {
         mmio_write(&redist->dist.irq_group[0], UINT32_MAX);
         mmio_write(&redist->dist.irq_group_mod[0], 0);
         mmio_write(&redist->control,
-                   mmio_read(&redist->control)
-                 | __GICV3_REDIST_CONTROL_ENABLE_LPIS);
+                   mmio_read(&redist->control) |
+                   __GICV3_REDIST_CONTROL_ENABLE_LPIS);
 
-        // Pending page has to be aligned to 64kib
+        // Pending page has to be aligned to 64kib (log2(64kib) == 16 pages)
         struct page *const pend_page =
             alloc_pages_at_align(PAGE_STATE_USED,
                                  __ALLOC_ZERO,
@@ -444,7 +444,8 @@ void gic_redist_init_on_this_cpu() {
 
         mmio_write(&redist->prop_baser,
                    mmio_read(&redist->prop_baser) |
-                   prop_phys | (GIC_REDIST_IDBITS - 1));
+                   prop_phys |
+                   (GIC_REDIST_IDBITS - 1));
 
         const uint32_t processor_id =
             (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER) >>
@@ -452,8 +453,8 @@ void gic_redist_init_on_this_cpu() {
 
         if (processor_id != this_cpu()->processor_id) {
             printk(LOGLEVEL_WARN,
-                   "gicv3: processor-id %" PRIu32 " is different than from id "
-                   "from bootloader: %" PRIu32 "\n",
+                   "gicv3: processor-id %" PRIu32 " is different than id from "
+                   "bootloader: %" PRIu32 "\n",
                    processor_id,
                    this_cpu()->processor_id);
         }
@@ -584,7 +585,7 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
     gic_set_version(3);
     g_gic_initialized = true;
 
-    printk(LOGLEVEL_WARN, "gicv3: fully initialized\n");
+    printk(LOGLEVEL_INFO, "gicv3: fully initialized\n");
     return true;
 }
 
