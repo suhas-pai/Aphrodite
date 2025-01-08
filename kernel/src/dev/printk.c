@@ -9,6 +9,8 @@
 #include "cpu/spinlock.h"
 
 #include "dev/printk.h"
+
+#include "lib/ansi.h"
 #include "lib/parse_printf.h"
 
 static struct terminal *g_first_term = nullptr;
@@ -42,7 +44,9 @@ write_char(struct printf_spec_info *const spec_info,
     (void)cb_info;
     (void)cont_out;
 
-    for (struct terminal *term = g_first_term; term != nullptr; term = term->next)
+    for (struct terminal *term = g_first_term;
+         term != nullptr;
+         term = term->next)
     {
         term->emit_ch(term, ch, amount);
     }
@@ -60,7 +64,9 @@ write_sv(struct printf_spec_info *const spec_info,
     (void)cb_info;
     (void)cont_out;
 
-    for (struct terminal *term = g_first_term; term != nullptr; term = term->next)
+    for (struct terminal *term = g_first_term;
+         term != nullptr;
+         term = term->next)
     {
         term->emit_sv(term, sv);
     }
@@ -82,7 +88,9 @@ void putk_sv(const enum log_level level, const struct string_view sv) {
     (void)level;
 
     with_spinlock_intr_disabled(&g_print_lock, {
-        write_sv(/*spec_info=*/nullptr, /*cb_info=*/nullptr, sv, /*cont_out=*/nullptr);
+        write_sv(/*spec_info=*/nullptr,
+                 /*cb_info=*/nullptr, sv,
+                 /*cont_out=*/nullptr);
     });
 }
 
@@ -109,6 +117,23 @@ vprintk(const enum log_level loglevel, const char *const string, va_list list) {
     (void)loglevel;
     with_spinlock_intr_disabled(&g_print_lock, {
         printk_internal("[cpu %" PRIu32 "] ", cpu_get_id(this_cpu()));
+        switch (loglevel) {
+            case LOGLEVEL_DEBUG:
+                printk_internal(BMAG "DEBUG: " CRESET);
+                break;
+            case LOGLEVEL_INFO:
+                break;
+            case LOGLEVEL_WARN:
+                printk_internal(BYEL "WARN: " CRESET);
+                break;
+            case LOGLEVEL_ERROR:
+                printk_internal(BRED "ERROR: " CRESET);
+                break;
+            case LOGLEVEL_CRITICAL:
+                printk_internal(BCYN "CRITICAL: " CRESET);
+                break;
+        }
+
         parse_printf(string,
                      write_char,
                      /*char_cb_info=*/nullptr,
