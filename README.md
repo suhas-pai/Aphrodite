@@ -33,8 +33,8 @@ The following is currently being thought out and worked on.
 
 ### Prerequisites
 
-It's recommended that LLVM/Clang be used as the toolchain and compiler, GCC may not
-be able to build this project.
+LLVM/Clang are recommended as the toolchain and compiler to build this project, GCC will likely
+be able to build this project. These instructions will build with LLVM/Clang
 
 The `kernel` GitHub Workflow follows the steps detailed below on both macOS and
 Ubuntu (Linux) to build this project.
