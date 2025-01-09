@@ -1,5 +1,5 @@
 /*
- * kernel/src/acpi/mcfg.h
+ * kernel/include/acpi/mcfg.h
  * © suhas pai
  */
 

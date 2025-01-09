@@ -1,5 +1,5 @@
 /*
- * kernel/src/acpi/pptt.h
+ * kernel/include/acpi/pptt.h
  * © suhas pai
  */
 

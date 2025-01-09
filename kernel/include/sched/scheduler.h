@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/scheduler.h
+ * kernel/include/sched/scheduler.h
  * © suhas pai
  */
 

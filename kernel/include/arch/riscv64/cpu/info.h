@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/cpu/info.h
+ * kernel/include/arch/riscv64/cpu/info.h
  * © suhas pai
  */
 

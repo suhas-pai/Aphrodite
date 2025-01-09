@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/scsi/swap.h
+ * kernel/include/dev/scsi/swap.h
  * © suhas pai
  */
 

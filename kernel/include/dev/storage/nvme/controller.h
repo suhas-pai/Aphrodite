@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/nvme/device.h
+ * kernel/include/dev/storage/nvme/device.h
  * © suhas pai
  */
 

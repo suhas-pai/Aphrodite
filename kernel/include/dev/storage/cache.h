@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/cache.h
+ * kernel/include/dev/storage/cache.h
  * © suhas pai
  */
 

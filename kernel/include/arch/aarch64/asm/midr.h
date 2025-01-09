@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/asm/midr.h
+ * kernel/include/arch/aarch64/asm/midr.h
  * © suhas pai
  */
 

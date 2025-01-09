@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/virtio/drivers/scsi.h
+ * kernel/include/dev/virtio/drivers/scsi.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/sys/isr.h
+ * kernel/include/arch/loongarch64/sys/isr.h
  * © suha spai
  */
 

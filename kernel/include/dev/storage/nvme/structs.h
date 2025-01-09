@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/nvme/structs.h
+ * kernel/include/dev/storage/nvme/structs.h
  * © suhas pai
  */
 

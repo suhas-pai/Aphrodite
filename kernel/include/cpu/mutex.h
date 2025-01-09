@@ -1,5 +1,5 @@
 /*
- * kernel/src/cpu/mutex.h
+ * kernel/include/cpu/mutex.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/ide/init.c
+ * kernel/include/arch/x86_64/dev/ide/init.c
  * © suhas pai
  */
 

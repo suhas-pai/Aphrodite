@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/ata/defines.h
+ * kernel/include/dev/ata/defines.h
  * © suhas pai
  */
 

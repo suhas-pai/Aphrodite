@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/alarm.h
+ * kernel/include/sched/alarm.h
  * © suhas pai
  */
 

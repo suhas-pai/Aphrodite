@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/dev/aplic.h
+ * kernel/include/arch/riscv64/dev/aplic.h
  * © suhas pai
  */
 

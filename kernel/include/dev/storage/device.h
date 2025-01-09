@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/device.h
+ * kernel/include/dev/storage/device.h
  * © suhas pai
  */
 

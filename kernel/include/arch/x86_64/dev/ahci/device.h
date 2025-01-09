@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/ahci/device.h
+ * kernel/include/arch/x86_64/dev/ahci/device.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/dev/time/time.h
+ * kernel/include/arch/aarch64/dev/time/time.h
  * © suhas pai
  */
 

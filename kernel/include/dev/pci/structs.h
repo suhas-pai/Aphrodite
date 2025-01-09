@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/structs.h
+ * kernel/include/dev/pci/structs.h
  * © suhas pai
  */
 

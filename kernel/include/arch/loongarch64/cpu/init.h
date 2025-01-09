@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/cpu/init.h
+ * kernel/include/arch/loongarch64/cpu/init.h
  * © suhas pai
  */
 

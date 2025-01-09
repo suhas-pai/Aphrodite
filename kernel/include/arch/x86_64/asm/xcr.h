@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/xcr.h
+ * kernel/include/arch/x86_64/asm/xcr.h
  * © suhas pai
  */
 

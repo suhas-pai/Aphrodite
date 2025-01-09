@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/dtb/gic_compat.h
+ * kernel/include/dev/dtb/gic_compat.h
  * © suhas pai
  */
 

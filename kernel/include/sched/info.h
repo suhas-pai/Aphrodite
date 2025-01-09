@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/info.h
+ * kernel/include/sched/info.h
  * © suhas pai
  */
 

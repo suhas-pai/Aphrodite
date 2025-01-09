@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/dtb/node.h
+ * kernel/include/dev/dtb/node.h
  * © suhas pai
  */
 

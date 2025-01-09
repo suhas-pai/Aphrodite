@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/apic/lapic.h
+ * kernel/include/arch/x86_64/apic/lapic.h
  * © suhas pai
  */
 

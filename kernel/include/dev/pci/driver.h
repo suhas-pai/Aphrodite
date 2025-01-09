@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/driver.h
+ * kernel/include/dev/pci/driver.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/dev/plic.h
+ * kernel/include/arch/riscv64/dev/plic.h
  * © suhas pai
  */
 

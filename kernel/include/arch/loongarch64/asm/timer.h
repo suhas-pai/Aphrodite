@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/timer.h
+ * kernel/include/arch/loongarch64/asm/timer.h
  * © suhas pai
  */
 

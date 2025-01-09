@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/dev/syscon.h
+ * kernel/include/arch/riscv64/dev/syscon.h
  * © suhas pai
  */
 

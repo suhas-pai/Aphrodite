@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/partitions/partition.h
+ * kernel/include/dev/storage/partitions/partition.h
  * © suhas pai
  */
 

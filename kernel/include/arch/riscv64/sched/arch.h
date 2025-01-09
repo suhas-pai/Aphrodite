@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/sched/arch.h
+ * kernel/include/arch/riscv64/sched/arch.h
  * © suhas pai
  */
 

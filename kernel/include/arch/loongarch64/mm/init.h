@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/mm/init.h
+ * kernel/include/arch/loongarch64/mm/init.h
  * © suhas pai
  */
 

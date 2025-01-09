@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/privl.h
+ * kernel/include/arch/loongarch64/asm/privl.h
  * © suhas pai
  */
 

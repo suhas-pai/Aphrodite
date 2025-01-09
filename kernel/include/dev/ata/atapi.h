@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/ata/atapi.h
+ * kernel/include/dev/ata/atapi.h
  * © suhas pai
  */
 

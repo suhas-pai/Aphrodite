@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/pause.h
+ * kernel/include/arch/loongarch64/asm/pause.h
  * © suhas pai
  */
 

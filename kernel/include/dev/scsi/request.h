@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/scsi/request.h
+ * kernel/include/dev/scsi/request.h
  * © suhas pai
  */
 

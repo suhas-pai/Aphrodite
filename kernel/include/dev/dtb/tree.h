@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/dtb/tree.h
+ * kernel/include/dev/dtb/tree.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/dev/psci.h
+ * kernel/include/arch/aarch64/dev/psci.h
  * © suhas pai
  */
 

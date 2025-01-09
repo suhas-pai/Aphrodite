@@ -1,5 +1,5 @@
 /*
- * kernel/src/mm/page.h
+ * kernel/include/mm/page.h
  * © suhas pai
  */
 

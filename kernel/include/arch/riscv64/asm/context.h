@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/context.h
+ * kernel/include/arch/riscv64/asm/context.h
  * © suhas pai
  */
 

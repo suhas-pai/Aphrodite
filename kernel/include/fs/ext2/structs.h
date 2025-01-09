@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/ext2/structs.h
+ * kernel/include/fs/ext2/structs.h
  * © suhas pai
  */
 

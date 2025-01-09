@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/virtio/transport.h
+ * kernel/include/dev/virtio/transport.h
  * © suhas pai
  */
 

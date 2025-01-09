@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/pio.h
+ * kernel/include/arch/x86_64/dev/pio.h
  * © suhas pai
  */
 

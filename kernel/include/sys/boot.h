@@ -1,5 +1,5 @@
 /*
- * kernel/src/sys/boot.h
+ * kernel/include/sys/boot.h
  * © suhas pai
  */
 

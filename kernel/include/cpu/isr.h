@@ -1,5 +1,5 @@
 /*
- * kernel/src/cpu/isr.h
+ * kernel/include/cpu/isr.h
  * © suhas pai
  */
 

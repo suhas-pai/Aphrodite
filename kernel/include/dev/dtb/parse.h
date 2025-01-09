@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/dtb/parse.h
+ * kernel/include/dev/dtb/parse.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/drivers/ecam.h
+ * kernel/include/dev/pci/drivers/ecam.h
  * © suhas pai
  */
 

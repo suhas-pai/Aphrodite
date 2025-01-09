@@ -1,5 +1,5 @@
 /*
- * kernel/src/mm/physalloc.h
+ * kernel/include/mm/physalloc.h
  * © suhas pai
  */
 

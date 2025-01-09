@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/process.h
+ * kernel/include/sched/process.h
  * © suhas pai
  */
 

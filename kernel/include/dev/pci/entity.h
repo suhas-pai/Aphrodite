@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/entity.h
+ * kernel/include/dev/pci/entity.h
  * © suhas pai
  */
 

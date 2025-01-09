@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/xsave.h
+ * kernel/include/arch/x86_64/asm/xsave.h
  * © suhas pai
  */
 

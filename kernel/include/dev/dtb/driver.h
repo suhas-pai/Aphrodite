@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/dtb/driver.h
+ * kernel/include/dev/dtb/driver.h
  * © suhas pai
  */
 

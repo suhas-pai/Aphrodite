@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/ahci/port.h"
+ * kernel/include/arch/x86_64/dev/ahci/port.h"
  * © suhas pai
  */
 

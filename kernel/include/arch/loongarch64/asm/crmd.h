@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/crmd.h
+ * kernel/include/arch/loongarch64/asm/crmd.h
  * © suhas pai
  */
 

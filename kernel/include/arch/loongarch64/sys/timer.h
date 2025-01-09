@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/sys/time.h
+ * kernel/include/arch/loongarch64/sys/time.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/fat32/structs.h
+ * kernel/include/fs/fat32/structs.h
  * © suhas pai
  */
 

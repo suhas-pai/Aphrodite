@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/sys/isr.h
+ * kernel/include/arch/riscv64/sys/isr.h
  * © suhas pai
  */
 

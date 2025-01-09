@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/sys/irqdef.h
+ * kernel/include/arch/riscv64/sys/irqdef.h
  * © suhas pai
  */
 

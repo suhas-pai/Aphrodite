@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/mm/types.h
+ * kernel/include/arch/x86_64/mm/types.h
  * © suhas pai
  */
 

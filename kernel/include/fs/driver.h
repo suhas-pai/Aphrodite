@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/driver.h
+ * kernel/include/fs/driver.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/sys/irq.h
+ * kernel/include/arch/aarch64/sys/irq.h
  * © suhas pai
  */
 
@@ -11,4 +11,3 @@
 typedef uint16_t irq_number_t;
 
 #define IRQ_NUMBER_FMT "%" PRIu16
-

@@ -1,5 +1,5 @@
 /*
- * kernel/src/acpi/spcr.h
+ * kernel/include/acpi/spcr.h
  * © suhas pai
  */
 

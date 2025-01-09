@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/pit.h
+ * kernel/include/arch/x86_64/dev/pit.h
  * © suhas pai
  */
 

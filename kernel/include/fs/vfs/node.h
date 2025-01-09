@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/vfs/node.h
+ * kernel/include/fs/vfs/node.h
  * © suhas pai
  */
 

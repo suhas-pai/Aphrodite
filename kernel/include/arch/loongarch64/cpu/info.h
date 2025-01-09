@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/cpu/info.h
+ * kernel/include/arch/loongarch64/cpu/info.h
  * © suhas pai
  */
 

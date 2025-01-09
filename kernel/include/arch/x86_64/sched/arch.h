@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/sched/arch.h
+ * kernel/include/arch/x86_64/sched/arch.h
  * © suhas pai
  */
 

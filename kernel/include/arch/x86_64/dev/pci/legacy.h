@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/pci/legacy.h
+ * kernel/include/arch/x86_64/dev/pci/legacy.h
  * © suhas pai
  */
 

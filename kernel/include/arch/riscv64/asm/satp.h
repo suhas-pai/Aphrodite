@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/satp.h
+ * kernel/include/arch/riscv64/asm/satp.h
  * © suhas pai
  */
 

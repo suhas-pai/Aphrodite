@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/driver.h
+ * kernel/include/dev/driver.h
  * © suhas pai
  */
 

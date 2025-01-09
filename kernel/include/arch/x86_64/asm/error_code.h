@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/error_code.h
+ * kernel/include/arch/x86_64/asm/error_code.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/cause.h
+ * kernel/include/arch/riscv64/asm/cause.h
  * © suhas pai
  */
 

@@ -20,6 +20,9 @@ struct simple_alloc {
     struct list page_list;
 };
 
+#define SIMPLE_ALLOC_INIT(name) \
+    ((struct simple_alloc){ .page_list = LIST_INIT(&name.page_list) })
+
 bool simple_alloc_initialized(const struct simple_alloc *const alloc);
 
 void simple_alloc_init(struct simple_alloc *alloc);

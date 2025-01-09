@@ -1,5 +1,5 @@
 /*
- * kernel/src/cpu/smp.h
+ * kernel/include/cpu/smp.h
  * © suhas pai
  */
 

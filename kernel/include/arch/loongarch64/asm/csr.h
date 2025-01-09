@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/csr.h
+ * kernel/include/arch/loongarch64/asm/csr.h
  * © suhas pai
  */
 

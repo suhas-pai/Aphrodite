@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/asm/esr.h
+ * kernel/include/arch/aarch64/asm/esr.h
  * © suhas pai
  */
 

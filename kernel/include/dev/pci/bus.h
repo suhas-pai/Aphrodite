@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/bus.h
+ * kernel/include/dev/pci/bus.h
  * © suhas pai
  */
 

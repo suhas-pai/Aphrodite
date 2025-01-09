@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/ahci/structs.h
+ * kernel/include/arch/x86_64/dev/ahci/structs.h
  * © suhas pai
  */
 
@@ -603,4 +603,4 @@ struct ahci_spec_port_cmdhdr {
     uint32_t reserved[4];
 } __packed;
 
-#define AHCI_HBA_REGS_BAR_INDEX 5
+#define AHCI_HBA_REGS_BAR_INDEX (uint32_t)5

@@ -1,5 +1,5 @@
 /*
- * kernel/src/cpu/info.h
+ * kernel/include/cpu/info.h
  * © suhas pai
  */
 

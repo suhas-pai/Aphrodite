@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/mm/init.h
+ * kernel/include/arch/aarch64/mm/init.h
  * © suhas pai
  */
 

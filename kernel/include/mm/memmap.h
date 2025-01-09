@@ -1,5 +1,5 @@
 /*
- * kernel/src/mm/memmap.h
+ * kernel/include/mm/memmap.h
  * © suhas pai
  */
 

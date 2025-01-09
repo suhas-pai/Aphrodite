@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/state.h
+ * kernel/include/sched/state.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/rflags.h
+ * kernel/include/arch/x86_64/asm/rflags.h
  * © suhas pai
  */
 

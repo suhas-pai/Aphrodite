@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/bar.h
+ * kernel/include/dev/pci/bar.h
  * © suhas pai
  */
 

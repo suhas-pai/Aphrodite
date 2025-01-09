@@ -1,5 +1,5 @@
 /*
- * kernel/src/mm/page_alloc.h
+ * kernel/include/mm/page_alloc.h
  * © suhas pai
  */
 
@@ -64,4 +64,3 @@ alloc_large_page_in_zone(struct page_zone *zone,
 
 struct page *alloc_table();
 struct page *alloc_user_stack(struct process *proc, uint8_t order);
-

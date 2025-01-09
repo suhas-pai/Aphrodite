@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/features.h
+ * kernel/include/arch/aarch64/features.h
  * © suhas pai
  */
 

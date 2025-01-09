@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/nvme/namespace.h
+ * kernel/include/dev/storage/nvme/namespace.h
  * © suhas pai
  */
 

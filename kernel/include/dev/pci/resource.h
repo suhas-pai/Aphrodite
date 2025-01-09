@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/resource.h
+ * kernel/include/dev/pci/resource.h
  * © suhas pai
  */
 

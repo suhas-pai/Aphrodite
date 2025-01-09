@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/sys/irq.h
+ * kernel/include/arch/x86_64/sys/irq.h
  * © suhas pai
  */
 

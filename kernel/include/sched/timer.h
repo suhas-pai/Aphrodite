@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/timer.h
+ * kernel/include/sched/timer.h
  * © suhas pai
  */
 

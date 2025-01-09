@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/round_robin/sched.h
+ * kernel/include/sched/round_robin/sched.h
  * © suhas pai
  */
 

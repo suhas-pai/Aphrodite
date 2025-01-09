@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/dev/time/mtime/clint.h
+ * kernel/include/arch/riscv64/dev/time/mtime/clint.h
  * © suhas pai
  */
 

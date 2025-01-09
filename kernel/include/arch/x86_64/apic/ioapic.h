@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/apic/ioapic.h
+ * kernel/include/arch/x86_64/apic/ioapic.h
  * © suhas pai
  */
 

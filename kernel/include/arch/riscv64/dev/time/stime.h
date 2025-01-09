@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/dev/time/stime.h
+ * kernel/include/arch/riscv64/dev/time/stime.h
  * © suhas pai
  */
 

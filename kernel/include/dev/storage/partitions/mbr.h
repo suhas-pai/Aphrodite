@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/mbr.h
+ * kernel/include/dev/storage/mbr.h
  * © suhas pai
  */
 

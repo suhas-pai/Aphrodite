@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/acpi/rhct.h
+ * kernel/include/arch/riscv64/acpi/rhct.h
  * © suhas pai
  */
 

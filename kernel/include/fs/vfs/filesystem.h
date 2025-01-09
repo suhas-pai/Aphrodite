@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/vfs/filesystem.h
+ * kernel/include/fs/vfs/filesystem.h
  * © suhas pai
  */
 

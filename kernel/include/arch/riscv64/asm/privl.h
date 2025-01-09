@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/privl.h
+ * kernel/include/arch/riscv64/asm/privl.h
  * © suhas pai
  */
 

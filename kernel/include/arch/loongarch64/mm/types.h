@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/mm/types.h
+ * kernel/include/arch/loongarch64/mm/types.h
  * © suhas pai
  */
 

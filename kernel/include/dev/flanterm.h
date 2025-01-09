@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/flanterm.h
+ * kernel/include/dev/flanterm.h
  * © suhas pai
  */
 

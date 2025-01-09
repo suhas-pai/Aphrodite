@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/stack_frame.h
+ * kernel/include/arch/riscv64/asm/stack_frame.h
  * © suhas pai
  */
 

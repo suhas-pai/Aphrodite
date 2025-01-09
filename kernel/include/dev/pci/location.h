@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/location.h
+ * kernel/include/dev/pci/location.h
  * © suhas pai
  */
 

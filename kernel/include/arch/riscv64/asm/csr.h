@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/csr.h
+ * kernel/include/arch/riscv64/asm/csr.h
  * © suhas pai
  */
 

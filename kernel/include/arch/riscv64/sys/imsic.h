@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/sys/imsic.h
+ * kernel/include/arch/riscv64/sys/imsic.h
  * © suhas pai
  */
 

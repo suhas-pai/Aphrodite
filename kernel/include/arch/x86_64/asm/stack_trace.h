@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/stack_trace.h
+ * kernel/include/arch/x86_64/asm/stack_trace.h
  * © suhas pai
  */
 

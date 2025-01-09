@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/iso9660/structs.h
+ * kernel/include/fs/iso9660/structs.h
  * © suhas pai
  */
 

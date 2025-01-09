@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/virtio/queue/split.h
+ * kernel/include/dev/virtio/queue/split.h
  * © suhas pai
  */
 

@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/status.h
+ * kernel/include/arch/riscv64/asm/status.h
  * © suhas pai
  */
 

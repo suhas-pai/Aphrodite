@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/sys/irq.h
+ * kernel/include/arch/loongarch64/sys/irq.h
  * © suhas pai
  */
 

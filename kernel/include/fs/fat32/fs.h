@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/fat32/fs.h
+ * kernel/include/fs/fat32/fs.h
  * © suhas pai
  */
 

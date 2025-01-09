@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/virtio/driver.h
+ * kernel/include/dev/virtio/driver.h
  * © suhas pai
  */
 

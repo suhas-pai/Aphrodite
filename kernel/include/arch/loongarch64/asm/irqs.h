@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/irqs.h
+ * kernel/include/arch/loongarch64/asm/irqs.h
  * © suhas pai
  */
 

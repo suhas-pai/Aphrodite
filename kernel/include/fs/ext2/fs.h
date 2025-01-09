@@ -1,5 +1,5 @@
 /*
- * kernel/src/fs/ext2/fs.h
+ * kernel/include/fs/ext2/fs.h
  * © suhas pai
  */
 

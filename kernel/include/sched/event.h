@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/event.h
+ * kernel/include/sched/event.h
  * © suhas pai
  */
 

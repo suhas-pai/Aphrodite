@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/riscv64/asm/irqs.h
+ * kernel/include/arch/riscv64/asm/irqs.h
  * © suhas pai
  */
 
@@ -65,4 +65,3 @@ __debug_optimize(3) static inline void intr_restore(const bool flag) {
         block; \
         intr_restore(h_var(irqs_disabled_flag)); \
     } while (false)
-

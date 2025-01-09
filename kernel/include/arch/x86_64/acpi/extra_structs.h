@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/acpi/extra_structs.h
+ * kernel/include/arch/x86_64/acpi/extra_structs.h
  * © suhas pai
  */
 

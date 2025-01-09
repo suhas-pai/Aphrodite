@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/loongarch64/asm/mat.h
+ * kernel/include/arch/loongarch64/asm/mat.h
  * © suhas pai
  */
 

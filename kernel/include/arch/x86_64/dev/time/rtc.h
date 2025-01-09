@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/dev/time/rtc.h
+ * kernel/include/arch/x86_64/dev/time/rtc.h
  * © suhas pai
  */
 

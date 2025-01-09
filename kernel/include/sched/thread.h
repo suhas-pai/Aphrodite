@@ -1,5 +1,5 @@
 /*
- * kernel/src/sched/thread.h
+ * kernel/include/sched/thread.h
  * © suhas pai
  */
 

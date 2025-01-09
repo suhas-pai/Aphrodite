@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/device.h
+ * kernel/include/dev/device.h
  * © suhas pai
  */
 

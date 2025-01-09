@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/cpu/init.h
+ * kernel/include/arch/x86_64/cpu/init.h
  * © suhas pai
  */
 

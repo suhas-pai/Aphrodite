@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/regs.h
+ * kernel/include/arch/x86_64/asm/regs.h
  * © suhas pai
  */
 

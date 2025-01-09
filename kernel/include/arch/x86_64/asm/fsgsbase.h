@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/x86_64/asm/fsgsbase.h
+ * kernel/include/arch/x86_64/asm/fsgsbase.h
  * © suhas pai
  */
 

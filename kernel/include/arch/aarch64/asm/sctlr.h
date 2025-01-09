@@ -1,5 +1,5 @@
 /*
- * kernel/src/arch/aarch64/asm/sctlr.h
+ * kernel/include/arch/aarch64/asm/sctlr.h
  * © suhas pai
  */
 

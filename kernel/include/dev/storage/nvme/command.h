@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/nvme/command.h
+ * kernel/include/dev/storage/nvme/command.h
  * © suhas pai
  */
 

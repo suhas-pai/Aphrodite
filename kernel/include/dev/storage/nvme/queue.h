@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/storage/nvme/queue.h
+ * kernel/include/dev/storage/nvme/queue.h
  * © suhas pai
  */
 

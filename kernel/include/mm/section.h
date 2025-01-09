@@ -1,5 +1,5 @@
 /*
- * kernel/src/mm/section.h
+ * kernel/include/mm/section.h
  * © suhas pai
  */
 

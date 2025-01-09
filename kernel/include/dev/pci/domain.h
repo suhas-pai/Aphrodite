@@ -1,5 +1,5 @@
 /*
- * kernel/src/dev/pci/domain.h
+ * kernel/include/dev/pci/domain.h
  * © suhas pai
  */
 
