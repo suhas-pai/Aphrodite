@@ -19,8 +19,8 @@ enum page_state : uint8_t {
     PAGE_STATE_FREE_LIST_TAIL,
 
     PAGE_STATE_SYSTEM_CRUCIAL,
-
     PAGE_STATE_LRU_CACHE,
+
     PAGE_STATE_SLAB_HEAD,
     PAGE_STATE_SLAB_TAIL,
     PAGE_STATE_TABLE,
@@ -30,6 +30,7 @@ enum page_state : uint8_t {
     PAGE_STATE_KERNEL_STACK,
     PAGE_STATE_USER_STACK,
 
+    PAGE_STATE_SIMPLE_ALLOC,
     PAGE_STATE_USED,
 };
 
@@ -85,6 +86,13 @@ struct page {
         struct {
             struct list list;
         } kernel_stack;
+        struct {
+            struct simple_alloc *allocator;
+            struct list list;
+
+            uint16_t index;
+            uint32_t refcount;
+        } simple_alloc;
         struct {
             struct process *process;
             struct list list;

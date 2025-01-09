@@ -4,55 +4,50 @@
  */
 
 #include "dev/printk.h"
+
 #include "lib/align.h"
+#include "lib/util.h"
 
 #include "mm/page_alloc.h"
 #include "mm/simple_alloc.h"
 
-struct simple_page {
-    void *virt;
-
-    uint16_t index;
-    uint32_t refcount;
-};
-
 #define ALIGNMENT 16
 
-__debug_optimize(3) void simple_alloc_create(struct simple_alloc *const alloc) {
-    alloc->page_list = ARRAY_INIT(sizeof(struct simple_page));
+__debug_optimize(3)
+bool simple_alloc_initialized(const struct simple_alloc *const alloc) {
+    return alloc->page_list.next != NULL;
+}
+
+__debug_optimize(3) void simple_alloc_init(struct simple_alloc *const alloc) {
+    list_init(&alloc->page_list);
 }
 
 void simple_alloc_destroy(struct simple_alloc *const alloc) {
-    array_foreach(&alloc->page_list, struct simple_page, page) {
-        if (page->refcount != 0) {
+    struct page *page = NULL;
+    list_foreach(page, &alloc->page_list, simple_alloc.list) {
+        if (page->simple_alloc.refcount != 0) {
             printk(LOGLEVEL_WARN,
                    "mm: leaks detected in simple_alloc page %p, count: %d\n",
-                   virt_to_page(page->virt),
-                   page->refcount);
+                   page,
+                   page->simple_alloc.refcount);
         }
 
-        free_page(virt_to_page(page->virt));
+        free_page(page);
     }
 }
 
 void *add_new_page(struct simple_alloc *const alloc, const uint32_t size) {
-    struct page *const page = alloc_page(PAGE_STATE_USED, __ALLOC_ZERO);
+    struct page *const page = alloc_page(PAGE_STATE_SIMPLE_ALLOC, __ALLOC_ZERO);
     if (page == nullptr) {
         return nullptr;
     }
 
-    const struct simple_page simple_page = {
-        .virt = page_to_virt(page),
-        .index = size,
-        .refcount = 1,
-    };
+    list_radd(&alloc->page_list, &page->simple_alloc.list);
 
-    if (!array_append(&alloc->page_list, &simple_page)) {
-        free_page(page);
-        return nullptr;
-    }
+    page->simple_alloc.allocator = alloc;
+    page->simple_alloc.index += size;
 
-    return simple_page.virt;
+    return page_to_virt(page);
 }
 
 void *simple_alloc(struct simple_alloc *const alloc, const uint32_t bad_size) {
@@ -61,19 +56,35 @@ void *simple_alloc(struct simple_alloc *const alloc, const uint32_t bad_size) {
         return nullptr;
     }
 
-    if (__builtin_expect(array_empty(alloc->page_list), 0)) {
+    if (__builtin_expect(list_empty(&alloc->page_list), 0)) {
         return add_new_page(alloc, size);
     }
 
-    struct simple_page *const page = array_back(alloc->page_list);
-    if (page->index + size >= PAGE_SIZE) {
-        return add_new_page(alloc, size);
+    struct page *page =
+        list_tail(&alloc->page_list, struct page, simple_alloc.list);
+
+    if (!index_in_bounds(page->simple_alloc.index + size, PAGE_SIZE)) {
+        struct page *search_page = NULL;
+        bool found = false;
+
+        list_foreach(search_page, &alloc->page_list, simple_alloc.list) {
+            if (search_page->simple_alloc.index + size <= PAGE_SIZE) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return add_new_page(alloc, size);
+        }
+
+        page = search_page;
     }
 
-    void *const result = page->virt + page->index;
+    void *const result = page_to_virt(page) + page->simple_alloc.index;
 
-    page->index += size;
-    page->refcount++;
+    page->simple_alloc.index += size;
+    page->simple_alloc.refcount++;
 
     return result;
 }
@@ -88,26 +99,36 @@ simple_alloc_size(struct simple_alloc *const alloc,
 }
 
 bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
-    array_foreach(&alloc->page_list, struct simple_page, page) {
+    struct page *page = NULL;
+    uint8_t count = 0;
+
+    list_foreach(page, &alloc->page_list, simple_alloc.list) {
+        count++;
+        if (count > 1) {
+            break;
+        }
+    }
+
+    struct page *tmp = NULL;
+    list_foreach_mut(page, tmp, &alloc->page_list, simple_alloc.list) {
         const struct range page_range =
-            RANGE_INIT((uint64_t)page->virt, PAGE_SIZE);
+            RANGE_INIT((uint64_t)page_to_virt(page), PAGE_SIZE);
 
         if (range_has_loc(page_range, (uint64_t)buffer)) {
-            if (page->refcount == 0) {
+            if (page->simple_alloc.refcount == 0) {
                 printk(LOGLEVEL_WARN,
                        "mm: double free detected in page %p, for allocator %p, "
                        "caller alloc: %p\n",
-                       virt_to_page(page->virt),
+                       (void *)page_range.front,
                        alloc,
                        buffer);
                 return true;
             }
 
-            page->refcount--;
-            if (page->refcount == 0 && array_item_count(alloc->page_list) > 1) {
-                free_page(virt_to_page(page->virt));
-                array_remove_index(&alloc->page_list,
-                                   array_indexof(alloc->page_list, page));
+            page->simple_alloc.refcount--;
+            if (page->simple_alloc.refcount == 0 && count > 1) {
+                list_remove(&page->simple_alloc.list);
+                free_page(page);
             }
 
             return true;

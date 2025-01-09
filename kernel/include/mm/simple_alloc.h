@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/adt/array.h"
+#include "lib/list.h"
 
 #define SIMPLE_ALLOC_MAX 512
 
@@ -17,10 +17,12 @@
 // freed when the refcount hits 0.
 
 struct simple_alloc {
-    struct array page_list;
+    struct list page_list;
 };
 
-void simple_alloc_create(struct simple_alloc *alloc);
+bool simple_alloc_initialized(const struct simple_alloc *const alloc);
+
+void simple_alloc_init(struct simple_alloc *alloc);
 void simple_alloc_destroy(struct simple_alloc *alloc);
 
 void *simple_alloc(struct simple_alloc *alloc, uint32_t size);

@@ -349,8 +349,8 @@ static struct spinlock g_alloc_lock = SPINLOCK_INIT();
 #define MAX_SIMPLE_ALLOC_SIZE 512
 
 void *uacpi_kernel_alloc(const uacpi_size size) {
-    if (__builtin_expect(!array_initialized(g_alloc.page_list), 0)) {
-        simple_alloc_create(&g_alloc);
+    if (__builtin_expect(!simple_alloc_initialized(&g_alloc), 0)) {
+        simple_alloc_init(&g_alloc);
     }
 
     if (size > MAX_SIMPLE_ALLOC_SIZE) {
