@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "../fdt/libfdt.h"
+#include <libfdt/libfdt.h>
 
 #include "dev/dtb/gic_compat.h"
 #include "dev/dtb/parse.h"

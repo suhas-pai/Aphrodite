@@ -314,6 +314,10 @@ obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -fsanitize=undefined,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
+obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
+	@mkdir -p "$$(dirname $@)"
+	$(CC) $(filter-out -Wsign-conversion -Wcast-align -fsanitize=undefined,$(CFLAGS)) -Wno-unused-parameter -isystem src/extern/libfdt $(CPPFLAGS) -c $< -o $@
+
 obj-$(ARCH)/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@

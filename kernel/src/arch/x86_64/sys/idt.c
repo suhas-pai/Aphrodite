@@ -7,7 +7,6 @@
 
 #include "asm/cr.h"
 #include "asm/error_code.h"
-#include "asm/irqs.h"
 #include "asm/stack_trace.h"
 
 #include "cpu/isr.h"

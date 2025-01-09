@@ -15,7 +15,6 @@
 #include "mm/pgmap.h"
 
 #include "sched/process.h"
-#include "sys/boot.h"
 
 __debug_optimize(3) static uint64_t alloc_page(void *const info) {
     (void)info;

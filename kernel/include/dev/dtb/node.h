@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "../fdt/libfdt_env.h"
+#include <libfdt/libfdt_env.h>
 
 #include "lib/adt/array.h"
 #include "lib/adt/hashmap.h"

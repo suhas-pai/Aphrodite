@@ -4,7 +4,6 @@
  */
 
 #include "asm/irqs.h"
-
 #include "cpu/init.h"
 
 #include "mm/early.h"
