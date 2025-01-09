@@ -72,7 +72,7 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     if (!cmdlist_stopped) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to stop port #%" PRIu8 " to restart\n",
-               port->index + 1);
+               port->index + 1u);
 
         return false;
     }
@@ -157,7 +157,7 @@ static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
     printk(LOGLEVEL_WARN,
            "ahci: failed to wait for tfd busy flag to clear for port "
            "#%" PRIu8 "\n",
-           port->index + 1);
+           port->index + 1u);
 
     return false;
 }
@@ -199,7 +199,7 @@ static inline bool wait_until_det_present(struct ahci_hba_port *const port) {
 
     printk(LOGLEVEL_WARN,
            "ahci: det flag for port #%" PRIu8 " is set\n",
-           port->index + 1);
+           port->index + 1u);
 
     return false;
 }
@@ -208,7 +208,7 @@ __debug_optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_stop(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to reset port #%" PRIu8 ".\n",
-               port->index + 1);
+               port->index + 1u);
 
         return false;
     }
@@ -219,7 +219,7 @@ __debug_optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
     if (!wait_for_tfd_idle(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to reset port #%" PRIu8 ". issuing comreset\n",
-               port->index + 1);
+               port->index + 1u);
 
         comreset_port(port);
     }
@@ -227,7 +227,7 @@ __debug_optimize(3) static bool reset_port(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_start(port) || !wait_until_det_present(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to reset port #%" PRIu8 "\n",
-               port->index + 1);
+               port->index + 1u);
         return false;
     }
 
@@ -494,7 +494,7 @@ __debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
 
     printk(LOGLEVEL_WARN,
            "ahci: failed to stop port #%" PRIu8 "\n",
-           port->index + 1);
+           port->index + 1u);
 
     return false;
 }
@@ -525,11 +525,11 @@ ahci_hba_port_power_on_and_spin_up(
 
         printk(LOGLEVEL_INFO,
                "ahci: powering on port #%" PRIu8 "\n",
-               index + 1);
+               index + 1u);
     } else {
         printk(LOGLEVEL_WARN,
                "ahci: port #%" PRIu8 " has no cold-presence detection\n",
-               index + 1);
+               index + 1u);
     }
 
     if (ahci_hba_get()->supports_staggered_spinup) {
@@ -538,7 +538,7 @@ ahci_hba_port_power_on_and_spin_up(
 
         printk(LOGLEVEL_INFO,
                "ahci: spinning up port #%" PRIu8 "\n",
-               index + 1);
+               index + 1u);
 
         // TODO: Wait for about 1ms here
         for (int i = 0; i != MAX_ATTEMPTS; i++) {
@@ -575,22 +575,22 @@ static inline bool recognize_port_sig(struct ahci_hba_port *const port) {
         case SATA_SIG_ATA:
             printk(LOGLEVEL_INFO,
                    "ahci: port #%" PRIu8 " is a sata device\n",
-                   port->index + 1);
+                   port->index + 1u);
             return true;
         case SATA_SIG_ATAPI:
             printk(LOGLEVEL_INFO,
                    "ahci: port #%" PRIu8 " is a satapi device\n",
-                   port->index + 1);
+                   port->index + 1u);
             return true;
         case SATA_SIG_SEMB:
             printk(LOGLEVEL_INFO,
                    "ahci: port #%" PRIu8 " is a semb device. ignoring\n",
-                   port->index + 1);
+                   port->index + 1u);
             return false;
         case SATA_SIG_PM:
             printk(LOGLEVEL_INFO,
                    "ahci: port #%" PRIu8 " is a pm device. ignoring\n",
-                   port->index + 1);
+                   port->index + 1u);
             return false;
     }
 
@@ -794,7 +794,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
 
     printk(LOGLEVEL_INFO,
            "ahci: port #%" PRIu8 " cmd-list is at phys address %p\n",
-           port->index + 1,
+           port->index + 1u,
            (void *)phys_range.front);
 
     bool result =
@@ -814,7 +814,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         kfree(cmdhdr_info_list);
         printk(LOGLEVEL_WARN,
                "ahci: failed to get identity of port #%" PRIu8 "\n",
-               port->index + 1);
+               port->index + 1u);
 
         return false;
     }
@@ -864,7 +864,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
             kfree(cmdhdr_info_list);
             printk(LOGLEVEL_WARN,
                    "ahci: failed to request sense of satapi port #%" PRIu8 "\n",
-                   port->index + 1);
+                   port->index + 1u);
 
             return false;
         }
@@ -885,7 +885,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
             printk(LOGLEVEL_WARN,
                    "ahci: atapi sense request for port #%" PRIu8 " "
                    "returned \"%s\". aborting init\n",
-                   port->index + 1,
+                   port->index + 1u,
                    atapi_sense_to_cstr(resp->sense));
 
             return false;
@@ -894,7 +894,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
 
     printk(LOGLEVEL_INFO,
            "ahci: port #%" PRIu8 " initialized\n",
-           port->index + 1);
+           port->index + 1u);
 
     free_page(resp_page);
     if (!storage_device_init(&port->device,
@@ -1006,7 +1006,7 @@ static inline uint8_t prepare_port(struct ahci_hba_port *const port) {
     if (!ahci_hba_port_stop_running(port)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to stop port #%" PRIu8 "\n",
-               port->index + 1);
+               port->index + 1u);
         return UINT8_MAX;
     }
 
@@ -1014,7 +1014,7 @@ static inline uint8_t prepare_port(struct ahci_hba_port *const port) {
     if (slot == UINT8_MAX) {
         printk(LOGLEVEL_WARN,
                "ahci-port: port #%" PRIu8 " has no free command-headers\n",
-               port->index + 1);
+               port->index + 1u);
         return UINT8_MAX;
     }
 
@@ -1121,7 +1121,7 @@ send_ata_command(struct ahci_hba_port *const port,
     if (__builtin_expect(sector_count == 0, 0)) {
         printk(LOGLEVEL_WARN,
                "ahci-port: port #%" PRIu8 " got a h2d request of 0 sectors\n",
-               port->index + 1);
+               port->index + 1u);
         return true;
     }
 
@@ -1229,7 +1229,7 @@ send_atapi_command(struct ahci_hba_port *const port,
     if (__builtin_expect(sector_count == 0, 0)) {
         printk(LOGLEVEL_WARN,
                "ahci-port: port #%" PRIu8 " got a h2d request of 0 sectors\n",
-               port->index + 1);
+               port->index + 1u);
         return true;
     }
 

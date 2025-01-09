@@ -39,6 +39,9 @@ COMMON_CFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
 				 -fsanitize=undefined
 
+OUR_CFLAGS = -Wformat-nonliteral  -Wformat-security  -Wformat-signedness \
+			 -Wformat-y2k
+
 ifeq ($(ARCH), riscv64)
 	override COMMON_CFLAGS += -D__riscv64
 endif
@@ -300,7 +303,7 @@ bin-$(ARCH)/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ) cc-runtime-
 # Compilation rules for *.c files.
 obj-$(ARCH)/%.c.o: src/%.c GNUmakefile include/dev/pci/vendors.h
 	@mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/cc-runtime.c.o: src/cc-runtime.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
@@ -320,12 +323,12 @@ obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
 
 obj-$(ARCH)/lib/%.c.o: ../lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
 obj-$(ARCH)/%.S.o: src/%.S GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 obj-$(ARCH)/%.asm.o: src/%.asm GNUmakefile

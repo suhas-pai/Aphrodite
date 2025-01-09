@@ -15,7 +15,7 @@
 #include "mm/kmalloc.h"
 #include "sched/thread.h"
 
-#define NVME_BAR_INDEX 0
+#define NVME_BAR_INDEX (uint32_t)0
 
 static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (!index_in_bounds(NVME_BAR_INDEX, pci_entity->max_bar_count)) {

@@ -115,7 +115,7 @@ static uint8_t mm_page_section_count = 0;
 static const void *rsdp = nullptr;
 static const void *dtb = nullptr;
 
-static int64_t boot_time = 0;
+static uint64_t boot_time = 0;
 
 __debug_optimize(3) const struct mm_memmap *mm_get_memmap_list() {
     return mm_memmap_list;
@@ -149,7 +149,7 @@ __debug_optimize(3) const void *boot_get_dtb() {
     return dtb;
 }
 
-__debug_optimize(3) int64_t boot_get_time() {
+__debug_optimize(3) uint64_t boot_get_time() {
     return boot_time;
 }
 
@@ -314,7 +314,10 @@ void boot_post_early_init() {
         panic("boot: boot-time not found\n");
     }
 
-    boot_time = boot_time_request.response->boot_time;
+    assert_msg(boot_time_request.response->boot_time > 0,
+               "boot: boot-time is zero\n");
+
+    boot_time = (uint64_t)boot_time_request.response->boot_time;
     printk(LOGLEVEL_INFO, "boot: boot timestamp is %" PRIu64 ": ", boot_time);
 
     const struct tm tm = tm_from_stamp((uint64_t)boot_time);

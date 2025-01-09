@@ -15,7 +15,7 @@
 #include "sched/sleep.h"
 #include "sys/pio.h"
 
-#define PCI_IDE_BAR_INDEX 4
+#define PCI_IDE_BAR_INDEX (uint32_t)4
 #define IDE_ATA 0x00
 #define IDE_ATAPI 0x01
 

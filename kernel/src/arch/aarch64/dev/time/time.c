@@ -40,7 +40,7 @@ __debug_optimize(3) usec_t system_timer_get_count_usec() {
 
 __debug_optimize(3) nsec_t nsec_since_boot() {
     return seconds_to_nano(system_timer_get_count_ns() / g_frequency -
-                           (sec_t)boot_get_time());
+                           boot_get_time());
 }
 
 __debug_optimize(3) uint64_t system_timer_get_freq_ns() {

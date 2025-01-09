@@ -103,7 +103,7 @@ static bool init_common() {
     const uint32_t minor = (uint32_t)version & 0xffff;
 
     printk(LOGLEVEL_INFO,
-           "psci: version is %" PRId32 ".%" PRId32 "\n",
+           "psci: version is %" PRIu32 ".%" PRIu32 "\n",
            major,
            minor);
 

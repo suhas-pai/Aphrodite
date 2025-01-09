@@ -497,7 +497,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                "\t\tpage size: %s\n"
                "\t\titt entry size: %" PRIu16 "\n"
                "\t\tkind: %s\n",
-               baser_iter - regs->table_address,
+               (uint64_t)(baser_iter - regs->table_address),
                (baser & __GIC_ITS_BASER_PAGE_COUNT) + 1,
                page_size_desc,
                entry_size,

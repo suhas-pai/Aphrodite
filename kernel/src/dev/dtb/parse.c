@@ -30,7 +30,7 @@ parse_array_prop(const struct fdt_property *const fdt_prop,
 __debug_optimize(3) static inline bool
 parse_cell_pair(const fdt32_t **const iter_ptr,
                 const fdt32_t *const end,
-                const int cell_count,
+                const uint32_t cell_count,
                 uint64_t *const result_out)
 {
     const fdt32_t *const iter = *iter_ptr;
@@ -65,7 +65,7 @@ parse_cell_pair(const fdt32_t **const iter_ptr,
 __debug_optimize(3) static inline bool
 parse_cell_pair_and_flags(const fdt32_t **const iter_ptr,
                           const fdt32_t *const end,
-                          const int cell_count,
+                          const uint32_t cell_count,
                           uint64_t *const result_out,
                           uint32_t *const flags_out)
 {
@@ -145,11 +145,19 @@ parse_reg_pairs(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
 
     for (uint32_t i = 0; i != entry_count; i++) {
-        if (!parse_cell_pair(&data, data_end, addr_cells, &info[i].address)) {
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             (uint32_t)addr_cells,
+                             &info[i].address))
+        {
             return false;
         }
 
-        if (!parse_cell_pair(&data, data_end, size_cells, &info[i].size)) {
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             (uint32_t)size_cells,
+                             &info[i].size))
+        {
             return false;
         }
     }
@@ -209,7 +217,7 @@ parse_ranges_prop(const void *const dtb,
     for (uint32_t i = 0; i != entry_count; i++) {
         if (!parse_cell_pair_and_flags(&data,
                                        data_end,
-                                       child_addr_cells,
+                                       (uint32_t)child_addr_cells,
                                        &info[i].child_bus_address,
                                        &info[i].flags))
         {
@@ -218,13 +226,17 @@ parse_ranges_prop(const void *const dtb,
 
         if (!parse_cell_pair(&data,
                              data_end,
-                             parent_addr_cells,
+                             (uint32_t)parent_addr_cells,
                              &info[i].parent_bus_address))
         {
             return false;
         }
 
-        if (!parse_cell_pair(&data, data_end, size_cells, &info[i].size)) {
+        if (!parse_cell_pair(&data,
+                             data_end,
+                             (uint32_t)size_cells,
+                             &info[i].size))
+        {
             return false;
         }
     }
@@ -456,7 +468,7 @@ parse_interrupt_map_prop(const void *const dtb,
         printk(LOGLEVEL_WARN,
                "devicetree: couldn't parse child-interrupt pair with an "
                "invalid #interrupt-cells value of %" PRIu32 "\n",
-               child_intr_cells);
+               (uint32_t)child_intr_cells);
         return false;
     }
 
@@ -476,7 +488,7 @@ parse_interrupt_map_prop(const void *const dtb,
         struct devicetree_prop_intr_map_entry info;
         if (!parse_cell_pair_and_flags(&data,
                                        data_end,
-                                       child_unit_addr_cells,
+                                       (uint32_t)child_unit_addr_cells,
                                        &info.child_unit_address,
                                        &info.flags))
         {
@@ -485,7 +497,7 @@ parse_interrupt_map_prop(const void *const dtb,
 
         if (!parse_cell_pair(&data,
                              data_end,
-                             child_intr_cells,
+                             (uint32_t)child_intr_cells,
                              (uint64_t *)&info.child_intr_specifier))
         {
             return false;
@@ -513,7 +525,7 @@ parse_interrupt_map_prop(const void *const dtb,
         if (phandle_prop_info != nullptr) {
             if (!parse_cell_pair(&data,
                                  data_end,
-                                 (int)phandle_prop_info->addr_cells,
+                                 phandle_prop_info->addr_cells,
                                  (uint64_t *)&info.child_intr_specifier))
             {
                 return false;
@@ -615,7 +627,7 @@ parse_specifier_map_prop(const void *const dtb,
     for (uint32_t i = 0; i != entry_count; i++) {
         if (!parse_cell_pair(&data,
                              data_end,
-                             cells,
+                             entry_size,
                              &info[i].child_specifier))
         {
             return false;
@@ -626,7 +638,7 @@ parse_specifier_map_prop(const void *const dtb,
 
         if (!parse_cell_pair(&data,
                              data_end,
-                             cells,
+                             entry_size,
                              &info[i].parent_specifier))
         {
             return false;
