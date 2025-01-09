@@ -28,8 +28,7 @@ struct string_view {
     for (const char *iter = sv.begin; iter != (sv.begin + sv.length); iter++)
 
 #define sv_of_carr(field) sv_create_length(field, sizeof(field))
-#define sv_of_carr_not_full(field) \
-    sv_create_upto_length(field, sizeof(field))
+#define sv_of_carr_not_full(field) sv_create_upto_length(field, sizeof(field))
 
 #define SV_FMT "%.*s"
 #define SV_FMT_ARGS(sv) (int)(sv).length, (sv).begin

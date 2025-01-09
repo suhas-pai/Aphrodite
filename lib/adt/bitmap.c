@@ -193,7 +193,7 @@ find_mult_set(struct bitmap *const bitmap,
                 }                                                              \
                                                                                \
                 /*
-                 * If the lsb sequence of onees plus the msb ones of the last
+                 * If the lsb sequence of ones plus the msb ones of the last
                  * word wasn't long enough, the lsb sequence isn't long enough
                  * by itself.
                  *
@@ -532,4 +532,3 @@ void bitmap_set_all(struct bitmap *const bitmap, const bool value) {
 void bitmap_destroy(struct bitmap *const bitmap) {
     gbuffer_destroy(&bitmap->gbuffer);
 }
-
