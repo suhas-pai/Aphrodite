@@ -730,7 +730,7 @@ __debug_optimize(3) static uint64_t free_all_pages() {
      */
 
     uint64_t free_page_count = 0;
-    list_foreach_reverse_mut(iter, tmp, &g_asc_freelist, asc_list) {
+    list_foreach_rev_mut(iter, tmp, &g_asc_freelist, asc_list) {
         uint64_t phys = virt_to_phys(iter);
         uint64_t avail = iter->avail_page_count;
 

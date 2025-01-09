@@ -147,7 +147,7 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
     for (iter = list_head(list, typeof(*iter), field); &iter->field != (list); \
          iter = list_next(iter, field))
 
-#define list_foreach_reverse(iter, list, field) \
+#define list_foreach_rev(iter, list, field) \
     for (iter = list_tail(list, typeof(*iter), field); &iter->field != (list); \
          iter = list_prev(iter, field))
 
@@ -170,7 +170,7 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
 #define slist_foreach_mut(iter, tmp, list, field) \
     list_foreach_mut(iter, tmp, list, field)
 
-#define list_foreach_reverse_mut(iter, tmp, list, field) \
+#define list_foreach_rev_mut(iter, tmp, list, field) \
     for (iter = list_tail(list, typeof(*iter), field), \
              tmp = list_prev(iter, field);             \
          &iter->field != (list);                       \
