@@ -261,4 +261,7 @@ bool
 devicetree_prop_compat_has_sv(const struct devicetree_prop_compat *node,
                               struct string_view sv);
 
-void devicetree_node_free(struct devicetree_node *node);
+struct devicetree;
+
+void
+devicetree_node_free(struct devicetree *tree, struct devicetree_node *node);

@@ -12,6 +12,9 @@ devicetree_node_init_fields(struct devicetree_node *const node,
                             const struct string_view name,
                             const int nodeoff)
 {
+    list_init(&node->child_list);
+    list_init(&node->sibling_list);
+
     node->name = name;
     node->parent = parent;
     node->nodeoff = nodeoff;

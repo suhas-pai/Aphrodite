@@ -9,9 +9,7 @@
 #include "dev/dtb/parse.h"
 
 #include "lib/adt/string.h"
-
 #include "dev/printk.h"
-#include "mm/kmalloc.h"
 
 __debug_optimize(3) static inline bool
 parse_array_prop(const struct fdt_property *const fdt_prop,
@@ -716,7 +714,7 @@ parse_node_prop(const void *const dtb,
         case DEVICETREE_PROP_COMPAT:
             if (sv_equals(name, SV_STATIC("compatible"))) {
                 struct devicetree_prop_compat *const compat_prop =
-                    kmalloc(sizeof(*compat_prop));
+                    simple_alloc(&tree->alloc, sizeof(*compat_prop));
 
                 if (compat_prop == nullptr) {
                     return false;
@@ -729,7 +727,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_COMPAT),
                                  &compat_prop))
                 {
-                    kfree(compat_prop);
+                    simple_free(&tree->alloc, compat_prop);
                     return false;
                 }
 
@@ -752,7 +750,9 @@ parse_node_prop(const void *const dtb,
                     return false;
                 }
 
-                struct devicetree_prop_reg *const prop = kmalloc(sizeof(*prop));
+                struct devicetree_prop_reg *const prop =
+                    simple_alloc(&tree->alloc, sizeof(*prop));
+
                 if (prop == nullptr) {
                     array_destroy(&list);
                     return false;
@@ -765,7 +765,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_REG),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     array_destroy(&list);
 
                     return false;
@@ -794,7 +794,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_ranges *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     array_destroy(&list);
@@ -809,7 +809,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_RANGES),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     array_destroy(&list);
 
                     return false;
@@ -829,7 +829,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_model *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -843,7 +843,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_MODEL),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -861,7 +861,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_status *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -874,7 +874,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_STATUS),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -916,7 +916,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_phandle *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -929,7 +929,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_PHANDLE),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -937,7 +937,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(phandle),
                                  &node))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -953,7 +953,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_virtual_reg *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -967,7 +967,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_VIRTUAL_REG),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -994,7 +994,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_ranges *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     array_destroy(&list);
@@ -1009,7 +1009,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_DMA_RANGES),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     array_destroy(&list);
 
                     return false;
@@ -1022,7 +1022,7 @@ parse_node_prop(const void *const dtb,
         case DEVICETREE_PROP_DMA_COHERENT:
             if (sv_equals(name, SV_STATIC("dma-coherent"))) {
                 struct devicetree_prop_no_value *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1034,7 +1034,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_DMA_COHERENT),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1045,7 +1045,7 @@ parse_node_prop(const void *const dtb,
         case DEVICETREE_PROP_DEVICE_TYPE:
             if (sv_equals(name, SV_STATIC("device_type"))) {
                 struct devicetree_prop_device_type *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1059,7 +1059,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_DEVICE_TYPE),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1112,7 +1112,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_intr_parent *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1126,7 +1126,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_INTR_PARENT),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1137,7 +1137,7 @@ parse_node_prop(const void *const dtb,
         case DEVICETREE_PROP_INTR_CONTROLLER:
             if (sv_equals(name, SV_STATIC("interrupt-controller"))) {
                 struct devicetree_prop_no_value *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1149,7 +1149,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_INTR_CONTROLLER),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1165,7 +1165,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_intr_cells *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1178,7 +1178,7 @@ parse_node_prop(const void *const dtb,
                                  hashmap_key_create(DEVICETREE_PROP_INTR_CELLS),
                                  &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1195,7 +1195,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_intr_map_mask *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     array_destroy(&list);
@@ -1210,7 +1210,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_INTR_MAP_MASK),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     array_destroy(&list);
 
                     return false;
@@ -1223,7 +1223,7 @@ parse_node_prop(const void *const dtb,
         case DEVICETREE_PROP_MSI_CONTROLLER:
             if (sv_equals(name, SV_STATIC("msi-controller"))) {
                 struct devicetree_prop_no_value *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1235,7 +1235,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_MSI_CONTROLLER),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1264,7 +1264,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_specifier_map *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     array_destroy(&list);
@@ -1280,7 +1280,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_SPECIFIER_MAP),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     array_destroy(&list);
 
                     return false;
@@ -1298,7 +1298,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_specifier_cells *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1313,7 +1313,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_SPECIFIER_CELLS),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1329,7 +1329,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_clock_frequency *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1343,7 +1343,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_SERIAL_CLOCK_FREQ),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1359,7 +1359,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_current_speed *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1374,7 +1374,7 @@ parse_node_prop(const void *const dtb,
                             DEVICETREE_PROP_SERIAL_CURRENT_SPEED),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1390,7 +1390,7 @@ parse_node_prop(const void *const dtb,
                 }
 
                 struct devicetree_prop_bus_range *const prop =
-                    kmalloc(sizeof(*prop));
+                    simple_alloc(&tree->alloc, sizeof(*prop));
 
                 if (prop == nullptr) {
                     return false;
@@ -1404,7 +1404,7 @@ parse_node_prop(const void *const dtb,
                         hashmap_key_create(DEVICETREE_PROP_PCI_BUS_RANGE),
                         &prop))
                 {
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     return false;
                 }
 
@@ -1415,7 +1415,7 @@ parse_node_prop(const void *const dtb,
     }
 
     struct devicetree_prop_other *const other_prop =
-        kmalloc(sizeof(*other_prop));
+        simple_alloc(&tree->alloc, sizeof(*other_prop));
 
     if (other_prop == nullptr) {
         return false;
@@ -1426,7 +1426,7 @@ parse_node_prop(const void *const dtb,
     other_prop->data_length = (uint32_t)prop_len;
 
     if (!array_append(&node->other_props, &other_prop)) {
-        kfree(other_prop);
+        simple_free(&tree->alloc, other_prop);
         return false;
     }
 
@@ -1441,13 +1441,12 @@ parse_node_children(const void *const dtb,
 {
     int nodeoff = 0;
     fdt_for_each_subnode(nodeoff, dtb, parent->nodeoff) {
-        struct devicetree_node *const node = kmalloc(sizeof(*node));
+        struct devicetree_node *const node =
+            simple_alloc(&tree->alloc, sizeof(*node));
+
         if (node == nullptr) {
             return false;
         }
-
-        list_init(&node->child_list);
-        list_init(&node->sibling_list);
 
         int lenp = 0;
         const struct string_view node_name =
@@ -1479,7 +1478,7 @@ parse_node_children(const void *const dtb,
             }
 
             struct devicetree_prop_addr_size_cells *const addr_size_cells =
-                kmalloc(sizeof(*addr_size_cells));
+                simple_alloc(&tree->alloc, sizeof(*addr_size_cells));
 
             *addr_size_cells = later_info->addr_size_cells_prop;
             if (!hashmap_add(
@@ -1487,7 +1486,7 @@ parse_node_children(const void *const dtb,
                     hashmap_key_create(DEVICETREE_PROP_ADDR_SIZE_CELLS),
                     &addr_size_cells))
             {
-                kfree(addr_size_cells);
+                simple_free(&tree->alloc, addr_size_cells);
                 return false;
             }
         } else if (later_info->addr_size_cells_prop.size_cells != UINT32_MAX) {
@@ -1545,7 +1544,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                              &later_info))
         {
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1553,7 +1552,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
 
     if (!parse_node_children(dtb, tree, tree->root, &later_info)) {
         parse_later_info_destroy(&later_info);
-        devicetree_node_free(tree->root);
+        devicetree_node_free(tree, tree->root);
 
         return false;
     }
@@ -1574,19 +1573,19 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             array_destroy(&list);
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
 
         struct devicetree_prop_intr_map *const map_prop =
-            kmalloc(sizeof(*map_prop));
+            simple_alloc(&tree->alloc, sizeof(*map_prop));
 
         if (map_prop == nullptr) {
             array_destroy(&list);
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1602,8 +1601,8 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
             array_destroy(&list);
             parse_later_info_destroy(&later_info);
 
-            devicetree_node_free(tree->root);
-            kfree(map_prop);
+            devicetree_node_free(tree, tree->root);
+            simple_free(&tree->alloc, map_prop);
 
             return false;
         }
@@ -1627,7 +1626,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                    SV_FMT_ARGS(node->name));
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1642,7 +1641,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                    SV_FMT_ARGS(node->name));
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1670,7 +1669,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                    SV_FMT_ARGS(node->name));
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1682,7 +1681,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                    SV_FMT_ARGS(node->name));
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1695,7 +1694,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                    SV_FMT_ARGS(node->name));
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1719,26 +1718,28 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                                  &info))
             {
                 parse_later_info_destroy(&later_info);
-                devicetree_node_free(tree->root);
+                devicetree_node_free(tree, tree->root);
 
                 return false;
             }
 
             if (!array_append(&intr_info_list, &info)) {
                 parse_later_info_destroy(&later_info);
-                devicetree_node_free(tree->root);
+                devicetree_node_free(tree, tree->root);
 
                 return false;
             }
         }
 
-        struct devicetree_prop_interrupts *const prop = kmalloc(sizeof(*prop));
+        struct devicetree_prop_interrupts *const prop =
+            simple_alloc(&tree->alloc, sizeof(*prop));
+
         if (prop == nullptr) {
             printk(LOGLEVEL_WARN,
                    "devicetree: failed to alloc memory while parsing\n");
 
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }
@@ -1751,7 +1752,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                          &prop))
         {
             parse_later_info_destroy(&later_info);
-            devicetree_node_free(tree->root);
+            devicetree_node_free(tree, tree->root);
 
             return false;
         }

@@ -7,10 +7,13 @@
 
 #include "dev/dtb/node.h"
 #include "lib/adt/hashmap.h"
+#include "mm/simple_alloc.h"
 
 struct devicetree {
     struct devicetree_node *root;
+
     struct hashmap phandle_map;
+    struct simple_alloc alloc;
 };
 
 struct devicetree *devicetree_alloc();

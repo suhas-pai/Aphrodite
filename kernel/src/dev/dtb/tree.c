@@ -11,14 +11,18 @@
 #define DEVICETREE_PHANDLE_MAP_BUCKET_COUNT 10
 
 __debug_optimize(3) struct devicetree *devicetree_alloc() {
-    struct devicetree_node *const root = kmalloc(sizeof(*root));
-    if (root == nullptr) {
+    struct devicetree *const tree = kmalloc(sizeof(*tree));
+    if (tree == nullptr) {
         return nullptr;
     }
 
-    struct devicetree *const tree = kmalloc(sizeof(*tree));
-    if (tree == nullptr) {
-        kfree(root);
+    devicetree_init_fields(tree, /*root=*/nullptr);
+
+    struct devicetree_node *const root =
+        simple_alloc(&tree->alloc, sizeof(*root));
+
+    if (root == nullptr) {
+        kfree(tree);
         return nullptr;
     }
 
@@ -27,7 +31,6 @@ __debug_optimize(3) struct devicetree *devicetree_alloc() {
                                 /*name=*/SV_EMPTY(),
                                 /*nodeoff=*/0);
 
-    devicetree_init_fields(tree, root);
     return tree;
 }
 
@@ -35,8 +38,7 @@ __debug_optimize(3) void
 devicetree_init_fields(struct devicetree *const tree,
                        struct devicetree_node *const root)
 {
-    list_init(&root->child_list);
-    list_init(&root->sibling_list);
+    simple_alloc_init(&tree->alloc);
 
     tree->root = root;
     tree->phandle_map =
@@ -116,7 +118,10 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
     return nullptr;
 }
 
-void devicetree_node_free(struct devicetree_node *const node) {
+void
+devicetree_node_free(struct devicetree *const tree,
+                     struct devicetree_node *const node)
+{
     hashmap_foreach_bucket(&node->known_props, bucket_ptr) {
         struct hashmap_bucket *const bucket = *bucket_ptr;
         if (bucket == nullptr) {
@@ -196,7 +201,7 @@ void devicetree_node_free(struct devicetree_node *const node) {
                     goto free_prop;
 
                 free_prop:
-                    kfree(prop);
+                    simple_free(&tree->alloc, prop);
                     continue;
             }
 
@@ -208,13 +213,15 @@ void devicetree_node_free(struct devicetree_node *const node) {
     array_destroy(&node->other_props);
 
     devicetree_node_foreach_child(node, iter) {
-        devicetree_node_free(iter);
+        devicetree_node_free(tree, iter);
     }
 }
 
 __debug_optimize(3) void devicetree_free(struct devicetree *const tree) {
-    devicetree_node_free(tree->root);
+    devicetree_node_free(tree, tree->root);
+
     hashmap_destroy(&tree->phandle_map);
+    simple_alloc_destroy(&tree->alloc);
 
     kfree(tree->root);
     kfree(tree);
