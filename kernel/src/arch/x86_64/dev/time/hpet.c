@@ -160,7 +160,7 @@ void hpet_init(const struct os_acpi_hpet *const hpet) {
     mmio_write(&g_addrspace->general_config, 0);
 
     g_timer_count = ((cap_and_id >> 8) & 0x1f) + 1;
-    printk(LOGLEVEL_WARN, "hpet: got %" PRIu8 " timers\n", g_timer_count);
+    printk(LOGLEVEL_INFO, "hpet: got %" PRIu8 " timers\n", g_timer_count);
 
     for (volatile struct hpet_addrspace_timer_info *timer = g_addrspace->timers;
          timer != g_addrspace->timers + g_timer_count;
