@@ -668,12 +668,9 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
 
     const struct string_view compat_sv = SV_STATIC("arm,gic-v3-its");
     devicetree_node_foreach_child(node, child_node) {
-        if (!devicetree_node_has_compat_sv(child_node, compat_sv)) {
-            continue;
+        if (devicetree_node_has_compat_sv(child_node, compat_sv)) {
+            gic_its_init_from_dtb(tree, child_node);
         }
-
-        gic_its_init_from_dtb(tree, child_node);
-        break;
     }
 
     return true;
