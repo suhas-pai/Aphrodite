@@ -39,8 +39,7 @@ COMMON_CFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
 				 -fsanitize=undefined
 
-OUR_CFLAGS = -Wformat-nonliteral  -Wformat-security  -Wformat-signedness \
-			 -Wformat-y2k
+OUR_CFLAGS = -Wformat-nonliteral  -Wformat-security  -Wformat-y2k
 
 ifeq ($(ARCH), riscv64)
 	override COMMON_CFLAGS += -D__riscv64
