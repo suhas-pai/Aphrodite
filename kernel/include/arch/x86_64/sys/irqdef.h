@@ -7,3 +7,4 @@
 #include <stdint.h>
 
 typedef uint8_t irq_number_t;
+#define IRQ_NUMBER_FMT "%" PRIu8

@@ -49,8 +49,7 @@ parse_gpt_entries(struct storage_device *const device,
         }
 
         const uint32_t entry_count = read_size / sizeof(struct gpt_entry);
-        for (uint32_t i = 0; i != entry_count; i++) {
-            const struct gpt_entry *const entry = &entry_list[i];
+        ptrarr_foreach(entry_list, entry_count, entry) {
             if (!gpt_entry_mount_ok(entry)) {
                 continue;
             }

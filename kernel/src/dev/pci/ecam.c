@@ -3,23 +3,22 @@
  * © suhas pai
  */
 
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
+
+#include "dev/pci/bus.h"
 #include "dev/pci/ecam.h"
 #include "dev/pci/resource.h"
 
-#include "cpu/spinlock.h"
-
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "lib/util.h"
-
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
-static struct list g_ecam_entity_list = LIST_INIT(g_ecam_entity_list);
-static struct spinlock g_ecam_domain_lock = SPINLOCK_INIT();
-
-static uint32_t g_ecam_entity_count = 0;
+static struct simple_alloc g_ecam_alloc;
 
 __debug_optimize(3)
 static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
@@ -28,6 +27,7 @@ static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
 
 struct pci_domain_ecam *
 pci_add_ecam_domain(const struct range bus_range,
+                    struct bus *const bus,
                     const uint64_t base_addr,
                     const uint16_t segment)
 {
@@ -44,55 +44,49 @@ pci_add_ecam_domain(const struct range bus_range,
         return nullptr;
     }
 
-    struct pci_domain_ecam *const ecam_domain = kmalloc(sizeof(*ecam_domain));
+    struct pci_domain_ecam *const ecam_domain =
+        simple_alloc(&g_ecam_alloc, sizeof(*ecam_domain));
+
     if (ecam_domain == nullptr) {
         printk(LOGLEVEL_WARN, "pci: failed to alloc ecam domain info\n");
         return nullptr;
     }
 
-    ecam_domain->domain = PCI_DOMAIN_INIT(PCI_DOMAIN_ECAM, segment);
+    pci_domain_init(&ecam_domain->domain, bus, PCI_DOMAIN_ECAM, segment);
+
+    ecam_domain->bus_range = bus_range;
     ecam_domain->mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
     if (ecam_domain->mmio == nullptr) {
+        pci_remove_ecam_domain(ecam_domain);
         kfree(ecam_domain);
-        printk(LOGLEVEL_WARN, "pci/ecam: failed to mmio-map config-domain\n");
 
+        printk(LOGLEVEL_WARN, "pci/ecam: failed to mmio-map config-domain\n");
         return nullptr;
     }
 
-    list_init(&ecam_domain->list);
-    ecam_domain->bus_range = bus_range;
+    struct pci_bus *const root_bus =
+        pci_bus_create(&ecam_domain->domain, bus_range.front, segment);
 
-    bool result = false;
-    with_spinlock_intr_disabled(&g_ecam_domain_lock, {
-        list_add(&g_ecam_entity_list, &ecam_domain->list);
-        g_ecam_entity_count++;
-
-        result = pci_add_domain(&ecam_domain->domain);
-    });
-
-    if (!result) {
+    if (root_bus == nullptr) {
         vunmap_mmio(ecam_domain->mmio);
+        pci_remove_ecam_domain(ecam_domain);
         kfree(ecam_domain);
 
+        printk(LOGLEVEL_WARN, "pci/ecam: failed to alloc root-bus\n");
         return nullptr;
     }
 
     return ecam_domain;
 }
 
-__debug_optimize(3)
-bool pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
-    with_spinlock_intr_disabled(&g_ecam_domain_lock, {
-        pci_remove_domain(&ecam_domain->domain);
+void pci_remove_ecam_domain(struct pci_domain_ecam *const ecam_domain) {
+    device_remove(&ecam_domain->domain.bus.device);
+    bus_unregister(&ecam_domain->domain.bus);
+
+    if (ecam_domain->mmio != nullptr) {
         vunmap_mmio(ecam_domain->mmio);
-
-        list_deinit(&ecam_domain->list);
-        g_ecam_entity_count--;
-    });
-
-    kfree(ecam_domain);
-    return true;
+    }
 }
 
 __debug_optimize(3) uint64_t
@@ -339,7 +333,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
                                   mmio,
                                   /*is_host_mmio=*/true);
 
-        if (!array_append(&root_bus->resources, &resource)) {
+        if (!array_add(&root_bus->resources, &resource)) {
             printk(LOGLEVEL_INFO,
                    "pci/ecam: failed to add resource to bus-list\n");
             return false;
@@ -351,11 +345,11 @@ parse_dtb_resources(const struct devicetree_node *const node,
     return true;
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
-{
-    (void)tree;
+static bool pci_ecam_dtb_probe(struct device *const the_device) {
+    const struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
@@ -400,7 +394,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg_info *const mmio_reg =
-        array_front(reg_prop->list);
+        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
     struct range mmio_range = RANGE_EMPTY();
     if (!range_create_and_verify(mmio_reg->address,
@@ -424,45 +418,43 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     struct pci_domain_ecam *const ecam_domain =
-        pci_add_ecam_domain(bus_range, mmio_range.front, /*segment=*/0);
+        pci_add_ecam_domain(bus_range,
+                            the_device->bus,
+                            mmio_range.front,
+                            /*segment=*/0);
+
     struct pci_bus *const root_bus =
-        pci_bus_create(&ecam_domain->domain, bus_range.front, /*segment=*/0);
+        pci_domain_get_root_bus(&ecam_domain->domain);
 
-    if (root_bus == nullptr) {
+    if (!parse_dtb_resources(node, root_bus)) {
         pci_remove_ecam_domain(ecam_domain);
-        printk(LOGLEVEL_WARN,
-               "pci/ecam: failed to create root-bus from dtb node\n");
-
-        return false;
-    }
-
-    // FIXME: We don't do anything when parse_dtb_resources() fails
-    parse_dtb_resources(node, root_bus);
-    if (!pci_add_root_bus(root_bus)) {
-        pci_remove_root_bus(root_bus);
-        pci_remove_ecam_domain(ecam_domain);
-
-        printk(LOGLEVEL_INFO, "pci/ecam: failed to add bus to root-bus list\n");
         return false;
     }
 
     return true;
 }
 
-static const struct string_view compat_list[] = {
-    SV_STATIC("pci-host-ecam-generic")
-};
+static void pci_ecam_init() {
+    static const struct string_view compat_list[] = {
+        SV_STATIC("pci-host-ecam-generic")
+    };
 
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
-    .compat_list = compat_list,
-    .compat_count = countof(compat_list),
-};
+        .compat_list = compat_list,
+        .compat_count = countof(compat_list),
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("pci-ecam-driver"),
-    .dtb = &dtb_driver,
-    .pci = nullptr
-};
+    simple_alloc_init(&g_ecam_alloc);
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("pci-ecam"),
+                      pci_ecam_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(pci_ecam_init);

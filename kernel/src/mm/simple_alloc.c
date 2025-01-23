@@ -15,7 +15,7 @@
 
 __debug_optimize(3)
 bool simple_alloc_initialized(const struct simple_alloc *const alloc) {
-    return alloc->page_list.next != NULL;
+    return alloc->page_list.next != nullptr;
 }
 
 __debug_optimize(3) void simple_alloc_init(struct simple_alloc *const alloc) {
@@ -23,7 +23,7 @@ __debug_optimize(3) void simple_alloc_init(struct simple_alloc *const alloc) {
 }
 
 void simple_alloc_destroy(struct simple_alloc *const alloc) {
-    struct page *page = NULL;
+    struct page *page = nullptr;
     list_foreach(page, &alloc->page_list, simple_alloc.list) {
         if (page->simple_alloc.refcount != 0) {
             printk(LOGLEVEL_WARN,
@@ -65,7 +65,7 @@ void *simple_alloc(struct simple_alloc *const alloc, const uint32_t bad_size) {
         list_tail(&alloc->page_list, struct page, simple_alloc.list);
 
     if (!index_in_bounds(page->simple_alloc.index + size, PAGE_SIZE)) {
-        struct page *search_page = NULL;
+        struct page *search_page = nullptr;
         bool found = false;
 
         list_foreach(search_page, &alloc->page_list, simple_alloc.list) {
@@ -100,7 +100,7 @@ simple_alloc_size(struct simple_alloc *const alloc,
 }
 
 bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
-    struct page *page = NULL;
+    struct page *page = nullptr;
     uint8_t count = 0;
 
     list_foreach(page, &alloc->page_list, simple_alloc.list) {
@@ -110,30 +110,32 @@ bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
         }
     }
 
-    struct page *tmp = NULL;
+    struct page *tmp = nullptr;
     list_foreach_mut(page, tmp, &alloc->page_list, simple_alloc.list) {
         const struct range page_range =
             RANGE_INIT((uint64_t)page_to_virt(page), PAGE_SIZE);
 
-        if (range_has_loc(page_range, (uint64_t)buffer)) {
-            if (page->simple_alloc.refcount == 0) {
-                printk(LOGLEVEL_WARN,
-                       "mm: double free detected in page %p, for allocator %p, "
-                       "caller alloc: %p\n",
-                       (void *)page_range.front,
-                       alloc,
-                       buffer);
-                return true;
-            }
+        if (!range_has_loc(page_range, (uint64_t)buffer)) {
+            continue;
+        }
 
-            page->simple_alloc.refcount--;
-            if (page->simple_alloc.refcount == 0 && count > 1) {
-                list_remove(&page->simple_alloc.list);
-                free_page(page);
-            }
-
+        if (page->simple_alloc.refcount == 0) {
+            printk(LOGLEVEL_WARN,
+                   "mm: double free detected in page %p, for allocator %p, "
+                   "caller alloc: %p\n",
+                   (void *)page_range.front,
+                   alloc,
+                   buffer);
             return true;
         }
+
+        page->simple_alloc.refcount--;
+        if (page->simple_alloc.refcount == 0 && count > 1) {
+            list_remove(&page->simple_alloc.list);
+            free_page(page);
+        }
+
+        return true;
     }
 
     return false;

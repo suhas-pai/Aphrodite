@@ -139,6 +139,13 @@
 #define carr_foreach_mut_rev_from_iter(arr, name, iter) \
     for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
 
+#define ptrarr_foreach(the_arr, count, name) \
+    const __auto_type h_var(arr) = (the_arr); \
+    const typeof(&h_var(arr)[0]) h_var(end) = h_var(arr) + (count); \
+    for (typeof(&h_var(arr)[0]) name = &h_var(arr)[0]; \
+         name != h_var(end); \
+         name++)
+
 #define swap(a, b) ({ \
     const __auto_type __swap_tmp = (b); \
     b = a; \
@@ -196,9 +203,9 @@
 #define rm_mask(num, mask) ((num) & ((typeof(num))~(mask)))
 #define set_bits_for_mask(ptr, mask, value) ({ \
     __auto_type __set_bits_ptr__ = (ptr);  \
-    if (value) {                         \
-        *__set_bits_ptr__ |= (mask);       \
-    } else {                             \
+    if (value) { \
+        *__set_bits_ptr__ |= (mask); \
+    } else { \
         *__set_bits_ptr__ = rm_mask(*__set_bits_ptr__, (mask)); \
     } \
 })
@@ -225,3 +232,5 @@
                       __sign_extend_num__ & 1ull << __sign_extend_index__); \
     __sign_extend_result__; \
 })
+
+__unused static void no_op() {}

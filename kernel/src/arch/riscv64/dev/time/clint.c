@@ -3,12 +3,16 @@
  * © suhas pai
  */
 
-#include "dev/dtb/node.h"
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
 
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
+#include "mm/mmio.h"
+
 #include "time/clock.h"
 
 struct clint_regs {
@@ -65,14 +69,17 @@ void clint_init(const struct range range, const uint64_t freq) {
     g_clint_mtime = clint;
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
-{
+static bool clint_dtb_probe(struct device *const the_device) {
     if (g_clint_mtime != nullptr) {
         printk(LOGLEVEL_WARN, "clint: multiple mtime clocks found. Ignoring\n");
         return true;
     }
+
+    const struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree *const tree = device->tree;
+    const struct devicetree_node *const node = device->node;
 
     struct range reg_range = RANGE_EMPTY();
     uint32_t freq = 0;
@@ -95,7 +102,7 @@ init_from_dtb(const struct devicetree *const tree,
         }
 
         const struct devicetree_prop_reg_info *const reg =
-            (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
+            array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg->size < sizeof(struct clint_regs)) {
             printk(LOGLEVEL_WARN,
@@ -144,20 +151,26 @@ init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-static const struct string_view compat_list[] = {
-    SV_STATIC("sifive,clint0"), SV_STATIC("riscv,clint0")
-};
+static void init_drivers() {
+    static const struct string_view compat_list[] = {
+        SV_STATIC("sifive,clint0"), SV_STATIC("riscv,clint0")
+    };
 
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
-    .compat_list = compat_list,
-    .compat_count = countof(compat_list),
-};
+        .compat_list = compat_list,
+        .compat_count = countof(compat_list),
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("riscv64-clint-driver"),
-    .dtb = &dtb_driver,
-    .pci = nullptr
-};
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("riscv64-clint-driver"),
+                      clint_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

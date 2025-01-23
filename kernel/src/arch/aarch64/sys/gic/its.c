@@ -3,10 +3,13 @@
  * © suhas pai
  */
 
+#include "dev/pci/entity.h"
 #include "lib/adt/bitset.h"
 #include "sys/gic/its.h"
 
 #include "asm/irqs.h"
+
+#include "dev/device.h"
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
@@ -228,15 +231,24 @@ fill_out_device_table(struct gic_its_info *const its,
                       const isr_vector_t vector,
                       const uint16_t msi_index)
 {
-    const uint16_t id = device_get_id(device);
+    struct pci_entity_info *const entity =
+        parent_of(device, struct pci_entity_info, device);
+
+    const uint64_t id = pci_entity_get_requester_id(entity);
+    uint64_t index = 0;
+
+    if (!ckd_mul(&index, its->device_table_entry_size, id)) {
+        return false;
+    }
+
     struct gic_its_device_table_entry *const entry =
-        its->device_table + (its->device_table_entry_size * id);
+        its->device_table + index;
 
     uint64_t phys = 0;
     if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
         const uint64_t alloc_size =
-            sizeof(struct gic_its_intr_table_entry)
-          * GIC_MAX_ITS_INTR_TABLE_ENTRIES;
+            sizeof(struct gic_its_intr_table_entry) *
+            GIC_MAX_ITS_INTR_TABLE_ENTRIES;
 
         phys = phys_alloc(alloc_size);
         if (phys == INVALID_PHYS) {
@@ -601,7 +613,7 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
     }
 
     struct devicetree_prop_reg_info *const msi_reg_info =
-        array_front(reg_prop->list);
+        array_front(&reg_prop->list, struct devicetree_prop_reg_info);
 
     if (msi_reg_info->size < sizeof(struct gic_its_registers)) {
         printk(LOGLEVEL_INFO, "gic/its: reg's range is too small\n");

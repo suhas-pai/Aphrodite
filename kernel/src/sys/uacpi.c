@@ -6,7 +6,9 @@
 #include <stdatomic.h>
 #include <uacpi/kernel_api.h>
 
+#include "dev/pci/device.h"
 #include "dev/pci/ecam.h"
+#include "dev/pci/entity.h"
 
 #include "cpu/isr.h"
 #include "cpu/mutex.h"
@@ -17,9 +19,7 @@
 #include "lib/util.h"
 
 #include "mm/kmalloc.h"
-
 #include "mm/memmap.h"
-#include "mm/mmio.h"
 
 #include "mm/simple_alloc.h"
 
@@ -64,16 +64,14 @@ uacpi_status
 uacpi_kernel_pci_device_open(const uacpi_pci_address address,
                              uacpi_handle *const out_handle)
 {
-    int flag = 0;
-    array_foreach(pci_get_domain_list_locked(&flag),
-                  const struct pci_domain *,
-                  iter)
-    {
-        const struct pci_domain *const domain = *iter;
-        if (domain->segment != address.segment) {
+    const int flag = spin_acquire_save_intr(&pci_device()->bus.device.lock);
+    pci_device_foreach_entity(entity) {
+        struct pci_bus *const bus = pci_entity_get_bus(entity);
+        if (bus->segment != address.segment) {
             continue;
         }
 
+        struct pci_domain *const domain = pci_bus_get_domain(bus);
         switch (domain->kind) {
         #if defined(__x86_64__)
             case PCI_DOMAIN_LEGACY:
@@ -82,7 +80,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
                 }
 
                 *out_handle = uacpi_pci_handle_create(domain, address);
-                pci_release_domain_list_lock(flag);
+                spin_release_restore_intr(&pci_device()->bus.device.lock, flag);
 
                 if (*out_handle == nullptr) {
                     return UACPI_STATUS_OUT_OF_MEMORY;
@@ -100,7 +98,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
                 }
 
                 *out_handle = uacpi_pci_handle_create(domain, address);
-                pci_release_domain_list_lock(flag);
+                spin_release_restore_intr(&pci_device()->bus.device.lock, flag);
 
                 if (*out_handle == nullptr) {
                     return UACPI_STATUS_OUT_OF_MEMORY;
@@ -113,7 +111,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
         verify_not_reached();
     }
 
-    pci_release_domain_list_lock(flag);
+    spin_release_restore_intr(&pci_device()->bus.device.lock, flag);
     return UACPI_STATUS_NOT_FOUND;
 }
 
@@ -310,7 +308,7 @@ void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
     const uacpi_size align_len = align_up_assert(len, PAGE_SIZE);
 
     const int flag = spin_acquire_save_intr(&g_vmap_lock);
-    struct uacpi_vmap *vmap = NULL;
+    struct uacpi_vmap *vmap = nullptr;
 
     list_foreach(vmap, &g_vmap_list, list) {
         if (range_has_loc(mmio_region_get_range(vmap->region), align_addr)) {
@@ -326,7 +324,7 @@ void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
 
 void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
     const struct range range = RANGE_INIT((uacpi_u64)addr, len);
-    struct uacpi_vmap *vmap = NULL;
+    struct uacpi_vmap *vmap = nullptr;
 
     with_spinlock_intr_disabled(&g_vmap_lock, {
         list_foreach(vmap, &g_vmap_list, list) {
@@ -357,7 +355,7 @@ void *uacpi_kernel_alloc(const uacpi_size size) {
         return kmalloc(size);
     }
 
-    void *result = NULL;
+    void *result = nullptr;
     with_spinlock_intr_disabled(&g_alloc_lock, {
         result = simple_alloc(&g_alloc, size);
     });
@@ -490,7 +488,7 @@ void uacpi_kernel_sleep(const uacpi_u64 usec) {
 uacpi_handle uacpi_kernel_create_mutex(void) {
     struct mutex *const result = uacpi_kernel_alloc(sizeof(*result));
     if (result == nullptr) {
-        return UACPI_NULL;
+        return nullptr;
     }
 
     mutex_init(result);
@@ -533,7 +531,7 @@ bool uacpi_event_try_decrement(struct uacpi_event *const event) {
 uacpi_handle uacpi_kernel_create_event(void) {
     struct uacpi_event *const result = uacpi_kernel_alloc(sizeof(*result));
     if (result == nullptr) {
-        return UACPI_NULL;
+        return nullptr;
     }
 
     result->counter = 0;
@@ -646,7 +644,7 @@ uacpi_irq_context_create(const uacpi_handle handler, const uacpi_handle ctx) {
         uacpi_kernel_alloc(sizeof(*result));
 
     if (result == nullptr) {
-        return UACPI_NULL;
+        return nullptr;
     }
 
     result->handler = handler;
@@ -708,7 +706,7 @@ uacpi_kernel_uninstall_interrupt_handler(
 uacpi_handle uacpi_kernel_create_spinlock(void) {
     struct spinlock *const lock = uacpi_kernel_alloc(sizeof(*lock));
     if (lock == nullptr) {
-        return UACPI_NULL;
+        return nullptr;
     }
 
     *lock = SPINLOCK_INIT();

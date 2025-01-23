@@ -61,7 +61,9 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
 
                 if (node->private_resource_count != 0) {
                     printk(LOGLEVEL_INFO, "\tprivate resource offsets:\n");
-                    for (uint32_t i = 0; i != node->private_resource_count; i++)
+                    for (uint32_t i = 0;
+                         i != node->private_resource_count;
+                         i++)
                     {
                         printk(LOGLEVEL_INFO,
                                "\t\t%" PRIu32 ". 0x%" PRIx32 "\n",

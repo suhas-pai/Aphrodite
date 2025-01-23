@@ -83,6 +83,8 @@ bool sv_equals_c_str(const struct string_view sv, const char *const c_str) {
     return sv_compare_c_str(sv, c_str) == 0;
 }
 
+uint64_t sv_hash(struct string_view sv);
+
 char sv_front(struct string_view sv);
 char sv_back(struct string_view sv);
 

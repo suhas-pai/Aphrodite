@@ -14,11 +14,15 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
+struct pci_bus *pci_entity_get_bus(const struct pci_entity_info *const entity) {
+    return parent_of(entity->device.bus, struct pci_bus, bus);
+}
+
 __debug_optimize(3) uint16_t
 pci_entity_get_requester_id(const struct pci_entity_info *const entity) {
-    return (uint16_t)entity->loc.bus << 8
-         | (uint16_t)entity->loc.slot << 3
-         | entity->loc.function;
+    return (uint16_t)entity->loc.bus << 8 |
+           (uint16_t)entity->loc.slot << 3 |
+           entity->loc.function;
 }
 
 __debug_optimize(3)
@@ -235,9 +239,11 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
             uint16_t result = 0;
             with_spinlock_preempt_disabled(&entity->lock, {
-                const uint64_t msix_address = isr_get_msix_address(cpu, vector);
                 result =
-                    bind_msix_to_vector(entity, msix_address, vector, masked);
+                    bind_msix_to_vector(entity,
+                                        isr_get_msix_address(cpu, vector),
+                                        vector,
+                                        masked);
             });
 
             return result;
@@ -333,6 +339,16 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
     verify_not_reached();
 }
 
+const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
+    carr_foreach(pci_vendor_info_list, iter) {
+        if (entity->vendor_id == iter->id) {
+            return iter->name;
+        }
+    }
+
+    return "unknown";
+}
+
 __debug_optimize(3) void
 pci_entity_enable_privls(struct pci_entity_info *const entity,
                          const uint16_t privls)
@@ -370,18 +386,13 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
 __debug_optimize(3)
 void pci_entity_info_destroy(struct pci_entity_info *const entity) {
     spinlock_deinit(&entity->lock);
-    with_spinlock_preempt_disabled(&entity->bus->lock, {
-        list_deinit(&entity->list_in_entities);
-        list_deinit(&entity->list_in_domain);
-    });
 
     struct pci_entity_bar_info *const bar_list = entity->bar_list;
     const uint8_t bar_count =
         entity->header_kind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE  ?
             PCI_BAR_COUNT_FOR_BRIDGE : PCI_BAR_COUNT_FOR_GENERAL;
 
-    for (uint8_t i = 0; i != bar_count; i++) {
-        struct pci_entity_bar_info *const bar = &bar_list[i];
+    ptrarr_foreach(bar_list, bar_count, bar) {
         if (bar->mmio != nullptr) {
             vunmap_mmio(bar->mmio);
         }
@@ -413,8 +424,8 @@ void pci_entity_info_destroy(struct pci_entity_info *const entity) {
     }
 
     array_destroy(&entity->vendor_cap_list);
+    device_remove(&entity->device);
 
-    entity->bus = nullptr;
     entity->loc = PCI_LOCATION_NULL();
 
     entity->id = 0;

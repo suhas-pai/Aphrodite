@@ -3,18 +3,23 @@
  * © suhas pai
  */
 
+#include "dev/pci/device.h"
 #include "dev/pci/driver.h"
+#include "dev/pci/entity.h"
 
 #include "dev/virtio/driver.h"
 #include "dev/virtio/init.h"
 #include "dev/virtio/transport.h"
 
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "lib/util.h"
 
-static void init_from_pci(struct pci_entity_info *const pci_entity) {
+static bool virtio_pci_probe(struct device *const device) {
+    struct pci_entity_info *const pci_entity =
+        parent_of(device, struct pci_entity_info, device);
+
     enum virtio_device_kind device_kind = pci_entity->id;
     const char *kind = nullptr;
 
@@ -62,7 +67,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
             printk(LOGLEVEL_WARN,
                    "virtio-pci: device-id (0x%" PRIx16 ") is invalid\n",
                    device_kind);
-            return;
+            return false;
         }
 
         kind = virtio_device_kind_string[device_kind].begin;
@@ -70,7 +75,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
 
     if (pci_entity->max_bar_count == 0) {
         printk(LOGLEVEL_WARN, "virtio-pci: device has no bars\n");
-        return;
+        return false;
     }
 
     printk(LOGLEVEL_INFO, "virtio-pci: recognized %s\n", kind);
@@ -78,7 +83,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     const uint8_t cap_count = array_item_count(pci_entity->vendor_cap_list);
     if (cap_count == 0) {
         printk(LOGLEVEL_WARN, "virtio-pci: device has no capabilities\n");
-        return;
+        return false;
     }
 
     struct virtio_device virt_device = VIRTIO_DEVICE_PCI_INIT(virt_device);
@@ -250,7 +255,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                     .id = pci_read_virtio_cap_field(*iter, cap.id),
                 };
 
-                if (!array_append(&virt_device.shmem_regions, &region)) {
+                if (!array_add(&virt_device.shmem_regions, &region)) {
                     printk(LOGLEVEL_WARN,
                            "virtio-pci: failed to add shmem region to "
                            "array\n");
@@ -263,7 +268,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                 break;
             }
             case VIRTIO_PCI_CAP_VENDOR_CFG:
-                if (!array_append(&virt_device.vendor_cfg_list, iter)) {
+                if (!array_add(&virt_device.vendor_cfg_list, iter)) {
                     printk(LOGLEVEL_WARN,
                            "virtio-pci: failed to add vendor-cfg to array\n");
 
@@ -297,7 +302,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         printk(LOGLEVEL_WARN, "virtio-pci: device is missing a common-cfg\n");
         virtio_device_destroy(&virt_device);
 
-        return;
+        return false;
     }
 
     const bool is_trans = pci_entity->revision_id == 0;
@@ -308,7 +313,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                    "virtio-pci: device is legacy and unsupported\n");
 
             virtio_device_destroy(&virt_device);
-            return;
+            return false;
         }
     }
 
@@ -316,16 +321,24 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (virtio_device_init(&virt_device) == nullptr) {
         virtio_device_destroy(&virt_device);
     }
+
+    return true;
 }
 
-static const struct pci_driver pci_driver = {
-    .init = init_from_pci,
-    .match = PCI_DRIVER_MATCH_VENDOR,
-    .vendor = 0x1af4,
-};
+static void init_drivers() {
+    static struct pci_driver pci_driver = {
+        .match = PCI_DRIVER_MATCH_VENDOR,
+        .vendor = 0x1af4,
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("virtio-driver"),
-    .dtb = nullptr,
-    .pci = &pci_driver
-};
+    driver_initialize(&pci_driver.driver,
+                      &pci_device()->bus,
+                      SV_STATIC("pci-virtio"),
+                      virtio_pci_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

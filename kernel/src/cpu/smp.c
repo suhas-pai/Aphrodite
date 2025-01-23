@@ -37,22 +37,20 @@ void smp_init() {
     }
 
 #if !defined(__loongarch64)
-    struct limine_mp_info *const *const cpu_list = smp_resp->cpus;
-    const uint64_t cpu_count = smp_resp->cpu_count;
-
-    for (uint64_t i = 0; i != cpu_count; i++) {
+    ptrarr_foreach(smp_resp->cpus, smp_resp->cpu_count, cpu_iter) {
+        const struct limine_mp_info *const cpu = *cpu_iter;
     #ifdef __aarch64__
-        const uint64_t processor_id = cpu_list[i]->mpidr;
+        const uint64_t processor_id = cpu->mpidr;
     #else
-        const uint64_t processor_id = cpu_list[i]->processor_id;
+        const uint64_t processor_id = cpu->processor_id;
     #endif
 
         printk(LOGLEVEL_INFO,
                "smp: found cpu with processor-id %" PRIu64 "\n",
                processor_id);
 
-        if (cpu_list[i]->field != smp_resp->bsp_field) {
-            cpu_add(cpu_list[i]);
+        if (cpu->field != smp_resp->bsp_field) {
+            cpu_add(cpu);
         }
     }
 #endif /* !defined(__loongarch64) */

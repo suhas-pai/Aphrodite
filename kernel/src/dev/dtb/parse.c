@@ -144,11 +144,11 @@ parse_reg_pairs(const void *const dtb,
     struct devicetree_prop_reg_info *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
 
-    for (uint32_t i = 0; i != entry_count; i++) {
+    ptrarr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair(&data,
                              data_end,
                              (uint32_t)addr_cells,
-                             &info[i].address))
+                             &entry->address))
         {
             return false;
         }
@@ -156,7 +156,7 @@ parse_reg_pairs(const void *const dtb,
         if (!parse_cell_pair(&data,
                              data_end,
                              (uint32_t)size_cells,
-                             &info[i].size))
+                             &entry->size))
         {
             return false;
         }
@@ -214,12 +214,12 @@ parse_ranges_prop(const void *const dtb,
     struct devicetree_prop_range_info *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
 
-    for (uint32_t i = 0; i != entry_count; i++) {
+    ptrarr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair_and_flags(&data,
                                        data_end,
                                        (uint32_t)child_addr_cells,
-                                       &info[i].child_bus_address,
-                                       &info[i].flags))
+                                       &entry->child_bus_address,
+                                       &entry->flags))
         {
             return false;
         }
@@ -227,7 +227,7 @@ parse_ranges_prop(const void *const dtb,
         if (!parse_cell_pair(&data,
                              data_end,
                              (uint32_t)parent_addr_cells,
-                             &info[i].parent_bus_address))
+                             &entry->parent_bus_address))
         {
             return false;
         }
@@ -235,7 +235,7 @@ parse_ranges_prop(const void *const dtb,
         if (!parse_cell_pair(&data,
                              data_end,
                              (uint32_t)size_cells,
-                             &info[i].size))
+                             &entry->size))
         {
             return false;
         }
@@ -567,7 +567,7 @@ parse_interrupt_map_prop(const void *const dtb,
             return false;
         }
 
-        if (!array_append(array, &info)) {
+        if (!array_add(array, &info)) {
             return false;
         }
 
@@ -624,22 +624,25 @@ parse_specifier_map_prop(const void *const dtb,
     struct devicetree_prop_spec_map_entry *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
 
-    for (uint32_t i = 0; i != entry_count; i++) {
+    uint32_t i = 0;
+    ptrarr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair(&data,
                              data_end,
                              entry_size,
-                             &info[i].child_specifier))
+                             &entry->child_specifier))
         {
             return false;
         }
 
         info[i].specifier_parent = fdt32_to_cpu(*data);
+
         data++;
+        i++;
 
         if (!parse_cell_pair(&data,
                              data_end,
                              entry_size,
-                             &info[i].parent_specifier))
+                             &entry->parent_specifier))
         {
             return false;
         }
@@ -1095,7 +1098,7 @@ parse_node_prop(const void *const dtb,
                 const struct intr_node_info info =
                     INTR_NODE_INFO_INIT(node, nodeoff, data, count);
 
-                if (!array_append(&later_info->intr_node_list, &info)) {
+                if (!array_add(&later_info->intr_node_list, &info)) {
                     return false;
                 }
 
@@ -1108,7 +1111,7 @@ parse_node_prop(const void *const dtb,
                 const struct intr_map_info info =
                     INTR_MAP_INFO_INIT(fdt_prop, node, (uint32_t)prop_len);
 
-                if (!array_append(&later_info->intr_map_list, &info)) {
+                if (!array_add(&later_info->intr_map_list, &info)) {
                     return false;
                 }
 
@@ -1437,7 +1440,7 @@ parse_node_prop(const void *const dtb,
     other_prop->data = (const fdt32_t *)(uint64_t)fdt_prop->data;
     other_prop->data_length = (uint32_t)prop_len;
 
-    if (!array_append(&node->other_props, &other_prop)) {
+    if (!array_add(&node->other_props, &other_prop)) {
         simple_free(&tree->alloc, other_prop);
         return false;
     }
@@ -1735,7 +1738,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
                 return false;
             }
 
-            if (!array_append(&intr_info_list, &info)) {
+            if (!array_add(&intr_info_list, &info)) {
                 parse_later_info_destroy(&later_info);
                 devicetree_node_free(tree, tree->root);
 

@@ -5,6 +5,12 @@
 
 #include <stdatomic.h>
 
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
+#include "dev/dtb/gic_compat.h"
+
+#include "dev/init.h"
 #include "sys/gic/api.h"
 #include "sys/gic/v2.h"
 
@@ -417,8 +423,8 @@ volatile uint64_t *gicdv2_get_msi_address(const isr_vector_t vector) {
 }
 
 __debug_optimize(3) enum isr_msi_support gicdv2_get_msi_support() {
-    return !list_empty(&g_msi_info_list)
-            ? ISR_MSI_SUPPORT_MSI : ISR_MSI_SUPPORT_NONE;
+    return !list_empty(&g_msi_info_list) ?
+            ISR_MSI_SUPPORT_MSI : ISR_MSI_SUPPORT_NONE;
 }
 
 static
@@ -498,7 +504,7 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
         .id = array_item_count(g_dist.msi_frame_list),
     };
 
-    assert_msg(array_append(&g_dist.msi_frame_list, &msi_frame),
+    assert_msg(array_add(&g_dist.msi_frame_list, &msi_frame),
                "gicd: failed to append msi-frame to list");
 }
 
@@ -663,11 +669,11 @@ void gicv2_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq_number) {
     }
 }
 
-bool
-gicv2_init_from_dtb(const struct devicetree *const tree,
-                    const struct devicetree_node *const node)
-{
-    (void)tree;
+static bool gicv2_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     const struct devicetree_prop *const intr_controller_node =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
@@ -693,11 +699,11 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
     }
 
     struct devicetree_prop_reg_info *const dist_reg_info =
-        array_front(reg_prop->list);
+        array_front(&reg_prop->list, struct devicetree_prop_reg_info);
 
     struct range cpu_reg_range = RANGE_EMPTY();
     struct devicetree_prop_reg_info *const cpu_reg_info =
-        array_at(reg_prop->list, /*index=*/1);
+        array_at(&reg_prop->list, struct devicetree_prop_reg_info, /*index=*/1);
 
     if (!range_create_and_verify(cpu_reg_info->address,
                                  cpu_reg_info->size,
@@ -746,7 +752,7 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
         }
 
         struct devicetree_prop_reg_info *const msi_reg_info =
-            array_front(msi_reg_prop->list);
+            array_front(&msi_reg_prop->list, struct devicetree_prop_reg_info);
 
         if (msi_reg_info->size != 0x1000) {
             printk(LOGLEVEL_INFO,
@@ -759,3 +765,23 @@ gicv2_init_from_dtb(const struct devicetree *const tree,
 
     return true;
 }
+
+static void init_drivers() {
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+        .compat_list = gicv2_compat_sv_list,
+        .compat_count = countof(gicv2_compat_sv_list),
+    };
+
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("gicv2"),
+                      gicv2_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

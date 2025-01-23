@@ -3,17 +3,16 @@
  * © suhas pai
  */
 
-#include "dev/pci/bar.h"
 #include "dev/pci/entity.h"
+
+#if !defined(__x86_64__)
+    #include "dev/pci/resource.h"
+#endif /* !defined(__x86_64__) */
 
 #include "dev/printk.h"
 
 #include "sys/mmio.h"
 #include "sys/pio.h"
-
-#if !defined(__x86_64__)
-    #include "dev/pci/resource.h"
-#endif /* !defined(__x86_64__) */
 
 bool pci_map_bar(struct pci_entity_bar_info *const bar) {
     if (!bar->is_mmio) {
@@ -85,10 +84,8 @@ pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
     find_ptr_in_bus_resource(struct pci_entity_info *const entity,
                              const uint32_t offset)
     {
-        array_foreach(&entity->bus->resources,
-                      const struct pci_bus_resource,
-                      res)
-        {
+        struct pci_bus *const bus = pci_entity_get_bus(entity);
+        array_foreach(&bus->resources, const struct pci_bus_resource, res) {
             const struct range child_range =
                 RANGE_INIT(res->child_base, res->size);
 

@@ -29,7 +29,7 @@ __debug_optimize(3) bool array_initialized(const struct array array) {
 }
 
 __debug_optimize(3)
-bool array_append(struct array *const array, const void *const item) {
+bool array_add(struct array *const array, const void *const item) {
     return gbuffer_append_data(&array->gbuffer, item, array->object_size);
 }
 
@@ -60,19 +60,19 @@ __debug_optimize(3) const void *array_end(const struct array array) {
 }
 
 __debug_optimize(3)
-void *array_at(const struct array array, const uint32_t index) {
+void *array_get_at(const struct array array, const uint32_t index) {
     assert(index_in_bounds(index, array_item_count(array)));
 
     const uint32_t byte_index = ckd_mul_assert(index, array.object_size);
     return array.gbuffer.begin + byte_index;
 }
 
-__debug_optimize(3) void *array_front(const struct array array) {
+__debug_optimize(3) void *array_get_front(const struct array array) {
     assert(!array_empty(array));
     return array_begin(array);
 }
 
-__debug_optimize(3) void *array_back(const struct array array) {
+__debug_optimize(3) void *array_get_back(const struct array array) {
     assert(!array_empty(array));
     return gbuffer_current_ptr(array.gbuffer) - array.object_size;
 }

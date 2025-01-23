@@ -5,8 +5,12 @@
 
 #include "dev/time/sources/pl031.h"
 
-#include "dev/driver.h"
-#include "dev/printk.h"
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
+
+#include "dev/init.h"
+#include "mm/mmio.h"
 
 #include "sys/mmio.h"
 #include "time/kstrftime.h"
@@ -28,18 +32,18 @@ struct pl031_header {
 static struct mmio_region *g_mmio = nullptr;
 static volatile struct pl031_header *g_header = nullptr;
 
-bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
-{
+static bool pl031_dtb_probe(struct device *const the_device) {
     if (g_mmio != nullptr) {
         printk(LOGLEVEL_WARN, "pl031: device already found. ignoring\n");
         return true;
     }
 
-    (void)tree;
-    struct devicetree_prop_reg *const reg_prop =
-        (struct devicetree_prop_reg *)(uint64_t)
+    const struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
+    const struct devicetree_prop_reg *const reg_prop =
+        (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
 
     if (reg_prop == nullptr) {
@@ -53,7 +57,9 @@ init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
-    struct devicetree_prop_reg_info *const reg_info = array_front(reg_list);
+    struct devicetree_prop_reg_info *const reg_info =
+        array_front(&reg_list, struct devicetree_prop_reg_info);
+
     struct range reg_range = RANGE_EMPTY();
 
     if (!range_create_and_verify(reg_info->address,
@@ -98,17 +104,23 @@ __debug_optimize(3) sec_t pl031_get_wallclock() {
     return mmio_read(&g_header->data);
 }
 
-static const struct string_view compat[] = { SV_STATIC("arm,pl031") };
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+static void init_drivers() {
+    static const struct string_view compat[] = { SV_STATIC("arm,pl031") };
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
-    .compat_list = compat,
-    .compat_count = countof(compat),
-};
+        .compat_list = compat,
+        .compat_count = countof(compat),
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("arm,pl031.driver"),
-    .dtb = &dtb_driver,
-    .pci = nullptr
-};
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("arm-pl031"),
+                      pl031_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

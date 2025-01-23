@@ -39,7 +39,7 @@ typedef uint8_t page_section_t;
 struct process;
 struct page {
     _Atomic uint32_t flags;
-    _Atomic uint8_t state;
+    _Atomic enum page_state state;
 
     page_section_t section;
 

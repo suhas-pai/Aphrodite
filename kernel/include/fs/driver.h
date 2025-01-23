@@ -8,7 +8,7 @@
 
 struct partition;
 struct fs_driver {
-    const struct string_view name;
+    struct string_view name;
     bool (*try_init)(struct partition *partition);
 } __aligned(16);
 

@@ -8,22 +8,20 @@
 #include "dev/pci/domain.h"
 #include "lib/adt/range.h"
 
-#include "lib/list.h"
-
 struct pci_domain_ecam {
     struct pci_domain domain;
 
-    struct list list;
     struct range bus_range;
     struct mmio_region *mmio;
 };
 
 struct pci_domain_ecam *
 pci_add_ecam_domain(struct range bus_range,
+                    struct bus *const bus,
                     uint64_t base_addr,
                     uint16_t segment);
 
-bool pci_remove_ecam_domain(struct pci_domain_ecam *ecam_domain);
+void pci_remove_ecam_domain(struct pci_domain_ecam *ecam_domain);
 
 uint64_t
 pci_ecam_domain_loc_get_base(const struct pci_domain_ecam *domain,

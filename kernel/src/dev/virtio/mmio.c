@@ -3,9 +3,13 @@
  * © suhas pai
  */
 
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
+
 #include "dev/virtio/init.h"
 
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "sys/mmio.h"
@@ -41,11 +45,11 @@ struct virtio_device *virtio_mmio_init(struct virtio_device *const device) {
     return virtio_device_init(device);
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
-{
-    (void)tree;
+static bool virtio_mmio_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_reg *const reg =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
@@ -64,7 +68,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg_info *const reg_info =
-        array_front(reg->list);
+        array_front(&reg->list, const struct devicetree_prop_reg_info);
 
     if (reg_info->size < sizeof(struct virtio_mmio_device)) {
         printk(LOGLEVEL_WARN,
@@ -103,19 +107,25 @@ init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-static const struct string_view compat_list[] = {
-    SV_STATIC("virtio,mmio")
-};
+static void init_drivers() {
+    static const struct string_view compat_list[] = {
+        SV_STATIC("virtio,mmio")
+    };
 
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
-    .compat_list = compat_list,
-    .compat_count = countof(compat_list)
-};
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+        .compat_list = compat_list,
+        .compat_count = countof(compat_list)
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("virtio-driver"),
-    .dtb = &dtb_driver,
-    .pci = nullptr
-};
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("virtio-mmio"),
+                      virtio_mmio_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

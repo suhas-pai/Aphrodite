@@ -44,7 +44,9 @@ void fadt_init(const struct os_acpi_fadt *const fadt) {
             printk(LOGLEVEL_INFO, "fadt: psci needs hvc\n");
         }
 
+    #ifndef USE_UACPI
         psci_init_from_acpi(use_hvc);
+    #endif /* !defined(USE_UACPI) */
     }
 #endif /* defined(__x86_64__) */
 }

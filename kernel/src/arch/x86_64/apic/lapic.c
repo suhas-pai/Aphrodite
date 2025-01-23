@@ -305,6 +305,6 @@ void lapic_add(const struct lapic_info *const lapic_info) {
                lapic_info->apic_id);
     }
 
-    assert_msg(array_append(&g_lapic_list, lapic_info),
+    assert_msg(array_add(&g_lapic_list, lapic_info),
                "lapic: failed to add local-apic info to array");
 }

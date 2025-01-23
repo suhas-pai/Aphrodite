@@ -3,7 +3,6 @@
  * © suhas pai
  */
 
-#include "acpi/api.h"
 #include "apic/lapic.h"
 
 #include "asm/msr.h"

@@ -15,7 +15,11 @@
 #endif /* defined(__x86_64__) */
 
 #include "acpi/api.h"
+
+#include "dev/bus.h"
+#include "dev/init.h"
 #include "dev/printk.h"
+
 #include "time/time.h"
 
 void serial_init() {
@@ -80,6 +84,10 @@ void arch_init_time_pre_dev_init();
 
 void dev_init() {
     arch_init_time_pre_acpi();
+    dev_inits_foreach(init) {
+        (*init)();
+    }
+
     acpi_init();
 
     arch_init_time_pre_dev_init();
@@ -91,8 +99,16 @@ void dev_init() {
            nano_to_seconds(nsec_since_boot()));
 }
 
+__debug_optimize(3) struct bus *dev_root_bus() {
+    static struct bus root =
+        BUS_INIT(root, /*parent=*/nullptr, /*probe=*/nullptr);
+
+    return &root;
+}
+
 void dev_init_drivers() {
+    bus_subsystem_init();
     arch_init_dev_drivers();
-    dtb_init();
+
     pci_init();
 }

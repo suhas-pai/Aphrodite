@@ -10,25 +10,29 @@
 
 __debug_optimize(3) static inline void
 lock_events(struct event *const *const events, const uint32_t event_count) {
-    for (uint32_t i = 0; i != event_count; i++) {
-        spin_acquire(&events[i]->lock);
+    ptrarr_foreach(events, event_count, event) {
+        spin_acquire(&(*event)->lock);
     }
 }
 
 __debug_optimize(3) static inline void
 unlock_events(struct event *const *const events, const uint32_t event_count) {
-    for (uint32_t i = 0; i != event_count; i++) {
-        spin_release(&events[i]->lock);
+    ptrarr_foreach(events, event_count, event) {
+        spin_release(&(*event)->lock);
     }
 }
 
 __debug_optimize(3) static inline int64_t
 find_pending(struct event *const *const events, const uint32_t event_count) {
-    for (uint32_t i = 0; i != event_count; i++) {
-        if (events[i]->pending != 0) {
-            events[i]->pending--;
+    uint32_t i = 0;
+    ptrarr_foreach(events, event_count, iter) {
+        struct event *const event = *iter;
+        if (event->pending != 0) {
+            event->pending--;
             return i;
         }
+
+        i++;
     }
 
     return -1;
@@ -39,11 +43,12 @@ add_listeners_to_events(struct event *const *const events,
                         const uint32_t event_count,
                         struct thread *const thread)
 {
-    for (uint32_t i = 0; i != event_count; i++) {
+    ptrarr_foreach(events, event_count, event_ptr) {
+        struct event *const event = *event_ptr;
         const struct event_listener listener =
-            EVENT_LISTENER_INIT(thread, array_item_count(events[i]->listeners));
+            EVENT_LISTENER_INIT(thread, array_item_count(event->listeners));
 
-        assert(array_append(&events[i]->listeners, &listener));
+        assert(array_add(&event->listeners, &listener));
     }
 }
 
@@ -54,7 +59,7 @@ remove_thread_from_listeners(struct event *const event,
     const uint32_t item_count = array_item_count(event->listeners);
     for (uint32_t index = 0; index != item_count; index++) {
         const struct event_listener *const listener =
-            array_at(event->listeners, index);
+            array_at(&event->listeners, const struct event_listener, index);
 
         if (listener->waiter == thread) {
             array_remove_index(&event->listeners, index);

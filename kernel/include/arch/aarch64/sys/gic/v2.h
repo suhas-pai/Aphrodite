@@ -5,17 +5,10 @@
 
 #pragma once
 
-#include "dev/dtb/node.h"
-#include "dev/dtb/tree.h"
-
 #include "cpu/isr.h"
-#include "sys/isr.h"
+#include "sys/irq.h"
 
 struct cpu_info;
-
-bool
-gicv2_init_from_dtb(const struct devicetree *tree,
-                    const struct devicetree_node *node);
 
 void gicv2_init_on_this_cpu();
 bool gicv2_init_from_info(struct range cpu_range, uint64_t phys_base_address);

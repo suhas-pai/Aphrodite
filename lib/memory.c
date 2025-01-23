@@ -22,8 +22,7 @@ uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
     }
 #endif /* defined(__x86_64__) */
 
-    const uint16_t *const end = buf + count;
-    for (uint16_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         *iter = c;
     }
 
@@ -66,8 +65,7 @@ uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
         *buf = c;
     }
 #else
-    const uint32_t *const end = buf + count;
-    for (uint32_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         *iter = c;
     }
 #endif /* defined(__aarch64__) */
@@ -111,8 +109,7 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
         *buf = c;
     }
 #else
-    const uint64_t *const end = buf + count;
-    for (uint64_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         *iter = c;
     }
 #endif /* defined(__aarch64__) */
@@ -120,10 +117,36 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
     return ret;
 }
 
+__debug_optimize(3) uint16_t *
+memcpy16(uint16_t *const dst, const uint16_t *const src, const uint64_t count) {
+    for (uint64_t i = 0; i != count; i++) {
+        dst[i] = src[i];
+    }
+
+    return dst;
+}
+
+__debug_optimize(3) uint32_t *
+memcpy32(uint32_t *const dst, const uint32_t *const src, const uint64_t count) {
+    for (uint64_t i = 0; i != count; i++) {
+        dst[i] = src[i];
+    }
+
+    return dst;
+}
+
+__debug_optimize(3) uint64_t *
+memcpy64(uint64_t *const dst, const uint64_t *const src, const uint64_t count) {
+    for (uint64_t i = 0; i != count; i++) {
+        dst[i] = src[i];
+    }
+
+    return dst;
+}
+
 __debug_optimize(3) bool
 membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
-    const uint8_t *const end = buf + count;
-    for (uint8_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         if (*iter != c) {
             return false;
         }
@@ -134,8 +157,7 @@ membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
 
 __debug_optimize(3) bool
 membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
-    const uint16_t *const end = buf + count;
-    for (uint16_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         if (*iter != c) {
             return false;
         }
@@ -146,7 +168,6 @@ membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
 
 __debug_optimize(3)
 bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
-    const uint32_t *const end = buf + count;
 #if defined(__aarch64__)
     if (count >= 2) {
         uint32_t left = 0;
@@ -178,7 +199,7 @@ bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
     }
 #endif /* defined(__aarch64__)*/
 
-    for (uint32_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         if (*iter != c) {
             return false;
         }
@@ -220,8 +241,7 @@ bool membuf64_is_all(uint64_t *buf, uint64_t count, const uint64_t c) {
     }
 #endif /* defined(__aarch64__)*/
 
-    const uint64_t *const end = buf + count;
-    for (uint64_t *iter = buf; iter != end; iter++) {
+    ptrarr_foreach(buf, count, iter) {
         if (*iter != c) {
             return false;
         }

@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include "dev/dtb/device.h"
+
 #include "dev/printk.h"
 #include "mm/mmio.h"
 #include "sys/plic.h"
@@ -95,11 +97,11 @@ const char *plic_irq_kind_get_string(const enum plic_irq_kind kind) {
     verify_not_reached();
 }
 
-bool
-plic_init_from_dtb(const struct devicetree *const tree,
-                   const struct devicetree_node *const node)
-{
-    (void)tree;
+bool plic_dtb_probe(struct device *const device) {
+    const struct dtb_device *const dtb_device =
+        parent_of(device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = dtb_device->node;
     const struct devicetree_prop *const intr_cntlr_prop =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
@@ -149,7 +151,7 @@ plic_init_from_dtb(const struct devicetree *const tree,
         }
 
         const struct devicetree_prop_reg_info *const reg_info =
-            array_front(reg_prop->list);
+            array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg_info->size < sizeof(struct plic_registers)) {
             printk(LOGLEVEL_WARN,

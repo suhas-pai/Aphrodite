@@ -3,10 +3,13 @@
  * © suhas pai
  */
 
-#include "dev/uart/8250.h"
-#include "cpu/spinlock.h"
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
 
-#include "dev/driver.h"
+#include "dev/uart/8250.h"
+
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "mm/kmalloc.h"
@@ -204,11 +207,11 @@ uart8250_init(const port_t base,
     return true;
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
-{
-    (void)tree;
+static bool uart8250_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
@@ -224,7 +227,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg_info *const reg =
-        (const struct devicetree_prop_reg_info *)array_front(reg_prop->list);
+        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
     const struct devicetree_prop_clock_frequency *const clock_freq_prop =
         (const struct devicetree_prop_clock_frequency *)(uint64_t)
@@ -245,17 +248,26 @@ init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-static const struct string_view dtb_compat_list[] = { SV_STATIC("ns16550a") };
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+static void init_drivers() {
+    static const struct string_view dtb_compat_list[] = {
+        SV_STATIC("ns16550a")
+    };
 
-    .compat_list = dtb_compat_list,
-    .compat_count = countof(dtb_compat_list)
-};
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
 
-__driver static const struct driver uart8250_driver = {
-    .name = SV_STATIC("uart8250-driver"),
-    .dtb = &dtb_driver,
-    .pci = nullptr
-};
+        .compat_list = dtb_compat_list,
+        .compat_count = countof(dtb_compat_list)
+    };
+
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("uart8250"),
+                      uart8250_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

@@ -67,12 +67,12 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint64_t);
 
-        for (uint32_t i = 0; i != entry_count; i++) {
-            if (data[i] == 0) {
+        ptrarr_foreach(data, entry_count, entry) {
+            if (*entry == 0) {
                 continue;
             }
 
-            struct os_acpi_sdt *const sdt = phys_to_virt(data[i]);
+            struct os_acpi_sdt *const sdt = phys_to_virt(*entry);
             if (memcmp(sdt->signature, sig, sizeof(sdt->signature)) == 0) {
                 return sdt;
             }
@@ -83,12 +83,12 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint32_t);
 
-        for (uint32_t i = 0; i != entry_count; i++) {
-            if (data[i] == 0) {
+        ptrarr_foreach(data, entry_count, entry) {
+            if (*entry == 0) {
                 continue;
             }
 
-            struct os_acpi_sdt *const sdt = phys_to_virt(data[i]);
+            struct os_acpi_sdt *const sdt = phys_to_virt(*entry);
             if (memcmp(sdt->signature, sig, sizeof(sdt->signature)) == 0) {
                 return sdt;
             }
@@ -102,20 +102,20 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     return nullptr;
 }
 
-__debug_optimize(3) static inline
-void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
+__debug_optimize(3)
+static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
     if (has_xsdt()) {
         uint64_t *const data = (uint64_t *)(uint64_t)g_info.rsdt->ptrs;
         const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt))
-        / sizeof(uint64_t);
+            (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
+            sizeof(uint64_t);
 
-        for (uint32_t i = 0; i != entry_count; i++) {
-            if (data[i] == 0) {
+        ptrarr_foreach(data, entry_count, entry) {
+            if (*entry == 0) {
                 continue;
             }
 
-            struct os_acpi_sdt *const sdt = phys_to_virt(data[i]);
+            struct os_acpi_sdt *const sdt = phys_to_virt(*entry);
             callback(sdt);
         }
     } else {
@@ -124,12 +124,12 @@ void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint32_t);
 
-        for (uint32_t i = 0; i != entry_count; i++) {
-            if (data[i] == 0) {
+        ptrarr_foreach(data, entry_count, entry) {
+            if (*entry == 0) {
                 continue;
             }
 
-            struct os_acpi_sdt *const sdt = phys_to_virt(data[i]);
+            struct os_acpi_sdt *const sdt = phys_to_virt(*entry);
             callback(sdt);
         }
     }
@@ -141,8 +141,8 @@ static inline void acpi_init_each_sdt(const struct os_acpi_sdt *const sdt) {
         sv_create_nocheck(sdt->signature, sizeof(sdt->signature));
 
     printk(LOGLEVEL_INFO,
-        "acpi: found sdt \"" SV_FMT "\"\n",
-        SV_FMT_ARGS(signature_sv));
+           "acpi: found sdt \"" SV_FMT "\"\n",
+           SV_FMT_ARGS(signature_sv));
 
     if (memcmp(sdt->signature, "APIC", sizeof(sdt->signature)) == 0) {
         g_info.madt = (const struct os_acpi_madt *)sdt;
@@ -175,9 +175,9 @@ static inline void acpi_init_each_sdt(const struct os_acpi_sdt *const sdt) {
 __debug_optimize(3) static inline
 void acpi_print_each_sdt(const struct os_acpi_sdt *const sdt) {
     printk(LOGLEVEL_INFO,
-        "acpi: found sdt \"" SV_FMT "\"\n",
-        SV_FMT_ARGS(
-            sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
+           "acpi: found sdt \"" SV_FMT "\"\n",
+           SV_FMT_ARGS(
+               sv_create_nocheck(sdt->signature, sizeof(sdt->signature))));
 }
 
 void acpi_init(void) {
@@ -206,19 +206,19 @@ void acpi_init(void) {
         sv_create_nocheck(g_info.rsdp->oem_id, oem_id_length);
 
     printk(LOGLEVEL_INFO,
-            "acpi:\n"
-            "\t\toem is \"" SV_FMT "\"\n"
-            "\t\trevision: %" PRIu8 "\n"
-            "\t\tuses xsdt? %s\n"
-            "\t\trsdt at %p\n",
-            SV_FMT_ARGS(oem_id),
-            g_info.rsdp->revision,
-            has_xsdt() ? "yes" : "no",
-            g_info.rsdt);
+           "acpi:\n"
+           "\t\toem is \"" SV_FMT "\"\n"
+           "\t\trevision: %" PRIu8 "\n"
+           "\t\tuses xsdt? %s\n"
+           "\t\trsdt at %p\n",
+           SV_FMT_ARGS(oem_id),
+           g_info.rsdp->revision,
+           has_xsdt() ? "yes" : "no",
+           g_info.rsdt);
 
     acpi_recurse(acpi_print_each_sdt);
 
-    const __auto_type spcr = acpi_lookup_sdt("SPCR");
+    const struct os_acpi_sdt *const spcr = acpi_lookup_sdt("SPCR");
     if (spcr != nullptr) {
         spcr_init((const struct os_acpi_spcr *)spcr);
     }

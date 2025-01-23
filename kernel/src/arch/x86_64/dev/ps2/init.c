@@ -3,25 +3,31 @@
  * © suhas pai
  */
 
-#include "dev/ps2/keyboard.h"
 #include "dev/ps2/driver.h"
+#include "dev/ps2/keyboard.h"
 
 #include "asm/pause.h"
-
-#include "dev/pio.h"
+#include "cpu/isr.h"
 #include "dev/printk.h"
 
+static uint8_t g_read_status_port = 0x64;
+static uint8_t g_input_buffer_port = 0x60;
+
+static bool g_keyboard_initialized = false;
+static bool g_mouse_initialized = false;
+
+#define g_write_cmd_port g_read_status_port
 #define RETRY_LIMIT 10
 
 __debug_optimize(3) int16_t ps2_read_input_byte() {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
-        const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
+        const uint8_t byte = pio_read8(g_read_status_port);
         if ((byte & __PS2_STATUS_REG_OUTPUT_BUFFER_FULL) == 0) {
             cpu_pause();
             continue;
         }
 
-        return pio_read8(PIO_PORT_PS2_INPUT_BUFFER);
+        return pio_read8(g_input_buffer_port);
     }
 
     return -1;
@@ -29,7 +35,7 @@ __debug_optimize(3) int16_t ps2_read_input_byte() {
 
 __debug_optimize(3) bool ps2_write(const port_t port, const uint8_t value) {
     for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
-        const uint8_t byte = pio_read8(PIO_PORT_PS2_READ_STATUS);
+        const uint8_t byte = pio_read8(g_read_status_port);
         if (byte & __PS2_STATUS_REG_INPUT_BUFFER_FULL) {
             cpu_pause();
             continue;
@@ -43,7 +49,7 @@ __debug_optimize(3) bool ps2_write(const port_t port, const uint8_t value) {
 }
 
 __debug_optimize(3) bool ps2_send_command(const enum ps2_command command) {
-    return ps2_write(PIO_PORT_PS2_WRITE_CMD, command);
+    return ps2_write(g_write_cmd_port, command);
 }
 
 __debug_optimize(3) int16_t ps2_read_config() {
@@ -59,7 +65,7 @@ __debug_optimize(3) bool ps2_write_config(const uint8_t value) {
         return false;
     }
 
-    if (!ps2_write(PIO_PORT_PS2_INPUT_BUFFER, value)) {
+    if (!ps2_write(g_input_buffer_port, value)) {
         return false;
     }
 
@@ -74,7 +80,7 @@ bool send_byte_to_port(const enum ps2_port_id device, const uint8_t byte) {
         }
     }
 
-    return ps2_write(PIO_PORT_PS2_INPUT_BUFFER, byte);
+    return ps2_write(g_input_buffer_port, byte);
 }
 
 __debug_optimize(3)
@@ -215,7 +221,7 @@ static bool ps2_init_port(const enum ps2_port_id device_id) {
             printk(LOGLEVEL_INFO,
                    "ps2: got mf2 keyboard (with translation). Initializing\n");
 
-            ps2_keyboard_init(device_id);
+            ps2_keyboard_start(device_id);
             return true;
     }
 
@@ -226,7 +232,7 @@ static bool ps2_init_port(const enum ps2_port_id device_id) {
     return false;
 }
 
-void ps2_init() {
+void ps2_init_default() {
     if (!ps2_send_command(PS2_CMD_DISABLE_1ST_DEVICE)) {
         printk(LOGLEVEL_WARN, "ps2: failed to disable 1st device for init\n");
         return;
@@ -244,8 +250,8 @@ void ps2_init() {
     }
 
     ps2_config |=
-        __PS2_CNTRLR_CONFIG_1ST_PORT_INTERRUPT
-      | __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
+        __PS2_CNTRLR_CONFIG_1ST_PORT_INTERRUPT |
+        __PS2_CNTRLR_CONFIG_1ST_PORT_TRANSLATION;
 
     const bool has_second_port =
         ps2_config & __PS2_CNTRLR_CONFIG_2ND_PORT_CLOCK;
@@ -262,8 +268,8 @@ void ps2_init() {
     }
 
     bool first_port_enabled = true;
-    if (ps2_send_command(PS2_CMD_TEST_1ST_DEVICE)
-     && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
+    if (ps2_send_command(PS2_CMD_TEST_1ST_DEVICE) &&
+        ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
     {
         first_port_enabled = true;
     } else {
@@ -272,8 +278,8 @@ void ps2_init() {
 
     bool second_port_enabled = false;
     if (has_second_port) {
-        if (ps2_send_command(PS2_CMD_TEST_2ND_DEVICE)
-         && ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
+        if (ps2_send_command(PS2_CMD_TEST_2ND_DEVICE) &&
+            ps2_read_input_byte() == E_PS2_TEST_PORT_OK)
         {
             second_port_enabled = true;
         } else {
@@ -291,5 +297,37 @@ void ps2_init() {
         if (ps2_init_port(PS2_SECOND_PORT)) {
             printk(LOGLEVEL_INFO, "ps2: second port enabled\n");
         }
+    }
+}
+
+void
+ps2_init_keyboard(const port_t read_status_port,
+                  const port_t input_buffer_port,
+                  irq_number_t irq)
+{
+    (void)irq;
+
+    g_read_status_port = read_status_port;
+    g_input_buffer_port = input_buffer_port;
+
+    struct irq_pin *const pin = isr_get_irq_pin(irq);
+    isr_install_irq(pin,
+                    ps2_keyboard_interrupt,
+                    /*ctx=*/nullptr,
+                    /*masked=*/false);
+
+    g_keyboard_initialized = true;
+    if (g_mouse_initialized) {
+        ps2_init_default();
+    }
+}
+
+void ps2_init_mouse(const irq_number_t irq) {
+    struct irq_pin *const pin = isr_get_irq_pin(irq);
+    isr_install_irq(pin, /*handler=*/nullptr, /*ctx=*/nullptr, /*masked=*/true);
+
+    g_mouse_initialized = true;
+    if (g_keyboard_initialized) {
+        ps2_init_default();
     }
 }

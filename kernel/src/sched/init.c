@@ -11,7 +11,7 @@
 #include "sched/scheduler.h"
 
 void sched_init() {
-    assert(array_append(&kernel_process.threads, &kernel_main_thread));
+    assert(array_add(&kernel_process.threads, &kernel_main_thread));
 
     sched_init_on_cpu(&g_base_cpu_info);
     sched_init_irq();

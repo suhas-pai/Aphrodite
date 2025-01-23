@@ -238,8 +238,8 @@ setup_levels_lower_than(struct pg_walker *const walker,
         pte = table;
         entry = pte_read(pte);
 
-        if (!pte_is_present(entry)
-         || (pte_level_can_have_lg_page(level) && pte_is_large(entry)))
+        if (!pte_is_present(entry) ||
+            (pte_level_can_have_lg_page(level) && pte_is_large(entry)))
         {
             walker->level = level;
             break;

@@ -401,8 +401,7 @@ ahci_port_handle_irq(const uint64_t vector,
     mmio_write(&hba->regs->interrupt_status, pending_ports);
     if (pending_ports != 0) {
         for_each_lsb_one_bit(pending_ports, /*start_index=*/0, pending_index) {
-            for (uint32_t index = 0; index != hba->port_count; index++) {
-                struct ahci_hba_port *const port = &hba->port_list[index];
+            ptrarr_foreach(hba->port_list, hba->port_count, port) {
                 if (port->index != pending_index) {
                     continue;
                 }
@@ -418,8 +417,7 @@ ahci_port_handle_irq(const uint64_t vector,
             }
         }
     } else {
-        for (uint32_t index = 0; index != hba->port_count; index++) {
-            struct ahci_hba_port *const port = &hba->port_list[index];
+        ptrarr_foreach(hba->port_list, hba->port_count, port) {
             const uint32_t interrupt_status =
                 handle_irq_for_port(port, finished_cmdhdrs, port_count);
 
@@ -430,10 +428,10 @@ ahci_port_handle_irq(const uint64_t vector,
         }
     }
 
-    lapic_eoi();
-    for (uint8_t i = 0; i != port_count; i++) {
-        struct ahci_hba_port *const port = ports_with_results[i];
+    uint8_t i = 0;
 
+    lapic_eoi();
+    ptrarr_foreach(hba->port_list, hba->port_count, port) {
         const uint32_t interrupt_status = port_interrupt_status[i];
         const bool result =
             (interrupt_status & __AHCI_HBA_PORT_IS_ERROR_FLAGS) == 0;
@@ -447,6 +445,7 @@ ahci_port_handle_irq(const uint64_t vector,
         }
 
         enable_port_interrupts(port->spec);
+        i++;
     }
 }
 

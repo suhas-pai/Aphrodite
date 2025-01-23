@@ -3,9 +3,12 @@
  * © suhas pai
  */
 
-#include "dev/dtb/tree.h"
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
 
 #include "cpu/util.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "lib/util.h"
@@ -82,11 +85,11 @@ __debug_optimize(3) void syscon_reboot() {
     mmio_write(reg, meth_info->value);
 }
 
-bool
-syscon_init_from_dtb(const struct devicetree *const tree,
-                     const struct devicetree_node *const node)
-{
-    (void)tree;
+bool syscon_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     if (g_mmio != nullptr) {
         printk(LOGLEVEL_WARN,
                "syscon: multiple syscons found, ignoring one found in dtb\n");
@@ -112,7 +115,9 @@ syscon_init_from_dtb(const struct devicetree *const tree,
             return false;
         }
 
-        struct devicetree_prop_reg_info *const reg= array_front(reg_prop->list);
+        struct devicetree_prop_reg_info *const reg =
+            array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+
         if (reg->size != SYSCON_MMIO_SIZE) {
             printk(LOGLEVEL_WARN,
                    "syscon: dtb-node's 'reg' property is of the incorrect "
@@ -261,16 +266,88 @@ init_method_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-__debug_optimize(3) bool
-syscon_init_poweroff_dtb(const struct devicetree *const tree,
-                         const struct devicetree_node *const node)
-{
+__debug_optimize(3)
+bool syscon_poweroff_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
+    const struct devicetree *const tree = device->tree;
+
     return init_method_from_dtb(tree, node, SYSCON_METHOD_POWEROFF);
 }
 
-__debug_optimize(3) bool
-syscon_init_reboot_dtb(const struct devicetree *const tree,
-                       const struct devicetree_node *const node)
-{
+__debug_optimize(3)
+bool syscon_reboot_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
+    const struct devicetree *const tree = device->tree;
+
     return init_method_from_dtb(tree, node, SYSCON_METHOD_REBOOT);
 }
+
+static void init_drivers() {
+    static const struct string_view syscon_compat_list[] = {
+        SV_STATIC("syscon")
+    };
+
+    static struct dtb_driver syscon_dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+        .compat_list = syscon_compat_list,
+        .compat_count = countof(syscon_compat_list),
+    };
+
+    driver_initialize(&syscon_dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("riscv64-syscon"),
+                      syscon_poweroff_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+
+    static const struct string_view poweroff_compat_list[] = {
+        SV_STATIC("syscon-poweroff")
+    };
+
+    static struct dtb_driver poweroff_dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+        .compat_list = poweroff_compat_list,
+        .compat_count = countof(poweroff_compat_list),
+    };
+
+    driver_initialize(&poweroff_dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("riscv64-syscon-poweroff"),
+                      syscon_poweroff_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+
+    static const struct string_view reboot_compat_list[] = {
+        SV_STATIC("syscon-reboot")
+    };
+
+    static struct dtb_driver reboot_dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+        .compat_list = reboot_compat_list,
+        .compat_count = countof(reboot_compat_list),
+    };
+
+    driver_initialize(&reboot_dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("riscv64-syscon-reboot"),
+                      syscon_reboot_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

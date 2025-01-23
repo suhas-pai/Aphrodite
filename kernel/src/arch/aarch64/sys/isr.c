@@ -155,8 +155,11 @@ isr_set_msi_vector(const isr_vector_t vector,
            vector);
 }
 
-struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
-    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
+    if (!index_in_bounds(irq, countof(g_irq_pin_list))) {
+        return nullptr;
+    }
+
     return &g_irq_pin_list[irq];
 }
 
@@ -175,7 +178,7 @@ isr_install_irq(struct irq_pin *const pin,
 }
 
 void *isr_uninstall_irq(struct irq_pin *const pin) {
-    void *result = NULL;
+    void *result = nullptr;
     if (pin->vector >= GIC_ITS_LPI_INTERRUPT_START) {
         const uint16_t index = pin->vector - GIC_ITS_LPI_INTERRUPT_START;
         result = g_lpi_irq_info_list[index].ctx;

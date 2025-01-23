@@ -3,8 +3,9 @@
  * © suhas pai
  */
 
-#include "dev/dtb/gic_compat.h"
+#include "dev/dtb/bus.h"
 #include "dev/dtb/init.h"
+#include "dev/dtb/tree.h"
 
 #include "sys/gic/v2.h"
 #include "sys/gic/v3.h"
@@ -222,26 +223,22 @@ void gic_init_from_dtb() {
         return;
     }
 
-    const struct dtb_driver gicv3_driver = {
-        .init = gicv3_init_from_dtb,
-        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+    bool found = false;
+    bus_foreach_driver(dtb_bus(), struct dtb_driver, driver.list, driver) {
+        if (sv_equals(driver->driver.name, SV_STATIC("gicv3"))) {
+            dtb_init_nodes_for_driver(driver, tree, tree->root);
+            found = true;
 
-        .compat_list = gicv3_compat_sv_list,
-        .compat_count = countof(gicv3_compat_sv_list),
-    };
+            break;
+        }
 
-    if (dtb_init_nodes_for_driver(&gicv3_driver, tree, tree->root)) {
-        return;
+        if (sv_equals(driver->driver.name, SV_STATIC("gicv2"))) {
+            dtb_init_nodes_for_driver(driver, tree, tree->root);
+            found = true;
+
+            break;
+        }
     }
 
-    const struct dtb_driver gic_driver = {
-        .init = gicv2_init_from_dtb,
-        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
-
-        .compat_list = gicv2_compat_sv_list,
-        .compat_count = countof(gicv2_compat_sv_list),
-    };
-
-    assert_msg(dtb_init_nodes_for_driver(&gic_driver, tree, tree->root),
-               "dtb: gicv2/gicv3 not found or was malformed");
+    assert_msg(found, "dtb: gicv2/gicv3 not found or was malformed");
 }

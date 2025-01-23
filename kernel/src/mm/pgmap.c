@@ -368,8 +368,8 @@ find_highest_possible_level(struct pg_walker *const walker,
         }
 
         const uint64_t largepage_size = PAGE_SIZE_AT_LEVEL(level);
-        if (!has_align(addr_range.front + offset, largepage_size)
-         || offset + largepage_size > addr_range.size)
+        if (!has_align(addr_range.front + offset, largepage_size) ||
+            offset + largepage_size > addr_range.size)
         {
             continue;
         }
@@ -690,8 +690,8 @@ pgmap_at(struct pagemap *const pagemap,
              && pte_flags_equal(entry, walker.level, options->leaf_pte_flags))
             {
                 offset =
-                    walker_virt_addr + PAGE_SIZE_AT_LEVEL(walker.level)
-                  - virt_addr;
+                    walker_virt_addr + PAGE_SIZE_AT_LEVEL(walker.level) -
+                    virt_addr;
 
                 if (!range_has_index(phys_range, offset)) {
                     intr_restore(flag);
@@ -977,8 +977,8 @@ pgmap_alloc_with_pgwalker(struct pg_walker *const walker,
         }
 
         virt_addr +=
-            (old_total_remaining_leaf_pte - total_remaining_leaf_pte)
-            * PAGE_SIZE;
+            (old_total_remaining_leaf_pte - total_remaining_leaf_pte) *
+            PAGE_SIZE;
     } while (true);
 
     const enum pgmap_alloc_result result =

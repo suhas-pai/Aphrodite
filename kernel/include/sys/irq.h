@@ -19,9 +19,16 @@ enum irq_trigger_mode : uint8_t {
 };
 
 struct irq_pin {
-    uint16_t irq;
+    irq_number_t irq;
     isr_vector_t vector;
 
     enum irq_polarity polarity : 1;
     enum irq_trigger_mode trigger_mode : 1;
+
+    bool initialized : 1;
 };
+
+void
+irq_pin_setup(struct irq_pin *pin,
+              enum irq_polarity polarity,
+              enum irq_trigger_mode trigger_mode);

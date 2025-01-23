@@ -6,12 +6,15 @@
 #include "dev/ahci/device.h"
 #include "dev/ahci/irq.h"
 
+#include "dev/pci/device.h"
+#include "dev/pci/driver.h"
+#include "dev/pci/entity.h"
 #include "dev/pci/structs.h"
 
 #include "asm/pause.h"
 #include "cpu/isr.h"
 
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "lib/bits.h"
@@ -184,8 +187,8 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
     }
 
     bool init_one_port = false;
-    for (uint8_t index = 0; index != usable_port_count; index++) {
-        if (ahci_spec_hba_port_init(&hba->port_list[index])) {
+    ptrarr_foreach(hba->port_list, hba->port_count, port) {
+        if (ahci_spec_hba_port_init(port)) {
             init_one_port = true;
         }
     }
@@ -202,17 +205,20 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
     return true;
 }
 
-static void init_from_pci(struct pci_entity_info *const pci_entity) {
+static bool ahci_pci_probe(struct device *const device) {
+    struct pci_entity_info *const pci_entity =
+        parent_of(device, struct pci_entity_info, device);
+
     if (pci_entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
         printk(LOGLEVEL_WARN, "ahci: doesn't support msi[x]. skipping init\n");
-        return;
+        return false;
     }
 
     if (!index_in_bounds(AHCI_HBA_REGS_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN,
                "ahci: pci-device has fewer than %" PRIu32 " bars\n",
                AHCI_HBA_REGS_BAR_INDEX);
-        return;
+        return false;
     }
 
     struct pci_entity_bar_info *const bar =
@@ -223,7 +229,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                "ahci: pci-device doesn't have the required bar at "
                "index %" PRIu32 "\n",
                AHCI_HBA_REGS_BAR_INDEX);
-        return;
+        return false;
     }
 
     if (!bar->is_mmio) {
@@ -231,14 +237,14 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                "ahci: pci-device's bar at index %" PRIu32 " isn't an mmio "
                "bar\n",
                AHCI_HBA_REGS_BAR_INDEX);
-        return;
+        return false;
     }
 
     if (!pci_map_bar(bar)) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to map pci bar at index %" PRIu32 "\n",
                AHCI_HBA_REGS_BAR_INDEX);
-        return;
+        return false;
     }
 
     pci_entity_enable_privls(pci_entity,
@@ -276,22 +282,30 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         pci_entity_disable_privls(pci_entity);
         pci_unmap_bar(bar);
     }
+
+    return true;
 }
 
-static const struct pci_driver pci_driver = {
-    .vendor = 0x1af4,
-    .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
-    .subclass = PCI_ENTITY_SUBCLASS_SATA,
-    .prog_if = 0x1,
-    .match =
-        __PCI_DRIVER_MATCH_CLASS
-      | __PCI_DRIVER_MATCH_SUBCLASS
-      | __PCI_DRIVER_MATCH_PROGIF,
-    .init = init_from_pci
-};
+static void init_drivers() {
+    static struct pci_driver pci_driver = {
+        .vendor = 0x1af4,
+        .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
+        .subclass = PCI_ENTITY_SUBCLASS_SATA,
+        .prog_if = 0x1,
+        .match =
+            __PCI_DRIVER_MATCH_CLASS
+          | __PCI_DRIVER_MATCH_SUBCLASS
+          | __PCI_DRIVER_MATCH_PROGIF,
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("x86_64-ahci-driver"),
-    .dtb = nullptr,
-    .pci = &pci_driver
-};
+    driver_initialize(&pci_driver.driver,
+                      &pci_device()->bus,
+                      SV_STATIC("pci-ahci"),
+                      ahci_pci_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

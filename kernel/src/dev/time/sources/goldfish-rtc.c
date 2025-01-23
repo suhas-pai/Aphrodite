@@ -3,10 +3,16 @@
  * © suhas pai
  */
 
-#include "dev/driver.h"
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
+
+#include "dev/init.h"
 #include "lib/align.h"
 
 #include "mm/kmalloc.h"
+#include "mm/mmio.h"
+
 #include "sys/mmio.h"
 
 #include "time/clock.h"
@@ -51,10 +57,11 @@ static sec_t goldfish_rtc_read(const struct clock *const clock) {
     return higher << 32 | lower;
 }
 
-static bool
-init_from_dtb(const struct devicetree *const tree,
-              const struct devicetree_node *const node)
-{
+static bool goldfish_rtc_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     if (g_goldfish_clock != nullptr) {
         printk(LOGLEVEL_WARN,
                "goldfish-rtc: multiple devices found. Ignoring\n");
@@ -62,7 +69,6 @@ init_from_dtb(const struct devicetree *const tree,
         return true;
     }
 
-    (void)tree;
     const struct devicetree_prop_reg *const reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
@@ -79,7 +85,7 @@ init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg_info *const reg =
-        array_front(reg_prop->list);
+        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
     if (!has_align(reg->address, PAGE_SIZE)) {
         printk(LOGLEVEL_WARN,
@@ -147,17 +153,25 @@ init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-static const struct string_view compat[] = { SV_STATIC("google,goldfish-rtc") };
-static const struct dtb_driver dtb_driver = {
-    .init = init_from_dtb,
-    .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+static void goldfish_rtc_init() {
+    static const struct string_view compat[] = {
+        SV_STATIC("google,goldfish-rtc")
+    };
 
-    .compat_list = compat,
-    .compat_count = countof(compat),
-};
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+        .compat_list = compat,
+        .compat_count = countof(compat),
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("google,goldfish-rtc.driver"),
-    .dtb = &dtb_driver,
-    .pci = nullptr
-};
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("goldfish-rtc"),
+                      goldfish_rtc_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(goldfish_rtc_init);

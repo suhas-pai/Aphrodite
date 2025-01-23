@@ -4,9 +4,13 @@
  */
 
 #include "dev/ata/defines.h"
+
+#include "dev/pci/device.h"
+#include "dev/pci/driver.h"
+#include "dev/pci/entity.h"
 #include "dev/pci/structs.h"
 
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "lib/size.h"
@@ -325,14 +329,17 @@ ide_init(const uint32_t bar0,
 
 bool g_found_ide = false;
 
-static void init_from_pci(struct pci_entity_info *const pci_entity) {
+static bool ide_pci_probe(struct device *const device) {
     g_found_ide = true;
+
+    struct pci_entity_info *const pci_entity =
+        parent_of(device, struct pci_entity_info, device);
 
     if (!index_in_bounds(PCI_IDE_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN,
                "ide: pci-device has fewer than %" PRIu32 " bars\n",
                PCI_IDE_BAR_INDEX);
-        return;
+        return false;
     }
 
     struct pci_entity_bar_info *const bar =
@@ -343,31 +350,38 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                "ide: pci-device doesn't have the required bar at "
                "index %" PRIu32 "\n",
                PCI_IDE_BAR_INDEX);
-        return;
+        return false;
     }
 
     if (bar->is_mmio) {
         printk(LOGLEVEL_WARN,
                "ide: pci-device's bar at index %" PRIu32 " isn't an pio bar\n",
                PCI_IDE_BAR_INDEX);
-        return;
+        return false;
     }
 
     pci_entity_enable_privls(pci_entity,
                              __PCI_ENTITY_PRIVL_BUS_MASTER
                            | __PCI_ENTITY_PRIVL_PIO_ACCESS);
+
+    return true;
 }
 
-static const struct pci_driver pci_driver = {
-    .init = init_from_pci,
-    .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
+static void init_drivers() {
+    static struct pci_driver pci_driver = {
+        .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
+        .subclass = PCI_ENTITY_SUBCLASS_IDE,
+        .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
+    };
 
-    .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
-    .subclass = PCI_ENTITY_SUBCLASS_IDE,
-};
+    driver_initialize(&pci_driver.driver,
+                      &pci_device()->bus,
+                      SV_STATIC("pci-ide"),
+                      ide_pci_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("ide-driver"),
-    .dtb = nullptr,
-    .pci = &pci_driver
-};
+MAKE_DEV_INIT_FUNC(init_drivers);

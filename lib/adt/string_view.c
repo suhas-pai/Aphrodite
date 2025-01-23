@@ -83,6 +83,45 @@ bool sv_has_index_range(const struct string_view sv, const struct range range) {
     return index_range_in_bounds(range, sv.length);
 }
 
+__debug_optimize(3) uint64_t sv_hash(const struct string_view sv) {
+    if (sv.length == 0) {
+        return 0;
+    }
+
+    if (sv.length <= sizeof(uint64_t)) {
+        switch (sv.length) {
+            case 1:
+                return sv.begin[0];
+            case 2:
+                return *(uint16_t *)(uint64_t)sv.begin;
+            case 3:
+                return (uint64_t)*(uint16_t *)(uint64_t)sv.begin |
+                       ((uint32_t)sv.begin[2] << 16);
+            case 4:
+                return (uint64_t)*(uint16_t *)(uint64_t)sv.begin |
+                       ((uint32_t)sv.begin[2] << 16) |
+                       ((uint32_t)sv.begin[3] << 24);
+            case 5:
+                return (uint64_t)*(uint32_t *)(uint64_t)sv.begin |
+                       ((uint64_t)sv.begin[4] << 32);
+            case 6:
+                return (uint64_t)*(uint32_t *)(uint64_t)sv.begin |
+                       ((uint64_t)sv.begin[4] << 32) |
+                       ((uint64_t)sv.begin[5] << 40);
+            case 7:
+                return (uint64_t)*(uint32_t *)(uint64_t)sv.begin |
+                       ((uint64_t)sv.begin[4] << 32) |
+                       ((uint64_t)sv.begin[5] << 40) |
+                       ((uint64_t)sv.begin[6] << 48);
+            case 8:
+                return *(uint64_t *)(uint64_t)sv.begin;
+        }
+    }
+
+    // TODO:
+    return 0;
+}
+
 __debug_optimize(3) char sv_front(const struct string_view sv) {
     assert(sv.length != 0);
     return sv.begin[0];

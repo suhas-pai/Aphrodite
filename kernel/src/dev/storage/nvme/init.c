@@ -5,10 +5,14 @@
 
 #include "dev/storage/nvme/controller.h"
 
+#include "dev/pci/device.h"
+#include "dev/pci/driver.h"
+#include "dev/pci/entity.h"
 #include "dev/pci/structs.h"
+
 #include "cpu/isr.h"
 
-#include "dev/driver.h"
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "lib/util.h"
@@ -17,17 +21,20 @@
 
 #define NVME_BAR_INDEX (uint32_t)0
 
-static void init_from_pci(struct pci_entity_info *const pci_entity) {
+static bool pci_probe(struct device *const device) {
+    struct pci_entity_info *const pci_entity =
+        parent_of(device, struct pci_entity_info, device);
+
     if (!index_in_bounds(NVME_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN, "nvme: pci-entity has no bars. aborting init\n");
-        return;
+        return false;
     }
 
     if (pci_entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
         printk(LOGLEVEL_WARN,
                "nvme: pci-entity does not support msi[x] required by driver. "
                "aborting init\n");
-        return;
+        return false;
     }
 
     printk(LOGLEVEL_INFO,
@@ -42,7 +49,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                "nvme: pci-device doesn't have the required bar at "
                "index %" PRIu32 "\n",
                NVME_BAR_INDEX);
-        return;
+        return false;
     }
 
     if (!bar->is_mmio) {
@@ -50,7 +57,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                "nvme: pci-device's bar at index %" PRIu32 " isn't an mmio "
                "bar\n",
                NVME_BAR_INDEX);
-        return;
+        return false;
     }
 
     if (bar->port_or_phys_range.size < sizeof(struct nvme_registers)) {
@@ -58,14 +65,14 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
                "nvme: pci-device's bar at index %" PRIu32 " memory range is "
                "too small for nvme registers\n",
                NVME_BAR_INDEX);
-        return;
+        return false;
     }
 
     if (!pci_map_bar(bar)) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to map pci bar at index %" PRIu32 "\n",
                NVME_BAR_INDEX);
-        return;
+        return false;
     }
 
     const isr_vector_t isr_vector =
@@ -74,7 +81,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
     if (isr_vector == ISR_INVALID_VECTOR) {
         printk(LOGLEVEL_WARN,
                "nvme: failed to alloc isr vector for msix capability\n");
-        return;
+        return false;
     }
 
     pci_entity_enable_privls(pci_entity,
@@ -86,7 +93,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         pci_entity_disable_privls(pci_entity);
 
         printk(LOGLEVEL_WARN, "nvme: pci-entity is missing msi capability\n");
-        return;
+        return false;
     }
 
     with_preempt_disabled({
@@ -106,7 +113,7 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
         printk(LOGLEVEL_WARN, "nvme: failed to alloc memory\n");
 
-        return;
+        return false;
     }
 
     volatile struct nvme_registers *const regs = pci_entity_bar_get_base(bar);
@@ -125,19 +132,27 @@ static void init_from_pci(struct pci_entity_info *const pci_entity) {
         isr_free_msi_vector(&pci_entity->device, isr_vector, /*msi_index=*/0);
 
         printk(LOGLEVEL_WARN, "nvme: failed to allocate queue\n");
-        return;
+        return false;
     }
+
+    return true;
 }
 
-static const struct pci_driver pci_driver = {
-    .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
-    .subclass = PCI_ENTITY_SUBCLASS_NVME,
-    .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
-    .init = init_from_pci
-};
+static void init_drivers() {
+    static struct pci_driver pci_driver = {
+        .class = PCI_ENTITY_CLASS_MASS_STORAGE_CONTROLLER,
+        .subclass = PCI_ENTITY_SUBCLASS_NVME,
+        .match = __PCI_DRIVER_MATCH_CLASS | __PCI_DRIVER_MATCH_SUBCLASS,
+    };
 
-__driver static const struct driver driver = {
-    .name = SV_STATIC("nvme-driver"),
-    .dtb = nullptr,
-    .pci = &pci_driver
-};
+    driver_initialize(&pci_driver.driver,
+                      &pci_device()->bus,
+                      SV_STATIC("pci-nvme"),
+                      pci_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

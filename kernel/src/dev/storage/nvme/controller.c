@@ -226,9 +226,8 @@ identify_namespaces(struct nvme_controller *const controller,
     }
 
     const uint32_t *const nsid_list = (const uint32_t *)(uint64_t)ident;
-    for (uint32_t i = 0; i != namespace_count; i++) {
-        const uint32_t nsid = nsid_list[i];
-        if (!ordinal_in_bounds(nsid, namespace_count)) {
+    ptrarr_foreach(nsid_list, namespace_count, nsid) {
+        if (!ordinal_in_bounds(*nsid, namespace_count)) {
             continue;
         }
 
@@ -239,7 +238,7 @@ identify_namespaces(struct nvme_controller *const controller,
 
         if (!nvme_namespace_create(namespace,
                                    controller,
-                                   nsid,
+                                   *nsid,
                                    max_queue_cmd_count,
                                    max_transfer_shift))
         {

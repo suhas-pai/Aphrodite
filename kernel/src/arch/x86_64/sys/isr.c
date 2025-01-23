@@ -47,11 +47,11 @@ static isr_vector_t g_hpet_vector = 0;
 void isr_setup_irq_pins() {
     array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, iso) {
         const enum irq_polarity polarity =
-            iso->flags & __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW ?
+            iso->flags & __OS_ACPI_MADT_ENTRY_ISO_ACTIVE_LOW ?
                 IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
 
         const enum irq_trigger_mode trigger_mode =
-            iso->flags & __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER ?
+            iso->flags & __OS_ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER ?
                 IRQ_TRIGGER_MODE_LEVEL : IRQ_TRIGGER_MODE_EDGE;
 
         printk(LOGLEVEL_INFO,
@@ -248,8 +248,11 @@ isr_set_msi_vector(const isr_vector_t vector,
     isr_set_vector(vector, handler, ctx, info);
 }
 
-struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
-    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
+    if (!index_in_bounds(irq, countof(g_irq_pin_list))) {
+        return nullptr;
+    }
+
     return &g_irq_pin_list[irq];
 }
 

@@ -4,18 +4,15 @@
  */
 
 #pragma once
+
+#include "dev/pci/domain.h"
 #include "lib/adt/array.h"
 
-#include "cpu/spinlock.h"
-#include "lib/list.h"
-
-#include "domain.h"
+#include "dev/bus.h"
 
 struct pci_bus {
-    const struct pci_domain *domain;
-
+    struct bus bus;
     struct array resources;
-    struct spinlock lock;
 
     uint8_t bus_id;
     uint8_t segment;
@@ -23,11 +20,13 @@ struct pci_bus {
     struct list entity_list;
 };
 
+#define pci_bus_foreach_entity(bus, entity) \
+    struct pci_entity_info *entity = nullptr; \
+    list_foreach(entity, &bus->entity_list, list_in_bus)
+
 struct pci_bus *
-pci_bus_create(struct pci_domain *domain, uint8_t bus_id, uint8_t segment);
+pci_bus_create(struct pci_domain *domain,
+               uint8_t bus_id,
+               uint8_t segment);
 
-bool pci_add_root_bus(struct pci_bus *bus);
-bool pci_remove_root_bus(struct pci_bus *bus);
-
-const struct array *pci_get_root_bus_list_locked(int *flag_out);
-void pci_release_root_bus_list_lock(int flag);
+struct pci_domain *pci_bus_get_domain(struct pci_bus *bus);

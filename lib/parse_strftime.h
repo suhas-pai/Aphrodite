@@ -19,7 +19,7 @@ struct strftime_modifiers {
 };
 
 #define STRFTIME_MODIFIERS_INIT() \
-    ((struct strftime_modifiers) {\
+    ((struct strftime_modifiers) { \
         .locale_alt_repr = false, \
         .locale_alt_numeric = false, \
         .pad_spaces_to_number = false, \

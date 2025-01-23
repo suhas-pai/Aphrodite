@@ -186,8 +186,11 @@ isr_set_msi_vector(const isr_vector_t vector,
     imsic_enable_msg(RISCV64_PRIVL_SUPERVISOR, vector);
 }
 
-struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
-    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
+    if (!index_in_bounds(irq, countof(g_irq_pin_list))) {
+        return nullptr;
+    }
+
     return &g_irq_pin_list[irq];
 }
 

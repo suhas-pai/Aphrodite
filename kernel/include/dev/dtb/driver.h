@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "tree.h"
+#include "dev/driver.h"
 
 enum dtb_driver_match_flags : uint8_t {
     __DTB_DRIVER_MATCH_COMPAT = 1 << 0,
@@ -12,13 +12,11 @@ enum dtb_driver_match_flags : uint8_t {
 };
 
 struct dtb_driver {
-    bool
-    (*init)(const struct devicetree *tree, const struct devicetree_node *node);
-
-    uint32_t match_flags;
-
     const struct string_view *const compat_list;
     const uint32_t compat_count;
 
     const struct string_view device_type;
+    uint32_t match_flags;
+
+    struct driver driver;
 };

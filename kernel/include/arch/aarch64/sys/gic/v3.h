@@ -5,18 +5,14 @@
 
 #pragma once
 
-#include "dev/dtb/node.h"
-#include "dev/dtb/tree.h"
-
 #include "cpu/info.h"
 #include "dev/device.h"
+
 #include "sys/isr.h"
+#include "sys/irq.h"
+#include "sys/irqdef.h"
 
-bool
-gicv3_init_from_dtb(const struct devicetree *tree,
-                    const struct devicetree_node *node);
-
-void gicv3_init_from_info(uint64_t dist_phys_addr, struct range redist_range);
+bool gicv3_init_from_info(uint64_t dist_phys_addr, struct range redist_range);
 void gicv3_init_on_this_cpu();
 
 void gicdv3_mask_irq(irq_number_t irq);

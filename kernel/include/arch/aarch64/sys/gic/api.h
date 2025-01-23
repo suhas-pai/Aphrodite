@@ -6,7 +6,6 @@
 #pragma once
 
 #include "cpu/info.h"
-#include "dev/device.h"
 
 #include "sys/irq.h"
 #include "sys/isr.h"
@@ -36,6 +35,8 @@ void gic_set_version(uint8_t gic);
 
 void gicd_mask_irq(irq_number_t irq);
 void gicd_unmask_irq(irq_number_t irq);
+
+struct device;
 
 isr_vector_t
 gicd_alloc_msi_vector(struct device *device, const uint16_t msi_index);

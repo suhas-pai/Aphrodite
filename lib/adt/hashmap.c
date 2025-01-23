@@ -262,8 +262,7 @@ static void
 destroy_hashmap_buckets(struct hashmap_bucket **const buckets,
                         const uint32_t bucket_count)
 {
-    struct hashmap_bucket **const end = buckets + bucket_count;
-    for (__auto_type iter = buckets; iter != end; iter++) {
+    ptrarr_foreach(buckets, bucket_count, iter) {
         struct hashmap_bucket *const bucket = *iter;
         if (bucket == nullptr) {
             continue;
@@ -308,8 +307,7 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
     hashmap->buckets = buckets;
     hashmap->bucket_count = bucket_count;
 
-    struct hashmap_bucket *const *const end = old_buckets + old_bucket_count;
-    for (struct hashmap_bucket **iter = old_buckets; iter != end; iter++) {
+    ptrarr_foreach(old_buckets, old_bucket_count, iter) {
         struct hashmap_bucket *const bucket = *iter;
         if (bucket == nullptr) {
             continue;

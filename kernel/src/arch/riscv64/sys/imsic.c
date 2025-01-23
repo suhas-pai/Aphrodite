@@ -198,7 +198,7 @@ imsic_init_from_dtb(const struct devicetree *const tree,
         }
 
         struct devicetree_prop_reg_info *const reg =
-            array_front(reg_prop->list);
+            array_front(&reg_prop->list, struct devicetree_prop_reg_info);
 
         if (reg->size < PAGE_SIZE) {
             printk(LOGLEVEL_WARN,
@@ -312,7 +312,7 @@ imsic_add_region(const uint64_t hart_id, const struct range range) {
         .hart_id = hart_id
     };
 
-    assert(array_append(&g_supervisor_region_list, &region));
+    assert(array_add(&g_supervisor_region_list, &region));
     return mmio->base;
 }
 

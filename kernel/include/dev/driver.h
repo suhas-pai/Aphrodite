@@ -5,22 +5,35 @@
 
 #pragma once
 
-#include "dtb/driver.h"
-#include "pci/driver.h"
+#include "lib/adt/string_view.h"
+#include "dev/bus.h"
 
+typedef bool (*driver_probe_t)(struct device *device);
+typedef bool (*driver_remove_t)(struct device *device);
+typedef void (*driver_shutdown_t)(struct device *device);
+typedef bool (*driver_suspend_t)(struct device *device);
+typedef bool (*driver_resume_t)(struct device *device);
+
+struct device;
 struct driver {
-    const struct string_view name;
+    struct bus *bus;
+    struct string_view name;
 
-    const struct dtb_driver *dtb;
-    const struct pci_driver *pci;
+    struct list list;
+
+    driver_probe_t probe;
+    driver_remove_t remove;
+    driver_shutdown_t shutdown;
+    driver_suspend_t suspend;
+    driver_resume_t resume;
 };
 
-extern char drivers_start[];
-extern char drivers_end[];
-
-#define driver_foreach(iter) \
-    for (struct driver *iter = (struct driver *)(uint64_t)drivers_start; \
-         iter < (struct driver *)(uint64_t)drivers_end; \
-         iter++) \
-
-#define __driver __attribute__((used, section(".drivers")))
+void
+driver_initialize(struct driver *driver,
+                  struct bus *bus,
+                  struct string_view name,
+                  driver_probe_t probe,
+                  driver_remove_t remove,
+                  driver_shutdown_t shutdown,
+                  driver_suspend_t suspend,
+                  driver_resume_t resume);

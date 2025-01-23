@@ -31,8 +31,9 @@ create_ioapic_redirect_request(
     const bool masked,
     const uint8_t lapic_id)
 {
-    const bool is_active_low = flags & __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW;
-    const bool is_level_triggered = flags & __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER;
+    const bool is_active_low = flags & __OS_ACPI_MADT_ENTRY_ISO_ACTIVE_LOW;
+    const bool is_level_triggered =
+        flags & __OS_ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER;
 
     const uint64_t result =
         vector
@@ -164,7 +165,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
            info.max_redirect_count,
            RANGE_FMT_ARGS(mmio_range));
 
-    assert_msg(array_append(&g_ioapic_list, &info),
+    assert_msg(array_add(&g_ioapic_list, &info),
                "ioapic: failed to add io-apic base to array");
 }
 
@@ -221,11 +222,9 @@ ioapic_redirect_irq(const uint8_t lapic_id,
 
 void ioapic_toggle_irq_mask(uint8_t irq, bool masked) {
     array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, iso) {
-        if (iso->irq_src != irq) {
-            continue;
+        if (iso->irq_src == irq) {
+            toggle_irq_mask(iso->gsi, masked);
         }
-
-        toggle_irq_mask(iso->gsi, masked);
     }
 
     toggle_irq_mask(irq, masked);

@@ -47,23 +47,17 @@ struct hashmap {
     })
 
 #define hashmap_foreach_bucket(hashmap, iter) \
-    const __auto_type h_var(end) = \
-        (hashmap)->buckets + (hashmap)->bucket_count; \
-    for (__auto_type iter = (hashmap)->buckets; iter != h_var(end); iter++) \
+    ptrarr_foreach((hashmap)->buckets, (hashmap)->bucket_count, iter)
 
 #define hashmap_bucket_foreach_node(bucket, iter) \
     struct hashmap_node *iter = nullptr; \
     list_foreach(iter, &(bucket)->node_list, list)
 
 #define hashmap_foreach_node(hashmap, iter) \
-    const __auto_type h_var(end) = \
-        (hashmap)->buckets + (hashmap)->bucket_count; \
     struct hashmap_node *iter = nullptr; \
-    for (__auto_type h_var(bucket) = (hashmap)->buckets; \
-         h_var(bucket) != h_var(end); \
-         h_var(bucket)++) \
+    ptrarr_foreach((hashmap)->buckets, (hashmap)->bucket_count, h_var(bucket)) \
         if (*h_var(bucket) != nullptr) \
-            list_foreach(iter, &((*h_var(bucket))->node_list), list)
+            list_foreach(iter, &(*h_var(bucket))->node_list, list)
 
 struct hashmap *
 hashmap_alloc(uint32_t object_size,

@@ -34,10 +34,7 @@ page_section_init(struct page_section *const section,
 }
 
 __debug_optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
-    struct page_section *const begin = mm_get_page_section_list();
-    struct page_section *const end = begin + mm_get_section_count();
-
-    for (struct page_section *iter = begin; iter != end; iter++) {
+    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         if (range_has_loc(iter->range, phys)) {
             return iter;
         }
@@ -47,10 +44,7 @@ __debug_optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
 }
 
 __debug_optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
-    struct page_section *const begin = mm_get_page_section_list();
-    struct page_section *const end = begin + mm_get_section_count();
-
-    for (struct page_section *iter = begin; iter != end; iter++) {
+    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         struct range pfn_range = RANGE_INIT(pfn, PAGE_COUNT(iter->range.front));
         if (range_has_loc(pfn_range, pfn)) {
             return iter;
@@ -61,10 +55,7 @@ __debug_optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
 }
 
 __debug_optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
-    const struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_section_count();
-
-    for (const struct page_section *iter = begin; iter != end; iter++) {
+    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         if (range_has_loc(iter->range, phys)) {
             return iter->pfn + PAGE_COUNT(phys - iter->range.front);
         }
@@ -84,10 +75,7 @@ __debug_optimize(3) uint64_t page_to_phys(const struct page *const page) {
 }
 
 __debug_optimize(3) uint64_t pfn_to_phys_manual(const uint64_t pfn) {
-    const struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_section_count();
-
-    for (const struct page_section *iter = begin; iter != end; iter++) {
+    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         const struct range pfn_range =
             RANGE_INIT(iter->pfn, PAGE_COUNT(iter->range.size >> PAGE_SHIFT));
 

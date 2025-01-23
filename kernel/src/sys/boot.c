@@ -197,9 +197,6 @@ void boot_init() {
 
     const struct limine_memmap_response *const resp = memmap_request.response;
 
-    struct limine_memmap_entry *const *entries = resp->entries;
-    struct limine_memmap_entry *const *const end = &entries[resp->entry_count];
-
     uint8_t memmap_index = 0;
     uint8_t usable_index = 0;
 
@@ -210,12 +207,12 @@ void boot_init() {
     // pfn that will be assigned to the first page residing in the memmap.
 
     uint64_t pfn = 0;
-    for (__auto_type memmap_iter = entries; memmap_iter != end; memmap_iter++) {
+    ptrarr_foreach(resp->entries, resp->entry_count, entry) {
         if (memmap_index == countof(mm_memmap_list)) {
             panic("boot: too many memmaps\n");
         }
 
-        const struct limine_memmap_entry *const memmap = *memmap_iter;
+        const struct limine_memmap_entry *const memmap = *entry;
         struct range range = RANGE_EMPTY();
 
         if (!range_create_and_verify(memmap->base, memmap->length, &range)) {

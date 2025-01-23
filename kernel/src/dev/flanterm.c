@@ -56,10 +56,9 @@ void setup_flanterm() {
         return;
     }
 
-    for (uint64_t i = 0; i != fb_count; i++) {
-        const struct limine_framebuffer *const framebuffer =
-            boot_get_fb()->framebuffers[i];
-
+    uint64_t i = 0;
+    ptrarr_foreach(boot_get_fb()->framebuffers, fb_count, framebuffer_ptr) {
+        const struct limine_framebuffer *const framebuffer = *framebuffer_ptr;
         struct flanterm_context *const context =
             flanterm_fb_init(/*_malloc=*/nullptr,
                              /*_free=*/nullptr,
@@ -106,6 +105,7 @@ void setup_flanterm() {
                i);
 
         printk_add_terminal(&g_fb_info_list[i].terminal);
+        i++;
     }
 #endif /* defined(DISABLE_FLANTERM) */
 }

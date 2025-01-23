@@ -3,8 +3,11 @@
  * © suhas pai
  */
 
-#include "dev/dtb/node.h"
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
 
+#include "dev/init.h"
 #include "dev/printk.h"
 #include "dev/psci.h"
 
@@ -110,17 +113,41 @@ static bool init_common() {
     return true;
 }
 
-bool
-psci_init_from_dtb(const struct devicetree *const tree,
-                   const struct devicetree_node *const node)
-{
-    (void)tree;
+bool psci_init_from_acpi(const bool use_hvc) {
+    const enum psci_invoke_method method =
+        use_hvc ? PSCI_INVOKE_METHOD_HVC : PSCI_INVOKE_METHOD_SMC;
+
+    if (g_invoke_method != PSCI_INVOKE_METHOD_NONE) {
+        if (g_invoke_method != method) {
+            g_invoke_method = PSCI_INVOKE_METHOD_NONE;
+            printk(LOGLEVEL_WARN,
+                   "psci: fadt's psci-invoke method doesn't match method from "
+                   "dtb\n");
+
+            return false;
+        }
+    } else {
+        g_invoke_method = method;
+    }
+
+    init_common();
+    printk(LOGLEVEL_INFO, "psci: successfully initialized from acpi\n");
+
+    return true;
+}
+
+static bool psci_dtb_probe(struct device *const the_device) {
+    struct dtb_device *const device =
+        parent_of(the_device, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_other *const method_prop =
         devicetree_node_get_other_prop(node, SV_STATIC("method"));
 
     if (method_prop == nullptr) {
         printk(LOGLEVEL_WARN,
                "psci: dtb node is missing \"method\" prop in dtb\n");
+
         return false;
     }
 
@@ -188,27 +215,6 @@ psci_init_from_dtb(const struct devicetree *const tree,
     return true;
 }
 
-void psci_init_from_acpi(const bool use_hvc) {
-    const enum psci_invoke_method method =
-        use_hvc ? PSCI_INVOKE_METHOD_HVC : PSCI_INVOKE_METHOD_SMC;
-
-    if (g_invoke_method != PSCI_INVOKE_METHOD_NONE) {
-        if (g_invoke_method != method) {
-            g_invoke_method = PSCI_INVOKE_METHOD_NONE;
-            printk(LOGLEVEL_WARN,
-                   "psci: fadt's psci-invoke method doesn't match method from "
-                   "dtb\n");
-
-            return;
-        }
-    } else {
-        g_invoke_method = method;
-    }
-
-    init_common();
-    printk(LOGLEVEL_INFO, "psci: successfully initialized from acpi\n");
-}
-
 __debug_optimize(3) enum psci_return_value psci_reboot() {
     return psci_invoke_function(PSCI_FUNC_SYSTEM_RESET,
                                 /*arg1=*/0,
@@ -222,3 +228,28 @@ __debug_optimize(3) enum psci_return_value psci_shutdown() {
                                 /*arg2=*/0,
                                 /*arg3=*/0);
 }
+
+static void setup_dtb_drivers() {
+    static const struct string_view compat_list[] = {
+        SV_STATIC("arm,psci"), SV_STATIC("arm,psci-1.0"),
+        SV_STATIC("arm,psci-0.2")
+    };
+
+    static struct dtb_driver psci_dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+        .compat_list = compat_list,
+        .compat_count = countof(compat_list),
+    };
+
+    driver_initialize(&psci_dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("arm-psci"),
+                      psci_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(setup_dtb_drivers);

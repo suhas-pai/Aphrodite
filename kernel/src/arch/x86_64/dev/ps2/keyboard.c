@@ -8,10 +8,15 @@
 
 #include "lib/adt/string.h"
 
-#include "asm/irqs.h"
-#include "cpu/isr.h"
+#include "acpi/bus.h"
+#include "acpi/device.h"
+#include "acpi/driver.h"
 
+#include "asm/irqs.h"
+
+#include "dev/init.h"
 #include "dev/printk.h"
+
 #include "lib/util.h"
 
 const char ps2_key_to_char[PS2_KEYMAP_SIZE] = {
@@ -62,7 +67,7 @@ static struct ps2_keyboard_state g_kbd_state = {
     .in_e0 = false
 };
 
-__debug_optimize(3) static char get_char_from_ps2_kb(const uint8_t scan_code) {
+__debug_optimize(3) static char ps2_keyboard_get_char(const uint8_t scan_code) {
     if (g_kbd_state.shift != 0) {
         return ps2_key_to_char_shift[scan_code];
     }
@@ -207,13 +212,13 @@ ps2_keyboard_interrupt(const uint64_t intr_no,
     printk(LOGLEVEL_WARN,
            "ps2: " STRING_FMT " '%c'%s\n",
            STRING_FMT_ARGS(string),
-           get_char_from_ps2_kb(scan_code),
+           ps2_keyboard_get_char(scan_code),
            g_kbd_state.caps_lock ? " [caps-lock]" : "");
 
     string_destroy(&string);
 }
 
-void ps2_keyboard_init(const enum ps2_port_id device_id) {
+void ps2_keyboard_start(const enum ps2_port_id device_id) {
     ps2_send_to_port(device_id, PS2_KBD_CMD_SCAN_CODE_SET);
     const int16_t get_response =
         ps2_send_to_port(device_id, PS2_KBD_SCAN_CODE_SET_SUBCMD_GET);
@@ -233,10 +238,148 @@ void ps2_keyboard_init(const enum ps2_port_id device_id) {
     }
 
     struct irq_pin *const pin = isr_get_irq_pin(IRQ_KEYBOARD);
-    if (!isr_install_irq(pin, ps2_keyboard_interrupt, nullptr, /*masked=*/false)) {
+    if (!isr_install_irq(pin,
+                         ps2_keyboard_interrupt,
+                         /*ctx=*/nullptr,
+                         /*masked=*/false))
+    {
         printk(LOGLEVEL_WARN, "ps2: failed to install keyboard irq\n");
         return;
     }
 
     printk(LOGLEVEL_INFO, "ps2: keyboard initialized\n");
 }
+
+bool ps2_keyboard_probe(struct device *const the_device) {
+    struct acpi_device *const device =
+        parent_of(the_device, struct acpi_device, device);
+
+    const struct os_acpi_device_resources *const resources = &device->resources;
+    array_foreach(&resources->io_list, const struct os_acpi_io_info, io) {
+        const char *decode_kind = "unknown";
+        switch (io->decode_kind) {
+            case OS_ACPI_IO_DECODE_KIND_16_BIT:
+                decode_kind = "16-bit";
+                break;
+            case OS_ACPI_IO_DECODE_KIND_10_BIT:
+                decode_kind = "10-bit";
+                break;
+        }
+
+        printk(LOGLEVEL_INFO,
+               "ps2/keyboard: found io port:\n"
+               "\tdecode-kind: %s\n"
+               "\tminimum: 0x%" PRIx16 "\n"
+               "\tmaximum: 0x%" PRIx16 "\n"
+               "\talignment: %" PRIx8 "\n"
+               "\tlength: %" PRIx8 "\n",
+               decode_kind,
+               io->minimum,
+               io->maximum,
+               io->alignment,
+               io->length);
+    }
+
+    array_foreach(&resources->irq_list, const struct os_acpi_irq_info, irq) {
+        printk(LOGLEVEL_INFO,
+               "ps2/keyboard: found irq:\n"
+               "\ttrigger: %s\n"
+               "\tlevel: %s\n"
+               "\tshared: %s\n"
+               "\twake capable: %s\n"
+               "\t%" PRIu32 " irqs:\n",
+               irq->trigger_mode == IRQ_TRIGGER_MODE_EDGE ? "edge" : "level",
+               irq->polarity == IRQ_POLARITY_HIGH ? "high" : "low",
+               irq->is_shared ? "yes" : "no",
+               irq->wake_capable ? "yes" : "no",
+               irq->irq_count);
+
+        if (irq->irq_count == 0) {
+            printk(LOGLEVEL_INFO, "\t\t[none]\n");
+            continue;
+        }
+
+        if (irq->irq_count > 1) {
+            printk(LOGLEVEL_INFO, "\t\t[shared]\n");
+        }
+
+        ptrarr_foreach(irq->irq_list, irq->irq_count, irq_num) {
+            printk(LOGLEVEL_INFO, "\t\tirq %" PRIu32 "\n", *irq_num);
+
+            struct irq_pin *const pin = isr_get_irq_pin(*irq_num);
+            if (pin == nullptr) {
+                printk(LOGLEVEL_WARN,
+                       "ps2/keyboard: irq " IRQ_NUMBER_FMT " not found\n",
+                       *irq_num);
+                continue;
+            }
+
+            irq_pin_setup(pin, irq->polarity, irq->trigger_mode);
+        }
+    }
+
+    const port_t input_buffer_port =
+        array_front(&resources->io_list, const struct os_acpi_io_info)->minimum;
+    const port_t read_status_port =
+        array_at(&resources->io_list, const struct os_acpi_io_info, 1)->minimum;
+
+    const irq_number_t keyboard_irq =
+        array_front(&resources->irq_list, const struct os_acpi_irq_info)
+            ->irq_list[0];
+
+    ps2_init_keyboard(read_status_port, input_buffer_port, keyboard_irq);
+    return true;
+}
+
+static const struct string_view pnp_ids[] = {
+    SV_STATIC("PNP0300"),
+    SV_STATIC("PNP0301"),
+    SV_STATIC("PNP0302"),
+    SV_STATIC("PNP0303"),
+    SV_STATIC("PNP0304"),
+    SV_STATIC("PNP0305"),
+    SV_STATIC("PNP0306"),
+    SV_STATIC("PNP0307"),
+    SV_STATIC("PNP0308"),
+    SV_STATIC("PNP0309"),
+    SV_STATIC("PNP030A"),
+    SV_STATIC("PNP030B"),
+    SV_STATIC("PNP0320"),
+    SV_STATIC("PNP0321"),
+    SV_STATIC("PNP0322"),
+    SV_STATIC("PNP0323"),
+    SV_STATIC("PNP0324"),
+    SV_STATIC("PNP0325"),
+    SV_STATIC("PNP0326"),
+    SV_STATIC("PNP0327"),
+    SV_STATIC("PNP0340"),
+    SV_STATIC("PNP0341"),
+    SV_STATIC("PNP0342"),
+    SV_STATIC("PNP0343"),
+    SV_STATIC("PNP0343"),
+    SV_STATIC("PNP0344"),
+};
+
+static uacpi_namespace_node *get_namespace() {
+    return uacpi_namespace_get_predefined(UACPI_PREDEFINED_NAMESPACE_SB);
+}
+
+static void init_keyboard_driver() {
+    static struct acpi_driver acpi_driver = {
+        .pnp_ids = pnp_ids,
+        .pnp_id_count = countof(pnp_ids),
+        .resources_flags = ACPI_DRIVER_RESOURCES_IRQ | ACPI_DRIVER_RESOURCES_IO,
+        .get_namespace = get_namespace,
+    };
+
+    driver_initialize(&acpi_driver.driver,
+                      acpi_bus(),
+                      /*name=*/SV_STATIC("ps2-keyboard"),
+                      ps2_keyboard_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+};
+
+MAKE_DEV_INIT_FUNC(init_keyboard_driver);

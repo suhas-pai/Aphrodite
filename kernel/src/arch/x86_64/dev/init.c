@@ -4,7 +4,10 @@
  */
 
 #include "dev/ide/init.h"
-#include "dev/ps2/driver.h"
+
+#ifndef USE_UACPI
+    #include "dev/ps2/driver.h"
+#endif
 
 #include "dev/time/hpet.h"
 #include "dev/time/rtc.h"
@@ -22,7 +25,9 @@ void arch_init_dev() {
     if (fadt != nullptr &&
         fadt->iapc_boot_arch_flags & __ACPI_FADT_IAPC_BOOT_8042)
     {
-        ps2_init();
+    #ifndef USE_UACPI
+        ps2_init_default();
+    #endif /* !defined(USE_UACPI) */
     } else {
         printk(LOGLEVEL_WARN, "dev: ps2 keyboard/mouse are not supported\n");
     }
@@ -34,8 +39,8 @@ void arch_init_dev() {
             struct string string = kstrftime("%c", &tm);
 
             printk(LOGLEVEL_INFO,
-                "dev: rtc time is " STRING_FMT "\n",
-                STRING_FMT_ARGS(string));
+                   "dev: rtc time is " STRING_FMT "\n",
+                   STRING_FMT_ARGS(string));
 
             string_destroy(&string);
         }

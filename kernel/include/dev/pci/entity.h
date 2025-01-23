@@ -5,12 +5,17 @@
 
 #pragma once
 
+#include "dev/pci/location.h"
+#include "lib/adt/array.h"
+
 #include "cpu/info.h"
+#include "cpu/spinlock.h"
+
 #include "dev/device.h"
 #include "sys/isr.h"
 
-#include "bar.h"
 #include "bus.h"
+#include "bar.h"
 
 #define PCI_ENTITY_MAX_BAR_COUNT 6
 #define PCI_ENTITY_MAX_MSIX_TABLE_SIZE 2048
@@ -22,14 +27,12 @@ enum pci_entity_msi_support : uint8_t {
 };
 
 struct pci_entity_info {
+    struct list list_in_bus;
+    struct list list_in_device;
+
     struct device device;
-
-    struct list list_in_entities;
-    struct list list_in_domain;
-
     struct spinlock lock;
 
-    struct pci_bus *bus;
     struct pci_location loc;
 
     uint16_t id;
@@ -75,6 +78,7 @@ struct pci_entity_info {
     struct pci_entity_bar_info *bar_list;
 };
 
+#define PCI_ENTITY_MAX_CAPABILITY_COUNT 128
 #define PCI_ENTITY_INFO_FMT                                                    \
     "%" PRIx8 ":%" PRIx8 ":%" PRIx8 ":%" PRIx16 ":%" PRIx16 " (%" PRIx8 ":"    \
     "%" PRIx8 ")"
@@ -88,6 +92,7 @@ struct pci_entity_info {
     (device)->class,                                                           \
     (device)->subclass
 
+struct pci_bus *pci_entity_get_bus(const struct pci_entity_info *entity);
 uint16_t pci_entity_get_requester_id(const struct pci_entity_info *entity);
 
 bool pci_entity_enable_msi(struct pci_entity_info *entity);

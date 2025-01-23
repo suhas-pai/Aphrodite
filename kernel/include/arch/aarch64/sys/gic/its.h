@@ -9,7 +9,6 @@
 #include "dev/dtb/tree.h"
 
 #include "cpu/spinlock.h"
-#include "dev/device.h"
 
 #include "sys/isr.h"
 
@@ -44,6 +43,8 @@ gic_its_init_from_dtb(const struct devicetree *tree,
 
 struct gic_its_info *gic_its_init_from_info(uint32_t id, uint64_t phys_addr);
 struct list *gic_its_get_list();
+
+struct device;
 
 isr_vector_t
 gic_its_alloc_msi_vector(struct gic_its_info *its,

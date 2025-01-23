@@ -4,7 +4,9 @@
  */
 
 #pragma once
-#include <stdint.h>
+
+#include "sys/irqdef.h"
+#include "sys/pio.h"
 
 #define PS2_READ_PORT_FAIL -1
 
@@ -93,7 +95,14 @@ enum ps2_port_id : uint8_t {
     PS2_SECOND_PORT
 };
 
-void ps2_init();
+void ps2_init_default();
+
+void
+ps2_init_keyboard(port_t read_status_port,
+                  port_t input_buffer_port,
+                  irq_number_t irq);
+
+void ps2_init_mouse(irq_number_t irq);
 
 int16_t ps2_read_input_byte();
 int16_t ps2_read_config();

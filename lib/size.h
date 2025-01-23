@@ -21,7 +21,7 @@
 #define C_STR_GIB "Gibibyte"
 #define C_STR_TIB "Tebibyte"
 #define C_STR_PIB "Pebibyte"
-#define C_STR_EIB "Exbiibyte"
+#define C_STR_EIB "Exbibyte"
 
 #define C_STR_BYTE_ABBREV "Byte"
 #define C_STR_KIB_ABBREV "Kib"

@@ -114,8 +114,11 @@ void isr_eoi(const uint64_t intr_info) {
     (void)intr_info;
 }
 
-struct irq_pin *isr_get_irq_pin(const uint16_t irq) {
-    assert(index_in_bounds(irq, countof(g_irq_pin_list)));
+struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
+    if (!index_in_bounds(irq, countof(g_irq_pin_list))) {
+        return nullptr;
+    }
+
     return &g_irq_pin_list[irq];
 }
 

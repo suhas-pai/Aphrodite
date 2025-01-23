@@ -6,7 +6,7 @@
 #pragma once
 
 #include "cpu/info.h"
-#include "dev/device.h"
+#include "sys/irqdef.h"
 #include "sys/isr.h"
 
 // Returns -1 on alloc failure
@@ -17,6 +17,8 @@ void isr_init();
 // - intr: a general interrupt number
 // - vector: an index into the interrupt vector table
 // - msi[-x]: a message signalled interrupt
+
+struct device;
 
 isr_vector_t isr_alloc_vector();
 isr_vector_t isr_alloc_msi_vector(struct device *device, uint16_t msi_index);
@@ -42,7 +44,7 @@ isr_set_msi_vector(isr_vector_t vector,
                    void *ctx,
                    struct arch_isr_info *info);
 
-struct irq_pin *isr_get_irq_pin(uint16_t irq);
+struct irq_pin *isr_get_irq_pin(irq_number_t irq);
 
 bool
 isr_install_irq(struct irq_pin *pin,

@@ -4,12 +4,13 @@
  */
 
 #pragma once
-#include "driver.h"
+
+#include "dev/dtb/driver.h"
+#include "dev/dtb/node.h"
 
 void dtb_parse_main_tree();
-void dtb_init();
 
 bool
-dtb_init_nodes_for_driver(const struct dtb_driver *driver,
-                          const struct devicetree *tree,
-                          const struct devicetree_node *node);
+dtb_init_nodes_for_driver(const struct dtb_driver *const driver,
+                          const struct devicetree *const tree,
+                          const struct devicetree_node *const node);

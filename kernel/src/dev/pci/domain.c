@@ -3,53 +3,45 @@
  * © suhas pai
  */
 
+#include "dev/pci/bus.h"
+#include "dev/pci/device.h"
 #include "dev/pci/ecam.h"
+
 #if defined(__x86_64__)
     #include "dev/pci/legacy.h"
 #endif /* defined(__x86_64__) */
 
-#include "lib/adt/array.h"
-#include "cpu/spinlock.h"
+#include "dev/device.h"
 
-static struct array g_domain_list = ARRAY_INIT(sizeof(struct pci_domain *));
-static struct spinlock g_domain_lock = SPINLOCK_INIT();
-
-__debug_optimize(3) bool pci_add_domain(struct pci_domain *const domain) {
-    bool result = false;
-    with_spinlock_intr_disabled(&g_domain_lock, {
-        result = array_append(&g_domain_list, &domain);
-    });
-
-    return result;
-}
-
-__debug_optimize(3) bool pci_remove_domain(struct pci_domain *const domain) {
-    bool result = false;
-    with_spinlock_intr_disabled(&g_domain_lock, {
-        uint32_t index = 0;
-        array_foreach(&g_domain_list, const struct pci_domain *, iter) {
-            if (*iter == domain) {
-                array_remove_index(&g_domain_list, index);
-                result = true;
-
-                break;
-            }
-
-            index++;
+static bool pci_domain_probe(struct bus *const bus) {
+    struct pci_domain *const domain = parent_of(bus, struct pci_domain, bus);
+    pci_domain_foreach_bus(domain, pci_bus) {
+        if (!bus_probe(&pci_bus->bus)) {
+            return false;
         }
-    });
+    }
 
-    return result;
+    return true;
 }
 
-__debug_optimize(3)
-const struct array *pci_get_domain_list_locked(int *const flag_out) {
-    *flag_out = spin_acquire_save_intr(&g_domain_lock);
-    return &g_domain_list;
+void
+pci_domain_init(struct pci_domain *const domain,
+                struct bus *const parent,
+                const enum pci_domain_kind kind,
+                const uint16_t segment)
+{
+    bus_init_no_driver(&domain->bus,
+                       parent,
+                       /*name=*/SV_EMPTY(),
+                       &pci_device()->bus,
+                       pci_domain_probe);
+
+    domain->kind = kind;
+    domain->segment = segment;
 }
 
-__debug_optimize(3) void pci_release_domain_list_lock(const int flag) {
-    spin_release_restore_intr(&g_domain_lock, flag);
+struct pci_bus *pci_domain_get_root_bus(struct pci_domain *const domain) {
+    return list_head(&domain->bus.device_list, struct pci_bus, entity_list);
 }
 
 __debug_optimize(3) uint8_t

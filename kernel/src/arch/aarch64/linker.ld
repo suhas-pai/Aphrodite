@@ -37,10 +37,10 @@ SECTIONS
         *(.rodata .rodata.*)
     } :rodata
 
-    .drivers : {
-        drivers_start = .;
-        KEEP(*(.drivers*))
-        drivers_end = .;
+    .dev_inits : {
+        dev_inits_start = .;
+        KEEP(*(.dev_inits*))
+        dev_inits_end = .;
     } :rodata
 
     .fs_drivers : {

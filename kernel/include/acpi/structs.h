@@ -51,25 +51,25 @@ struct os_acpi_madt {
 } __packed;
 
 enum os_acpi_madt_entry_kind : uint8_t {
-    ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC,
-    ACPI_MADT_ENTRY_KIND_IO_APIC,
-    ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE,
-    ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR_SRC,
-    ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR,
-    ACPI_MADT_ENTRY_KIND_LOCAL_APIC_ADDR_OVERRIDE,
-    ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC = 9,
-    ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC_NMI,
-    ACPI_MADT_ENTRY_KIND_GIC_CPU_INTERFACE,
-    ACPI_MADT_ENTRY_KIND_GIC_DISTRIBUTOR,
-    ACPI_MADT_ENTRY_KIND_GIC_MSI_FRAME,
-    ACPI_MADT_ENTRY_KIND_GIC_REDISTRIBUTOR,
-    ACPI_MADT_ENTRY_KIND_GIC_INTR_TRANSLATE_SERVICE,
-    ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE,
+    OS_ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC,
+    OS_ACPI_MADT_ENTRY_KIND_IO_APIC,
+    OS_ACPI_MADT_ENTRY_KIND_INTR_SRC_OVERRIDE,
+    OS_ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR_SRC,
+    OS_ACPI_MADT_ENTRY_KIND_NON_MASKABLE_INTR,
+    OS_ACPI_MADT_ENTRY_KIND_LOCAL_APIC_ADDR_OVERRIDE,
+    OS_ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC = 9,
+    OS_ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC_NMI,
+    OS_ACPI_MADT_ENTRY_KIND_GIC_CPU_INTERFACE,
+    OS_ACPI_MADT_ENTRY_KIND_GIC_DISTRIBUTOR,
+    OS_ACPI_MADT_ENTRY_KIND_GIC_MSI_FRAME,
+    OS_ACPI_MADT_ENTRY_KIND_GIC_REDISTRIBUTOR,
+    OS_ACPI_MADT_ENTRY_KIND_GIC_INTR_TRANSLATE_SERVICE,
+    OS_ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE,
 
-    ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER = 24,
-    ACPI_MADT_ENTRY_KIND_RISCV_IMSIC,
-    ACPI_MADT_ENTRY_KIND_RISCV_APLIC,
-    ACPI_MADT_ENTRY_KIND_RISCV_PLIC,
+    OS_ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER = 24,
+    OS_ACPI_MADT_ENTRY_KIND_RISCV_IMSIC,
+    OS_ACPI_MADT_ENTRY_KIND_RISCV_APLIC,
+    OS_ACPI_MADT_ENTRY_KIND_RISCV_PLIC,
 };
 
 struct os_acpi_madt_entry_header {
@@ -78,8 +78,8 @@ struct os_acpi_madt_entry_header {
 } __packed;
 
 enum os_acpi_madt_entry_cpu_lapic_flags {
-    __ACPI_MADT_ENTRY_CPU_LAPIC_ENABLED = 1 << 0,
-    __ACPI_MADT_ENTRY_CPU_LAPIC_ONLINE_CAPABLE = 1 << 1
+    __OS_ACPI_MADT_ENTRY_CPU_LAPIC_ENABLED = 1 << 0,
+    __OS_ACPI_MADT_ENTRY_CPU_LAPIC_ONLINE_CAPABLE = 1 << 1
 };
 
 struct os_acpi_madt_entry_cpu_lapic {
@@ -98,8 +98,8 @@ struct os_acpi_madt_entry_ioapic {
 } __packed;
 
 enum os_acpi_madt_entry_iso_flags {
-    __ACPI_MADT_ENTRY_ISO_ACTIVE_LOW = 1 << 1,
-    __ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER = 0b11 << 2,
+    __OS_ACPI_MADT_ENTRY_ISO_ACTIVE_LOW = 1 << 1,
+    __OS_ACPI_MADT_ENTRY_ISO_LEVEL_TRIGGER = 0b11 << 2,
 };
 
 struct os_acpi_madt_entry_iso {
@@ -111,8 +111,8 @@ struct os_acpi_madt_entry_iso {
 } __packed;
 
 enum os_acpi_madt_entry_nmi_src_flags {
-    __ACPI_MADT_ENTRY_NMI_SRC_ACTIVE_LOW = 1 << 1,
-    __ACPI_MADT_ENTRY_NMI_SRC_LEVEL_TRIGGER = 1 << 4,
+    __OS_ACPI_MADT_ENTRY_NMI_SRC_ACTIVE_LOW = 1 << 1,
+    __OS_ACPI_MADT_ENTRY_NMI_SRC_LEVEL_TRIGGER = 1 << 4,
 };
 
 struct os_acpi_madt_entry_nmi_src {
@@ -152,16 +152,16 @@ struct os_acpi_madt_entry_cpu_local_x2apic_nmi {
 } __packed;
 
 enum os_acpi_madt_entry_gic_cpu_flags {
-    __ACPI_MADT_ENTRY_GIC_CPU_ENABLED = 1 << 0,
-    __ACPI_MADT_ENTRY_GIC_CPU_PERF_INTR_EDGE_TRIGGER = 1 << 1,
-    __ACPI_MADT_ENTRY_GIC_CPU_VGIC_INTR_EDGE_TRIGGER = 1 << 2,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_ENABLED = 1 << 0,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_PERF_INTR_EDGE_TRIGGER = 1 << 1,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_VGIC_INTR_EDGE_TRIGGER = 1 << 2,
 };
 
 enum os_acpi_madt_entry_gic_cpu_mpidr_flags {
-    __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF0 = 0xff,
-    __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF1 = 0xff << 8,
-    __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF2 = 0xff << 16,
-    __ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF3 = 0xffull << 32,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF0 = 0xff,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF1 = 0xff << 8,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF2 = 0xff << 16,
+    __OS_ACPI_MADT_ENTRY_GIC_CPU_MPIDR_AFF3 = 0xffull << 32,
 };
 
 struct os_acpi_madt_entry_gic_cpu_interface {
@@ -210,7 +210,7 @@ struct os_acpi_madt_entry_gic_distributor {
 } __packed;
 
 enum os_acpi_madt_entry_gic_msi_frame_flags {
-    __ACPI_MADT_GICMSI_FRAME_OVERRIDE_MSI_TYPERR = 1 << 0,
+    __OS_ACPI_MADT_GICMSI_FRAME_OVERRIDE_MSI_TYPERR = 1 << 0,
 };
 
 struct os_acpi_madt_entry_gic_msi_frame {
@@ -242,8 +242,8 @@ struct os_acpi_madt_entry_gic_its {
 } __packed;
 
 enum os_acpi_madt_riscv_hart_irq_controller_flags {
-    __ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED = 1 << 0,
-    __ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE = 1 << 1,
+    __OS_ACPI_MADT_RISCV_HART_IRQ_CNTRLR_ENABLED = 1 << 0,
+    __OS_ACPI_MADT_RISCV_HART_IRQ_ONLINE_CAPABLE = 1 << 1,
 };
 
 struct os_acpi_madt_riscv_hart_irq_controller {

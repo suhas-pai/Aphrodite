@@ -46,7 +46,7 @@ enum ps2_keyboard_byte_flags : uint8_t {
     __PS2_KBD_KEY_RELEASE = 1ull << 7
 };
 
-void ps2_keyboard_init(const enum ps2_port_id device_id);
+void ps2_keyboard_start(const enum ps2_port_id device_id);
 
 void
 ps2_keyboard_interrupt(uint64_t intr_no,

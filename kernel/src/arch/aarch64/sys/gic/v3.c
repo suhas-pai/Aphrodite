@@ -5,6 +5,11 @@
 
 #include <stdatomic.h>
 
+#include "dev/dtb/bus.h"
+#include "dev/dtb/device.h"
+#include "dev/dtb/driver.h"
+#include "dev/dtb/gic_compat.h"
+
 #include "sys/gic/api.h"
 #include "sys/gic/its.h"
 
@@ -13,6 +18,8 @@
 #include "asm/sync.h"
 
 #include "cpu/isr.h"
+
+#include "dev/init.h"
 #include "dev/printk.h"
 
 #include "mm/mmio.h"
@@ -353,8 +360,8 @@ __debug_optimize(3) enum isr_msi_support gicdv3_get_msi_support() {
     return ISR_MSI_SUPPORT_MSIX;
 }
 
-__debug_optimize(3) irq_number_t
-gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
+__debug_optimize(3)
+irq_number_t gicv3_cpu_get_irq_number(uint8_t *const cpu_id_out) {
     uint64_t iar1 = 0;
     asm volatile("mrs %0, icc_iar1_el1" : "=r"(iar1));
 
@@ -589,11 +596,11 @@ gicv3_init_from_info(const uint64_t dist_phys, const struct range redist_range)
     return true;
 }
 
-bool
-gicv3_init_from_dtb(const struct devicetree *const tree,
-                    const struct devicetree_node *const node)
-{
-    (void)tree;
+static bool gicv3_dtb_probe(struct device *const the_driver) {
+    struct dtb_device *const device =
+        parent_of(the_driver, struct dtb_device, device);
+
+    const struct devicetree_node *const node = device->node;
     const struct devicetree_prop *const intr_controller_node =
         devicetree_node_get_prop(node, DEVICETREE_PROP_INTR_CONTROLLER);
 
@@ -619,7 +626,7 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
     }
 
     struct devicetree_prop_reg_info *const dist_reg_info =
-        array_front(reg_prop->list);
+        array_front(&reg_prop->list, struct devicetree_prop_reg_info);
 
     if (dist_reg_info->size < sizeof(struct gicd_v3_registers)) {
         printk(LOGLEVEL_WARN,
@@ -630,7 +637,7 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
 
     struct range redist_range = RANGE_EMPTY();
     struct devicetree_prop_reg_info *const redist_reg_info =
-        array_at(reg_prop->list, /*index=*/1);
+        array_at(&reg_prop->list, struct devicetree_prop_reg_info, /*index=*/1);
 
     if (!range_create_and_verify(redist_reg_info->address,
                                  redist_reg_info->size,
@@ -666,7 +673,9 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
         return false;
     }
 
+    struct devicetree *const tree = dtb_get_tree();
     const struct string_view compat_sv = SV_STATIC("arm,gic-v3-its");
+
     devicetree_node_foreach_child(node, child_node) {
         if (devicetree_node_has_compat_sv(child_node, compat_sv)) {
             gic_its_init_from_dtb(tree, child_node);
@@ -675,3 +684,23 @@ gicv3_init_from_dtb(const struct devicetree *const tree,
 
     return true;
 }
+
+static void init_drivers() {
+    static struct dtb_driver dtb_driver = {
+        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
+
+        .compat_list = gicv3_compat_sv_list,
+        .compat_count = countof(gicv3_compat_sv_list),
+    };
+
+    driver_initialize(&dtb_driver.driver,
+                      dtb_bus(),
+                      /*name=*/SV_STATIC("gicv3"),
+                      gicv3_dtb_probe,
+                      /*remove=*/nullptr,
+                      /*shutdown=*/nullptr,
+                      /*suspend=*/nullptr,
+                      /*resume=*/nullptr);
+}
+
+MAKE_DEV_INIT_FUNC(init_drivers);

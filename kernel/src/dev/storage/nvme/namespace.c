@@ -174,8 +174,8 @@ nvme_namespace_create(struct nvme_namespace *const namespace,
         return false;
     }
 
-    if (!nvme_create_completion_queue(controller, namespace)
-     || !nvme_create_submit_queue(controller, namespace))
+    if (!nvme_create_completion_queue(controller, namespace) ||
+        !nvme_create_submit_queue(controller, namespace))
     {
         return false;
     }
@@ -237,8 +237,10 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
                     namespace->io_queue.phys_region_pages_count
                   * command.readwrite.cid];
 
-            for (uint32_t i = 0; i != prp_count; i++) {
-                prp_list[i] = command.readwrite.prp2 + (PAGE_SIZE * i);
+            uint8_t i = 0;
+            ptrarr_foreach(prp_list, prp_count, prp) {
+                *prp = command.readwrite.prp2 + (PAGE_SIZE * i);
+                i++;
             }
 
             command.readwrite.prp2 = virt_to_phys(prp_list);

@@ -4,72 +4,36 @@
  */
 
 #include "dev/pci/bus.h"
+#include "dev/pci/probe.h"
 #include "dev/pci/resource.h"
 
-#include "cpu/spinlock.h"
 #include "mm/kmalloc.h"
-
-static struct array g_root_bus_list = ARRAY_INIT(sizeof(struct pci_bus *));
-static struct spinlock g_root_bus_list_lock = SPINLOCK_INIT();
 
 struct pci_bus *
 pci_bus_create(struct pci_domain *const domain,
                const uint8_t bus_id,
                const uint8_t segment)
 {
-    struct pci_bus *const bus = kmalloc(sizeof(*bus));
-    if (bus == nullptr) {
+    struct pci_bus *const pci_bus = kmalloc(sizeof(*pci_bus));
+    if (pci_bus == nullptr) {
         return nullptr;
     }
 
-    bus->domain = domain;
-    bus->resources = ARRAY_INIT(sizeof(struct pci_bus_resource));
-    bus->lock = SPINLOCK_INIT();
+    list_init(&pci_bus->entity_list);
+    bus_init(&pci_bus->bus,
+             /*parent=*/&domain->bus,
+             SV_STATIC("pci-bus"),
+             /*driver=*/nullptr,
+             pci_bus_probe);
 
-    bus->bus_id = bus_id;
-    bus->segment = segment;
+    pci_bus->resources = ARRAY_INIT(sizeof(struct pci_bus_resource));
 
-    list_init(&bus->entity_list);
-    return bus;
+    pci_bus->bus_id = bus_id;
+    pci_bus->segment = segment;
+
+    return pci_bus;
 }
 
-__debug_optimize(3) bool pci_add_root_bus(struct pci_bus *const bus) {
-    bool result = false;
-    with_spinlock_intr_disabled(&g_root_bus_list_lock, {
-        result = array_append(&g_root_bus_list, &bus);
-    });
-
-    return result;
-}
-
-__debug_optimize(3) bool pci_remove_root_bus(struct pci_bus *const bus) {
-    bool result = false;
-    with_spinlock_intr_disabled(&g_root_bus_list_lock, {
-        if (list_empty(&bus->entity_list)) {
-            uint32_t index = 0;
-            array_foreach(&g_root_bus_list, const struct pci_bus *, iter) {
-                if (*iter == bus) {
-                    array_remove_index(&g_root_bus_list, index);
-                    result = true;
-
-                    break;
-                }
-
-                index++;
-            }
-        }
-    });
-
-    kfree(bus);
-    return result;
-}
-
-__debug_optimize(3)
-const struct array *pci_get_root_bus_list_locked(int *const flag_out) {
-    *flag_out = spin_acquire_save_intr(&g_root_bus_list_lock);
-    return &g_root_bus_list;
-}
-
-__debug_optimize(3) void pci_release_root_bus_list_lock(const int flag) {
-    spin_release_restore_intr(&g_root_bus_list_lock, flag);
+struct pci_domain *pci_bus_get_domain(struct pci_bus *const pci_bus) {
+    return parent_of(bus_get_dev_parent(&pci_bus->bus), struct pci_domain, bus);
 }

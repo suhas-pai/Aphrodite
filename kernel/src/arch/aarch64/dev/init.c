@@ -3,16 +3,16 @@
  * © suhas pai
  */
 
+#include "dev/dtb/bus.h"
 #include "dev/dtb/init.h"
+#include "dev/dtb/tree.h"
+
 #include "sys/gic/api.h"
 
 #include "asm/irqs.h"
-#include "dev/psci.h"
-
 #include "sys/boot.h"
 
 void arch_init_dev() {
-    struct devicetree *const tree = dtb_get_tree();
     if (boot_get_dtb() == nullptr) {
         return;
     }
@@ -21,21 +21,13 @@ void arch_init_dev() {
         gic_init_from_dtb();
     });
 
-    static const struct string_view compat_list[] = {
-        SV_STATIC("arm,psci"), SV_STATIC("arm,psci-1.0"),
-        SV_STATIC("arm,psci-0.2")
-    };
-
-    static const struct dtb_driver psci_dtb_driver = {
-        .init = psci_init_from_dtb,
-        .match_flags = __DTB_DRIVER_MATCH_COMPAT,
-
-        .compat_list = compat_list,
-        .compat_count = countof(compat_list),
-    };
-
-    assert_msg(dtb_init_nodes_for_driver(&psci_dtb_driver, tree, tree->root),
-               "dtb: psci not found or was malformed");
+    struct devicetree *const tree = dtb_get_tree();
+    bus_foreach_driver(dtb_bus(), struct dtb_driver, driver.list, driver) {
+        if (sv_equals(driver->driver.name, SV_STATIC("arm-psci"))) {
+            dtb_init_nodes_for_driver(driver, tree, tree->root);
+            continue;
+        }
+    }
 }
 
 void arch_init_dev_drivers() {}
