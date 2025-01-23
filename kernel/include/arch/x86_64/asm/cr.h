@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 __debug_optimize(3) static inline uint64_t read_cr0() {
     uint64_t cr0 = 0;

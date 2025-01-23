@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
-#include "lib/align.h"
-#include "lib/bits.h"
-#include "lib/memory.h"
-#include "lib/util.h"
+#include <lib/align.h>
+#include <lib/bits.h>
+#include <lib/memory.h>
+#include <lib/util.h>
 
 #include "bitmap.h"
 

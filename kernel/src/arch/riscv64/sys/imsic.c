@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/adt/bitset.h"
+#include <lib/adt/bitset.h>
 
 #include "asm/irqs.h"
 #include "cpu/spinlock.h"

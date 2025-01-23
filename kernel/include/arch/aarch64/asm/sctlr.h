@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 enum sctlr_tag_check_fault : uint8_t {
     SCTLR_TAG_CHECK_FAULT_NO_EFFECT,

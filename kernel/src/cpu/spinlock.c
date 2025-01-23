@@ -12,7 +12,7 @@
 #include "sched/thread.h"
 
 #if defined(DEBUG_LOCKS)
-    #include "lib/assert.h"
+    #include <lib/assert.h>
 #endif /* defined(DEBUG_LOCKS) */
 
 __debug_optimize(3) void spin_acquire(struct spinlock *const lock) {

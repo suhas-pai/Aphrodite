@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include "lib/adt/avltree.h"
-#include "lib/adt/range.h"
+#include <lib/adt/avltree.h>
+#include <lib/adt/range.h>
 
-#include "lib/list.h"
+#include <lib/list.h>
 
 struct address_space {
     struct avltree avltree;

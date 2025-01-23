@@ -4,10 +4,10 @@
  */
 
 #pragma once
-#include "lib/adt/string.h"
+#include <lib/adt/string.h>
 
 #include "dev/printk.h"
-#include "lib/time.h"
+#include <lib/time.h>
 
 struct string kstrftime(const char *format, const struct tm *tm);
 

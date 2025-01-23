@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/assert.h"
+#include <lib/assert.h>
 #include "mm/mm_types.h"
 
 #include "limine.h"

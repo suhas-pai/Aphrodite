@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/util.h>
+
 #include "dev/pci/device.h"
 #include "dev/pci/driver.h"
 #include "dev/pci/entity.h"
@@ -13,8 +15,6 @@
 
 #include "dev/init.h"
 #include "dev/printk.h"
-
-#include "lib/util.h"
 
 static bool virtio_pci_probe(struct device *const device) {
     struct pci_entity_info *const pci_entity =

@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
+
 #include "asm/cpuid.h"
 #include "asm/xsave.h"
-
-#include "lib/align.h"
 
 extern int16_t g_xsave_feat_noncompacted_offsets[XSAVE_FEAT_MAX];
 extern int16_t g_xsave_feat_sizes[XSAVE_FEAT_MAX];

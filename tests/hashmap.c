@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/adt/hashmap.h"
+#include <lib/adt/hashmap.h>
 
 uint32_t hasher(void *const key, const struct hashmap *const hashmap) {
     (void)hashmap;

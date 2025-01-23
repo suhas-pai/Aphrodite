@@ -4,11 +4,11 @@
  */
 
 #pragma once
-#include "lib/adt/range.h"
+
+#include <lib/adt/range.h>
+#include <lib/list.h>
 
 #include "cpu/spinlock.h"
-#include "lib/list.h"
-
 #include "mm/types.h"
 
 struct page_freelist {

@@ -6,7 +6,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 enum satp_mode : uint8_t {
     SATP_MODE_NO_PAGING,

@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 struct lapic_aligned_value {
     _Alignas(16) volatile uint32_t value;

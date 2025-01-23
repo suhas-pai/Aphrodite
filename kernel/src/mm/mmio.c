@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
-#include "dev/printk.h"
+#include <lib/align.h>
+#include <lib/size.h>
 
-#include "lib/align.h"
-#include "lib/size.h"
+#include "dev/printk.h"
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"

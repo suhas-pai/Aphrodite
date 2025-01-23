@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lib/list.h"
-#include "lib/time.h"
+#include <lib/list.h>
+#include <lib/time.h>
 
 struct mutex {
     _Atomic(uintptr_t) flags;

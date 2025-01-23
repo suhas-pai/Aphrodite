@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include "lib/adt/avltree.h"
+#include <lib/adt/avltree.h>
 
 struct node {
     struct avlnode info;

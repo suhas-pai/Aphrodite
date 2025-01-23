@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/format.h"
+#include <lib/format.h>
 #include "growable_buffer.h"
 
 __debug_optimize(3)
@@ -220,4 +220,3 @@ __debug_optimize(3) const char *string_to_cstr(const struct string string) {
 __debug_optimize(3) void string_destroy(struct string *const string) {
     gbuffer_destroy(&string->gbuffer);
 }
-

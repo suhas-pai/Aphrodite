@@ -3,9 +3,9 @@
  * © suhas pai
  */
 
-#include "dev/pci/location.h"
-#include "lib/align.h"
+#include <lib/align.h>
 
+#include "dev/pci/location.h"
 #include "dev/pio.h"
 
 enum pci_config_address_flags : uint32_t {

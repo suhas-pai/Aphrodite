@@ -3,15 +3,15 @@
  * © suhas pai
  */
 
+#include <lib/ansi.h>
+#include <lib/parse_printf.h>
+
 #include "asm/irqs.h"
 
 #include "cpu/cpu_info.h"
 #include "cpu/spinlock.h"
 
 #include "dev/printk.h"
-
-#include "lib/ansi.h"
-#include "lib/parse_printf.h"
 
 static struct terminal *g_first_term = nullptr;
 

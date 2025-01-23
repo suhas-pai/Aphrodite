@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include <lib/util.h>
 #include "dev/storage/nvme/controller.h"
 
 #include "dev/pci/device.h"
@@ -15,7 +16,6 @@
 #include "dev/init.h"
 #include "dev/printk.h"
 
-#include "lib/util.h"
 #include "mm/kmalloc.h"
 #include "sched/thread.h"
 

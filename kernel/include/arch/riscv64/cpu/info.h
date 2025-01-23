@@ -4,10 +4,9 @@
  */
 
 #pragma once
-#include "cpu/cpu_info.h"
 
-#include "lib/list.h"
-#include "lib/time.h"
+#include <lib/time.h>
+#include "cpu/cpu_info.h"
 
 struct process;
 struct cpu_info {

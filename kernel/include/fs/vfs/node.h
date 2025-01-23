@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lib/adt/hashmap.h"
-#include "lib/adt/string.h"
+#include <lib/adt/hashmap.h>
+#include <lib/adt/string.h>
 
 struct vfs_filesystem;
 struct vfs_node {

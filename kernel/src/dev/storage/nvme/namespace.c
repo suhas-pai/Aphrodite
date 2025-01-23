@@ -3,14 +3,13 @@
  * © suhas pai
  */
 
+#include <lib/size.h>
+#include <lib/util.h>
+
 #include "dev/storage/nvme/command.h"
 #include "dev/storage/nvme/namespace.h"
 
 #include "dev/printk.h"
-
-#include "lib/size.h"
-#include "lib/util.h"
-
 #include "mm/physalloc.h"
 
 #define NVME_IO_QUEUE_COUNT 1024ul

@@ -3,11 +3,11 @@
  * © suhas pai
  */
 
+#include <lib/adt/bitset.h>
+
 #include "dev/pci/device.h"
 #include "dev/pci/entity.h"
 #include "dev/pci/structs.h"
-
-#include "lib/adt/bitset.h"
 
 #include "cpu/isr.h"
 #include "dev/printk.h"

@@ -3,9 +3,10 @@
  * © suhas pai
  */
 
+#include <lib/util.h>
+
 #include "acpi/pptt.h"
 #include "dev/printk.h"
-#include "lib/util.h"
 
 void pptt_init(const struct os_acpi_pptt *const pptt) {
     uint32_t offset = offsetof(struct os_acpi_pptt, buffer);

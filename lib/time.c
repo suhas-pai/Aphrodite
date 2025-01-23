@@ -4,7 +4,7 @@
  */
 
 #include <limits.h>
-#include "lib/assert.h"
+#include <lib/assert.h>
 
 #include "macros.h"
 #include "time.h"

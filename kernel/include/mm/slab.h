@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/list.h>
 #include "cpu/spinlock.h"
-#include "lib/list.h"
 
 // Structure to represent a slab allocator.
 struct slab_allocator {

@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include "lib/alloc.h"
-#include "lib/util.h"
+#include <lib/alloc.h>
+#include <lib/util.h>
 
 #include "array.h"
 

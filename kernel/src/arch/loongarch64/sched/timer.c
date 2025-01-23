@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/time.h>
 #include "cpu/isr.h"
-#include "lib/time.h"
 
 #include "sys/irqdef.h"
 #include "sys/timer.h"

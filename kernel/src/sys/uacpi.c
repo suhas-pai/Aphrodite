@@ -4,6 +4,10 @@
  */
 
 #include <stdatomic.h>
+
+#include <lib/align.h>
+#include <lib/util.h>
+
 #include <uacpi/kernel_api.h>
 
 #include "dev/pci/device.h"
@@ -14,9 +18,6 @@
 #include "cpu/mutex.h"
 
 #include "dev/printk.h"
-
-#include "lib/align.h"
-#include "lib/util.h"
 
 #include "mm/kmalloc.h"
 #include "mm/memmap.h"

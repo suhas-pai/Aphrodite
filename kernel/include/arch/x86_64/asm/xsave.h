@@ -5,11 +5,11 @@
 
 #pragma once
 
+#include <lib/assert.h>
+#include <lib/inttypes.h>
+
 #include "asm/msr.h"
 #include "asm/xcr.h"
-
-#include "lib/assert.h"
-#include "lib/inttypes.h"
 
 enum xsave_header_xcompbv_flags : uint64_t {
     __XSAVE_XCOMPBV_USES_COMPACTED_FORM = 1ull << 63,

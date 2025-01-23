@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/macros.h>
 #include "asm/cpuid.h"
-#include "lib/macros.h"
 
 /*
  * Issue a single request to CPUID. Fits 'intel features', for instance note

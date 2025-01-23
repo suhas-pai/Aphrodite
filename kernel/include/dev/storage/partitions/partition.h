@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/adt/string.h>
 #include "dev/storage/device.h"
-#include "lib/adt/string.h"
 
 #define SECTOR_SIZE 512
 

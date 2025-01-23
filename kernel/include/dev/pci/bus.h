@@ -4,10 +4,9 @@
  */
 
 #pragma once
+#include <lib/adt/array.h>
 
 #include "dev/pci/domain.h"
-#include "lib/adt/array.h"
-
 #include "dev/bus.h"
 
 struct pci_bus {

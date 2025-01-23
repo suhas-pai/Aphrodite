@@ -3,7 +3,11 @@
  * © suhas pai
  */
 
-#include "lib/adt/bitset.h"
+#include <lib/adt/bitset.h>
+
+#include <lib/align.h>
+#include <lib/util.h>
+
 #include "acpi/api.h"
 
 #include "apic/ioapic.h"
@@ -15,9 +19,6 @@
 #include "cpu/spinlock.h"
 
 #include "dev/printk.h"
-
-#include "lib/align.h"
-#include "lib/util.h"
 
 #include "sched/thread.h"
 #include "sys/irq.h"

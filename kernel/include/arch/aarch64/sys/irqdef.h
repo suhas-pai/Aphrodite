@@ -6,7 +6,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "lib/inttypes.h"
+#include <lib/inttypes.h>
 
 typedef uint16_t irq_number_t;
 

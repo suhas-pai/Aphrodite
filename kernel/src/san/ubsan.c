@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
 #if __has_include("asm/stack_trace.h")
     #include "asm/stack_trace.h"
 #endif /* __has_include("asm/stack_trace.h")*/
@@ -10,7 +11,6 @@
 #include "cpu/util.h"
 #include "dev/printk.h"
 
-#include "lib/align.h"
 #include "san/ubsan.h"
 
 static const char *const type_check_kind_list[] = {

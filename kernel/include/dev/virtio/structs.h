@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/endian.h>
 #include "dev/pci/structs.h"
-#include "lib/endian.h"
 
 enum virtio_pci_trans_device_kind : uint16_t {
     VIRTIO_PCI_TRANS_DEVICE_KIND_NETWORK_CARD = 0x1000,

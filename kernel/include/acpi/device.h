@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/adt/string_view.h>
 #include <uacpi/types.h>
-#include "lib/adt/string_view.h"
 
 #include "dev/device.h"
 #include "resources.h"

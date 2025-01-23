@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/freq.h>
+#include <lib/time.h>
+
 #include "acpi/api.h"
 
 #include "asm/irqs.h"
@@ -13,9 +16,6 @@
 
 #include "dev/pit.h"
 #include "dev/printk.h"
-
-#include "lib/freq.h"
-#include "lib/time.h"
 
 #include "sched/thread.h"
 #include "sys/mmio.h"

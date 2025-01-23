@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/assert.h>
 #include "asm/cause.h"
-#include "lib/assert.h"
 
 __debug_optimize(3) struct string_view
 cause_exception_kind_get_sv(const enum cause_exception_kind kind) {

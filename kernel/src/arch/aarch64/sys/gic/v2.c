@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
+#include <lib/bits.h>
+
 #include <stdatomic.h>
 
 #include "dev/dtb/bus.h"
@@ -10,14 +13,11 @@
 #include "dev/dtb/driver.h"
 #include "dev/dtb/gic_compat.h"
 
-#include "dev/init.h"
 #include "sys/gic/api.h"
 #include "sys/gic/v2.h"
 
+#include "dev/init.h"
 #include "dev/printk.h"
-
-#include "lib/align.h"
-#include "lib/bits.h"
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"

@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include "lib/alloc.h"
-#include "lib/list.h"
+#include <lib/alloc.h>
+#include <lib/list.h>
 
 #include "hashmap.h"
 

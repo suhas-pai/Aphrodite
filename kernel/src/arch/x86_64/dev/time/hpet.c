@@ -3,16 +3,17 @@
  * © suhas pai
  */
 
+#include <lib/adt/bitset.h>
+
+#include <lib/align.h>
+#include <lib/freq.h>
+#include <lib/time.h>
+
 #include "dev/time/hpet.h"
-#include "lib/adt/bitset.h"
 
 #include "asm/irqs.h"
 #include "cpu/spinlock.h"
 #include "dev/printk.h"
-
-#include "lib/align.h"
-#include "lib/freq.h"
-#include "lib/time.h"
 
 #include "mm/mmio.h"
 #include "sched/event.h"

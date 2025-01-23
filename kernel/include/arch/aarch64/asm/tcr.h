@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 enum tcr_shifts : uint8_t {
     TCR_INNER_CACHEABILITY_TTBR0_SHIFT = 8,

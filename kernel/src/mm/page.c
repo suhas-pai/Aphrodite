@@ -4,7 +4,7 @@
  */
 
 #include <stdatomic.h>
-#include "lib/overflow.h"
+#include <lib/overflow.h>
 
 #include "mm/page.h"
 #include "mm/section.h"

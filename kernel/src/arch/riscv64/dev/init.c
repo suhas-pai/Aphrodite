@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/freq.h>
+#include <lib/time.h>
+
 #include "dev/dtb/bus.h"
 #include "dev/dtb/init.h"
 #include "dev/dtb/tree.h"
@@ -14,9 +17,6 @@
 
 #include "dev/printk.h"
 #include "dev/syscon.h"
-
-#include "lib/freq.h"
-#include "lib/time.h"
 
 extern struct cpus_info g_cpus_info;
 void arch_init_from_dtb() {

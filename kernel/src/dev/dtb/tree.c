@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/adt/string_view.h>
 #include "dev/dtb/tree.h"
-#include "lib/adt/string_view.h"
 
 #include "mm/kmalloc.h"
 

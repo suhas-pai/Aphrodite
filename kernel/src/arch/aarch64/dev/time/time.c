@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/freq.h>
+
 #include "dev/dtb/tree.h"
 #include "sys/gic/api.h"
 
@@ -11,7 +13,6 @@
 #include "cpu/isr.h"
 #include "dev/printk.h"
 
-#include "lib/freq.h"
 #include "sched/scheduler.h"
 #include "sys/boot.h"
 

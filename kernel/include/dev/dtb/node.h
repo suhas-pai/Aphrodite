@@ -6,8 +6,8 @@
 #pragma once
 #include <libfdt/libfdt_env.h>
 
-#include "lib/adt/array.h"
-#include "lib/adt/hashmap.h"
+#include <lib/adt/array.h>
+#include <lib/adt/hashmap.h>
 
 #include "sys/irq.h"
 

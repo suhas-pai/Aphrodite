@@ -3,6 +3,10 @@
  * © suhas pai
  */
 
+#include <lib/bits.h>
+#include <lib/size.h>
+#include <lib/util.h>
+
 #include "dev/ata/atapi.h"
 #include "dev/ata/defines.h"
 
@@ -13,10 +17,6 @@
 #include "asm/pause.h"
 
 #include "dev/printk.h"
-
-#include "lib/bits.h"
-#include "lib/size.h"
-#include "lib/util.h"
 
 #include "mm/kmalloc.h"
 #include "mm/zone.h"

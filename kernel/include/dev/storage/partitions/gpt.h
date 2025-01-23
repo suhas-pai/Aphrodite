@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 struct gpt_header {
     char signature[8];

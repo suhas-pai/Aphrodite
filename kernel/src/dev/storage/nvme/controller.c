@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/util.h>
+#include <lib/size.h>
+
 #include "dev/storage/nvme/command.h"
 #include "dev/storage/nvme/namespace.h"
 
@@ -10,9 +13,6 @@
 
 #include "cpu/isr.h"
 #include "dev/printk.h"
-
-#include "lib/util.h"
-#include "lib/size.h"
 
 #include "mm/kmalloc.h"
 #include "mm/physalloc.h"

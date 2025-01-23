@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-#include "lib/format.h"
+#include <lib/format.h>
 #include "common.h"
 
 #define test_format_to_buffer(buffer_len, expected, str, ...)                  \

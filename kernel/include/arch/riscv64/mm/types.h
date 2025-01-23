@@ -6,7 +6,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "lib/assert.h"
+#include <lib/assert.h>
 
 #define MAX_ORDER 31ul
 

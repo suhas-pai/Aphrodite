@@ -3,12 +3,11 @@
  * © suhas pai
  */
 
+#include <lib/util.h>
 #include "dev/time/time.h"
 
 #include "acpi/gtdt.h"
 #include "dev/printk.h"
-
-#include "lib/util.h"
 
 void gtdt_init(const struct os_acpi_gtdt *const gtdt) {
     const enum irq_trigger_mode secure_el1_trigger_mode =

@@ -1,15 +1,15 @@
 /*
  * kernel/src/arch/riscv64/acpi/rhct.c
- * © suahs pai
+ * © suhas pai
  */
+
+#include <lib/freq.h>
+#include <lib/time.h>
+#include <lib/util.h>
 
 #include "acpi/rhct.h"
 #include "cpu/info.h"
 #include "dev/printk.h"
-
-#include "lib/freq.h"
-#include "lib/time.h"
-#include "lib/util.h"
 
 void
 print_rhct_node(const struct os_acpi_rhct *const rhct,

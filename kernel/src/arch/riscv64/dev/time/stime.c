@@ -3,11 +3,12 @@
  * © suhas pai
  */
 
+#include <lib/time.h>
+
 #include "asm/csr.h"
 #include "asm/irqs.h"
 
 #include "cpu/info.h"
-#include "lib/time.h"
 #include "sched/thread.h"
 
 __debug_optimize(3) usec_t stime_get() {

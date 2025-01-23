@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 enum id_aa64isar0_el1_shifts : uint8_t {
     ID_AA64ISAR0_EL1_AES_SUPPORT_SHIFT = 4,

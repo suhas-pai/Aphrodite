@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 #define FAT32_BOOTRECORD_SIGNATURE 0x29
 #define FAT32_BOOTRECORD_IDENTIFIER "FAT32   "

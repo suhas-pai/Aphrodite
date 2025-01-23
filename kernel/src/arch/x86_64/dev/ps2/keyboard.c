@@ -3,10 +3,11 @@
  * © suhas pai
  */
 
+#include <lib/adt/string.h>
+#include <lib/util.h>
+
 #include "dev/ps2/keymap.h"
 #include "dev/ps2/keyboard.h"
-
-#include "lib/adt/string.h"
 
 #include "acpi/bus.h"
 #include "acpi/device.h"
@@ -16,8 +17,6 @@
 
 #include "dev/init.h"
 #include "dev/printk.h"
-
-#include "lib/util.h"
 
 const char ps2_key_to_char[PS2_KEYMAP_SIZE] = {
     '\0', '\e', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',

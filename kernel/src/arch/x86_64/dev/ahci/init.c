@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/bits.h>
+#include <lib/util.h>
+
 #include "dev/ahci/device.h"
 #include "dev/ahci/irq.h"
 
@@ -16,9 +19,6 @@
 
 #include "dev/init.h"
 #include "dev/printk.h"
-
-#include "lib/bits.h"
-#include "lib/util.h"
 
 #include "mm/kmalloc.h"
 #include "sched/thread.h"

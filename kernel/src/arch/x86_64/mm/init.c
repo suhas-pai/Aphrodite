@@ -3,12 +3,12 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
+#include <lib/size.h>
+
 #include "asm/msr.h"
 #include "cpu/info.h"
 #include "dev/printk.h"
-
-#include "lib/align.h"
-#include "lib/size.h"
 
 #include "mm/early.h"
 #include "mm/memmap.h"

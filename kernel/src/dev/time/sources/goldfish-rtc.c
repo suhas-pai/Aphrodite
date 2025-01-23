@@ -3,12 +3,13 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
+
 #include "dev/dtb/bus.h"
 #include "dev/dtb/device.h"
 #include "dev/dtb/driver.h"
 
 #include "dev/init.h"
-#include "lib/align.h"
 
 #include "mm/kmalloc.h"
 #include "mm/mmio.h"

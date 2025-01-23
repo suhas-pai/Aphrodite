@@ -4,9 +4,7 @@
  */
 
 #pragma once
-
 #include "cpu/cpu_info.h"
-#include "lib/list.h"
 
 struct cpu_info {
     struct cpu_info_base;

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/adt/string_view.h"
+#include <lib/adt/string_view.h>
 #include "dev/bus.h"
 
 typedef bool (*driver_probe_t)(struct device *device);

@@ -4,9 +4,10 @@
  */
 
 #pragma once
+
+#include <lib/adt/array.h>
 #include <uacpi/types.h>
 
-#include "lib/adt/array.h"
 #include "mm/simple_alloc.h"
 #include "sys/irq.h"
 
@@ -26,31 +27,31 @@ struct os_acpi_irq_info {
 };
 
 enum os_acpi_dma_direction : uint8_t {
-    os_acpi_DMA_DIRECTION_FROM_DEVICE_TO_HOST,
-    os_acpi_DMA_DIRECTION_FROM_HOST_TO_DEVICE,
+    OS_ACPI_DMA_DIRECTION_FROM_DEVICE_TO_HOST,
+    OS_ACPI_DMA_DIRECTION_FROM_HOST_TO_DEVICE,
 };
 
 enum os_acpi_dma_transfer_type : uint8_t {
-    os_acpi_DMA_TRANSFER_TYPE_8_BIT,
-    os_acpi_DMA_TRANSFER_TYPE_8_AND_16_BIT,
-    os_acpi_DMA_TRANSFER_TYPE_16_BIT,
+    OS_ACPI_DMA_TRANSFER_TYPE_8_BIT,
+    OS_ACPI_DMA_TRANSFER_TYPE_8_AND_16_BIT,
+    OS_ACPI_DMA_TRANSFER_TYPE_16_BIT,
 };
 
 enum os_acpi_dma_channel_speed : uint8_t {
-    os_acpi_DMA_CHANNEL_TYPE_COMPAT,
+    OS_ACPI_DMA_CHANNEL_TYPE_COMPAT,
 
-    os_acpi_DMA_CHANNEL_TYPE_A,
-    os_acpi_DMA_CHANNEL_TYPE_B,
-    os_acpi_DMA_CHANNEL_TYPE_F,
+    OS_ACPI_DMA_CHANNEL_TYPE_A,
+    OS_ACPI_DMA_CHANNEL_TYPE_B,
+    OS_ACPI_DMA_CHANNEL_TYPE_F,
 };
 
 enum os_acpi_dma_transfer_width : uint8_t {
-    os_acpi_DMA_TRANSFER_WIDTH_8_BIT,
-    os_acpi_DMA_TRANSFER_WIDTH_16_BIT,
-    os_acpi_DMA_TRANSFER_WIDTH_32_BIT,
-    os_acpi_DMA_TRANSFER_WIDTH_64_BIT,
-    os_acpi_DMA_TRANSFER_WIDTH_128_BIT,
-    os_acpi_DMA_TRANSFER_WIDTH_256_BIT,
+    OS_ACPI_DMA_TRANSFER_WIDTH_8_BIT,
+    OS_ACPI_DMA_TRANSFER_WIDTH_16_BIT,
+    OS_ACPI_DMA_TRANSFER_WIDTH_32_BIT,
+    OS_ACPI_DMA_TRANSFER_WIDTH_64_BIT,
+    OS_ACPI_DMA_TRANSFER_WIDTH_128_BIT,
+    OS_ACPI_DMA_TRANSFER_WIDTH_256_BIT,
 };
 
 struct os_acpi_dma_info {
@@ -238,9 +239,9 @@ struct os_acpi_resource_fixed_memory_info {
 };
 
 enum os_acpi_resource_compat_perf : uint8_t {
-    os_acpi_RESOURCE_COMPAT_PERF_GOOD,
-    os_acpi_RESOURCE_COMPAT_PERF_ACCEPTABLE,
-    os_acpi_RESOURCE_COMPAT_PERF_SUB_OPTIMAL,
+    OS_ACPI_RESOURCE_COMPAT_PERF_GOOD,
+    OS_ACPI_RESOURCE_COMPAT_PERF_ACCEPTABLE,
+    OS_ACPI_RESOURCE_COMPAT_PERF_SUB_OPTIMAL,
 };
 
 struct os_acpi_resource_start_dependant {
@@ -259,10 +260,10 @@ struct os_acpi_resource_register_info {
 };
 
 enum os_acpi_resource_io_restriction : uint8_t {
-    os_acpi_RESOURCE_IO_RESTRICTION_NONE,
-    os_acpi_RESOURCE_IO_RESTRICTION_INPUT,
-    os_acpi_RESOURCE_IO_RESTRICTION_OUTPUT,
-    os_acpi_RESOURCE_IO_RESTRICTION_NONE_PRESERVED,
+    OS_ACPI_RESOURCE_IO_RESTRICTION_NONE,
+    OS_ACPI_RESOURCE_IO_RESTRICTION_INPUT,
+    OS_ACPI_RESOURCE_IO_RESTRICTION_OUTPUT,
+    OS_ACPI_RESOURCE_IO_RESTRICTION_NONE_PRESERVED,
 };
 
 struct os_acpi_io_connection_flags {

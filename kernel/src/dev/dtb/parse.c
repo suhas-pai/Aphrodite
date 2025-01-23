@@ -4,11 +4,11 @@
  */
 
 #include <libfdt/libfdt.h>
+#include <lib/adt/string.h>
 
 #include "dev/dtb/gic_compat.h"
 #include "dev/dtb/parse.h"
 
-#include "lib/adt/string.h"
 #include "dev/printk.h"
 
 __debug_optimize(3) static inline bool

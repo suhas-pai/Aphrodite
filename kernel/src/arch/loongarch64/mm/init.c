@@ -3,17 +3,16 @@
  * © suhas pai
  */
 
-#include "dev/printk.h"
+#include <lib/align.h>
+#include <lib/size.h>
 
-#include "lib/align.h"
-#include "lib/size.h"
+#include "dev/printk.h"
 
 #include "mm/early.h"
 #include "mm/memmap.h"
 #include "mm/pgmap.h"
 
 #include "sched/process.h"
-#include "sys/boot.h"
 
 __debug_optimize(3) static uint64_t alloc_page(void *const info) {
     (void)info;

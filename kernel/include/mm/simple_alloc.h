@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/list.h"
+#include <lib/list.h>
 
 #define SIMPLE_ALLOC_MAX 512
 

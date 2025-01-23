@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 [[noreturn]] void syscon_poweroff();
 [[noreturn]] void syscon_reboot();

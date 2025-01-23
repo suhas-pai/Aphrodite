@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/adt/string_view.h"
+#include <lib/adt/string_view.h>
 
 static const struct string_view gicv2_compat_sv_list[] = {
     SV_STATIC("arm,cortex-a15-gic"),

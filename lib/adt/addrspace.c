@@ -4,13 +4,13 @@
  */
 
 #if defined(BUILD_KERNEL)
-    #include "kernel/include/dev/printk.h"
+    #include "../../kernel/include/dev/printk.h"
     #include "mm/mm_types.h"
 #else
     #define PAGE_SIZE 4096ull
 #endif /* defined(BUILD_KERNEL) */
 
-#include "lib/align.h"
+#include <lib/align.h>
 #include "addrspace.h"
 
 __debug_optimize(3)

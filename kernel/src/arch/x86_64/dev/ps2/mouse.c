@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/adt/array.h>
 #include "dev/ps2/driver.h"
-#include "lib/adt/array.h"
 
 #include "acpi/bus.h"
 #include "acpi/device.h"

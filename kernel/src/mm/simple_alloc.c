@@ -3,10 +3,10 @@
  * © suhas pai
  */
 
-#include "dev/printk.h"
+#include <lib/align.h>
+#include <lib/util.h>
 
-#include "lib/align.h"
-#include "lib/util.h"
+#include "dev/printk.h"
 
 #include "mm/page_alloc.h"
 #include "mm/simple_alloc.h"

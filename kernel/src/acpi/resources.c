@@ -3,14 +3,14 @@
  * © suhas pai
  */
 
+#include <lib/memory.h>
+#include <lib/util.h>
+
 #include <uacpi/namespace.h>
 #include <uacpi/resources.h>
 
 #include "acpi/resources.h"
 #include "dev/printk.h"
-
-#include "lib/memory.h"
-#include "lib/util.h"
 
 bool
 os_acpi_device_resources_collect(

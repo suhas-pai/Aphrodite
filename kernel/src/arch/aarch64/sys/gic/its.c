@@ -3,8 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/adt/bitset.h>
+
 #include "dev/pci/entity.h"
-#include "lib/adt/bitset.h"
 #include "sys/gic/its.h"
 
 #include "asm/irqs.h"

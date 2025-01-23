@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/macros.h"
+#include <lib/macros.h>
 #include "csr.h"
 
 enum mstatus_flags : uint32_t {

@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/adt/string_view.h>
 #include "dev/storage/partitions/gpt.h"
-#include "lib/adt/string_view.h"
 
 __debug_optimize(3)
 bool verify_gpt_header(const struct gpt_header *const header) {

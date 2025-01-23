@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/adt/bitset.h>
 #include "dev/time/stime.h"
-#include "lib/adt/bitset.h"
 
 #include "asm/cause.h"
 #include "asm/csr.h"

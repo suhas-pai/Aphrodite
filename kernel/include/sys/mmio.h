@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/assert.h"
+#include <lib/assert.h>
 
 uint8_t mmio_read_8(volatile const void *ptr);
 uint16_t mmio_read_16(volatile const void *ptr);

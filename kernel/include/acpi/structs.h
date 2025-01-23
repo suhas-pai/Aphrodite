@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 // rsdp = "Root System Description Pointer"
 struct os_acpi_rsdp_v2_info {

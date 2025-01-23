@@ -3,6 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/size.h>
+#include <lib/util.h>
+
 #include "dev/ata/defines.h"
 
 #include "dev/pci/device.h"
@@ -12,9 +15,6 @@
 
 #include "dev/init.h"
 #include "dev/printk.h"
-
-#include "lib/size.h"
-#include "lib/util.h"
 
 #include "sched/sleep.h"
 #include "sys/pio.h"

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/list.h"
+#include <lib/list.h>
 #include "sched/info.h"
 
 #include "limine.h"

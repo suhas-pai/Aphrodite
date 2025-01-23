@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 #define PCI_MAX_BUS_COUNT 255 // Maximum number of PCI Buses
 #define PCI_MAX_SLOT_COUNT 32 // Each bus has upto 32 devices

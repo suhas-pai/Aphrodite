@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/adt/range.h>
 #include "dev/pci/domain.h"
-#include "lib/adt/range.h"
 
 struct pci_domain_ecam {
     struct pci_domain domain;

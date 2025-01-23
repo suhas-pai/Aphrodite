@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lib/bits.h"
-#include "lib/util.h"
+#include <lib/bits.h>
+#include <lib/util.h>
 
 #define BITSET_INVALID UINT64_MAX
 

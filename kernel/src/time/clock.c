@@ -3,11 +3,10 @@
  * © suhas pai
  */
 
+#include <lib/math.h>
+#include <lib/overflow.h>
+
 #include "cpu/spinlock.h"
-
-#include "lib/math.h"
-#include "lib/overflow.h"
-
 #include "time/clock.h"
 
 static struct list g_clock_list = LIST_INIT(g_clock_list);

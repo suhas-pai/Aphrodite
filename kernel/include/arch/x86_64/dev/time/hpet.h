@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/time.h>
 #include "acpi/extra_structs.h"
-#include "lib/time.h"
 
 void hpet_init(const struct os_acpi_hpet *hpet);
 void hpet_oneshot_fsec(fsec_t fsec);

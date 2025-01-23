@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/time.h"
+#include <lib/time.h>
 
 struct rtc_time_info {
     uint8_t second;

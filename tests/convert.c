@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "lib/convert.h"
+#include <lib/convert.h>
 
 struct str_to_num_test {
     const char *string;

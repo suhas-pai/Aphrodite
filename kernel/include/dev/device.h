@@ -4,10 +4,11 @@
  */
 
 #pragma once
-#include "cpu/spinlock.h"
 
-#include "lib/adt/string_view.h"
-#include "lib/list.h"
+#include <lib/adt/string_view.h>
+#include <lib/list.h>
+
+#include "cpu/spinlock.h"
 
 struct bus;
 struct driver;

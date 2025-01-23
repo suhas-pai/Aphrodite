@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/macros.h>
 #include "asm/msr.h"
-#include "lib/macros.h"
 
 __debug_optimize(3) uint64_t msr_read(const enum ia32_msr msr) {
     uint32_t eax = 0;

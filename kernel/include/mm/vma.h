@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/adt/addrspace.h"
+#include <lib/adt/addrspace.h>
 
 #include "cpu/spinlock.h"
 #include "mm_types.h"

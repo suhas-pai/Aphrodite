@@ -4,6 +4,6 @@
  */
 
 #pragma once
-#include "lib/time.h"
+#include <lib/time.h>
 
 sec_t pl031_get_wallclock();

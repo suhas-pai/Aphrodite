@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/time.h"
+#include <lib/time.h>
 #include "sys/boot.h"
 
 __debug_optimize(3) nsec_t nsec_since_boot() {

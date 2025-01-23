@@ -4,6 +4,6 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 __printf_format(1, 2) [[noreturn]] void panic(const char *fmt, ...);

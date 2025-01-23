@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/util.h>
+
 #include "dev/dtb/bus.h"
 #include "dev/dtb/device.h"
 #include "dev/dtb/driver.h"
@@ -10,8 +12,6 @@
 #include "cpu/util.h"
 #include "dev/init.h"
 #include "dev/printk.h"
-
-#include "lib/util.h"
 
 #include "mm/mmio.h"
 #include "sys/mmio.h"

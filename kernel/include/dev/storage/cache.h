@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/adt/hashmap.h"
+#include <lib/adt/hashmap.h>
 #include "cpu/spinlock.h"
 
 struct storage_cache_item {

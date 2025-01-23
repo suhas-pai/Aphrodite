@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/adt/bitmap.h"
+#include <lib/adt/bitmap.h>
 
 void
 set_and_check_index(struct bitmap *const bitmap, const uint64_t index) {

@@ -4,10 +4,11 @@
  */
 
 #include <stdatomic.h>
-#include "dev/printk.h"
 
-#include "lib/align.h"
-#include "lib/util.h"
+#include <lib/align.h>
+#include <lib/util.h>
+
+#include "dev/printk.h"
 
 #include "mm/page.h"
 #include "mm/section.h"

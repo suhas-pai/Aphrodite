@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include "lib/alloc.h"
-#include "lib/util.h"
+#include <lib/alloc.h>
+#include <lib/util.h>
 
 #include "growable_buffer.h"
 

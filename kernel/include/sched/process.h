@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lib/adt/array.h"
-#include "lib/adt/string.h"
+#include <lib/adt/array.h>
+#include <lib/adt/string.h>
 
 #include "mm/pagemap.h"
 #include "sched/arch.h"

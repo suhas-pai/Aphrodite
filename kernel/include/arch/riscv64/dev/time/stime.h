@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/time.h"
+#include <lib/time.h>
 
 usec_t stime_get();
 

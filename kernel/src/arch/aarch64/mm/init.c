@@ -3,11 +3,11 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
+#include <lib/size.h>
+
 #include "asm/mair.h"
 #include "dev/printk.h"
-
-#include "lib/align.h"
-#include "lib/size.h"
 
 #include "mm/early.h"
 #include "mm/memmap.h"

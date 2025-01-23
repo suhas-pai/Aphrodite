@@ -6,7 +6,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 struct source_location {
     const char *file;

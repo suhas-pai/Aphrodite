@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <lib/adt/array.h>
 #include "dev/pci/location.h"
-#include "lib/adt/array.h"
 
 #include "cpu/info.h"
 #include "cpu/spinlock.h"

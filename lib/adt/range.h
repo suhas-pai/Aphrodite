@@ -6,7 +6,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "lib/inttypes.h"
+#include <lib/inttypes.h>
 
 struct range {
     uint64_t front;

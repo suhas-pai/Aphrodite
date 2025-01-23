@@ -3,13 +3,14 @@
  * © suhas pai
  */
 
+#include <stdatomic.h>
+#include <lib/align.h>
+
 #include "dev/virtio/queue/split.h"
 #include "dev/virtio/transport.h"
 
-#include <stdatomic.h>
 
 #include "dev/printk.h"
-#include "lib/align.h"
 #include "mm/page_alloc.h"
 
 #define VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER 0

@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lib/adt/string_view.h"
-#include "lib/macros.h"
+#include <lib/adt/string_view.h>
+#include <lib/macros.h>
 
 enum cause_flags : uint64_t {
     __MCAUSE_CODE = mask_for_n_bits(11),

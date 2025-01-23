@@ -5,6 +5,6 @@
  */
 
 #pragma once
-#include "lib/time.h"
+#include <lib/time.h>
 
 void sched_sleep_us(usec_t usecs);

@@ -3,8 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/macros.h>
+
 #include "asm/pause.h"
-#include "lib/macros.h"
 #include "sys/pio.h"
 
 #define PIC1        0x20        /* IO base address for master PIC */

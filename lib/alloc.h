@@ -6,7 +6,7 @@
 #pragma once
 
 #if defined(BUILD_KERNEL)
-    #include "kernel/include/mm/kmalloc.h"
+    #include "../kernel/include/mm/kmalloc.h"
     #include "overflow.h"
 
     #define malloc(size) kmalloc(size)

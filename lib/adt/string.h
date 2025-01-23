@@ -7,8 +7,8 @@
 
 #include <stdarg.h>
 
-#include "lib/adt/growable_buffer.h"
-#include "lib/adt/string_view.h"
+#include <lib/adt/growable_buffer.h>
+#include <lib/adt/string_view.h>
 
 struct string {
     struct growable_buffer gbuffer;

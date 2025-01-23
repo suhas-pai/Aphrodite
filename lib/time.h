@@ -6,8 +6,8 @@
 #pragma once
 #include "adt/string_view.h"
 
-#include "lib/macros.h"
-#include "lib/overflow.h"
+#include <lib/macros.h>
+#include <lib/overflow.h>
 
 #define FEMTO_IN_PICO (uint64_t)1000
 #define PICO_IN_NANO (uint64_t)1000

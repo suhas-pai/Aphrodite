@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 enum esr_instr_length_encoding : uint8_t {
     ESR_INSTR_LENGTH_ENCODING_16B,

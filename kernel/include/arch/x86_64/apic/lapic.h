@@ -4,9 +4,9 @@
  */
 
 #pragma once
+#include <lib/time.h>
 
 #include "apic/structs.h"
-#include "lib/time.h"
 #include "sys/isr.h"
 
 enum lapic_version_reg_flags : uint32_t {

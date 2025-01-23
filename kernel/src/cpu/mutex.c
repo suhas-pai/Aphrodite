@@ -4,12 +4,12 @@
  */
 
 #include <stdatomic.h>
+#include <lib/assert.h>
 
 #include "asm/irqs.h"
 #include "asm/pause.h"
 
 #include "cpu/mutex.h"
-#include "lib/assert.h"
 
 #include "sched/alarm.h"
 #include "sched/scheduler.h"

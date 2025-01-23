@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include "lib/macros.h"
+#include <lib/macros.h>
 
 [[noreturn]] void cpu_idle();
 [[noreturn]] void cpu_halt();

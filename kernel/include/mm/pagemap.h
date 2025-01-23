@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/refcount.h"
+#include <lib/refcount.h>
 #include "vma.h"
 
 #if defined(__aarch64__) || defined(__loongarch64)

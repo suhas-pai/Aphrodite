@@ -3,9 +3,10 @@
  * © suhas pai
  */
 
+#include <lib/align.h>
+
 #include "asm/irqs.h"
 #include "dev/printk.h"
-#include "lib/align.h"
 
 #include "mm/page_alloc.h"
 #include "mm/pgmap.h"

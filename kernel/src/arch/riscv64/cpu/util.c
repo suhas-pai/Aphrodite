@@ -3,10 +3,11 @@
  * © suhas pai
  */
 
+#include <lib/assert.h>
+
 #include "asm/irqs.h"
 #include "cpu/util.h"
 #include "dev/syscon.h"
-#include "lib/assert.h"
 
 [[noreturn]] void cpu_idle() {
     assert(intr_are_enabled());

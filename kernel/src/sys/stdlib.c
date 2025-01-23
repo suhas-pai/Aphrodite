@@ -4,16 +4,19 @@
  */
 
 #include <stdint.h>
-#include "lib/alloc.h"
+#include <lib/alloc.h>
+
+#if defined(__riscv64)
+    #include <lib/align.h>
+#endif /* defined(__riscv64) */
+
+#include <lib/macros.h>
+#include <lib/string.h>
 
 #if defined(__riscv64)
     #include "cpu/info.h"
-    #include "lib/align.h"
     #include "sched/thread.h"
 #endif /* defined(__riscv64) */
-
-#include "lib/macros.h"
-#include "lib/string.h"
 
 __debug_optimize(3) size_t strlen(const char *const str) {
     size_t result = 0;

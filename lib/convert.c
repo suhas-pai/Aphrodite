@@ -4,7 +4,7 @@
  */
 
 #include <limits.h>
-#include "lib/util.h"
+#include <lib/util.h>
 
 #include "convert.h"
 #include "ctype.h"

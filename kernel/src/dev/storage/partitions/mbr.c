@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
+#include <lib/macros.h>
 #include "dev/storage/partitions/mbr.h"
-#include "lib/macros.h"
 
 __debug_optimize(3)
 bool verify_mbr_header(const struct mbr_header *const header) {

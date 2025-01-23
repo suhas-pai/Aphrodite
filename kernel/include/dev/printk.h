@@ -6,8 +6,8 @@
 #pragma once
 #include <stdarg.h>
 
-#include "lib/adt/string_view.h"
-#include "lib/inttypes.h"
+#include <lib/adt/string_view.h>
+#include <lib/inttypes.h>
 
 struct terminal;
 struct terminal {

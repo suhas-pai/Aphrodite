@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/adt/array.h"
+#include <lib/adt/array.h>
 #include "structs.h"
 
 #if defined(__aarch64__)

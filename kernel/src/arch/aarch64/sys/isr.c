@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "lib/adt/bitset.h"
+#include <lib/adt/bitset.h>
 
 #include "sys/gic/api.h"
 #include "sys/gic/its.h"

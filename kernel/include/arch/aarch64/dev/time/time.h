@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "lib/time.h"
+#include <lib/time.h>
 #include "sys/irq.h"
 
 void

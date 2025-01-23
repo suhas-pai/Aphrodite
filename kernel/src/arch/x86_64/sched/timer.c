@@ -3,8 +3,9 @@
  * © suhas pai
  */
 
+#include <lib/time.h>
+
 #include "apic/lapic.h"
-#include "lib/time.h"
 #include "sys/irqdef.h"
 
 #include "sched/irq.h"

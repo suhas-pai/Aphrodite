@@ -3,12 +3,12 @@
  * © suhas pai
  */
 
+#include <lib/time.h>
 #include "dev/time/hpet.h"
 
 #include "asm/pause.h"
 #include "dev/pit.h"
 
-#include "lib/time.h"
 #include "sys/boot.h"
 
 __debug_optimize(3) nsec_t nsec_since_boot() {

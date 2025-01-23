@@ -4,9 +4,9 @@
  */
 
 #pragma once
+#include <lib/adt/hashmap.h>
 
 #include "dev/dtb/node.h"
-#include "lib/adt/hashmap.h"
 #include "mm/simple_alloc.h"
 
 struct devicetree {

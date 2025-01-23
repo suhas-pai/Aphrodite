@@ -91,7 +91,7 @@ endif
 EXTRA_CFLAGS := $(COMMON_CFLAGS)
 
 # User controllable C preprocessor flags. We set none by default.
-CPPFLAGS := -I..
+CPPFLAGS :=
 
 ifeq ($(ARCH), x86_64)
 # User controllable nasm flags.
@@ -251,17 +251,7 @@ ifeq ($(ARCH),x86_64)
 override NASMFILES := $(filter %.asm,$(SRCFILES))
 endif
 
-LIBFILES += \
-	../lib/convert.c ../lib/ctype.c ../lib/parse_printf.c ../lib/align.c \
-	../lib/format.c ../lib/adt/string_view.c ../lib/adt/range.c ../lib/util.c \
-	../lib/refcount.c ../lib/adt/string.c ../lib/time.c \
-	../lib/parse_strftime.c ../lib/adt/mutable_buffer.c \
-	../lib/adt/growable_buffer.c ../lib/string.c ../lib/adt/avltree.c \
-	../lib/adt/array.c ../lib/math.c ../lib/adt/bitmap.c ../lib/bits.c \
-	../lib/memory.c ../lib/adt/addrspace.c ../lib/size.c ../lib/adt/hashmap.c \
-	../lib/freq.c
-
-override OBJ := $(addprefix obj-$(ARCH)/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(LIBFILES:../lib/%.c=lib/%.c.o) $(NASMFILES:src/%.asm=%.asm.o))
+override OBJ := $(addprefix obj-$(ARCH)/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(NASMFILES:src/%.asm=%.asm.o))
 override HEADER_DEPS := $(addprefix obj-$(ARCH)/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
 # Default target. This must come first, before header dependencies.
@@ -320,7 +310,7 @@ obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wcast-align -fsanitize=undefined,$(CFLAGS)) -Wno-unused-parameter -isystem src/extern/libfdt $(CPPFLAGS) -c $< -o $@
 
-obj-$(ARCH)/lib/%.c.o: ../lib/%.c GNUmakefile
+obj-$(ARCH)/extern/lib/%.c.o: src/extern/lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
