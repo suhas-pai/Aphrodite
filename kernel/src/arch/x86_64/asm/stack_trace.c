@@ -29,7 +29,7 @@ __debug_optimize(3) void print_stack_trace(const uint8_t max_lines) {
          stack != nullptr && i != max_lines;
          i++, stack = stacktrace_next(stack))
     {
-        printk(LOGLEVEL_INFO, "\t%p\n", (void *)stack->rip);
+        printk(LOGLEVEL_INFO, "\t" "%p\n", (void *)stack->rip);
     }
 }
 
@@ -42,6 +42,6 @@ print_stack_trace_from_top(struct stack_trace *const top,
          stack != nullptr && i != max_lines;
          i++, stack = stacktrace_next(stack))
     {
-        printk(LOGLEVEL_INFO, "\t%p\n", (void *)stack->rip);
+        printk(LOGLEVEL_INFO, "\t" "%p\n", (void *)stack->rip);
     }
 }

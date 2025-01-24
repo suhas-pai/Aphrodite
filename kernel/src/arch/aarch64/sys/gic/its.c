@@ -429,17 +429,17 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
 
     printk(LOGLEVEL_INFO,
            "gic/its:\n"
-           "\ttyper: 0x%" PRIx64 "\n"
-           "\t\tsupports physical lpis: %s\n"
-           "\t\tsupports virtual lpis: %s\n"
-           "\t\titt entry size: %" PRIu64 "\n"
-           "\t\tint id bits: %" PRIu64 "\n"
-           "\t\tdevid bits: %" PRIu64 "\n"
-           "\t\tsupports serror interrupt: %s\n"
-           "\t\tsupports physical target address: %s\n"
-           "\t\thardware collection count: %" PRIu64 "%s\n"
-           "\t\tcollection id bits: %" PRIu64 "\n"
-           "\t\tsupports collection id limit: %s\n",
+           "\t" "typer: 0x%" PRIx64 "\n"
+           "\t\t" "supports physical lpis: %s\n"
+           "\t\t" "supports virtual lpis: %s\n"
+           "\t\t" "itt entry size: %" PRIu64 "\n"
+           "\t\t" "int id bits: %" PRIu64 "\n"
+           "\t\t" "devid bits: %" PRIu64 "\n"
+           "\t\t" "supports serror interrupt: %s\n"
+           "\t\t" "supports physical target address: %s\n"
+           "\t\t" "hardware collection count: %" PRIu64 "%s\n"
+           "\t\t" "collection id bits: %" PRIu64 "\n"
+           "\t\t" "supports collection id limit: %s\n",
            typer,
            typer & __GIC_ITS_TYPER_SUPPORTS_PHYS_LPIS ? "yes" : "no",
            typer & __GIC_ITS_TYPER_SUPPORTS_VIRT_LPIS ? "yes" : "no",
@@ -505,11 +505,11 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                 GIC_ITS_BASER_ENTRY_SIZE_SHIFT_MINUS_ONE) + 1;
 
         printk(LOGLEVEL_INFO,
-               "\tbaser %" PRIu64 "\n"
-               "\t\tpage count: %" PRIu64 "\n"
-               "\t\tpage size: %s\n"
-               "\t\titt entry size: %" PRIu16 "\n"
-               "\t\tkind: %s\n",
+               "\t" "baser %" PRIu64 "\n"
+               "\t\t" "page count: %" PRIu64 "\n"
+               "\t\t" "page size: %s\n"
+               "\t\t" "itt entry size: %" PRIu16 "\n"
+               "\t\t" "kind: %s\n",
                (uint64_t)(baser_iter - regs->table_address),
                (baser & __GIC_ITS_BASER_PAGE_COUNT) + 1,
                page_size_desc,

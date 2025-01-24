@@ -159,9 +159,9 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
     const struct range mmio_range = mmio_region_get_range(info.regs_mmio);
     printk(LOGLEVEL_INFO,
            "ioapic: added ioapic\n"
-           "\t\tversion: %" PRIu8 "\n"
-           "\t\tmax redirect-count: %" PRIu8 "\n"
-           "\t\tmmio: " RANGE_FMT "\n",
+           "\t\t" "version: %" PRIu8 "\n"
+           "\t\t" "max redirect-count: %" PRIu8 "\n"
+           "\t\t" "mmio: " RANGE_FMT "\n",
            info.version,
            info.max_redirect_count,
            RANGE_FMT_ARGS(mmio_range));

@@ -29,16 +29,16 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
 
                 printk(LOGLEVEL_INFO,
                        "pptt: processor-hierarchy node\n"
-                       "\t\tlength: %" PRIu32 "\n"
-                       "\t\tflags: 0x%" PRIx32 "\n"
-                       "\t\t\tphysical package: %s\n"
-                       "\t\t\tacpi id valid: %s\n"
-                       "\t\t\tprocessor is thread: %s\n"
-                       "\t\t\tnode is leaf: %s\n"
-                       "\t\t\tidentical implementation: %s\n"
-                       "\t\tparent-offset: 0x%" PRIx32 "\n"
-                       "\t\tacpi processor-id: %" PRIu32 "\n"
-                       "\t\tprivate resource count: %" PRIu32 "\n",
+                       "\t\t" "length: %" PRIu32 "\n"
+                       "\t\t" "flags: 0x%" PRIx32 "\n"
+                       "\t\t\t" "physical package: %s\n"
+                       "\t\t\t" "acpi id valid: %s\n"
+                       "\t\t\t" "processor is thread: %s\n"
+                       "\t\t\t" "node is leaf: %s\n"
+                       "\t\t\t" "identical implementation: %s\n"
+                       "\t\t" "parent-offset: 0x%" PRIx32 "\n"
+                       "\t\t" "acpi processor-id: %" PRIu32 "\n"
+                       "\t\t" "private resource count: %" PRIu32 "\n",
                        node->length,
                        node->flags,
                        node->flags &
@@ -61,7 +61,7 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                        node->private_resource_count);
 
                 if (node->private_resource_count != 0) {
-                    printk(LOGLEVEL_INFO, "\tprivate resource offsets:\n");
+                    printk(LOGLEVEL_INFO, "\t" "private resource offsets:\n");
                     for (uint32_t i = 0;
                          i != node->private_resource_count;
                          i++)
@@ -141,26 +141,26 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
 
                 printk(LOGLEVEL_INFO,
                        "pptt: cache-type node\n"
-                       "\t\tlength: %" PRIu32 "\n"
-                       "\t\tflags: 0x%" PRIx32 "\n"
-                       "\t\t\tsize valid: %s\n"
-                       "\t\t\tset-count valid: %s\n"
-                       "\t\t\tassociativity valid: %s\n"
-                       "\t\t\talloc-kind valid: %s\n"
-                       "\t\t\tcache-kind valid: %s\n"
-                       "\t\t\twrite-policy valid: %s\n"
-                       "\t\t\tline-size valid: %s\n"
-                       "\t\t\tcache-id valid: %s\n"
-                       "\t\tcache next level: %" PRIu32 "\n"
-                       "\t\tsize: %" PRIu32 " bytes\n"
-                       "\t\tset-count: %" PRIu32 "\n"
-                       "\t\tassociativity: %" PRIu8 "\n"
-                       "\t\tattributes: 0x%" PRIx8 "\n"
-                       "\t\t\talloc-kind: %s\n"
-                       "\t\t\tcache-kind: %s\n"
-                       "\t\t\twrite-policy: %s\n"
-                       "\t\tline-size: %" PRIu16 " bytes\n"
-                       "\t\tcache-id: %" PRIu32 "\n",
+                       "\t\t" "length: %" PRIu32 "\n"
+                       "\t\t" "flags: 0x%" PRIx32 "\n"
+                       "\t\t\t" "size valid: %s\n"
+                       "\t\t\t" "set-count valid: %s\n"
+                       "\t\t\t" "associativity valid: %s\n"
+                       "\t\t\t" "alloc-kind valid: %s\n"
+                       "\t\t\t" "cache-kind valid: %s\n"
+                       "\t\t\t" "write-policy valid: %s\n"
+                       "\t\t\t" "line-size valid: %s\n"
+                       "\t\t\t" "cache-id valid: %s\n"
+                       "\t\t" "cache next level: %" PRIu32 "\n"
+                       "\t\t" "size: %" PRIu32 " bytes\n"
+                       "\t\t" "set-count: %" PRIu32 "\n"
+                       "\t\t" "associativity: %" PRIu8 "\n"
+                       "\t\t" "attributes: 0x%" PRIx8 "\n"
+                       "\t\t\t" "alloc-kind: %s\n"
+                       "\t\t\t" "cache-kind: %s\n"
+                       "\t\t\t" "write-policy: %s\n"
+                       "\t\t" "line-size: %" PRIu16 " bytes\n"
+                       "\t\t" "cache-id: %" PRIu32 "\n",
                        node->length,
                        node->flags,
                        node->flags &

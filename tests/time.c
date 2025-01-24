@@ -28,7 +28,7 @@ static void test_match(const char *const fmt) {
     strftime(strftime_buffer, sizeof(strftime_buffer), fmt, tm);
 
     if (strcmp(buffer, strftime_buffer) != 0) {
-        printf("\tFAILURE: Spec(%s): \"%s\" vs \"%s\"\n",
+        printf("\t" "FAILURE: Spec(%s): \"%s\" vs \"%s\"\n",
                fmt, buffer, strftime_buffer);
     }
 }

@@ -214,9 +214,9 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
 
     printk(LOGLEVEL_INFO,
            "mm: kernel pagemap ranges:\n"
-           "\t\tmmio: " RANGE_FMT "\n"
-           "\t\tkernel: " RANGE_FMT "\n"
-           "\t\thhdm: " RANGE_FMT "\n",
+           "\t\t" "mmio: " RANGE_FMT "\n"
+           "\t\t" "kernel: " RANGE_FMT "\n"
+           "\t\t" "hhdm: " RANGE_FMT "\n",
            RANGE_FMT_ARGS(mmio->node.range),
            RANGE_FMT_ARGS(kernel->node.range),
            RANGE_FMT_ARGS(hhdm->node.range));

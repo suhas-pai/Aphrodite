@@ -171,7 +171,7 @@ validate_cap_offset(struct array *const prev_cap_offsets,
     uint32_t struct_size = offsetof(struct pci_spec_entity_info, data);
     if (index_in_bounds(cap_offset, struct_size)) {
         printk(LOGLEVEL_INFO,
-               "\t\tinvalid entity. pci capability offset points to "
+               "\t\t" "invalid entity. pci capability offset points to "
                "within structure: 0x%" PRIx8 "\n",
                cap_offset);
         return false;
@@ -184,7 +184,7 @@ validate_cap_offset(struct array *const prev_cap_offsets,
                                cap_range))
     {
         printk(LOGLEVEL_INFO,
-               "\t\tinvalid entity. pci capability struct is outside entity's "
+               "\t\t" "invalid entity. pci capability struct is outside entity's "
                "data range: " RANGE_FMT "\n",
                RANGE_FMT_ARGS(cap_range));
         return false;
@@ -193,7 +193,7 @@ validate_cap_offset(struct array *const prev_cap_offsets,
     array_foreach(prev_cap_offsets, const uint8_t, iter) {
         if (*iter == cap_offset) {
             printk(LOGLEVEL_WARN,
-                   "\t\tcapability'e offset_to_next points to previously "
+                   "\t\t" "capability'e offset_to_next points to previously "
                    "visited capability\n");
             return false;
         }
@@ -203,7 +203,7 @@ validate_cap_offset(struct array *const prev_cap_offsets,
 
         if (range_has_loc(range, cap_offset)) {
             printk(LOGLEVEL_WARN,
-                   "\t\tcapability'e offset_to_next points to within "
+                   "\t\t" "capability'e offset_to_next points to within "
                    "previously visited capability\n");
             return false;
         }
@@ -214,7 +214,7 @@ validate_cap_offset(struct array *const prev_cap_offsets,
 
 static void pci_parse_capabilities(struct pci_entity_info *const entity) {
     if ((entity->status & __PCI_DEVSTATUS_CAPABILITIES) == 0) {
-        printk(LOGLEVEL_INFO, "\t\thas no capabilities\n");
+        printk(LOGLEVEL_INFO, "\t\t" "has no capabilities\n");
         return;
     }
 
@@ -223,7 +223,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
 
     if (cap_offset == 0 || cap_offset == (uint8_t)PCI_READ_FAIL) {
         printk(LOGLEVEL_INFO,
-               "\t\thas no capabilities, but pci-entity is marked as having "
+               "\t\t" "has no capabilities, but pci-entity is marked as having "
                "some\n");
         return;
     }
@@ -232,7 +232,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                          cap_offset))
     {
         printk(LOGLEVEL_INFO,
-               "\t\tcapabilities point to within entity-info structure\n");
+               "\t\t" "capabilities point to within entity-info structure\n");
         return;
     }
 
@@ -243,7 +243,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
     for (uint64_t i = 0; cap_offset != 0 && cap_offset != 0xff; i++) {
         if (i == PCI_ENTITY_MAX_CAPABILITY_COUNT) {
             printk(LOGLEVEL_INFO,
-                   "\t\ttoo many capabilities for "
+                   "\t\t" "too many capabilities for "
                    "entity " PCI_ENTITY_INFO_FMT "\n",
                    PCI_ENTITY_INFO_FMT_ARGS(entity));
             return;
@@ -277,7 +277,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
 
                 if (!index_range_in_bounds(msi_range, PCI_SPACE_MAX_OFFSET)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tmsi-cap goes beyond end of pci-domain\n");
+                           "\t\t" "msi-cap goes beyond end of pci-domain\n");
                     break;
                 }
 
@@ -322,7 +322,8 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
                 kind = "msix";
                 if (entity->msi_support == PCI_ENTITY_MSI_SUPPORT_MSIX) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tfound multiple msix capabilities. ignoring\n");
+                           "\t\t" "found multiple msix capabilities. "
+                                  "ignoring\n");
                     break;
                 }
 
@@ -331,7 +332,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
 
                 if (!index_range_in_bounds(msix_range, PCI_SPACE_MAX_OFFSET)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tmsix-cap goes beyond end of pci-domain\n");
+                           "\t\t" "msix-cap goes beyond end of pci-domain\n");
                     break;
                 }
 
@@ -370,7 +371,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
             case PCI_SPEC_CAP_ID_VENDOR_SPECIFIC:
                 if (!array_add(&entity->vendor_cap_list, &cap_offset)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tfailed to append to internal array\n");
+                           "\t\t" "failed to append to internal array\n");
                     return;
                 }
 
@@ -413,7 +414,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
 
                 if (!index_range_in_bounds(pcie_range, PCI_SPACE_MAX_OFFSET)) {
                     printk(LOGLEVEL_WARN,
-                           "\t\tpcie-cap goes beyond end of pci-domain\n");
+                           "\t\t" "pcie-cap goes beyond end of pci-domain\n");
                     break;
                 }
 
@@ -432,7 +433,7 @@ static void pci_parse_capabilities(struct pci_entity_info *const entity) {
         }
 
         printk(LOGLEVEL_INFO,
-               "\t\tfound capability: %s at offset 0x%" PRIx8 "\n",
+               "\t\t" "found capability: %s at offset 0x%" PRIx8 "\n",
                kind,
                cap_offset);
 
@@ -511,7 +512,7 @@ parse_function(struct pci_bus *const pci_bus,
     entity->vendor_cap_list = ARRAY_INIT(sizeof(uint8_t));
 
     printk(LOGLEVEL_INFO,
-           "\tentity: " PCI_ENTITY_INFO_FMT " from %s\n",
+           "\t" "entity: " PCI_ENTITY_INFO_FMT " from %s\n",
            PCI_ENTITY_INFO_FMT_ARGS(entity),
            pci_entity_get_vendor_name(entity));
 
@@ -570,7 +571,7 @@ parse_function(struct pci_bus *const pci_bus,
 
                 if (result == E_PARSE_BAR_IGNORE) {
                     printk(LOGLEVEL_INFO,
-                           "\t\tgeneral bar %" PRIu8 ": ignoring\n",
+                           "\t\t" "general bar %" PRIu8 ": ignoring\n",
                            index);
 
                     bar->is_present = false;
@@ -587,7 +588,7 @@ parse_function(struct pci_bus *const pci_bus,
                 }
 
                 printk(LOGLEVEL_INFO,
-                       "\t\tgeneral bar %" PRIu8 " %s: " RANGE_FMT ", %s, %s"
+                       "\t\t" "general bar %" PRIu8 " %s: " RANGE_FMT ", %s, %s"
                        "size: %" PRIu64 "\n",
                        bar_index,
                        bar->is_mmio ? "mmio" : "ports",
@@ -626,7 +627,7 @@ parse_function(struct pci_bus *const pci_bus,
 
                 if (result == E_PARSE_BAR_IGNORE) {
                     printk(LOGLEVEL_INFO,
-                           "\t\tbridge bar %" PRIu8 ": ignoring\n",
+                           "\t\t" "bridge bar %" PRIu8 ": ignoring\n",
                            jndex);
                     continue;
                 }
@@ -641,7 +642,7 @@ parse_function(struct pci_bus *const pci_bus,
                 }
 
                 printk(LOGLEVEL_INFO,
-                       "\t\tbridge bar %" PRIu8 " %s: " RANGE_FMT ", %s, %s"
+                       "\t\t" "bridge bar %" PRIu8 " %s: " RANGE_FMT ", %s, %s"
                        "size: %" PRIu64 "\n",
                        bar_index,
                        bar->is_mmio ? "mmio" : "ports",

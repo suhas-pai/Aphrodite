@@ -110,9 +110,9 @@ extern struct cpus_info g_cpus_info;
 void acpi_rhct_init(const struct os_acpi_rhct *const rhct) {
     printk(LOGLEVEL_INFO,
            "rhct:\n"
-           "\ttime base frequency: %" PRIu64 "\n"
-           "\tnode count: %" PRIu32 "\n"
-           "\tnode offset: %" PRIu32 "\n",
+           "\t" "time base frequency: %" PRIu64 "\n"
+           "\t" "node count: %" PRIu32 "\n"
+           "\t" "node offset: %" PRIu32 "\n",
            rhct->time_base_freq,
            rhct->node_count,
            rhct->node_offset);

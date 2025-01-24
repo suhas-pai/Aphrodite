@@ -343,10 +343,10 @@ gicv2_init_from_info(const struct range cpu_range,
 
     printk(LOGLEVEL_INFO,
            "gic initialized\n"
-           "\t\tinterrupt line count: %" PRIu16 "\n"
-           "\t\timplemented cpu count: %" PRIu32 "\n"
-           "\t\tmax implemented lockable sets: %" PRIu32 "\n"
-           "\t\tsupports security extensions: %s\n",
+           "\t\t" "interrupt line count: %" PRIu16 "\n"
+           "\t\t" "implemented cpu count: %" PRIu32 "\n"
+           "\t\t" "max implemented lockable sets: %" PRIu32 "\n"
+           "\t\t" "supports security extensions: %s\n",
            g_dist.interrupt_lines_count,
            g_dist.impl_cpu_count,
            g_dist.max_impl_lockable_spis,
@@ -440,8 +440,8 @@ bool init_msi_frame(const uint64_t phys_addr, struct mmio_region *const mmio) {
 
     printk(LOGLEVEL_INFO,
            "gicd: msi-frame:\n"
-           "\tspi-base: %" PRIu16 "\n"
-           "\tspi-count: %" PRIu16 "\n",
+           "\t" "spi-base: %" PRIu16 "\n"
+           "\t" "spi-count: %" PRIu16 "\n",
            spi_base,
            spi_count);
 

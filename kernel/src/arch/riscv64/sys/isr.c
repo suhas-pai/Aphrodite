@@ -116,9 +116,9 @@ isr_handle_interrupt(const uint64_t cause, struct thread_context *const context)
         this_cpu_mut()->in_exception = true;
         printk(LOGLEVEL_INFO,
                "exception:\n"
-               "\tscause: " SV_FMT " (0x%" PRIx64 ")\n"
-               "\tsepc: 0x%" PRIx64 "\n"
-               "\tstval: 0x%" PRIx64 "\n\n",
+               "\t" "scause: " SV_FMT " (0x%" PRIx64 ")\n"
+               "\t" "sepc: 0x%" PRIx64 "\n"
+               "\t" "stval: 0x%" PRIx64 "\n\n",
                SV_FMT_ARGS(cause_exception_kind_get_sv(code)),
                cause,
                context->sepc,

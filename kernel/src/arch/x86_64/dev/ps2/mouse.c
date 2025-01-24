@@ -23,11 +23,11 @@ bool ps2_mouse_probe(struct device *const the_device) {
     array_foreach(&resources->irq_list, const struct os_acpi_irq_info, irq) {
         printk(LOGLEVEL_INFO,
                "ps2/mouse: found irq:\n"
-               "\ttrigger: %s\n"
-               "\tlevel: %s\n"
-               "\tshared: %s\n"
-               "\twake capable: %s\n"
-               "\t%" PRIu32 " irqs:\n",
+               "\t" "trigger: %s\n"
+               "\t" "level: %s\n"
+               "\t" "shared: %s\n"
+               "\t" "wake capable: %s\n"
+               "\t" "%" PRIu32 " irqs:\n",
                irq->trigger_mode == IRQ_TRIGGER_MODE_EDGE ? "edge" : "level",
                irq->polarity == IRQ_POLARITY_HIGH ? "high" : "low",
                irq->is_shared ? "yes" : "no",
@@ -35,7 +35,7 @@ bool ps2_mouse_probe(struct device *const the_device) {
                irq->irq_count);
 
         ptrarr_foreach(irq->irq_list, irq->irq_count, irq_num) {
-            printk(LOGLEVEL_INFO, "\t\tirq %" PRIu32 "\n", *irq_num);
+            printk(LOGLEVEL_INFO, "\t\t" "irq %" PRIu32 "\n", *irq_num);
 
             struct irq_pin *const pin = isr_get_irq_pin(*irq_num);
             if (pin == nullptr) {

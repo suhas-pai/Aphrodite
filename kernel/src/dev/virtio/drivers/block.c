@@ -69,18 +69,18 @@ virtio_block_driver_init(struct virtio_device *const device,
     const uint64_t capacity = virtio_block_read_config_field(device, capacity);
     printk(LOGLEVEL_INFO,
            "virtio-block: device has the following info:\n"
-           "\tcapacity: " SIZE_UNIT_FMT "\n"
-           "\tgeometry:\n"
-           "\t\tcylinders: %" PRIu16 "\n"
-           "\t\theads: %" PRIu8 "\n"
-           "\t\tsectors: %" PRIu8 "\n"
-           "\tblock-size: %" PRIu32 "\n"
-           "\ttopology:\n"
-           "\t\tphys-block count: %" PRIu8 "\n"
-           "\t\tfirst-align-block offset: 0x%" PRIx8 "\n"
-           "\t\tmin io-size: %" PRIu16 "\n"
-           "\t\toptimal io-size: %" PRIu32 "\n"
-           "\tqueue count: %" PRIu16 "\n",
+           "\t" "capacity: " SIZE_UNIT_FMT "\n"
+           "\t" "geometry:\n"
+           "\t\t" "cylinders: %" PRIu16 "\n"
+           "\t\t" "heads: %" PRIu8 "\n"
+           "\t\t" "sectors: %" PRIu8 "\n"
+           "\t" "block-size: %" PRIu32 "\n"
+           "\t" "topology:\n"
+           "\t\t" "phys-block count: %" PRIu8 "\n"
+           "\t\t" "first-align-block offset: 0x%" PRIx8 "\n"
+           "\t\t" "min io-size: %" PRIu16 "\n"
+           "\t\t" "optimal io-size: %" PRIu32 "\n"
+           "\t" "queue count: %" PRIu16 "\n",
            SIZE_UNIT_FMT_ARGS(capacity),
            virtio_block_read_config_field(device, geometry.cylinders),
            virtio_block_read_config_field(device, geometry.heads),

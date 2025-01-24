@@ -194,12 +194,12 @@ identify_namespaces(struct nvme_controller *const controller,
     const uint32_t namespace_count = ident->namespace_count;
     printk(LOGLEVEL_INFO,
            "nvme identity:\n"
-           "\tvendor-id: 0x%" PRIx16 "\n"
-           "\tsubsystem vendor-id: 0x%" PRIx16 "\n"
-           "\tserial number: " SV_FMT "\n"
-           "\tmodel number: " SV_FMT "\n"
-           "\tfirmware revision: " SV_FMT "\n"
-           "\tnamespace count: %" PRIu32 "\n",
+           "\t" "vendor-id: 0x%" PRIx16 "\n"
+           "\t" "subsystem vendor-id: 0x%" PRIx16 "\n"
+           "\t" "serial number: " SV_FMT "\n"
+           "\t" "model number: " SV_FMT "\n"
+           "\t" "firmware revision: " SV_FMT "\n"
+           "\t" "namespace count: %" PRIu32 "\n",
            ident->vendor_id,
            ident->subsystem_vendor_id,
            SV_FMT_ARGS(sv_of_carr(ident->serial_number)),

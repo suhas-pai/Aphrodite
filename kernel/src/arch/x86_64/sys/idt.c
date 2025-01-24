@@ -168,14 +168,14 @@ handle_exception(const uint64_t intr_no,
         case EXCEPTION_PAGE_FAULT:
             printk(LOGLEVEL_ERROR,
                    "Page Fault accessing %p from instruction at %p\n"
-                   "\tPresent: %s\n"
-                   "\tWrite: %s\n"
-                   "\tUser: %s\n"
-                   "\tReserved Write: %s\n"
-                   "\tInstruction Fetch: %s\n"
-                   "\tProtection Key: %s\n"
-                   "\tShadow Stack: %s\n"
-                   "\tSoftware Guard Extensions: %s\n",
+                   "\t" "Present: %s\n"
+                   "\t" "Write: %s\n"
+                   "\t" "User: %s\n"
+                   "\t" "Reserved Write: %s\n"
+                   "\t" "Instruction Fetch: %s\n"
+                   "\t" "Protection Key: %s\n"
+                   "\t" "Shadow Stack: %s\n"
+                   "\t" "Software Guard Extensions: %s\n",
                    (void *)read_cr2(),
                    (void *)context->rip,
                    context->err_code & __PAGE_FAULT_ERROR_CODE_PRESENT

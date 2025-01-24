@@ -267,11 +267,11 @@ bool ps2_keyboard_probe(struct device *const the_device) {
 
         printk(LOGLEVEL_INFO,
                "ps2/keyboard: found io port:\n"
-               "\tdecode-kind: %s\n"
-               "\tminimum: 0x%" PRIx16 "\n"
-               "\tmaximum: 0x%" PRIx16 "\n"
-               "\talignment: %" PRIx8 "\n"
-               "\tlength: %" PRIx8 "\n",
+               "\t" "decode-kind: %s\n"
+               "\t" "minimum: 0x%" PRIx16 "\n"
+               "\t" "maximum: 0x%" PRIx16 "\n"
+               "\t" "alignment: %" PRIx8 "\n"
+               "\t" "length: %" PRIx8 "\n",
                decode_kind,
                io->minimum,
                io->maximum,
@@ -282,11 +282,11 @@ bool ps2_keyboard_probe(struct device *const the_device) {
     array_foreach(&resources->irq_list, const struct os_acpi_irq_info, irq) {
         printk(LOGLEVEL_INFO,
                "ps2/keyboard: found irq:\n"
-               "\ttrigger: %s\n"
-               "\tlevel: %s\n"
-               "\tshared: %s\n"
-               "\twake capable: %s\n"
-               "\t%" PRIu32 " irqs:\n",
+               "\t" "trigger: %s\n"
+               "\t" "level: %s\n"
+               "\t" "shared: %s\n"
+               "\t" "wake capable: %s\n"
+               "\t" "%" PRIu32 " irqs:\n",
                irq->trigger_mode == IRQ_TRIGGER_MODE_EDGE ? "edge" : "level",
                irq->polarity == IRQ_POLARITY_HIGH ? "high" : "low",
                irq->is_shared ? "yes" : "no",
@@ -294,16 +294,16 @@ bool ps2_keyboard_probe(struct device *const the_device) {
                irq->irq_count);
 
         if (irq->irq_count == 0) {
-            printk(LOGLEVEL_INFO, "\t\t[none]\n");
+            printk(LOGLEVEL_INFO, "\t\t" "[none]\n");
             continue;
         }
 
         if (irq->irq_count > 1) {
-            printk(LOGLEVEL_INFO, "\t\t[shared]\n");
+            printk(LOGLEVEL_INFO, "\t\t" "[shared]\n");
         }
 
         ptrarr_foreach(irq->irq_list, irq->irq_count, irq_num) {
-            printk(LOGLEVEL_INFO, "\t\tirq %" PRIu32 "\n", *irq_num);
+            printk(LOGLEVEL_INFO, "\t\t" "irq %" PRIu32 "\n", *irq_num);
 
             struct irq_pin *const pin = isr_get_irq_pin(*irq_num);
             if (pin == nullptr) {

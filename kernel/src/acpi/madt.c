@@ -86,8 +86,8 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found madt-entry cpu local-apic\n"
-                       "\tapic id: %" PRIu8 "\n"
-                       "\tprocessor id: %" PRIu8 "\n",
+                       "\t" "apic id: %" PRIu8 "\n"
+                       "\t" "processor id: %" PRIu8 "\n",
                        hdr->apic_id,
                        hdr->processor_id);
 
@@ -124,9 +124,9 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry io-apic\n"
-                       "\tapic id: %" PRIu8 "\n"
-                       "\tbase: 0x%" PRIx32 "\n"
-                       "\tglobal system interrupt base: 0x%" PRIx32 "\n",
+                       "\t" "apic id: %" PRIu8 "\n"
+                       "\t" "base: 0x%" PRIx32 "\n"
+                       "\t" "global system interrupt base: 0x%" PRIx32 "\n",
                        hdr->apic_id,
                        hdr->base,
                        hdr->gsib);
@@ -151,12 +151,12 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry interrupt source override\n"
-                       "\tbus source: %" PRIu8 "\n"
-                       "\tirq source: %" PRIu8 "\n"
-                       "\tglobal system interrupt: %" PRIu8 "\n"
-                       "\tflags: 0x%" PRIx16 "\n"
-                       "\t\tactive-low: %s\n"
-                       "\t\tlevel-triggered: %s\n",
+                       "\t" "bus source: %" PRIu8 "\n"
+                       "\t" "irq source: %" PRIu8 "\n"
+                       "\t" "global system interrupt: %" PRIu8 "\n"
+                       "\t" "flags: 0x%" PRIx16 "\n"
+                       "\t\t" "active-low: %s\n"
+                       "\t\t" "level-triggered: %s\n",
                        hdr->bus_source,
                        hdr->irq_source,
                        hdr->gsi,
@@ -193,11 +193,11 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry non-maskable interrupt source\n"
-                       "\tsource: %" PRIu8 "\n"
-                       "\tglobal system interrupt: %" PRIu32 "\n"
-                       "\tflags: 0x%" PRIx16 "\n"
-                       "\t\tactive-low: %s\n"
-                       "\t\tlevel-triggered: %s\n",
+                       "\t" "source: %" PRIu8 "\n"
+                       "\t" "global system interrupt: %" PRIu32 "\n"
+                       "\t" "flags: 0x%" PRIx16 "\n"
+                       "\t\t" "active-low: %s\n"
+                       "\t\t" "level-triggered: %s\n",
                        hdr->source,
                        hdr->gsi,
                        hdr->flags,
@@ -221,9 +221,9 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry non-maskable interrupt\n"
-                       "\tprocessor: %" PRIu8 "\n"
-                       "\tflags: %" PRIu16 "\n"
-                       "\tlint: %" PRIu8 "\n",
+                       "\t" "processor: %" PRIu8 "\n"
+                       "\t" "flags: %" PRIu16 "\n"
+                       "\t" "lint: %" PRIu8 "\n",
                        hdr->processor,
                        hdr->flags,
                        hdr->lint);
@@ -263,7 +263,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry local-apic address override\n"
-                       "\tbase: 0x%" PRIx64 "\n",
+                       "\t" "base: 0x%" PRIx64 "\n",
                        hdr->base);
 
                 local_apic_base = hdr->base;
@@ -292,9 +292,9 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry local-x2apic\n"
-                       "\tacpi id: %" PRIu32 "\n"
-                       "\tx2acpi id: %" PRIu32 "\n"
-                       "\tflags: 0x%" PRIx32 "\n",
+                       "\t" "acpi id: %" PRIu32 "\n"
+                       "\t" "x2acpi id: %" PRIu32 "\n"
+                       "\t" "flags: 0x%" PRIx32 "\n",
                        hdr->acpi_uid,
                        hdr->x2apic_id,
                        hdr->flags);
@@ -323,9 +323,9 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found entry local-x2apic nmi\n"
-                       "\tacpi uid: %" PRIu32 "\n"
-                       "\tflags: 0x%" PRIx32 "\n"
-                       "\tx2acpi lint: %" PRIu32 "\n",
+                       "\t" "acpi uid: %" PRIu32 "\n"
+                       "\t" "flags: 0x%" PRIx32 "\n"
+                       "\t" "x2acpi lint: %" PRIu32 "\n",
                        hdr->acpi_uid,
                        hdr->flags,
                        hdr->local_x2apic_lint);
@@ -352,23 +352,23 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gic cpu-interface:\n"
-                       "\t\tinterface number: %" PRIu32 "\n"
-                       "\t\tacpi processor id: %" PRIu32 "\n"
-                       "\t\tflags: 0x%" PRIx32 "\n"
-                       "\t\t\tcpu enabled: %s\n"
-                       "\t\t\tperf interrupt edge-triggered: %s\n"
-                       "\t\t\tvgic maintenance intr edge-triggered: %s\n"
-                       "\t\tparking protocol version: %" PRIu32 "\n"
-                       "\t\tperformance interrupt gsiv: %" PRIu32 "\n"
-                       "\t\tparked address: 0x%" PRIx64 "\n"
-                       "\t\tphys base address: 0x%" PRIx64 "\n"
-                       "\t\tgic virt cpu reg address: 0x%" PRIx64 "\n"
-                       "\t\tgic virt ctrl block address: 0x%" PRIx64 "\n"
-                       "\t\tvgic maintenance interrupt: %" PRIu32 "\n"
-                       "\t\tgicr phys base address: 0x%" PRIx64 "\n"
-                       "\t\tmpidr: %" PRIu64 "\n"
-                       "\t\tprocessor power efficiency class: %" PRIu8 "\n"
-                       "\t\tspe overflow interrupt: %" PRIu16 "\n",
+                       "\t\t" "interface number: %" PRIu32 "\n"
+                       "\t\t" "acpi processor id: %" PRIu32 "\n"
+                       "\t\t" "flags: 0x%" PRIx32 "\n"
+                       "\t\t\t" "cpu enabled: %s\n"
+                       "\t\t\t" "perf interrupt edge-triggered: %s\n"
+                       "\t\t\t" "vgic maintenance intr edge-triggered: %s\n"
+                       "\t\t" "parking protocol version: %" PRIu32 "\n"
+                       "\t\t" "performance interrupt gsiv: %" PRIu32 "\n"
+                       "\t\t" "parked address: 0x%" PRIx64 "\n"
+                       "\t\t" "phys base address: 0x%" PRIx64 "\n"
+                       "\t\t" "gic virt cpu reg address: 0x%" PRIx64 "\n"
+                       "\t\t" "gic virt ctrl block address: 0x%" PRIx64 "\n"
+                       "\t\t" "vgic maintenance interrupt: %" PRIu32 "\n"
+                       "\t\t" "gicr phys base address: 0x%" PRIx64 "\n"
+                       "\t\t" "mpidr: %" PRIu64 "\n"
+                       "\t\t" "processor power efficiency class: %" PRIu8 "\n"
+                       "\t\t" "spe overflow interrupt: %" PRIu16 "\n",
                        cpu->cpu_interface_number,
                        cpu->acpi_processor_id,
                        cpu->flags,
@@ -434,10 +434,10 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gic distributor\n"
-                       "\tgic hardware id: %" PRIu32 "\n"
-                       "\tphys base address: 0x%" PRIx64 "\n"
-                       "\tsystem vector base: %" PRIu32 "\n"
-                       "\tgic version: %" PRIu8 "\n",
+                       "\t" "gic hardware id: %" PRIu32 "\n"
+                       "\t" "phys base address: 0x%" PRIx64 "\n"
+                       "\t" "system vector base: %" PRIu32 "\n"
+                       "\t" "gic version: %" PRIu8 "\n",
                        dist->gic_hardware_id,
                        dist->phys_base_address,
                        dist->sys_vector_base,
@@ -468,12 +468,12 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 assert (array_add(&msi_frame_list, &frame));
                 printk(LOGLEVEL_INFO,
                        "madt: found msi-frame\n"
-                       "\t\tmsi frame id: %" PRIu32 "\n"
-                       "\t\tphys base address: 0x%" PRIx64 "\n"
-                       "\t\tflags: 0x%" PRIx8 "\n"
-                       "\t\t\toverride msi-typer: %s\n"
-                       "\t\tspi count: %" PRIu16 "\n"
-                       "\t\tspi base: %" PRIu16 "\n",
+                       "\t\t" "msi frame id: %" PRIu32 "\n"
+                       "\t\t" "phys base address: 0x%" PRIx64 "\n"
+                       "\t\t" "flags: 0x%" PRIx8 "\n"
+                       "\t\t\t" "override msi-typer: %s\n"
+                       "\t\t" "spi count: %" PRIu16 "\n"
+                       "\t\t" "spi base: %" PRIu16 "\n",
                        frame->msi_frame_id,
                        frame->phys_base_address,
                        frame->flags,
@@ -512,7 +512,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     printk(LOGLEVEL_INFO,
                            "madt: found gicv3 redistributor: (with overflowing "
                            "range)\n"
-                           "\t\tdiscovery range: " RANGE_FMT "\n",
+                           "\t\t" "discovery range: " RANGE_FMT "\n",
                            RANGE_FMT_ARGS(gicv3_redist_discovery_range));
 
                     continue;
@@ -520,7 +520,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found gicv3 redistributor:\n"
-                       "\t\tdiscovery range: " RANGE_FMT "\n",
+                       "\t\t" "discovery range: " RANGE_FMT "\n",
                        RANGE_FMT_ARGS(gicv3_redist_discovery_range));
             #else
                 printk(LOGLEVEL_WARN,
@@ -544,8 +544,8 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 assert(array_add(&its_list, &its));
                 printk(LOGLEVEL_INFO,
                        "madt: found gic interrupt translation service:\n"
-                       "\t\tid: %" PRIu32 "\n"
-                       "\t\tphysical base address: %p\n",
+                       "\t\t" "id: %" PRIu32 "\n"
+                       "\t\t" "physical base address: %p\n",
                        its->id,
                        (void *)its->phys_base_address);
             #else
@@ -576,15 +576,15 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv hart irq controller\n"
-                       "\t\tversion: %" PRIu8 "\n"
-                       "\t\tflags: 0x%" PRIx32 "\n"
-                       "\t\t\tenabled: %s\n"
-                       "\t\t\tonline capable: %s\n"
-                       "\t\thart id: %" PRIu64 "%s\n"
-                       "\t\tacpi processor uid: %" PRIu32 "\n"
-                       "\t\texternal irq controller id: %" PRIu32 "\n"
-                       "\t\timsic base address: %p\n"
-                       "\t\timsic size: %" PRIu32 "\n",
+                       "\t\t" "version: %" PRIu8 "\n"
+                       "\t\t" "flags: 0x%" PRIx32 "\n"
+                       "\t\t\t" "enabled: %s\n"
+                       "\t\t\t" "online capable: %s\n"
+                       "\t\t" "hart id: %" PRIu64 "%s\n"
+                       "\t\t" "acpi processor uid: %" PRIu32 "\n"
+                       "\t\t" "external irq controller id: %" PRIu32 "\n"
+                       "\t\t" "imsic base address: %p\n"
+                       "\t\t" "imsic size: %" PRIu32 "\n",
                        ctrlr->version,
                        ctrlr->flags,
                        ctrlr->flags &
@@ -637,14 +637,15 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv imsic\n"
-                       "\t\tversion: %" PRIu8 "\n"
-                       "\t\tflags: 0x%" PRIx32 "\n"
-                       "\t\tguest node irq identity count: %" PRIu16 "\n"
-                       "\t\tsupervisor node irq identity count: %" PRIu16 "\n"
-                       "\t\tguest index bits: %" PRIu8 "\n"
-                       "\t\thart index bits: %" PRIu8 "\n"
-                       "\t\tgroup index bits: %" PRIu8 "\n"
-                       "\t\tgroup index shift: %" PRIu8 "\n",
+                       "\t\t" "version: %" PRIu8 "\n"
+                       "\t\t" "flags: 0x%" PRIx32 "\n"
+                       "\t\t" "guest node irq identity count: %" PRIu16 "\n"
+                       "\t\t" "supervisor node irq identity "
+                                "count: %" PRIu16 "\n"
+                       "\t\t" "guest index bits: %" PRIu8 "\n"
+                       "\t\t" "hart index bits: %" PRIu8 "\n"
+                       "\t\t" "group index bits: %" PRIu8 "\n"
+                       "\t\t" "group index shift: %" PRIu8 "\n",
                        imsic->version,
                        imsic->flags,
                        imsic->guest_node_irq_identity_count,
@@ -675,15 +676,15 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv aplic\n"
-                       "\t\tversion: %" PRIu8 "\n"
-                       "\t\tid: %" PRIu8 "\n"
-                       "\t\tflags: 0x%" PRIx32 "\n"
-                       "\t\thardware id: %" PRIu64 "\n"
-                       "\t\tidc count: %" PRIu16 "\n"
-                       "\t\texternal irq source count: %" PRIu16 "\n"
-                       "\t\tgsi base: %" PRIu32 "\n"
-                       "\t\taplic base: %p\n"
-                       "\t\taplic size: %" PRIu32 "\n",
+                       "\t\t" "version: %" PRIu8 "\n"
+                       "\t\t" "id: %" PRIu8 "\n"
+                       "\t\t" "flags: 0x%" PRIx32 "\n"
+                       "\t\t" "hardware id: %" PRIu64 "\n"
+                       "\t\t" "idc count: %" PRIu16 "\n"
+                       "\t\t" "external irq source count: %" PRIu16 "\n"
+                       "\t\t" "gsi base: %" PRIu32 "\n"
+                       "\t\t" "aplic base: %p\n"
+                       "\t\t" "aplic size: %" PRIu32 "\n",
                        aplic->version,
                        aplic->id,
                        aplic->flags,
@@ -715,15 +716,16 @@ void madt_init(const struct os_acpi_madt *const madt) {
 
                 printk(LOGLEVEL_INFO,
                        "madt: found riscv plic\n"
-                       "\t\tversion: %" PRIu8 "\n"
-                       "\t\tid: %" PRIu8 "\n"
-                       "\t\thardware id: %" PRIu64 "\n"
-                       "\t\ttotal external irq sources supported: %" PRIu16 "\n"
-                       "\t\tmax priority: %" PRIu8 "\n"
-                       "\t\tflags: %" PRIu8 "\n"
-                       "\t\tplic base: %p\n"
-                       "\t\tplic size: %" PRIu32 "\n"
-                       "\t\tgsi base: %" PRIu32 "\n",
+                       "\t\t" "version: %" PRIu8 "\n"
+                       "\t\t" "id: %" PRIu8 "\n"
+                       "\t\t" "hardware id: %" PRIu64 "\n"
+                       "\t\t" "total external irq sources "
+                                "supported: %" PRIu16 "\n"
+                       "\t\t" "max priority: %" PRIu8 "\n"
+                       "\t\t" "flags: %" PRIu8 "\n"
+                       "\t\t" "plic base: %p\n"
+                       "\t\t" "plic size: %" PRIu32 "\n"
+                       "\t\t" "gsi base: %" PRIu32 "\n",
                        plic->version,
                        plic->id,
                        plic->hardware_id,

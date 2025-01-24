@@ -323,9 +323,9 @@ void handle_sync_exception(struct thread_context *const context) {
 
     printk(LOGLEVEL_ERROR,
            "isr: received sync exception\n"
-           "\telr_el1: %p\n"
-           "\tfar_el1: %p\n"
-           "\tsp_el1: %p\n",
+           "\t" "elr_el1: %p\n"
+           "\t" "far_el1: %p\n"
+           "\t" "sp_el1: %p\n",
            (void *)context->elr_el1,
            (void *)context->far_el1,
            (void *)context->sp_el1);
@@ -447,8 +447,8 @@ void handle_sync_exception(struct thread_context *const context) {
     }
 
     printk(LOGLEVEL_WARN,
-           "\tunknown synchronous exception\n"
-           "\t\tcode: %d\n",
+           "\t" "unknown synchronous exception\n"
+           "\t\t" "code: %d\n",
            error_code);
 
     cpu_halt();
@@ -501,9 +501,9 @@ void handle_async_exception(struct thread_context *const context) {
 
     printk(LOGLEVEL_ERROR,
            "isr: received async exception: %s%sserror\n"
-           "\text-abort? %s\n"
-           "\timplicit error synchronized? %s\n"
-           "\tdata fault status code: 0x%" PRIx16 "\n",
+           "\t" "ext-abort? %s\n"
+           "\t" "implicit error synchronized? %s\n"
+           "\t" "data fault status code: 0x%" PRIx16 "\n",
            dfsc == ESR_SERROR_DFSC_KIND_ASYNC_ERROR ? aet_get_cstr(aet) : "",
            dfsc == ESR_SERROR_DFSC_KIND_ASYNC_ERROR ? " " : "",
            ext_abort ? "yes" : "no",

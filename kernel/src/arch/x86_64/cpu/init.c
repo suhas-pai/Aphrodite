@@ -206,8 +206,8 @@ static void init_cpuid_features() {
     if (!initialized) {
         printk(LOGLEVEL_INFO,
                "cpu: control-registers:\n"
-               "\tcr0: 0x%" PRIx64 "\n"
-               "\tcr4: 0x%" PRIx64 "\n",
+               "\t" "cr0: 0x%" PRIx64 "\n"
+               "\t" "cr4: 0x%" PRIx64 "\n",
                cr0,
                cr4);
 

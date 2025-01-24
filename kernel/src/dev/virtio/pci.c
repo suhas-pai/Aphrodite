@@ -106,8 +106,8 @@ static bool virtio_pci_probe(struct device *const device) {
         const uint8_t cap_len = pci_read_virtio_cap_field(*iter, cap.cap_len);
         if (cap_len < sizeof(struct virtio_pci_cap)) {
             printk(LOGLEVEL_INFO,
-                   "\tvirtio-pci: capability-length (%" PRIu8 ") is too "
-                   "short\n",
+                   "\t" "virtio-pci: capability-length (%" PRIu8 ") is too "
+                        "short\n",
                    cap_len);
 
             cap_index++;
@@ -117,8 +117,8 @@ static bool virtio_pci_probe(struct device *const device) {
         const uint8_t bar_index = pci_read_virtio_cap_field(*iter, cap.bar);
         if (!index_in_bounds(bar_index, pci_entity->max_bar_count)) {
             printk(LOGLEVEL_INFO,
-                   "\tvirtio-pci: index of base-address-reg (%" PRIu8 ") bar "
-                   "is past end of pci-device's bar list\n",
+                   "\t" "virtio-pci: index of base-address-reg (%" PRIu8 ") "
+                        " bar is past end of pci-device's bar list\n",
                    bar_index);
 
             cap_index++;
@@ -130,8 +130,8 @@ static bool virtio_pci_probe(struct device *const device) {
 
         if (!bar->is_present) {
             printk(LOGLEVEL_INFO,
-                   "\tvirtio-pci: base-address-reg of bar %" PRIu8 " is not "
-                   "present\n",
+                   "\t" "virtio-pci: base-address-reg of bar %" PRIu8 " is not "
+                        "present\n",
                    bar_index);
 
             cap_index++;
@@ -141,7 +141,8 @@ static bool virtio_pci_probe(struct device *const device) {
         if (bar->is_mmio) {
             if (!pci_map_bar(bar)) {
                 printk(LOGLEVEL_INFO,
-                       "\tvirtio-pci: failed to map bar at index %" PRIu8 "\n",
+                       "\t" "virtio-pci: failed to map bar at "
+                            "index %" PRIu8 "\n",
                        bar_index);
 
                 cap_index++;
@@ -164,8 +165,8 @@ static bool virtio_pci_probe(struct device *const device) {
         if (!range_has_index_range(io_range, index_range)) {
             pci_unmap_bar(bar);
             printk(LOGLEVEL_WARN,
-                   "\tvirtio-pci: capability has an offset+length pair that "
-                   "falls outside device's io-range (" RANGE_FMT ")\n",
+                   "\t" "virtio-pci: capability has an offset+length pair that "
+                        "falls outside device's io-range (" RANGE_FMT ")\n",
                    RANGE_FMT_ARGS(io_range));
 
             cap_index++;
@@ -177,8 +178,8 @@ static bool virtio_pci_probe(struct device *const device) {
             case VIRTIO_PCI_CAP_COMMON_CFG:
                 if (length < sizeof(struct virtio_pci_common_cfg)) {
                     printk(LOGLEVEL_WARN,
-                           "\tvirtio-pci: common-cfg capability is too "
-                           "short\n");
+                           "\t" "virtio-pci: common-cfg capability is too "
+                                "short\n");
 
                     cap_index++;
                     continue;
@@ -192,8 +193,8 @@ static bool virtio_pci_probe(struct device *const device) {
             case VIRTIO_PCI_CAP_NOTIFY_CFG: {
                 if (cap_len < sizeof(struct virtio_pci_notify_cfg_cap)) {
                     printk(LOGLEVEL_WARN,
-                           "\tvirtio-pci: notify-cfg capability is too "
-                           "short\n");
+                           "\t" "virtio-pci: notify-cfg capability is too "
+                                "short\n");
 
                     cap_index++;
                     continue;
@@ -209,7 +210,8 @@ static bool virtio_pci_probe(struct device *const device) {
             case VIRTIO_PCI_CAP_ISR_CFG:
                 if (cap_len < sizeof(struct virtio_pci_isr_cfg_cap)) {
                     printk(LOGLEVEL_WARN,
-                           "\tvirtio-pci: isr-cfg capability is too short\n");
+                           "\t" "virtio-pci: isr-cfg capability is too "
+                                "short\n");
 
                     cap_index++;
                     continue;
@@ -230,7 +232,8 @@ static bool virtio_pci_probe(struct device *const device) {
             case VIRTIO_PCI_CAP_PCI_CFG:
                 if (cap_len < sizeof(struct virtio_pci_cap)) {
                     printk(LOGLEVEL_WARN,
-                           "\tvirtio-pci: pci-cfg capability is too short\n");
+                           "\t" "virtio-pci: pci-cfg capability is too "
+                                "short\n");
 
                     cap_index++;
                     continue;
@@ -284,10 +287,10 @@ static bool virtio_pci_probe(struct device *const device) {
             subrange_to_full(io_range, index_range);
 
         printk(LOGLEVEL_INFO,
-               "\tcapability %" PRIu8 ": %s\n"
-               "\t\toffset: 0x%" PRIx64 "\n"
-               "\t\tlength: %" PRIu64 "\n"
-               "\t\t%s: " RANGE_FMT "\n",
+               "\t" "capability %" PRIu8 ": %s\n"
+               "\t\t" "offset: 0x%" PRIx64 "\n"
+               "\t\t" "length: %" PRIu64 "\n"
+               "\t\t" "%s: " RANGE_FMT "\n",
                cap_index,
                cfg_kind,
                offset,

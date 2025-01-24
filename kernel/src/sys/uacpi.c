@@ -622,9 +622,9 @@ uacpi_kernel_handle_firmware_request(uacpi_firmware_request *const request) {
         case UACPI_FIRMWARE_REQUEST_TYPE_FATAL:
             printk(LOGLEVEL_CRITICAL,
                    "uacpi: got fatal firmware error:\n"
-                   "\ttype: 0x%" PRIx8 "\n"
-                   "\tcode: 0x%" PRIx32 "\n"
-                   "\targ: 0x%" PRIx64 "\n",
+                   "\t" "type: 0x%" PRIx8 "\n"
+                   "\t" "code: 0x%" PRIx32 "\n"
+                   "\t" "arg: 0x%" PRIx64 "\n",
                    request->fatal.type,
                    request->fatal.code,
                    request->fatal.arg);

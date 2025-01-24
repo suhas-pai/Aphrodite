@@ -57,10 +57,10 @@ void isr_setup_irq_pins() {
 
         printk(LOGLEVEL_INFO,
                "isr: setting up irq pin for apic iso:\n"
-               "\tirq %d -> %d\n"
-               "\tbus: %d\n"
-               "\tpolarity: %s\n"
-               "\ttrigger mode: %s\n",
+               "\t" "irq %d -> %d\n"
+               "\t" "bus: %d\n"
+               "\t" "polarity: %s\n"
+               "\t" "trigger mode: %s\n",
                iso->irq_src,
                iso->gsi,
                iso->bus_src,
