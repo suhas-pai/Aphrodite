@@ -228,12 +228,12 @@ __debug_optimize(3) usec_t lapic_timer_remaining() {
     });
 
     if (using_x2apic) {
-        return x2apic_read(X2APIC_LAPIC_REG_TIMER_INIT_COUNT)
-             / lapic_timer_freq_in_microseconds;
+        return x2apic_read(X2APIC_LAPIC_REG_TIMER_INIT_COUNT) /
+               lapic_timer_freq_in_microseconds;
     }
 
-    return mmio_read(&g_lapic_regs->timer_initial_count)
-         / lapic_timer_freq_in_microseconds;
+    return mmio_read(&g_lapic_regs->timer_initial_count) /
+           lapic_timer_freq_in_microseconds;
 }
 
 __debug_optimize(3)

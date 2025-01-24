@@ -9,7 +9,6 @@
 
 #include "dev/init.h"
 #include "mm/kmalloc.h"
-#include "sys/boot.h"
 
 struct dtb_bus {
     struct bus bus;
@@ -18,12 +17,12 @@ struct dtb_bus {
 static struct simple_alloc g_alloc;
 
 bool
-dtb_init_nodes_for_driver(struct dtb_driver *const driver,
+dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
                           const struct devicetree *const tree,
                           const struct devicetree_node *const node)
 {
     bool result = false;
-    if (driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
+    if (dtb_driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
         struct devicetree_prop_compat *const compat_prop =
             (struct devicetree_prop_compat *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT);
@@ -33,7 +32,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const driver,
         }
 
         bool found = false;
-        ptrarr_foreach(driver->compat_list, driver->compat_count, compat_list) {
+        ptrarr_foreach(dtb_driver->compat_list, dtb_driver->compat_count, compat_list) {
             if (devicetree_prop_compat_has_sv(compat_prop, *compat_list)) {
                 found = true;
                 break;
@@ -45,7 +44,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const driver,
         }
     }
 
-    if (driver->match_flags & __DTB_DRIVER_MATCH_DEVICE_TYPE) {
+    if (dtb_driver->match_flags & __DTB_DRIVER_MATCH_DEVICE_TYPE) {
         struct devicetree_prop_device_type *const device_type_prop =
             (struct devicetree_prop_device_type *)(uint64_t)
                 devicetree_node_get_prop(node, DEVICETREE_PROP_DEVICE_TYPE);
@@ -54,7 +53,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const driver,
             goto next;
         }
 
-        if (!sv_equals(device_type_prop->name, driver->device_type)) {
+        if (!sv_equals(device_type_prop->name, dtb_driver->device_type)) {
             goto next;
         }
     }
@@ -64,18 +63,19 @@ dtb_init_nodes_for_driver(struct dtb_driver *const driver,
         return false;
     }
 
+    device_initialize(&device->device,
+                      dtb_bus(),
+                      /*driver=*/&dtb_driver->driver,
+                      /*init_name=*/SV_EMPTY());
+
     device->tree = tree;
     device->node = node;
 
-    device_initialize(&device->device,
-                      dtb_bus(),
-                      /*driver=*/&driver->driver,
-                      /*init_name=*/SV_EMPTY());
-    result = driver->driver.probe(NULL);
+    result = device_probe(&device->device);
 
 next:
     devicetree_node_foreach_child(node, iter) {
-        if (dtb_init_nodes_for_driver(driver, tree, iter)) {
+        if (dtb_init_nodes_for_driver(dtb_driver, tree, iter)) {
             result = true;
         }
     }

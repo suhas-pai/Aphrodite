@@ -124,8 +124,7 @@ acpi_init_one_device(void *const ctx,
                       &drv->driver,
                       drv->driver.name);
 
-    drv->driver.probe(&device->device);
-
+    device_probe(&device->device);
     return UACPI_ITERATION_DECISION_CONTINUE;
 }
 #endif

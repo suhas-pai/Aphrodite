@@ -10,6 +10,7 @@
     #include "dev/uart/com1.h"
 #elif defined(__aarch64__)
     #include "dev/uart/pl011.h"
+    #include "acpi/bus.h"
 #elif defined(__riscv64) || defined(__loongarch64)
     #include "dev/uart/8250.h"
 #endif /* defined(__x86_64__) */
@@ -58,7 +59,11 @@ void serial_init() {
 
         }
 
-        pl011_init((port_t)address, baudrate, /*data_bits=*/8, stop_bits);
+        pl011_init(acpi_bus(),
+                   (port_t)address,
+                   baudrate,
+                   /*data_bits=*/8,
+                   stop_bits);
     #endif /* !defined(AARCH64_USE_16K_PAGES) */
 #elif defined(__riscv64)
     uart8250_init((port_t)0x10000000,
