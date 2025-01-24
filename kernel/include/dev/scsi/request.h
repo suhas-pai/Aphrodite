@@ -11,7 +11,8 @@ enum scsi_command : uint8_t {
     SCSI_CMD_READ,
     SCSI_CMD_WRITE,
 
-    SCSI_CMD_ATAPI_SENSE
+    SCSI_CMD_ATAPI_SENSE,
+    SCSI_CMD_ATAPI_TEST_UNIT_READY,
 };
 
 struct scsi_request {
@@ -47,3 +48,6 @@ struct scsi_request {
 
 #define SCSI_REQUEST_ATAPI_SENSE() \
     ((struct scsi_request){ .command = SCSI_CMD_ATAPI_SENSE })
+
+#define SCSI_REQUEST_ATAPI_TEST_UNIT_READY() \
+    ((struct scsi_request){ .command = SCSI_CMD_ATAPI_TEST_UNIT_READY })

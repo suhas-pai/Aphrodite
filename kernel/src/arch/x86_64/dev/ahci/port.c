@@ -826,14 +826,14 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
 
     printk(LOGLEVEL_INFO,
            "ahci: identify response:\n"
-           "\tdevice-type: 0x%" PRIx16 "\n"
-           "\tserial: " SV_FMT "\n"
-           "\tmodel: " SV_FMT "\n"
-           "\tcapabilities: 0x%" PRIx32 "\n"
-           "\t\tdma supported: %s\n"
-           "\t\tlba supported: %s\n"
-           "\t\tiordy supported: %s\n"
-           "\t\tstandby timer supported: %s\n",
+           "\t" "device-type: 0x%" PRIx16 "\n"
+           "\t" "serial: " SV_FMT "\n"
+           "\t" "model: " SV_FMT "\n"
+           "\t" "capabilities: 0x%" PRIx32 "\n"
+           "\t\t" "dma supported: %s\n"
+           "\t\t" "lba supported: %s\n"
+           "\t\t" "iordy supported: %s\n"
+           "\t\t" "standby timer supported: %s\n",
            ident->device_type,
            SV_FMT_ARGS(sv_of_carr(ident->serial)),
            SV_FMT_ARGS(sv_of_carr(ident->model)),
@@ -869,8 +869,8 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         }
 
         struct atapi_sense_response *const resp = page_to_virt(resp_page);
-        if (resp->sense != ATAPI_SENSE_NONE
-         || resp->asc != ATAPI_SENSE_ASC_NONE)
+        if (resp->sense != ATAPI_SENSE_NONE ||
+            resp->asc != ATAPI_SENSE_ASC_NONE)
         {
             ahci_hba_port_stop(port);
 
@@ -886,6 +886,29 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
                    "returned \"%s\". aborting init\n",
                    port->index + 1u,
                    atapi_sense_to_cstr(resp->sense));
+
+            return false;
+        }
+
+        result =
+            ahci_hba_port_send_scsi_command(
+                port,
+                SCSI_REQUEST_ATAPI_TEST_UNIT_READY(),
+                page_to_phys(resp_page));
+
+        if (!result) {
+            ahci_hba_port_stop(port);
+
+            free_page(resp_page);
+            vunmap_mmio(mmio);
+
+            free_page(cmd_list_page);
+            free_pages(cmd_table_pages, AHCI_HBA_CMD_TABLE_PAGE_ORDER);
+
+            kfree(cmdhdr_info_list);
+            printk(LOGLEVEL_WARN,
+                   "ahci: port #%" PRIu8 " failed unit-ready test. aborting\n",
+                   port->index + 1u);
 
             return false;
         }
@@ -1063,6 +1086,10 @@ setup_prdt_table(volatile struct ahci_spec_port_cmdhdr *const cmd_header,
                  const uint32_t flags)
 {
     mmio_write(&cmd_header->flags, flags);
+    if (sector_count == 0) {
+        return;
+    }
+
     volatile struct ahci_spec_hba_prdt_entry *const entries =
         cmd_table->prdt_entries;
 
@@ -1225,13 +1252,6 @@ send_atapi_command(struct ahci_hba_port *const port,
                    const uint16_t sector_count,
                    const uint64_t phys_addr)
 {
-    if (__builtin_expect(sector_count == 0, 0)) {
-        printk(LOGLEVEL_WARN,
-               "ahci-port: port #%" PRIu8 " got a h2d request of 0 sectors\n",
-               port->index + 1u);
-        return true;
-    }
-
     const uint8_t slot = prepare_port(port);
     if (slot == UINT8_MAX) {
         return false;
@@ -1244,8 +1264,8 @@ send_atapi_command(struct ahci_hba_port *const port,
     volatile struct ahci_spec_port_cmdhdr *const cmd_header =
         &port->headers[slot];
     struct ahci_spec_hba_cmd_table *const cmd_table =
-        (struct ahci_spec_hba_cmd_table *)phys_to_virt(port->cmdtable_phys)
-      + slot;
+        (struct ahci_spec_hba_cmd_table *)phys_to_virt(port->cmdtable_phys) +
+        slot;
 
     setup_prdt_table(cmd_header, cmd_table, phys_addr, sector_count, flags);
     setup_ata_h2d_fis(cmd_table,
@@ -1359,6 +1379,13 @@ ahci_hba_port_send_scsi_command(struct ahci_hba_port *const port,
                                       /*sector_offset=*/18 << 8,
                                       /*sector_count=*/1,
                                       phys_addr);
+
+        case SCSI_CMD_ATAPI_TEST_UNIT_READY:
+            return send_atapi_command(port,
+                                      ATAPI_CMD_TEST_UNIT_READY,
+                                      /*sector_offset=*/0,
+                                      /*sector_count=*/0,
+                                      /*phys_addr=*/0);
     }
 
     verify_not_reached();
