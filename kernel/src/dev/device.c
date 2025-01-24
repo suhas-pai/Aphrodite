@@ -16,7 +16,7 @@ device_initialize(struct device *const device,
     device->driver = driver;
     device->init_name = init_name;
     device->lock = SPINLOCK_INIT();
-    device->has_driver = true;
+    device->is_bus = true;
 
     list_init(&device->list);
     with_spinlock_intr_disabled(&bus->device.lock, {
@@ -31,16 +31,16 @@ device_initialize(struct device *const device,
 }
 
 void
-device_init_no_driver(struct device *const device,
-                      struct bus *const bus,
-                      struct bus *const parent,
-                      const struct string_view init_name)
+device_init_for_bus(struct device *const device,
+                    struct bus *const bus,
+                    struct bus *const parent,
+                    const struct string_view init_name)
 {
     device->bus = bus;
     device->parent = parent;
     device->init_name = init_name;
     device->lock = SPINLOCK_INIT();
-    device->has_driver = false;
+    device->is_bus = false;
 
     list_init(&device->list);
     with_spinlock_intr_disabled(&bus->device.lock, {
@@ -52,7 +52,6 @@ device_init_no_driver(struct device *const device,
             list_add(&parent->device_list, &device->list);
         });
     }
-    device->has_driver = false;
 }
 
 __debug_optimize(3) uint64_t device_get_id(struct device *const device) {

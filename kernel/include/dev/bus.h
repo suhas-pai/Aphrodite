@@ -43,15 +43,8 @@ void
 bus_init(struct bus *bus,
          struct bus *parent,
          struct string_view name,
-         struct driver *driver,
+         struct bus *parent2,
          bus_probe_t probe);
-
-void
-bus_init_no_driver(struct bus *bus,
-                   struct bus *parent,
-                   struct string_view name,
-                   struct bus *parent2,
-                   bus_probe_t probe);
 
 struct bus *bus_get_dev_parent(struct bus *bus);
 struct bus *bus_get_drv_parent(struct bus *bus);

@@ -30,11 +30,11 @@ pci_domain_init(struct pci_domain *const domain,
                 const enum pci_domain_kind kind,
                 const uint16_t segment)
 {
-    bus_init_no_driver(&domain->bus,
-                       parent,
-                       /*name=*/SV_EMPTY(),
-                       &pci_device()->bus,
-                       pci_domain_probe);
+    bus_init(&domain->bus,
+             parent,
+             /*name=*/SV_EMPTY(),
+             &pci_device()->bus,
+             pci_domain_probe);
 
     domain->kind = kind;
     domain->segment = segment;

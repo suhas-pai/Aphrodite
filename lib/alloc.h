@@ -6,7 +6,7 @@
 #pragma once
 
 #if defined(BUILD_KERNEL)
-    #include "../kernel/include/mm/kmalloc.h"
+    #include "mm/kmalloc.h"
     #include "overflow.h"
 
     #define malloc(size) kmalloc(size)
@@ -15,9 +15,8 @@
         uint32_t __calloc_new_size__ = 0; \
         uint32_t __calloc_obj_size__ = (size); \
         __auto_type __calloc_result__ = \
-            kmalloc_size( \
-                ckd_mul_assert((uint32_t)(amt), __calloc_obj_size__), \
-                &__calloc_new_size__); \
+            kmalloc_size(ckd_mul_assert((uint32_t)(amt), __calloc_obj_size__), \
+                         &__calloc_new_size__); \
         *(out) = __calloc_new_size__ / __calloc_obj_size__; \
         __calloc_result__; \
     })

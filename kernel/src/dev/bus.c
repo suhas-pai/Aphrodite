@@ -13,25 +13,10 @@ void
 bus_init(struct bus *const bus,
          struct bus *const parent,
          const struct string_view name,
-         struct driver *const driver,
+         struct bus *const parent2,
          const bus_probe_t probe)
 {
-    device_initialize(&bus->device, parent, driver, name);
-
-    list_init(&bus->driver_list);
-    list_init(&bus->device_list);
-
-    bus->probe = probe;
-}
-
-void
-bus_init_no_driver(struct bus *const bus,
-                   struct bus *const parent,
-                   const struct string_view name,
-                   struct bus *const parent2,
-                   const bus_probe_t probe)
-{
-    device_init_no_driver(&bus->device, parent, parent2, name);
+    device_init_for_bus(&bus->device, parent, parent2, name);
 
     list_init(&bus->driver_list);
     list_init(&bus->device_list);
@@ -48,11 +33,8 @@ struct bus *bus_get_dev_parent(struct bus *const bus) {
 }
 
 struct bus *bus_get_drv_parent(struct bus *const bus) {
-    if (bus->device.has_driver) {
-        return bus->device.driver->bus;
-    }
-
-    return bus->device.parent;
+    assert(bus->device.is_bus);
+    return bus->device.driver->bus;
 }
 
 void bus_subsystem_init() {

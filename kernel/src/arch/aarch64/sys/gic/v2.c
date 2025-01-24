@@ -698,13 +698,15 @@ static bool gicv2_dtb_probe(struct device *const the_device) {
         return false;
     }
 
-    struct devicetree_prop_reg_info *const dist_reg_info =
-        array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+    const struct devicetree_prop_reg_info *const dist_reg_info =
+        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+
+    const struct devicetree_prop_reg_info *const cpu_reg_info =
+        array_at(&reg_prop->list,
+                 const struct devicetree_prop_reg_info,
+                 /*index=*/1);
 
     struct range cpu_reg_range = RANGE_EMPTY();
-    struct devicetree_prop_reg_info *const cpu_reg_info =
-        array_at(&reg_prop->list, struct devicetree_prop_reg_info, /*index=*/1);
-
     if (!range_create_and_verify(cpu_reg_info->address,
                                  cpu_reg_info->size,
                                  &cpu_reg_range))
@@ -751,8 +753,9 @@ static bool gicv2_dtb_probe(struct device *const the_device) {
             return false;
         }
 
-        struct devicetree_prop_reg_info *const msi_reg_info =
-            array_front(&msi_reg_prop->list, struct devicetree_prop_reg_info);
+        const struct devicetree_prop_reg_info *const msi_reg_info =
+            array_front(&msi_reg_prop->list,
+                        const struct devicetree_prop_reg_info);
 
         if (msi_reg_info->size != 0x1000) {
             printk(LOGLEVEL_INFO,

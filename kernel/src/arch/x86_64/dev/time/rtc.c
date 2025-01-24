@@ -43,12 +43,12 @@ __debug_optimize(3) static inline bool rtc_wait_until_available() {
 
 __debug_optimize(3)
 static inline bool read_reg_status_b(uint8_t *const result_out) {
-    if (!rtc_wait_until_available()) {
-        return false;
+    if (rtc_wait_until_available()) {
+        *result_out = cmos_read(CMOS_REGISTER_RTC_STATUS_B);
+        return true;
     }
 
-    *result_out = cmos_read(CMOS_REGISTER_RTC_STATUS_B);
-    return true;
+    return false;
 }
 
 __debug_optimize(3)
@@ -67,13 +67,13 @@ static inline bool rtc_is_date_in_binary_format(const uint8_t reg_status_b) {
 }
 
 __debug_optimize(3) bool rtc_init() {
-    uint8_t reg_b = 0;
     if (get_acpi_info()->fadt == nullptr) {
         printk(LOGLEVEL_WARN,
                "rtc: acpi tables missing crucial 'fadt' entry\n");
         return false;
     }
 
+    uint8_t reg_b = 0;
     if (!read_reg_status_b(&reg_b)) {
         printk(LOGLEVEL_WARN, "rtc: failed to read reg-status b\n");
         return false;
@@ -124,8 +124,8 @@ bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out) {
         read_rtc_cmos_info(&info);
         read_rtc_cmos_info(&check);
 
-        if (info.reg_status_b != UINT16_MAX
-         && memcmp(&info, &check, sizeof(info)) == 0)
+        if (info.reg_status_b != UINT16_MAX &&
+            memcmp(&info, &check, sizeof(info)) == 0)
         {
             should_return = false;
             break;

@@ -19,26 +19,26 @@ struct growable_buffer {
 
 #define GBUFFER_INIT() \
     ((struct growable_buffer){ \
-        .begin = nullptr,         \
+        .begin = nullptr,      \
         .index = 0,            \
         .capacity = 0,         \
         .is_alloc = false      \
     })
 
 #define GBUFFER_FROM_PTR(ptr, capacity_) \
-    ((struct growable_buffer){ \
-        .begin = (ptr), \
-        .index = 0, \
+    ((struct growable_buffer){   \
+        .begin = (ptr),          \
+        .index = 0,              \
         .capacity = (capacity_), \
-        .is_alloc = false \
+        .is_alloc = false        \
     })
 
 #define GBUFFER_WITH_ITEM(ptr, size) \
     ((struct growable_buffer){ \
-        .begin = (ptr), \
-        .index = (size), \
-        .capacity = (size), \
-        .is_alloc = false \
+        .begin = (ptr),        \
+        .index = (size),       \
+        .capacity = (size),    \
+        .is_alloc = false      \
     })
 
 struct growable_buffer gbuffer_alloc(uint32_t capacity);

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../device.h"
+#include "dev/virtio/device.h"
 #include "request.h"
 
 struct virtio_split_queue {

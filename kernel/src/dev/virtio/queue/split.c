@@ -27,9 +27,9 @@ virtio_split_queue_init(struct virtio_device *const device,
 
     _Static_assert(
         // Desc Table
-        (sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT)
+        sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT
         // Avail ring
-        + (sizeof(struct virtq_avail) + (sizeof(le16_t) * VIRTQ_MAX_DESC_COUNT))
+        + sizeof(struct virtq_avail) + (sizeof(le16_t) * VIRTQ_MAX_DESC_COUNT)
         // Used Ring
         + (sizeof(struct virtq_used)
           + (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))

@@ -18,8 +18,8 @@ struct device {
     struct bus *bus;
 
     union {
-        // Nodes that are busses don't have individual drivers, and instead have
-        // a second bus that they're a child of.
+        // Devices that are busses don't have drivers. Instead, a second bus is
+        // used as a parent of this device, but for a different tree.
 
         struct driver *driver;
         struct bus *parent;
@@ -31,7 +31,7 @@ struct device {
     struct list list;
     struct list child_list;
 
-    bool has_driver : 1;
+    bool is_bus : 1;
 };
 
 void
@@ -41,10 +41,10 @@ device_initialize(struct device *device,
                   struct string_view init_name);
 
 void
-device_init_no_driver(struct device *device,
-                      struct bus *bus,
-                      struct bus *parent,
-                      struct string_view init_name);
+device_init_for_bus(struct device *device,
+                    struct bus *bus,
+                    struct bus *parent,
+                    struct string_view init_name);
 
 uint64_t device_get_id(struct device *device);
 

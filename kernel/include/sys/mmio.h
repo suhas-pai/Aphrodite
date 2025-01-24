@@ -44,10 +44,10 @@ void mmio_write_size(volatile void *ptr, size_t size, uint64_t value);
     volatile uint16_t *: mmio_write_16, \
     volatile uint32_t *: mmio_write_32, \
     volatile uint64_t *: mmio_write_64, \
-    _Atomic uint8_t *: mmio_write_8, \
-    _Atomic uint16_t *: mmio_write_16, \
-    _Atomic uint32_t *: mmio_write_32, \
-    _Atomic uint64_t *: mmio_write_64, \
+    _Atomic(uint8_t) *: mmio_write_8, \
+    _Atomic(uint16_t) *: mmio_write_16, \
+    _Atomic(uint32_t) *: mmio_write_32, \
+    _Atomic(uint64_t) *: mmio_write_64, \
     volatile _Atomic(uint8_t) *: mmio_write_8, \
     volatile _Atomic(uint16_t) *: mmio_write_16, \
     volatile _Atomic(uint32_t) *: mmio_write_32, \

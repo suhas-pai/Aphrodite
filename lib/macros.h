@@ -119,6 +119,10 @@
     const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
     for (typeof(&(arr)[0]) name = (iter); name != h_var(end); name++)
 
+#define carr_foreach_from_index(arr, name, index) \
+    const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
+    for (typeof(&(arr)[0]) name = (arr) + (index); name < h_var(end); name++)
+
 #define carr_foreach_mut(arr, name) \
     typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
     for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
@@ -127,17 +131,27 @@
     typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
     for (typeof(&(arr)[0]) name = (iter); name != h_var(end); name++)
 
+#define carr_foreach_mut_for_index(arr, name, index) \
+    typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
+    for (typeof(&(arr)[0]) name = (arr) + (index); name < h_var(end); name++)
+
 #define carr_foreach_rev(arr, name) \
     for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_rev_from_iter(arr, name, iter) \
     for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
 
+#define carr_foreach_rev_from_index(arr, name, index) \
+    for (typeof(&(arr)[0]) name = (arr) + (index); name >= (arr); name--)
+
 #define carr_foreach_mut_rev(arr, name) \
     for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_mut_rev_from_iter(arr, name, iter) \
     for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
+
+#define carr_foreach_mut_rev_from_index(arr, name, index) \
+    for (typeof(&(arr)[0]) name = (arr) + (index); name >= (arr); name--)
 
 #define ptrarr_foreach(the_arr, count, name) \
     const __auto_type h_var(arr) = (the_arr); \

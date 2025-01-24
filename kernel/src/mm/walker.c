@@ -505,7 +505,6 @@ pgwalker_prev_with_options(struct pg_walker *const walker,
     *indices_ptr = PGT_PTE_COUNT(level) - 1;
 
     const pg_level_t orig_level = level;
-
     do {
         level++;
         indices_ptr++;
