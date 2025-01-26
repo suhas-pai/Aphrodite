@@ -35,7 +35,7 @@
 
 #define pte_to_phys(pte, level) ({ \
     __auto_type __pte_to_phys_pte__ = (pte); \
-    pte_level_can_have_lg_page(level) && __pte_to_phys_pte__ & __PTE_LARGE ? \
+    pg_level_can_have_large(level) && __pte_to_phys_pte__ & __PTE_LARGE ? \
         __pte_to_phys_pte__ & PTE_PHYS_LARGE_MASK : \
         __pte_to_phys_pte__ & PTE_PHYS_MASK; \
 })
