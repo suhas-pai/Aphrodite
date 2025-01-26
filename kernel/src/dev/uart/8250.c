@@ -261,7 +261,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("uart8250"),
                       uart8250_dtb_probe,
                       /*remove=*/nullptr,

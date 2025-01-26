@@ -159,13 +159,13 @@ void switch_to_pagemap(struct pagemap *const pagemap) {
 
     with_spinlock_intr_disabled(&pagemap->cpu_lock, {
     #if defined(__x86_64__)
-        write_cr3(virt_to_phys(pagemap->root));
+        cr3_write(virt_to_phys(pagemap->root));
     #elif defined(__aarch64__)
-        write_ttbr0_el1(virt_to_phys(pagemap->lower_root));
-        write_ttbr1_el1(virt_to_phys(pagemap->higher_root));
+        ttbr0_el1_write(virt_to_phys(pagemap->lower_root));
+        ttbr1_el1_write(virt_to_phys(pagemap->higher_root));
 
         #if defined(AARCH64_USE_16K_PAGES)
-            write_tcr_el1(rm_mask(read_tcr_el1(), __TCR_TG1)
+            tcr_el1_write(rm_mask(tcr_el1_read(), __TCR_TG1)
                         | TCR_TG1_16KIB << TCR_TG1_SHIFT);
         #endif /* defined(AARCH64_USE_16K_PAGES) */
 
@@ -193,7 +193,11 @@ __debug_optimize(3) uint64_t
 pagemap_virt_get_phys(const struct pagemap *const pagemap, const uint64_t virt)
 {
     struct pg_walker walker;
-    pgwalker_create_for_pagemap(&walker, pagemap, virt, nullptr, nullptr);
+    pgwalker_create_for_pagemap(&walker,
+                                pagemap,
+                                virt,
+                                /*alloc_pgtable=*/nullptr,
+                                /*free_pgtable=*/nullptr);
 
     const uint64_t phys = pgwalker_get_phys_addr(&walker);
     if (phys == INVALID_PHYS) {

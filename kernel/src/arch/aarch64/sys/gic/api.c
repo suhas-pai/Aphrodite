@@ -224,16 +224,16 @@ void gic_init_from_dtb() {
     }
 
     bool found = false;
-    bus_foreach_driver(dtb_bus(), struct dtb_driver, driver.list, driver) {
-        if (sv_equals(driver->driver.name, SV_STATIC("gicv3"))) {
-            dtb_init_nodes_for_driver(driver, tree, tree->root);
+    bus_foreach_driver(&dtb_bus()->bus, struct dtb_driver, driver.list, drv) {
+        if (sv_equals(drv->driver.name, SV_STATIC("gicv3"))) {
+            dtb_init_nodes_for_driver(drv, tree, tree->root);
             found = true;
 
             break;
         }
 
-        if (sv_equals(driver->driver.name, SV_STATIC("gicv2"))) {
-            dtb_init_nodes_for_driver(driver, tree, tree->root);
+        if (sv_equals(drv->driver.name, SV_STATIC("gicv2"))) {
+            dtb_init_nodes_for_driver(drv, tree, tree->root);
             found = true;
 
             break;

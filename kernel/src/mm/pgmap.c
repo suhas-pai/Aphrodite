@@ -691,7 +691,7 @@ pgmap_at(struct pagemap *const pagemap,
 
                 if (!range_has_index(phys_range, offset)) {
                     intr_restore(flag);
-                    return OVERRIDE_DONE;
+                    return true;
                 }
 
                 phys_range = range_from_index(phys_range, offset);

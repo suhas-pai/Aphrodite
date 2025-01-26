@@ -81,7 +81,7 @@ handle_irq(const uint64_t int_no,
     struct nvme_controller *iter = nullptr;
     bool found = false;
 
-    list_foreach(iter, &g_controller_list, list) {
+    list_foreach(&g_controller_list, list, iter) {
         if (iter->isr_vector == int_no) {
             found = true;
             break;
@@ -106,7 +106,7 @@ handle_irq(const uint64_t int_no,
     // TODO: use GET_FEATURES command to check for interrupt coalescing
 
     struct nvme_namespace *ns_iter = nullptr;
-    list_foreach(ns_iter, &iter->namespace_list, list) {
+    list_foreach(&iter->namespace_list, list, ns_iter) {
         if (notify_queue_if_done(&ns_iter->io_queue)) {
             isr_eoi(int_no);
             return;
@@ -371,7 +371,7 @@ bool nvme_controller_destroy(struct nvme_controller *const controller) {
     spinlock_deinit(&controller->lock);
 
     struct nvme_namespace *iter = nullptr;
-    list_foreach(iter, &controller->namespace_list, list) {
+    list_foreach(&controller->namespace_list, list, iter) {
         nvme_namespace_destroy(iter);
     }
 

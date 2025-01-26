@@ -65,7 +65,7 @@ static void add_to_asc_list(struct freepage_array_info *const info) {
     struct freepage_array_info *prev =
         parent_of(&g_asc_freelist, struct freepage_array_info, asc_list);
 
-    list_foreach(iter, &g_asc_freelist, asc_list) {
+    list_foreach(&g_asc_freelist, asc_list, iter) {
         if (info->avail_page_count < iter->avail_page_count) {
             break;
         }
@@ -114,7 +114,7 @@ static void claim_pages(const struct mm_memmap *const memmap) {
                 parent_of(&g_freepage_list, struct freepage_array_info, list);
 
             struct freepage_array_info *iter = nullptr;
-            list_foreach(iter, &g_freepage_list, list) {
+            list_foreach(&g_freepage_list, list, iter) {
                 if (info < iter) {
                     break;
                 }
@@ -202,7 +202,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
     const uint64_t alloc_amount =
         1ull << largepage_level_info_list[level - 1].order;
 
-    list_foreach(info, &g_asc_freelist, asc_list) {
+    list_foreach(&g_asc_freelist, asc_list, info) {
         const uint64_t avail_page_count = info->avail_page_count;
         if (avail_page_count < alloc_amount) {
             continue;
@@ -604,7 +604,7 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
 __debug_optimize(3)
 static void mark_crucial_pages(const struct page_section *const memmap) {
     struct freepage_array_info *iter = nullptr;
-    list_foreach(iter, &g_asc_freelist, asc_list) {
+    list_foreach(&g_asc_freelist, asc_list, iter) {
         uint64_t iter_phys = virt_to_phys(iter);
         if (!range_has_loc(memmap->range, iter_phys)) {
             continue;
@@ -689,7 +689,7 @@ set_section_for_pages(const struct page_section *const memmap,
                       const page_section_t section)
 {
     struct freepage_array_info *iter = nullptr;
-    list_foreach(iter, &g_freepage_list, list) {
+    list_foreach(&g_freepage_list, list, iter) {
         uint64_t iter_phys = virt_to_phys(iter);
         uint64_t back_phys =
             iter_phys + (iter->avail_page_count << PAGE_SHIFT) - PAGE_SIZE;
@@ -730,7 +730,7 @@ __debug_optimize(3) static uint64_t free_all_pages() {
      */
 
     uint64_t free_page_count = 0;
-    list_foreach_rev_mut(iter, tmp, &g_asc_freelist, asc_list) {
+    list_foreach_rev_mut(&g_asc_freelist, asc_list, iter, tmp) {
         uint64_t phys = virt_to_phys(iter);
         uint64_t avail = iter->avail_page_count;
 

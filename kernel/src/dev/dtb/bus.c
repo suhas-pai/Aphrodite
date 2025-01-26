@@ -10,10 +10,6 @@
 #include "dev/init.h"
 #include "mm/kmalloc.h"
 
-struct dtb_bus {
-    struct bus bus;
-};
-
 static struct simple_alloc g_alloc;
 
 bool
@@ -64,7 +60,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
     }
 
     device_initialize(&device->device,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*driver=*/&dtb_driver->driver,
                       /*init_name=*/SV_EMPTY());
 
@@ -117,12 +113,12 @@ static struct dtb_bus g_dtb_bus = {
     .bus = BUS_INIT(g_dtb_bus.bus, /*parent=*/nullptr, dtb_bus_probe),
 };
 
-__debug_optimize(3) struct bus *dtb_bus() {
-    return &g_dtb_bus.bus;
+__debug_optimize(3) struct dtb_bus *dtb_bus() {
+    return &g_dtb_bus;
 }
 
 static void dtb_bus_init() {
-    bus_register(dtb_bus());
+    bus_register(&dtb_bus()->bus);
 }
 
 MAKE_DEV_INIT_FUNC(dtb_bus_init);

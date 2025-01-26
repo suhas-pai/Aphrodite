@@ -35,7 +35,7 @@ void collect_cpu_features() {
     //const uint64_t id_aa64zfr0 = read_id_aa64zfr0_el1();
     const uint64_t id_aa64dfr0 = read_id_aa64dfr0_el1();
     const uint64_t id_aa64dfr1 = read_id_aa64dfr1_el1();
-    const uint64_t tcr_el1 = read_tcr_el1();
+    const uint64_t tcr_el1 = tcr_el1_read();
 
     const enum id_aa64isar0_el1_aes_support aa64isar0_el1_aes_support =
         (id_aa64isar0 & __ID_AA64ISAR0_EL1_AES) >>

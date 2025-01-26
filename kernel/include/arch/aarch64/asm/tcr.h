@@ -386,13 +386,13 @@ enum tcr_flags : uint64_t {
     __TCR_DS = 1ull << 59,
 };
 
-__debug_optimize(3) static inline uint64_t read_tcr_el1() {
+__debug_optimize(3) static inline uint64_t tcr_el1_read() {
     uint64_t result = 0;
     asm volatile ("mrs %0, tcr_el1" : "=r"(result));
 
     return result;
 }
 
-__debug_optimize(3) static inline void write_tcr_el1(const uint64_t value) {
+__debug_optimize(3) static inline void tcr_el1_write(const uint64_t value) {
     asm volatile ("msr tcr_el1, %0" :: "r"(value));
 }

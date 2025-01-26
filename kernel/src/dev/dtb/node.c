@@ -128,7 +128,7 @@ fdt_stringlist_contains_sv(const char *strlist,
             return false; /* malformed strlist.. */
         }
 
-        listlen -= distance(strlist, p) + 1;
+        listlen -= distance_incl(strlist, p);
         strlist = p + 1;
     }
 

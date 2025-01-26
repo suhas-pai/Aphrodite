@@ -301,7 +301,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&syscon_dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("riscv64-syscon"),
                       syscon_poweroff_dtb_probe,
                       /*remove=*/nullptr,
@@ -321,7 +321,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&poweroff_dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("riscv64-syscon-poweroff"),
                       syscon_poweroff_dtb_probe,
                       /*remove=*/nullptr,
@@ -341,7 +341,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&reboot_dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("riscv64-syscon-reboot"),
                       syscon_reboot_dtb_probe,
                       /*remove=*/nullptr,

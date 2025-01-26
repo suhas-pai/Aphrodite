@@ -49,25 +49,29 @@ void arch_init_from_dtb() {
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();
     if (tree != nullptr) {
-        bus_foreach_driver(dtb_bus(), struct dtb_driver, driver.list, driver) {
-            if (sv_equals(driver->driver.name, SV_STATIC("riscv64-syscon"))) {
-                dtb_init_nodes_for_driver(driver, tree, tree->root);
+        bus_foreach_driver(&dtb_bus()->bus,
+                           struct dtb_driver,
+                           driver.list,
+                           drv)
+        {
+            if (sv_equals(drv->driver.name, SV_STATIC("riscv64-syscon"))) {
+                dtb_init_nodes_for_driver(drv, tree, tree->root);
                 continue;
             }
 
             const struct string_view poweroff_sv =
                 SV_STATIC("riscv64-syscon-poweroff");
 
-            if (sv_equals(driver->driver.name, poweroff_sv)) {
-                dtb_init_nodes_for_driver(driver, tree, tree->root);
+            if (sv_equals(drv->driver.name, poweroff_sv)) {
+                dtb_init_nodes_for_driver(drv, tree, tree->root);
                 continue;
             }
 
             const struct string_view reboot_sv =
                 SV_STATIC("riscv64-syscon-reboot");
 
-            if (sv_equals(driver->driver.name, reboot_sv)) {
-                dtb_init_nodes_for_driver(driver, tree, tree->root);
+            if (sv_equals(drv->driver.name, reboot_sv)) {
+                dtb_init_nodes_for_driver(drv, tree, tree->root);
                 continue;
             }
         }

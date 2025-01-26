@@ -119,7 +119,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("virtio-mmio"),
                       virtio_mmio_dtb_probe,
                       /*remove=*/nullptr,

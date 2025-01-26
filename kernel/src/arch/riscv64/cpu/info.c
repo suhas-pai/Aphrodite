@@ -39,7 +39,7 @@ __debug_optimize(3) uint32_t cpu_get_id(const struct cpu_info *const cpu) {
 
 __debug_optimize(3) const struct cpu_info *cpu_for_id(const cpu_id_t hart_id) {
     const struct cpu_info *iter = nullptr;
-    list_foreach(iter, cpus_get_list(), cpu_list) {
+    list_foreach(cpus_get_list(), cpu_list, iter) {
         if (iter->hart_id == hart_id) {
             return iter;
         }
@@ -50,7 +50,7 @@ __debug_optimize(3) const struct cpu_info *cpu_for_id(const cpu_id_t hart_id) {
 
 __debug_optimize(3) struct cpu_info *cpu_for_id_mut(const cpu_id_t hart_id) {
     struct cpu_info *iter = nullptr;
-    list_foreach(iter, cpus_get_list(), cpu_list) {
+    list_foreach(cpus_get_list(), cpu_list, iter) {
         if (iter->hart_id == hart_id) {
             return iter;
         }

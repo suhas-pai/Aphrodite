@@ -243,7 +243,7 @@ static void setup_dtb_drivers() {
     };
 
     driver_initialize(&psci_dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("arm-psci"),
                       psci_dtb_probe,
                       /*remove=*/nullptr,

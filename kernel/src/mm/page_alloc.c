@@ -893,7 +893,7 @@ try_alloc_large_page_from_zone(struct page_zone *const zone,
     }
 
     struct page_section *iter = nullptr;
-    list_foreach(iter, &zone->section_list, zone_list) {
+    list_foreach(&zone->section_list, zone_list, iter) {
         int flag = 0;
         if (!spin_try_acquire_save_intr(&iter->lock, &flag)) {
             continue;

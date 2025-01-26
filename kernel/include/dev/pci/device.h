@@ -16,6 +16,6 @@ struct pci_device {
 
 #define pci_device_foreach_entity(entity) \
     struct pci_entity *entity = nullptr; \
-    list_foreach(entity, &pci_device()->entity_list, list_in_device)
+    list_foreach(&pci_device()->entity_list, list_in_device, entity)
 
 struct pci_device *pci_device();

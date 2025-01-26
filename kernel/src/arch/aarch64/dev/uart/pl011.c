@@ -226,9 +226,7 @@ static bool pl011_dtb_probe(struct device *const device) {
         array_front(&reg_list, struct devicetree_prop_reg_info);
 
     struct range reg_range = RANGE_EMPTY();
-    if (!range_create_and_verify(reg_info->address,
-                                 reg_info->size,
-                                 &reg_range))
+    if (!range_create_and_verify(reg_info->address, reg_info->size, &reg_range))
     {
         printk(LOGLEVEL_INFO, "pl031: dtb-node's 'reg' prop range overflows\n");
         return false;
@@ -273,14 +271,14 @@ static void init_drivers() {
         SV_STATIC("arm,pl011"), SV_STATIC("arm,primecell")
     };
 
-    static struct dtb_driver driver = {
+    static struct dtb_driver dtb_driver = {
         .match_flags = __DTB_DRIVER_MATCH_COMPAT,
         .compat_list = compat_names,
         .compat_count = countof(compat_names),
     };
 
-    driver_initialize(&driver.driver,
-                      dtb_bus(),
+    driver_initialize(&dtb_driver.driver,
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("arm-pl011"),
                       pl011_dtb_probe,
                       /*remove=*/nullptr,

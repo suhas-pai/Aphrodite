@@ -215,7 +215,7 @@ __debug_optimize(3) void gicdv3_unmask_irq(const irq_number_t irq) {
 __debug_optimize(3) isr_vector_t
 gicdv3_alloc_msi_vector(struct device *const device, const uint16_t msi_index) {
     struct gic_its_info *its = nullptr;
-    list_foreach(its, gic_its_get_list(), list) {
+    list_foreach(gic_its_get_list(), list, its) {
         const isr_vector_t vector =
             gic_its_alloc_msi_vector(its, device, msi_index);
 
@@ -233,7 +233,7 @@ gicdv3_free_msi_vector(struct device *const device,
                        const uint16_t msi_index)
 {
     struct gic_its_info *its = nullptr;
-    list_foreach(its, gic_its_get_list(), list) {
+    list_foreach(gic_its_get_list(), list, its) {
         gic_its_free_msi_vector(its, device, vector, msi_index);
     }
 }
@@ -348,7 +348,7 @@ volatile uint64_t *gicdv3_get_msi_address(const isr_vector_t vector) {
     (void)vector;
 
     struct gic_its_info *its = nullptr;
-    list_foreach(its, gic_its_get_list(), list) {
+    list_foreach(gic_its_get_list(), list, its) {
         volatile uint64_t *const address = gic_its_get_msi_address(its);
         return address;
     }
@@ -694,7 +694,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("gicv3"),
                       gicv3_dtb_probe,
                       /*remove=*/nullptr,

@@ -22,9 +22,9 @@ void arch_init_dev() {
     });
 
     struct devicetree *const tree = dtb_get_tree();
-    bus_foreach_driver(dtb_bus(), struct dtb_driver, driver.list, driver) {
-        if (sv_equals(driver->driver.name, SV_STATIC("arm-psci"))) {
-            dtb_init_nodes_for_driver(driver, tree, tree->root);
+    bus_foreach_driver(&dtb_bus()->bus, struct dtb_driver, driver.list, drv) {
+        if (sv_equals(drv->driver.name, SV_STATIC("arm-psci"))) {
+            dtb_init_nodes_for_driver(drv, tree, tree->root);
             continue;
         }
     }

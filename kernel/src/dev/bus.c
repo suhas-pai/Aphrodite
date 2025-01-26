@@ -39,7 +39,7 @@ struct bus *bus_get_drv_parent(struct bus *const bus) {
 
 void bus_subsystem_init() {
     struct bus *bus = nullptr;
-    list_foreach(bus, &g_bus_list, device.list) {
+    list_foreach(&g_bus_list, device.list, bus) {
         bus->probe(bus);
     }
 }

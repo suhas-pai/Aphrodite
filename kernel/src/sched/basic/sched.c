@@ -112,7 +112,7 @@ static struct thread *get_next_thread(struct thread *const prev) {
     const int flag = spin_acquire_save_intr(&g_run_queue_lock);
     struct thread *next = nullptr;
 
-    list_foreach(next, &g_run_queue, sched_info.list) {
+    list_foreach(&g_run_queue, sched_info.list, next) {
         if (next == prev) {
             continue;
         }
@@ -146,7 +146,7 @@ static void update_alarm_list(struct thread *const current_thread) {
     struct alarm *iter = nullptr;
     struct alarm *tmp = nullptr;
 
-    list_foreach_mut(iter, tmp, alarm_list, list) {
+    list_foreach_mut(alarm_list, list, iter, tmp) {
         const usec_t time_spent =
             current_thread->sched_info.timeslice
           - current_thread->sched_info.remaining;

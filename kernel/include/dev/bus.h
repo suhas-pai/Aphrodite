@@ -31,11 +31,11 @@ struct bus {
 
 #define bus_foreach_driver(bus, type, field, iter) \
     type *iter = nullptr; \
-    list_foreach(iter, &(bus)->driver_list, field) \
+    list_foreach(&(bus)->driver_list, field, iter) \
 
 #define bus_foreach_device(bus, type, field, iter) \
     type *iter = nullptr; \
-    list_foreach(iter, &(bus)->device_list, field) \
+    list_foreach(&(bus)->device_list, field, iter) \
 
 void bus_init_root(struct bus *bus);
 

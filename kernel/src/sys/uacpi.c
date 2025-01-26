@@ -423,7 +423,7 @@ void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
     const int flag = spin_acquire_save_intr(&g_vmap_lock);
     struct uacpi_vmap *vmap = nullptr;
 
-    list_foreach(vmap, &g_vmap_list, list) {
+    list_foreach(&g_vmap_list, list, vmap) {
         if (range_has_loc(mmio_region_get_range(vmap->region), align_addr)) {
             vmap->refcount++;
             spin_release_restore_intr(&g_vmap_lock, flag);
@@ -440,7 +440,7 @@ void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
     struct uacpi_vmap *vmap = nullptr;
 
     with_spinlock_intr_disabled(&g_vmap_lock, {
-        list_foreach(vmap, &g_vmap_list, list) {
+        list_foreach(&g_vmap_list, list, vmap) {
             if (range_has(mmio_region_get_range(vmap->region), range)) {
                 vmap->refcount--;
                 if (vmap->refcount == 0) {

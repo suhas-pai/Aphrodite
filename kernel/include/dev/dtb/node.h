@@ -237,7 +237,7 @@ struct devicetree_node {
 
 #define devicetree_node_foreach_child(node, iter) \
     struct devicetree_node *iter = nullptr; \
-    list_foreach(iter, &(node)->child_list, sibling_list)
+    list_foreach(&(node)->child_list, sibling_list, iter)
 
 void
 devicetree_node_init_fields(struct devicetree_node *node,

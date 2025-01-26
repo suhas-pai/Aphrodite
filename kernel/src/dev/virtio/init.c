@@ -44,7 +44,7 @@ virtio_device_init_queues(struct virtio_device *const device,
 
 struct virtio_device *virtio_device_init(struct virtio_device *const device) {
     struct virtio_device *iter = nullptr;
-    list_foreach(iter, &g_device_list, list) {
+    list_foreach(&g_device_list, list, iter) {
         if (iter->kind == device->kind) {
             return nullptr;
         }

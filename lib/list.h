@@ -143,15 +143,15 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
 #define list_tail(list, type, field) \
     ((type *)((void *)((char *)(list)->prev - offsetof(type, field))))
 
-#define list_foreach(iter, list, field) \
+#define list_foreach(list, field, iter) \
     for (iter = list_head(list, typeof(*iter), field); &iter->field != (list); \
          iter = list_next(iter, field))
 
-#define list_foreach_rev(iter, list, field) \
+#define list_foreach_rev(list, field, iter) \
     for (iter = list_tail(list, typeof(*iter), field); &iter->field != (list); \
          iter = list_prev(iter, field))
 
-#define slist_foreach(iter, list, field) list_foreach(iter, list, field)
+#define slist_foreach(list, field, iter) list_foreach(list, field, iter)
 #define list_count(list, type, field) ({ \
     uint64_t __result__ = 0;             \
     type *__iter__ = nullptr;               \
@@ -161,16 +161,16 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
     __result__;                          \
 })
 
-#define list_foreach_mut(iter, tmp, list, field) \
+#define list_foreach_mut(list, field, iter, tmp) \
     for (iter = list_head(list, typeof(*iter), field), \
              tmp = list_next(iter, field);             \
          &iter->field != (list);                       \
          iter = tmp, tmp = list_next(iter, field))
 
-#define slist_foreach_mut(iter, tmp, list, field) \
-    list_foreach_mut(iter, tmp, list, field)
+#define slist_foreach_mut(list, field, iter, tmp) \
+    list_foreach_mut(list, field, iter, tmp)
 
-#define list_foreach_rev_mut(iter, tmp, list, field) \
+#define list_foreach_rev_mut(list, field, iter, tmp) \
     for (iter = list_tail(list, typeof(*iter), field), \
              tmp = list_prev(iter, field);             \
          &iter->field != (list);                       \

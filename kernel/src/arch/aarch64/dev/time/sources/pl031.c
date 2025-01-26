@@ -113,7 +113,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("arm-pl031"),
                       pl031_dtb_probe,
                       /*remove=*/nullptr,

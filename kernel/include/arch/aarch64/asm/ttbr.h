@@ -20,10 +20,10 @@ __debug_optimize(3) static inline uint64_t read_ttbr1_el1() {
     return (value & 0xffffffffffc0) | ((value & 0x3c) << 46);
 }
 
-__debug_optimize(3) static inline void write_ttbr0_el1(const uint64_t value) {
+__debug_optimize(3) static inline void ttbr0_el1_write(const uint64_t value) {
     asm volatile ("msr ttbr0_el1, %0" :: "r" (value));
 }
 
-__debug_optimize(3) static inline void write_ttbr1_el1(const uint64_t value) {
+__debug_optimize(3) static inline void ttbr1_el1_write(const uint64_t value) {
     asm volatile ("msr ttbr1_el1, %0" :: "r" (value));
 }

@@ -78,7 +78,7 @@ enum gic_its_typer_flags : uint64_t {
 };
 
 enum gic_its_baser_flags : uint64_t {
-    __GIC_ITS_BASER_PAGE_COUNT = 0xFF,
+    __GIC_ITS_BASER_PAGE_COUNT_MINUS_ONE = 0xFF,
     __GIC_ITS_BASER_PAGE_SIZE = 0b11 << GIC_ITS_BASER_PAGE_SIZE_SHIFT,
     __GIC_ITS_BASER_ENTRY_SIZE_MINUS_ONE =
         mask_for_n_bits(5) << GIC_ITS_BASER_ENTRY_SIZE_SHIFT_MINUS_ONE,
@@ -242,7 +242,7 @@ fill_out_device_table(struct gic_its_info *const its,
         return false;
     }
 
-    const __auto_type entry = its->device_table + index;
+    const __auto_type entry = &its->device_table[index];
     uint64_t phys = 0;
 
     if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
@@ -510,7 +510,7 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                "\t\t" "itt entry size: %" PRIu16 "\n"
                "\t\t" "kind: %s\n",
                (uint64_t)(baser_iter - regs->table_address),
-               (baser & __GIC_ITS_BASER_PAGE_COUNT) + 1,
+               (baser & __GIC_ITS_BASER_PAGE_COUNT_MINUS_ONE) + 1,
                page_size_desc,
                entry_size,
                kind_desc);

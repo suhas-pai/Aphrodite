@@ -1,5 +1,5 @@
 /*
- * kernel/include/sys/pio.c
+ * kernel/src/sys/pio.c
  * © suhas pai
  */
 

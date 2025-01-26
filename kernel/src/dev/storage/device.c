@@ -184,7 +184,7 @@ storage_device_init(struct storage_device *const device,
     uint8_t partition_index = 0;
     bool found_atleast_one_fs = false;
 
-    list_foreach(iter, &device->partition_list, list) {
+    list_foreach(&device->partition_list, list, iter) {
         bool found_fs = false;
         fs_driver_foreach(driver) {
             if (driver->try_init(iter)) {

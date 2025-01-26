@@ -24,7 +24,7 @@ __debug_optimize(3) void simple_alloc_init(struct simple_alloc *const alloc) {
 
 void simple_alloc_destroy(struct simple_alloc *const alloc) {
     struct page *page = nullptr;
-    list_foreach(page, &alloc->page_list, simple_alloc.list) {
+    list_foreach(&alloc->page_list, simple_alloc.list, page) {
         if (page->simple_alloc.refcount != 0) {
             printk(LOGLEVEL_WARN,
                    "mm: leaks detected in simple_alloc page %p, "
@@ -68,7 +68,7 @@ void *simple_alloc(struct simple_alloc *const alloc, const uint32_t bad_size) {
         struct page *search_page = nullptr;
         bool found = false;
 
-        list_foreach(search_page, &alloc->page_list, simple_alloc.list) {
+        list_foreach(&alloc->page_list, simple_alloc.list, search_page) {
             if (search_page->simple_alloc.index + size <= PAGE_SIZE) {
                 found = true;
                 break;
@@ -103,7 +103,7 @@ bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
     struct page *page = nullptr;
     uint8_t count = 0;
 
-    list_foreach(page, &alloc->page_list, simple_alloc.list) {
+    list_foreach(&alloc->page_list, simple_alloc.list, page) {
         count++;
         if (count > 1) {
             break;
@@ -111,7 +111,7 @@ bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
     }
 
     struct page *tmp = nullptr;
-    list_foreach_mut(page, tmp, &alloc->page_list, simple_alloc.list) {
+    list_foreach_mut(&alloc->page_list, simple_alloc.list, page, tmp) {
         const struct range page_range =
             RANGE_INIT((uint64_t)page_to_virt(page), PAGE_SIZE);
 

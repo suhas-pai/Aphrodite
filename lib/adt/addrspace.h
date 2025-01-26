@@ -47,7 +47,7 @@ struct addrspace_node {
     parent_of((obj), struct addrspace_node, avlnode)
 
 #define addrspace_foreach_node(addrspace, node) \
-    list_foreach(node, &addrspace->list, list)
+    list_foreach(&addrspace->list, list, node)
 
 struct addrspace_node *addrspace_node_prev(struct addrspace_node *node);
 struct addrspace_node *addrspace_node_next(struct addrspace_node *node);

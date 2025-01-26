@@ -166,7 +166,7 @@ static void goldfish_rtc_init() {
     };
 
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("goldfish-rtc"),
                       goldfish_rtc_dtb_probe,
                       /*remove=*/nullptr,

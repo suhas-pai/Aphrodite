@@ -449,7 +449,7 @@ static void pci_ecam_init() {
 
     simple_alloc_init(&g_ecam_alloc);
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("pci-ecam"),
                       pci_ecam_dtb_probe,
                       /*remove=*/nullptr,

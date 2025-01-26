@@ -407,7 +407,7 @@ gicv2_init_from_info(const struct range cpu_range,
 __debug_optimize(3)
 volatile uint64_t *gicdv2_get_msi_address(const isr_vector_t vector) {
     struct gic_v2_msi_info *iter = nullptr;
-    list_foreach(iter, &g_msi_info_list, list) {
+    list_foreach(&g_msi_info_list, list, iter) {
         const struct range spi_range =
             RANGE_INIT(iter->spi_base, iter->spi_count);
 
@@ -510,7 +510,7 @@ void gicv2_add_msi_frame(const uint64_t phys_base_address) {
 
 __debug_optimize(3) isr_vector_t gicdv2_alloc_msi_vector() {
     struct gic_v2_msi_info *iter = nullptr;
-    list_foreach(iter, &g_msi_info_list, list) {
+    list_foreach(&g_msi_info_list, list, iter) {
         const uint16_t end = iter->spi_base + iter->spi_count;
         for (uint16_t irq = iter->spi_base; irq != end; irq++) {
             assert(g_irq_info_list[irq].for_msi);
@@ -778,7 +778,7 @@ static void init_drivers() {
     };
 
     driver_initialize(&dtb_driver.driver,
-                      dtb_bus(),
+                      &dtb_bus()->bus,
                       /*name=*/SV_STATIC("gicv2"),
                       gicv2_dtb_probe,
                       /*remove=*/nullptr,

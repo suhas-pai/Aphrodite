@@ -359,7 +359,6 @@ struct pci_spec_cap_msi {
             uint32_t pending_bits;
         } __packed bits32;
     };
-
 } __packed;
 
 enum pci_spec_bar_table_offset_flags : uint8_t {

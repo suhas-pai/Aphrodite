@@ -236,7 +236,7 @@ hashmap_remove(struct hashmap *const hashmap,
     struct hashmap_node *iter = nullptr;
     struct hashmap_node *tmp = nullptr;
 
-    list_foreach_mut(iter, tmp, &bucket->node_list, list) {
+    list_foreach_mut(&bucket->node_list, list, iter, tmp) {
         if (iter->key != key) {
             continue;
         }
@@ -271,7 +271,7 @@ destroy_hashmap_buckets(struct hashmap_bucket **const buckets,
         struct hashmap_node *node = nullptr;
         struct hashmap_node *tmp = nullptr;
 
-        list_foreach_mut(node, tmp, &bucket->node_list, list) {
+        list_foreach_mut(&bucket->node_list, list, node, tmp) {
             free(node);
         }
 

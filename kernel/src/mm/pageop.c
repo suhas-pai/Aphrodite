@@ -133,7 +133,7 @@ pageop_setup_for_range(struct pageop *const pageop, const struct range virt) {
 
 __debug_optimize(3) static void free_all_pages(struct pageop *const pageop) {
     struct page *iter = nullptr;
-    list_foreach(iter, &pageop->delayed_free, table.delayed_free_list) {
+    list_foreach(&pageop->delayed_free, table.delayed_free_list, iter) {
         free_page(iter);
     }
 }
