@@ -15,13 +15,9 @@ struct growable_buffer gbuffer_alloc(const uint32_t capacity) {
     assert(capacity <= GBUFFER_MAX_CAP);
 
     uint32_t size = 0;
-    const struct growable_buffer gbuffer = {
-        .begin = malloc_size(capacity, &size),
-        .capacity = size,
-        .is_alloc = true
-    };
+    void *const ptr = malloc_size(capacity, &size);
 
-    return gbuffer;
+    return GBUFFER_FROM_PTR(ptr, size);
 }
 
 __debug_optimize(3) struct growable_buffer

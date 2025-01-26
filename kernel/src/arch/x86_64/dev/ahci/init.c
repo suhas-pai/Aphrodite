@@ -206,8 +206,8 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
 }
 
 static bool ahci_pci_probe(struct device *const device) {
-    struct pci_entity_info *const pci_entity =
-        parent_of(device, struct pci_entity_info, device);
+    struct pci_entity *const pci_entity =
+        parent_of(device, struct pci_entity, device);
 
     if (pci_entity->msi_support == PCI_ENTITY_MSI_SUPPORT_NONE) {
         printk(LOGLEVEL_WARN, "ahci: doesn't support msi[x]. skipping init\n");
@@ -221,9 +221,7 @@ static bool ahci_pci_probe(struct device *const device) {
         return false;
     }
 
-    struct pci_entity_bar_info *const bar =
-        &pci_entity->bar_list[AHCI_HBA_REGS_BAR_INDEX];
-
+    struct pci_bar *const bar = &pci_entity->bar_list[AHCI_HBA_REGS_BAR_INDEX];
     if (!bar->is_present) {
         printk(LOGLEVEL_WARN,
                "ahci: pci-device doesn't have the required bar at "
@@ -268,7 +266,7 @@ static bool ahci_pci_probe(struct device *const device) {
     });
 
     volatile struct ahci_spec_hba_regs *const regs =
-        pci_entity_bar_get_base(bar);
+        pci_bar_get_base(bar);
 
     struct ahci_hba_device *const hba = ahci_hba_get();
     hba->pci_entity = pci_entity;

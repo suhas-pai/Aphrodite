@@ -1182,7 +1182,8 @@ pgunmap_at(struct pagemap *const pagemap,
         // unmap.
 
         if (__builtin_expect(
-                walker.level > 1 && !pte_level_can_have_lg_page(walker.level), 0))
+                walker.level > 1 &&
+                !pg_level_can_have_large(walker.level), 0))
         {
             pageop_finish(&pageop);
             intr_restore(flag);

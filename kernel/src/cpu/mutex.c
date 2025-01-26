@@ -55,7 +55,7 @@ mutex_lock_fast(struct mutex *const mutex,
     return false;
 }
 
-static inline bool
+__debug_optimize(3) static inline bool
 atomic_compare_exchange_flags(struct mutex *const mutex,
                               uintptr_t *const flags,
                               const uintptr_t desired)

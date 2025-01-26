@@ -29,8 +29,6 @@ struct device {
     struct spinlock lock;
 
     struct list list;
-    struct list child_list;
-
     bool is_bus : 1;
 };
 

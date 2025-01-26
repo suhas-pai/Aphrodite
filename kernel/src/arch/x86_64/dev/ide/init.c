@@ -332,8 +332,8 @@ bool g_found_ide = false;
 static bool ide_pci_probe(struct device *const device) {
     g_found_ide = true;
 
-    struct pci_entity_info *const pci_entity =
-        parent_of(device, struct pci_entity_info, device);
+    struct pci_entity *const pci_entity =
+        parent_of(device, struct pci_entity, device);
 
     if (!index_in_bounds(PCI_IDE_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN,
@@ -342,9 +342,7 @@ static bool ide_pci_probe(struct device *const device) {
         return false;
     }
 
-    struct pci_entity_bar_info *const bar =
-        &pci_entity->bar_list[PCI_IDE_BAR_INDEX];
-
+    struct pci_bar *const bar = &pci_entity->bar_list[PCI_IDE_BAR_INDEX];
     if (!bar->is_present) {
         printk(LOGLEVEL_WARN,
                "ide: pci-device doesn't have the required bar at "

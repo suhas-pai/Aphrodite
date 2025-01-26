@@ -20,8 +20,8 @@ align_up(const uint64_t number,
          uint64_t *const result_out)
 {
     uint64_t result = 0;
-    if (__builtin_expect(boundary == 0, 0)
-     || !ckd_add(&result, number, boundary - 1))
+    if (__builtin_expect(boundary == 0, 0) ||
+        !ckd_add(&result, number, boundary - 1))
     {
         return false;
     }

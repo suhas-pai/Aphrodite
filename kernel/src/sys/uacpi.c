@@ -121,15 +121,14 @@ void uacpi_kernel_pci_device_close(const uacpi_handle handle) {
 }
 
 uacpi_status
-uacpi_kernel_pci_read(const uacpi_handle handle,
-                      const uacpi_size offset,
-                      const uacpi_u8 byte_width,
-                      uacpi_u64 *const value)
+uacpi_kernel_pci_read8(const uacpi_handle the_handle,
+                       const uacpi_size offset,
+                       uacpi_u8 *const value)
 {
-    const struct uacpi_pci_handle *const the_handle =
-        (struct uacpi_pci_handle *)handle;
+    const struct uacpi_pci_handle *const handle =
+        (struct uacpi_pci_handle *)the_handle;
 
-    const uacpi_pci_address address = the_handle->address;
+    const uacpi_pci_address address = handle->address;
     const struct pci_location location = {
         .segment = address.segment,
         .bus = address.bus,
@@ -137,30 +136,54 @@ uacpi_kernel_pci_read(const uacpi_handle handle,
         .function = address.function,
     };
 
-    const struct pci_domain *const domain = the_handle->domain;
-    switch (byte_width) {
-        case sizeof(uint8_t):
-            *value = pci_domain_read_8(domain, &location, offset);
-            return UACPI_STATUS_OK;
-        case sizeof(uint16_t):
-            *value = pci_domain_read_16(domain, &location, offset);
-            return UACPI_STATUS_OK;
-        case sizeof(uint32_t):
-            *value = pci_domain_read_32(domain, &location, offset);
-            return UACPI_STATUS_OK;
-        case sizeof(uint64_t):
-            *value = pci_domain_read_64(domain, &location, offset);
-            return UACPI_STATUS_OK;
-    }
-
-    verify_not_reached();
+    *value = pci_domain_read_8(handle->domain, &location, offset);
+    return UACPI_STATUS_OK;
 }
 
 uacpi_status
-uacpi_kernel_pci_write(const uacpi_handle device,
-                       const uacpi_size offset,
-                       const uacpi_u8 byte_width,
-                       const uacpi_u64 value)
+uacpi_kernel_pci_read16(const uacpi_handle the_handle,
+                        const uacpi_size offset,
+                        uacpi_u16 *const value)
+{
+    const struct uacpi_pci_handle *const handle =
+        (struct uacpi_pci_handle *)the_handle;
+
+    const uacpi_pci_address address = handle->address;
+    const struct pci_location location = {
+        .segment = address.segment,
+        .bus = address.bus,
+        .slot = address.device,
+        .function = address.function,
+    };
+
+    *value = pci_domain_read_16(handle->domain, &location, offset);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_pci_read32(const uacpi_handle the_handle,
+                        const uacpi_size offset,
+                        uacpi_u32 *const value)
+{
+    const struct uacpi_pci_handle *const handle =
+        (struct uacpi_pci_handle *)the_handle;
+
+    const uacpi_pci_address address = handle->address;
+    const struct pci_location location = {
+        .segment = address.segment,
+        .bus = address.bus,
+        .slot = address.device,
+        .function = address.function,
+    };
+
+    *value = pci_domain_read_32(handle->domain, &location, offset);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_pci_write8(const uacpi_handle device,
+                        const uacpi_size offset,
+                        const uacpi_u8 value)
 {
     struct uacpi_pci_handle *const handle = (struct uacpi_pci_handle *)device;
 
@@ -172,23 +195,46 @@ uacpi_kernel_pci_write(const uacpi_handle device,
         .function = address.function,
     };
 
-    const struct pci_domain *const domain = handle->domain;
-    switch (byte_width) {
-        case sizeof(uint8_t):
-            pci_domain_write_8(domain, &location, offset, value);
-            return UACPI_STATUS_OK;
-        case sizeof(uint16_t):
-            pci_domain_write_16(domain, &location, offset, value);
-            return UACPI_STATUS_OK;
-        case sizeof(uint32_t):
-            pci_domain_write_32(domain, &location, offset, value);
-            return UACPI_STATUS_OK;
-        case sizeof(uint64_t):
-            pci_domain_write_64(domain, &location, offset, value);
-            return UACPI_STATUS_OK;
-    }
+    pci_domain_write_8(handle->domain, &location, offset, value);
+    return UACPI_STATUS_OK;
+}
 
-    verify_not_reached();
+uacpi_status
+uacpi_kernel_pci_write16(const uacpi_handle device,
+                         const uacpi_size offset,
+                         const uacpi_u16 value)
+{
+    struct uacpi_pci_handle *const handle = (struct uacpi_pci_handle *)device;
+
+    const struct uacpi_pci_address address = handle->address;
+    const struct pci_location location = {
+        .segment = address.segment,
+        .bus = address.bus,
+        .slot = address.device,
+        .function = address.function,
+    };
+
+    pci_domain_write_16(handle->domain, &location, offset, value);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_pci_write32(const uacpi_handle device,
+                         const uacpi_size offset,
+                         const uacpi_u32 value)
+{
+    struct uacpi_pci_handle *const handle = (struct uacpi_pci_handle *)device;
+
+    const struct uacpi_pci_address address = handle->address;
+    const struct pci_location location = {
+        .segment = address.segment,
+        .bus = address.bus,
+        .slot = address.device,
+        .function = address.function,
+    };
+
+    pci_domain_write_32(handle->domain, &location, offset, value);
+    return UACPI_STATUS_OK;
 }
 
 struct pio_range {
@@ -229,32 +275,98 @@ void uacpi_kernel_io_unmap(const uacpi_handle handle) {
 }
 
 uacpi_status
-uacpi_kernel_io_read(const uacpi_handle handle,
-                     const uacpi_size offset,
-                     const uacpi_u8 byte_width,
-                     uacpi_u64 *const value)
+uacpi_kernel_io_read8(const uacpi_handle handle,
+                      const uacpi_size offset,
+                      uacpi_u8 *const value)
 {
     const struct pio_range *const range = (struct pio_range *)handle;
-    if (!index_range_in_bounds(RANGE_INIT(offset, byte_width), range->len)) {
+    const struct range read_range = RANGE_INIT(offset, sizeof(uint8_t));
+
+    if (!index_range_in_bounds(read_range, range->len)) {
         return UACPI_STATUS_INVALID_ARGUMENT;
     }
 
-    *value = pio_read_size(range->base + offset, byte_width);
+    *value = pio_read8(range->base + offset);
     return UACPI_STATUS_OK;
 }
 
 uacpi_status
-uacpi_kernel_io_write(const uacpi_handle handle,
-                      const uacpi_size offset,
-                      const uacpi_u8 byte_width,
-                      const uacpi_u64 value)
+uacpi_kernel_io_read16(const uacpi_handle handle,
+                       const uacpi_size offset,
+                       uacpi_u16 *const value)
 {
     const struct pio_range *const range = (struct pio_range *)handle;
-    if (!index_range_in_bounds(RANGE_INIT(offset, byte_width), range->len)) {
+    const struct range read_range = RANGE_INIT(offset, sizeof(uint16_t));
+
+    if (!index_range_in_bounds(read_range, range->len)) {
         return UACPI_STATUS_INVALID_ARGUMENT;
     }
 
-    pio_write_size(range->base + offset, byte_width, value);
+    *value = pio_read16(range->base + offset);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_io_read32(const uacpi_handle handle,
+                       const uacpi_size offset,
+                       uacpi_u32 *const value)
+{
+    const struct pio_range *const range = (struct pio_range *)handle;
+    const struct range read_range = RANGE_INIT(offset, sizeof(uint32_t));
+
+    if (!index_range_in_bounds(read_range, range->len)) {
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
+
+    *value = pio_read32(range->base + offset);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_io_write8(const uacpi_handle handle,
+                       const uacpi_size offset,
+                       const uacpi_u8 value)
+{
+    const struct pio_range *const range = (struct pio_range *)handle;
+    const struct range write_range = RANGE_INIT(offset, sizeof(uint8_t));
+
+    if (!index_range_in_bounds(write_range, range->len)) {
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
+
+    pio_write8(range->base + offset, value);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_io_write16(const uacpi_handle handle,
+                        const uacpi_size offset,
+                        const uacpi_u16 value)
+{
+    const struct pio_range *const range = (struct pio_range *)handle;
+    const struct range write_range = RANGE_INIT(offset, sizeof(uint16_t));
+
+    if (!index_range_in_bounds(write_range, range->len)) {
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
+
+    pio_write16(range->base + offset, value);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status
+uacpi_kernel_io_write32(const uacpi_handle handle,
+                        const uacpi_size offset,
+                        const uacpi_u32 value)
+{
+    const struct pio_range *const range = (struct pio_range *)handle;
+    const struct range write_range = RANGE_INIT(offset, sizeof(uint32_t));
+
+    if (!index_range_in_bounds(write_range, range->len)) {
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
+
+    pio_write32(range->base + offset, value);
     return UACPI_STATUS_OK;
 }
 

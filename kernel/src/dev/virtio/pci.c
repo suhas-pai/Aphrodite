@@ -17,8 +17,8 @@
 #include "dev/printk.h"
 
 static bool virtio_pci_probe(struct device *const device) {
-    struct pci_entity_info *const pci_entity =
-        parent_of(device, struct pci_entity_info, device);
+    struct pci_entity *const pci_entity =
+        parent_of(device, struct pci_entity, device);
 
     enum virtio_device_kind device_kind = pci_entity->id;
     const char *kind = nullptr;
@@ -125,9 +125,7 @@ static bool virtio_pci_probe(struct device *const device) {
             continue;
         }
 
-        struct pci_entity_bar_info *const bar =
-            &pci_entity->bar_list[bar_index];
-
+        struct pci_bar *const bar = &pci_entity->bar_list[bar_index];
         if (!bar->is_present) {
             printk(LOGLEVEL_INFO,
                    "\t" "virtio-pci: base-address-reg of bar %" PRIu8 " is not "
@@ -186,7 +184,7 @@ static bool virtio_pci_probe(struct device *const device) {
                 }
 
                 virt_device.pci.common_cfg =
-                    pci_entity_bar_get_base(bar) + offset;
+                    pci_bar_get_base(bar) + offset;
 
                 cfg_kind = "common-cfg";
                 break;
@@ -200,7 +198,7 @@ static bool virtio_pci_probe(struct device *const device) {
                     continue;
                 }
 
-                volatile void *const base = pci_entity_bar_get_base(bar);
+                volatile void *const base = pci_bar_get_base(bar);
                 virt_device.pci.notify_cfg_range =
                     RANGE_INIT((uint64_t)base + offset, length);
 
@@ -222,7 +220,7 @@ static bool virtio_pci_probe(struct device *const device) {
 
                 break;
             case VIRTIO_PCI_CAP_DEVICE_CFG: {
-                volatile void *const base = pci_entity_bar_get_base(bar);
+                volatile void *const base = pci_bar_get_base(bar);
                 virt_device.pci.device_cfg =
                     RANGE_INIT((uint64_t)base + offset, length);
 

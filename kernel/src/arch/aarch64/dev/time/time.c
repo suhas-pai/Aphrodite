@@ -80,7 +80,9 @@ __debug_optimize(3) void system_timer_stop_alarm() {
 
 void stall_for_usec(const usec_t usec) {
     const usec_t current = system_timer_get_count_usec() / g_frequency;
-    while (system_timer_get_count_usec() / g_frequency < current + usec) {
+    const usec_t end = current + usec;
+
+    while (system_timer_get_count_usec() / g_frequency < end) {
         cpu_pause();
     }
 }

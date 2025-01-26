@@ -149,8 +149,8 @@ pgwalker_create_from_root_phys(struct pg_walker *const walker,
 
             const pte_t entry = pte_read(&prev_table[index]);
             if (pte_is_present(entry)) {
-                if (!pte_level_can_have_lg_page(parent_level)
-                 || !pte_is_large(entry))
+                if (!pg_level_can_have_large(parent_level) ||
+                    !pte_is_large(entry))
                 {
                     table = pte_to_virt(entry, level);
                     walker->level = level;
@@ -239,7 +239,7 @@ setup_levels_lower_than(struct pg_walker *const walker,
         entry = pte_read(pte);
 
         if (!pte_is_present(entry) ||
-            (pte_level_can_have_lg_page(level) && pte_is_large(entry)))
+            (pg_level_can_have_large(level) && pte_is_large(entry)))
         {
             walker->level = level;
             break;
@@ -367,7 +367,7 @@ pgwalker_next_with_options(struct pg_walker *const walker,
             return E_PGWALKER_OK;
         }
 
-        if (!pte_level_can_have_lg_page(level)) {
+        if (!pg_level_can_have_large(level)) {
             setup_levels_lower_than(walker, level, pte, entry);
             return E_PGWALKER_OK;
         }
@@ -414,7 +414,7 @@ pgwalker_next_with_options(struct pg_walker *const walker,
             break;
         }
 
-        if (!pte_level_can_have_lg_page(level)) {
+        if (!pg_level_can_have_large(level)) {
             setup_levels_lower_than(walker, level, pte, entry);
             return E_PGWALKER_OK;
         }
@@ -485,7 +485,7 @@ pgwalker_prev_with_options(struct pg_walker *const walker,
             return E_PGWALKER_OK;
         }
 
-        if (!pte_level_can_have_lg_page(level)) {
+        if (!pg_level_can_have_large(level)) {
             setup_levels_lower_than(walker, level, pte, entry);
             return E_PGWALKER_OK;
         }
@@ -532,7 +532,7 @@ pgwalker_prev_with_options(struct pg_walker *const walker,
         pte_t *const pte = &((*tables_ptr)[index]);
         const pte_t entry = pte_read(pte);
 
-        if (!pte_level_can_have_lg_page(level)) {
+        if (!pg_level_can_have_large(level)) {
             setup_levels_lower_than(walker, level, pte, entry);
             return E_PGWALKER_OK;
         }
@@ -637,7 +637,7 @@ uint64_t pgwalker_get_phys_addr(const struct pg_walker *const walker) {
         return INVALID_PHYS;
     }
 
-    if (__builtin_expect(level > 1 && !pte_level_can_have_lg_page(level), 0)) {
+    if (__builtin_expect(level > 1 && !pg_level_can_have_large(level), 0)) {
         return INVALID_PHYS;
     }
 
@@ -659,7 +659,7 @@ uint64_t pgwalker_get_phys_addr(const struct pg_walker *const walker) {
 __debug_optimize(3)
 bool pgwalker_points_to_largepage(const struct pg_walker *const walker) {
     const pg_level_t level = walker->level;
-    if (level <= 1 || !pte_level_can_have_lg_page(level)) {
+    if (level <= 1 || !pg_level_can_have_large(level)) {
         return false;
     }
 

@@ -33,7 +33,7 @@ struct gic_its_info {
     struct mmio_region *mmio;
     uint64_t *bitset;
 
-    void *device_table;
+    struct gic_its_device_table_entry *device_table;
     void *int_collect_table;
 };
 

@@ -9,8 +9,6 @@
 #include "dev/pci/location.h"
 
 #include "cpu/info.h"
-#include "cpu/spinlock.h"
-
 #include "dev/device.h"
 #include "sys/isr.h"
 
@@ -26,13 +24,11 @@ enum pci_entity_msi_support : uint8_t {
     PCI_ENTITY_MSI_SUPPORT_MSIX,
 };
 
-struct pci_entity_info {
+struct pci_entity {
     struct list list_in_bus;
     struct list list_in_device;
 
     struct device device;
-    struct spinlock lock;
-
     struct pci_location loc;
 
     uint16_t id;
@@ -66,7 +62,7 @@ struct pci_entity_info {
     } msi;
 
     struct {
-        struct pci_entity_bar_info *table_bar;
+        struct pci_bar *table_bar;
         uint64_t *bitset;
 
         uint32_t table_offset;
@@ -75,15 +71,15 @@ struct pci_entity_info {
 
     // Array of uint8_t
     struct array vendor_cap_list;
-    struct pci_entity_bar_info *bar_list;
+    struct pci_bar *bar_list;
 };
 
 #define PCI_ENTITY_MAX_CAPABILITY_COUNT 128
-#define PCI_ENTITY_INFO_FMT                                                    \
+#define PCI_ENTITY_FMT \
     "%" PRIx8 ":%" PRIx8 ":%" PRIx8 ":%" PRIx16 ":%" PRIx16 " (%" PRIx8 ":"    \
     "%" PRIx8 ")"
 
-#define PCI_ENTITY_INFO_FMT_ARGS(device)                                       \
+#define PCI_ENTITY_FMT_ARGS(device) \
     (device)->loc.bus,                                                         \
     (device)->loc.slot,                                                        \
     (device)->loc.function,                                                    \
@@ -92,20 +88,20 @@ struct pci_entity_info {
     (device)->class,                                                           \
     (device)->subclass
 
-struct pci_bus *pci_entity_get_bus(const struct pci_entity_info *entity);
-uint16_t pci_entity_get_requester_id(const struct pci_entity_info *entity);
+struct pci_bus *pci_entity_get_bus(const struct pci_entity *entity);
+uint16_t pci_entity_get_requester_id(const struct pci_entity *entity);
 
-bool pci_entity_enable_msi(struct pci_entity_info *entity);
-bool pci_entity_disable_msi(struct pci_entity_info *entity);
+bool pci_entity_enable_msi(struct pci_entity *entity);
+bool pci_entity_disable_msi(struct pci_entity *entity);
 
 int32_t
-pci_entity_bind_msi_to_vector(struct pci_entity_info *entity,
+pci_entity_bind_msi_to_vector(struct pci_entity *entity,
                               const struct cpu_info *cpu,
                               isr_vector_t vector,
                               bool masked);
 
 bool
-pci_entity_toggle_msi_vector_mask(struct pci_entity_info *entity,
+pci_entity_toggle_msi_vector_mask(struct pci_entity *entity,
                                   isr_vector_t vector,
                                   bool mask);
 
@@ -122,7 +118,7 @@ enum pci_entity_privilege : uint16_t {
       | __PCI_ENTITY_PRIVL_PIN_INTERRUPTS
 };
 
-void pci_entity_enable_privls(struct pci_entity_info *entity, uint16_t privl);
-void pci_entity_disable_privls(struct pci_entity_info *entity);
+void pci_entity_enable_privls(struct pci_entity *entity, uint16_t privl);
+void pci_entity_disable_privls(struct pci_entity *entity);
 
-void pci_entity_info_destroy(struct pci_entity_info *entity);
+void pci_entity_destroy(struct pci_entity *entity);

@@ -500,7 +500,7 @@ void handle_async_exception(struct thread_context *const context) {
         (esr & __ESR_SERROR_AET) >> ESR_SERROR_AET_SHIFT;
 
     printk(LOGLEVEL_ERROR,
-           "isr: received async exception: %s%sserror\n"
+           "isr: received async exception: %s%s" "serror\n"
            "\t" "ext-abort? %s\n"
            "\t" "implicit error synchronized? %s\n"
            "\t" "data fault status code: 0x%" PRIx16 "\n",

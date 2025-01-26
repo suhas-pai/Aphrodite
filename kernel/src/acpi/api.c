@@ -96,8 +96,8 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     }
 
     printk(LOGLEVEL_WARN,
-            "acpi: failed to find entry with signature \"" SV_FMT "\"\n",
-            SV_FMT_ARGS(sv_create_nocheck(sig, 4)));
+           "acpi: failed to find entry with signature \"" SV_FMT "\"\n",
+           SV_FMT_ARGS(sv_create_nocheck(sig, 4)));
 
     return nullptr;
 }

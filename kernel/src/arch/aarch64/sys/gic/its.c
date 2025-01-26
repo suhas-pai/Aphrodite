@@ -232,8 +232,8 @@ fill_out_device_table(struct gic_its_info *const its,
                       const isr_vector_t vector,
                       const uint16_t msi_index)
 {
-    struct pci_entity_info *const entity =
-        parent_of(device, struct pci_entity_info, device);
+    struct pci_entity *const entity =
+        parent_of(device, struct pci_entity, device);
 
     const uint64_t id = pci_entity_get_requester_id(entity);
     uint64_t index = 0;
@@ -242,10 +242,9 @@ fill_out_device_table(struct gic_its_info *const its,
         return false;
     }
 
-    struct gic_its_device_table_entry *const entry =
-        its->device_table + index;
-
+    const __auto_type entry = its->device_table + index;
     uint64_t phys = 0;
+
     if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
         const uint64_t alloc_size =
             sizeof(struct gic_its_intr_table_entry) *

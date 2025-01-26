@@ -4,6 +4,8 @@
  */
 
 #pragma once
+
+#include <lib/adt/string_view.h>
 #include <lib/macros.h>
 
 #define PCI_MAX_BUS_COUNT 255 // Maximum number of PCI Buses
@@ -172,13 +174,13 @@ enum pci_spec_device_bar_flags : uint8_t {
     __PCI_DEVBAR_PREFETCHABLE = 1ull << 3,
 };
 
-struct pci_vendor_info {
+struct pci_vendor {
     uint32_t id;
-    const char *name;
+    struct string_view name;
 };
 
-static const struct pci_vendor_info pci_vendor_info_list[] = {
-#define PCI_VENDOR(id_, name_) {.id = (id_), .name = (name_)},
+static const struct pci_vendor pci_vendor_list[] = {
+#define PCI_VENDOR(id_, name_) { .id = (id_), .name = SV_STATIC(name_) },
     #include "vendors.h"
 #undef PCI_VENDOR
 };

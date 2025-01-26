@@ -112,53 +112,51 @@
 #define carr_indexof(arr, iter) ((iter) - (arr))
 
 #define carr_foreach(arr, name) \
-    const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
-    for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
+    const __auto_type h_var(end) = carr_end(arr); \
+    for (__auto_type name = &arr[0]; name != h_var(end); name++)
 
 #define carr_foreach_from_iter(arr, name, iter) \
-    const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
-    for (typeof(&(arr)[0]) name = (iter); name != h_var(end); name++)
+    const __auto_type h_var(end) = carr_end(arr); \
+    for (__auto_type name = (iter); name != h_var(end); name++)
 
 #define carr_foreach_from_index(arr, name, index) \
-    const typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
-    for (typeof(&(arr)[0]) name = (arr) + (index); name < h_var(end); name++)
+    const __auto_type h_var(end) = carr_end(arr); \
+    for (__auto_type name = (arr) + (index); name < h_var(end); name++)
 
 #define carr_foreach_mut(arr, name) \
-    typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
-    for (typeof(&(arr)[0]) name = &arr[0]; name != h_var(end); name++)
+    __auto_type h_var(end) = carr_end(arr); \
+    for (__auto_type name = &arr[0]; name != h_var(end); name++)
 
 #define carr_foreach_mut_for_iter(arr, name, iter) \
-    typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
-    for (typeof(&(arr)[0]) name = (iter); name != h_var(end); name++)
+    __auto_type h_var(end) = carr_end(arr); \
+    for (__auto_type name = (iter); name != h_var(end); name++)
 
 #define carr_foreach_mut_for_index(arr, name, index) \
-    typeof(&(arr)[0]) h_var(end) = carr_end(arr); \
-    for (typeof(&(arr)[0]) name = (arr) + (index); name < h_var(end); name++)
+    __auto_type h_var(end) = carr_end(arr); \
+    for (__auto_type name = (arr) + (index); name < h_var(end); name++)
 
 #define carr_foreach_rev(arr, name) \
-    for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
+    for (__auto_type name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_rev_from_iter(arr, name, iter) \
-    for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
+    for (__auto_type name = (iter); name >= (arr); name--)
 
 #define carr_foreach_rev_from_index(arr, name, index) \
-    for (typeof(&(arr)[0]) name = (arr) + (index); name >= (arr); name--)
+    for (__auto_type name = (arr) + (index); name >= (arr); name--)
 
 #define carr_foreach_mut_rev(arr, name) \
-    for (typeof(&(arr)[0]) name = carr_rbegin(arr); name >= (arr); name--)
+    for (__auto_type name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_mut_rev_from_iter(arr, name, iter) \
-    for (typeof(&(arr)[0]) name = (iter); name >= (arr); name--)
+    for (__auto_type name = (iter); name >= (arr); name--)
 
 #define carr_foreach_mut_rev_from_index(arr, name, index) \
-    for (typeof(&(arr)[0]) name = (arr) + (index); name >= (arr); name--)
+    for (__auto_type name = (arr) + (index); name >= (arr); name--)
 
 #define ptrarr_foreach(the_arr, count, name) \
     const __auto_type h_var(arr) = (the_arr); \
-    const typeof(&h_var(arr)[0]) h_var(end) = h_var(arr) + (count); \
-    for (typeof(&h_var(arr)[0]) name = &h_var(arr)[0]; \
-         name != h_var(end); \
-         name++)
+    const __auto_type h_var(end) = h_var(arr) + (count); \
+    for (__auto_type name = &h_var(arr)[0]; name != h_var(end); name++)
 
 #define swap(a, b) ({ \
     const __auto_type __swap_tmp = (b); \
@@ -195,11 +193,11 @@
 
 #define RAND_VAR_NAME() VAR_CONCAT(__random__, __LINE__)
 #define bits_to_bytes_roundup(bits) ({ \
-        const __auto_type __bits_to_bytes_bits__ = (bits); \
-        __bits_to_bytes_bits__ % sizeof_bits(uint8_t) ? \
-            bits_to_bytes_noround(__bits_to_bytes_bits__) + 1 : \
-            bits_to_bytes_noround(__bits_to_bytes_bits__); \
-    })
+    const __auto_type __bits_to_bytes_bits__ = (bits); \
+    __bits_to_bytes_bits__ % sizeof_bits(uint8_t) ? \
+        bits_to_bytes_noround(__bits_to_bytes_bits__) + 1 : \
+        bits_to_bytes_noround(__bits_to_bytes_bits__); \
+})
 
 #define bits_to_bytes_noround(bits) ((bits) / 8)
 #define bytes_to_bits(bits) ((bits) * 8)

@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include <lib/macros.h>
+#include "macros.h"
 
 typedef uint16_t le16_t;
 typedef uint32_t le32_t;

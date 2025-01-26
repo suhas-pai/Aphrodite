@@ -84,7 +84,8 @@ ifeq ($(CHECK_SLABS), 1)
 endif
 
 ifeq ($(USE_UACPI), 1)
-	override COMMON_CFLAGS += -DUSE_UACPI
+	override COMMON_CFLAGS += -DUSE_UACPI \
+		-DUACPI_FORMATTED_LOGGING -DUACPI_NATIVE_ALLOC_ZEROED
 endif
 
 # User controllable C flags.
@@ -304,7 +305,7 @@ obj-$(ARCH)/extern/flanterm/%.c.o: src/extern/flanterm/%.c GNUmakefile
 
 obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
-	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -fsanitize=undefined,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -Wshadow -fsanitize=undefined,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"

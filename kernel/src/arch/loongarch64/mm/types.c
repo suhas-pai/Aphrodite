@@ -52,7 +52,7 @@ __debug_optimize(3) bool pte_is_present(const pte_t pte) {
     return pte & __PTE_VALID;
 }
 
-__debug_optimize(3) bool pte_level_can_have_lg_page(const pg_level_t level) {
+__debug_optimize(3) bool pg_level_can_have_large(const pg_level_t level) {
     return level == 2 || level == 3;
 }
 
@@ -76,7 +76,7 @@ __debug_optimize(3) bool
 pte_flags_equal(const pte_t pte, const pg_level_t level, const uint64_t flags)
 {
     const uint64_t global_mask =
-        pte_level_can_have_lg_page(level) && pte_is_large(pte) ?
+        pg_level_can_have_large(level) && pte_is_large(pte) ?
             __PTE_GLOBAL_LARGE : __PTE_GLOBAL;
 
     const uint64_t mask =

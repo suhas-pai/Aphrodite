@@ -20,7 +20,7 @@ struct pci_bus {
 };
 
 #define pci_bus_foreach_entity(bus, entity) \
-    struct pci_entity_info *entity = nullptr; \
+    struct pci_entity *entity = nullptr; \
     list_foreach(entity, &bus->entity_list, list_in_bus)
 
 struct pci_bus *

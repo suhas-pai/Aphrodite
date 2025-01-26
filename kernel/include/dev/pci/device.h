@@ -15,7 +15,7 @@ struct pci_device {
     bus_foreach_driver(&pci_device()->bus, struct pci_driver, driver.list, iter)
 
 #define pci_device_foreach_entity(entity) \
-    struct pci_entity_info *entity = nullptr; \
+    struct pci_entity *entity = nullptr; \
     list_foreach(entity, &pci_device()->entity_list, list_in_device)
 
 struct pci_device *pci_device();

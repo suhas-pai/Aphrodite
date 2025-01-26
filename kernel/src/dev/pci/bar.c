@@ -14,7 +14,7 @@
 #include "sys/mmio.h"
 #include "sys/pio.h"
 
-bool pci_map_bar(struct pci_entity_bar_info *const bar) {
+bool pci_map_bar(struct pci_bar *const bar) {
     if (!bar->is_mmio) {
         printk(LOGLEVEL_WARN, "pcie: pci_map_bar() called on non-mmio bar\n");
         return false;
@@ -56,7 +56,7 @@ bool pci_map_bar(struct pci_entity_bar_info *const bar) {
     return true;
 }
 
-__debug_optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
+__debug_optimize(3) bool pci_unmap_bar(struct pci_bar *const bar) {
     if (!bar->is_mmio) {
         printk(LOGLEVEL_WARN, "pcie: pci_unmap_bar() called on non-mmio bar\n");
         return false;
@@ -74,14 +74,14 @@ __debug_optimize(3) bool pci_unmap_bar(struct pci_entity_bar_info *const bar) {
     return true;
 }
 
-__debug_optimize(3) volatile void *
-pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
+__debug_optimize(3)
+volatile void *pci_bar_get_base(const struct pci_bar *const bar) {
     return bar->mmio->base + bar->index_in_mmio;
 }
 
 #if !defined(__x86_64__)
     __debug_optimize(3) static inline volatile void *
-    find_ptr_in_bus_resource(struct pci_entity_info *const entity,
+    find_ptr_in_bus_resource(struct pci_entity *const entity,
                              const uint32_t offset)
     {
         struct pci_bus *const bus = pci_entity_get_bus(entity);
@@ -100,8 +100,8 @@ pci_entity_bar_get_base(const struct pci_entity_bar_info *const bar) {
 #endif /* !defined(__x86_64__) */
 
 __debug_optimize(3) uint8_t
-pci_bar_read_u8(struct pci_entity_info *const entity,
-                struct pci_entity_bar_info *const bar,
+pci_bar_read_u8(struct pci_entity *const entity,
+                struct pci_bar *const bar,
                 const uint32_t offset)
 {
     if (bar->is_mmio) {
@@ -110,7 +110,7 @@ pci_bar_read_u8(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        return mmio_read_8(pci_entity_bar_get_base(bar) + offset);
+        return mmio_read_8(pci_bar_get_base(bar) + offset);
     }
 
 #if !defined(__x86_64__)
@@ -128,8 +128,8 @@ pci_bar_read_u8(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) uint16_t
-pci_bar_read_u16(struct pci_entity_info *const entity,
-                 struct pci_entity_bar_info *const bar,
+pci_bar_read_u16(struct pci_entity *const entity,
+                 struct pci_bar *const bar,
                  const uint32_t offset)
 {
     if (bar->is_mmio) {
@@ -138,7 +138,7 @@ pci_bar_read_u16(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        return mmio_read_16(pci_entity_bar_get_base(bar) + offset);
+        return mmio_read_16(pci_bar_get_base(bar) + offset);
     }
 
 #if !defined(__x86_64__)
@@ -156,8 +156,8 @@ pci_bar_read_u16(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) uint32_t
-pci_bar_read_u32(struct pci_entity_info *const entity,
-                 struct pci_entity_bar_info *const bar,
+pci_bar_read_u32(struct pci_entity *const entity,
+                 struct pci_bar *const bar,
                  const uint32_t offset)
 {
     if (bar->is_mmio) {
@@ -166,7 +166,7 @@ pci_bar_read_u32(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        return mmio_read_32(pci_entity_bar_get_base(bar) + offset);
+        return mmio_read_32(pci_bar_get_base(bar) + offset);
     }
 
 #if !defined(__x86_64__)
@@ -184,8 +184,8 @@ pci_bar_read_u32(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) uint64_t
-pci_bar_read_u64(struct pci_entity_info *const entity,
-                 struct pci_entity_bar_info *const bar,
+pci_bar_read_u64(struct pci_entity *const entity,
+                 struct pci_bar *const bar,
                  const uint32_t offset)
 {
 #if defined(__x86_64__)
@@ -197,7 +197,7 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
                "bar that isn't mapped",
                offset);
 
-    return mmio_read_64(pci_entity_bar_get_base(bar) + offset);
+    return mmio_read_64(pci_bar_get_base(bar) + offset);
 #else
     if (bar->is_mmio) {
         assert_msg(bar->mmio != nullptr,
@@ -205,7 +205,7 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        return mmio_read_64(pci_entity_bar_get_base(bar) + offset);
+        return mmio_read_64(pci_bar_get_base(bar) + offset);
     }
 
     volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
@@ -219,8 +219,8 @@ pci_bar_read_u64(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) void
-pci_bar_write_u8(struct pci_entity_info *const entity,
-                 struct pci_entity_bar_info *const bar,
+pci_bar_write_u8(struct pci_entity *const entity,
+                 struct pci_bar *const bar,
                  const uint32_t offset,
                  const uint8_t value)
 {
@@ -230,7 +230,7 @@ pci_bar_write_u8(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        mmio_write_8(pci_entity_bar_get_base(bar) + offset, value);
+        mmio_write_8(pci_bar_get_base(bar) + offset, value);
     } else {
     #if !defined(__x86_64__)
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
@@ -248,8 +248,8 @@ pci_bar_write_u8(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) void
-pci_bar_write_u16(struct pci_entity_info *const entity,
-                  struct pci_entity_bar_info *const bar,
+pci_bar_write_u16(struct pci_entity *const entity,
+                  struct pci_bar *const bar,
                   const uint32_t offset,
                   const uint16_t value)
 {
@@ -259,7 +259,7 @@ pci_bar_write_u16(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        mmio_write_16(pci_entity_bar_get_base(bar) + offset, value);
+        mmio_write_16(pci_bar_get_base(bar) + offset, value);
     } else {
     #if !defined(__x86_64__)
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
@@ -277,8 +277,8 @@ pci_bar_write_u16(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) void
-pci_bar_write_u32(struct pci_entity_info *const entity,
-                  struct pci_entity_bar_info *const bar,
+pci_bar_write_u32(struct pci_entity *const entity,
+                  struct pci_bar *const bar,
                   const uint32_t offset,
                   const uint32_t value)
 {
@@ -288,7 +288,7 @@ pci_bar_write_u32(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        mmio_write_32(pci_entity_bar_get_base(bar) + offset, value);
+        mmio_write_32(pci_bar_get_base(bar) + offset, value);
     } else {
     #if !defined(__x86_64__)
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
@@ -306,8 +306,8 @@ pci_bar_write_u32(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3) void
-pci_bar_write_u64(struct pci_entity_info *const entity,
-                  struct pci_entity_bar_info *const bar,
+pci_bar_write_u64(struct pci_entity *const entity,
+                  struct pci_bar *const bar,
                   const uint32_t offset,
                   const uint64_t value)
 {
@@ -320,7 +320,7 @@ pci_bar_write_u64(struct pci_entity_info *const entity,
                "bar that isn't mapped",
                offset);
 
-    mmio_write_64(pci_entity_bar_get_base(bar) + offset, value);
+    mmio_write_64(pci_bar_get_base(bar) + offset, value);
 #else
     if (bar->is_mmio) {
         assert_msg(bar->mmio != nullptr,
@@ -328,7 +328,7 @@ pci_bar_write_u64(struct pci_entity_info *const entity,
                    "bar that isn't mapped",
                    offset);
 
-        mmio_write_64(pci_entity_bar_get_base(bar) + offset, value);
+        mmio_write_64(pci_bar_get_base(bar) + offset, value);
     } else {
         volatile void *const ptr = find_ptr_in_bus_resource(entity, offset);
         assert_msg(ptr != nullptr,

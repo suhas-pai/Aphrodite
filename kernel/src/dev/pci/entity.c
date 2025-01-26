@@ -14,19 +14,19 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
-struct pci_bus *pci_entity_get_bus(const struct pci_entity_info *const entity) {
+struct pci_bus *pci_entity_get_bus(const struct pci_entity *const entity) {
     return parent_of(entity->device.bus, struct pci_bus, bus);
 }
 
 __debug_optimize(3) uint16_t
-pci_entity_get_requester_id(const struct pci_entity_info *const entity) {
+pci_entity_get_requester_id(const struct pci_entity *const entity) {
     return (uint16_t)entity->loc.bus << 8 |
            (uint16_t)entity->loc.slot << 3 |
            entity->loc.function;
 }
 
 __debug_optimize(3)
-bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
+bool pci_entity_enable_msi(struct pci_entity *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
@@ -34,7 +34,7 @@ bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
                    "support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -51,7 +51,7 @@ bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -73,7 +73,7 @@ bool pci_entity_enable_msi(struct pci_entity_info *const entity) {
 }
 
 __debug_optimize(3)
-bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
+bool pci_entity_disable_msi(struct pci_entity *const entity) {
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
@@ -81,7 +81,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
                    "doesn't support msi\n");
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -99,7 +99,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 const uint32_t msg_control =
                     pci_read_from_base(entity,
                                        entity->msi_pcie_offset,
@@ -123,7 +123,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
 
 #if ISR_SUPPORTS_MSI
     static void
-    bind_msi_to_vector(const struct pci_entity_info *const entity,
+    bind_msi_to_vector(const struct pci_entity *const entity,
                        const uint64_t address,
                        const isr_vector_t vector,
                        const bool masked)
@@ -173,12 +173,12 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
     }
 
     static int32_t
-    bind_msix_to_vector(struct pci_entity_info *const entity,
+    bind_msix_to_vector(struct pci_entity *const entity,
                         const uint64_t address,
                         const isr_vector_t vector,
                         const bool masked)
     {
-        struct pci_entity_bar_info *const bar = entity->msix.table_bar;
+        struct pci_bar *const bar = entity->msix.table_bar;
         if (!pci_map_bar(bar)) {
             printk(LOGLEVEL_WARN, "pcie: failed to map msix table bar\n");
             return -1;
@@ -199,7 +199,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
         }
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
-            pci_entity_bar_get_base(bar) + entity->msix.table_offset;
+            pci_bar_get_base(bar) + entity->msix.table_offset;
 
         mmio_write(&table[index].msg_address_lower32, (uint32_t)address);
         mmio_write(&table[index].msg_address_upper32, address >> 32);
@@ -212,7 +212,7 @@ bool pci_entity_disable_msi(struct pci_entity_info *const entity) {
 #endif /* defined(ISR_SUPPORTS_MSI) */
 
 int32_t
-pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
+pci_entity_bind_msi_to_vector(struct pci_entity *const entity,
                               const struct cpu_info *const cpu,
                               const isr_vector_t vector,
                               const bool masked)
@@ -221,15 +221,15 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
-                   "pcie: entity " PCI_ENTITY_INFO_FMT " does not support msi "
+                   "pcie: entity " PCI_ENTITY_FMT " does not support msi "
                    "or msix. failing to bind msi[x] to "
                    "vector " ISR_VECTOR_FMT "\n",
-                   PCI_ENTITY_INFO_FMT_ARGS(entity),
+                   PCI_ENTITY_FMT_ARGS(entity),
                    vector);
 
             return -1;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 const uint64_t msi_address = isr_get_msi_address(cpu, vector);
                 bind_msi_to_vector(entity, msi_address, vector, masked);
             });
@@ -238,7 +238,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
             uint16_t result = 0;
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 result =
                     bind_msix_to_vector(entity,
                                         isr_get_msix_address(cpu, vector),
@@ -261,7 +261,7 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
 
 #if ISR_SUPPORTS_MSI
     __debug_optimize(3) static void
-    toggle_msi_vector_mask(const struct pci_entity_info *const entity,
+    toggle_msi_vector_mask(const struct pci_entity *const entity,
                            const isr_vector_t vector,
                            const bool masked)
     {
@@ -285,24 +285,24 @@ pci_entity_bind_msi_to_vector(struct pci_entity_info *const entity,
     }
 
     __debug_optimize(3) static void
-    toggle_msix_vector_mask(const struct pci_entity_info *const entity,
+    toggle_msix_vector_mask(const struct pci_entity *const entity,
                             const isr_vector_t vector,
                             const bool masked)
     {
-        struct pci_entity_bar_info *const bar = entity->msix.table_bar;
+        struct pci_bar *const bar = entity->msix.table_bar;
         if (bar->mmio == nullptr) {
             return;
         }
 
         volatile struct pci_spec_cap_msix_table_entry *const table =
-            pci_entity_bar_get_base(bar) + entity->msix.table_offset;
+            pci_bar_get_base(bar) + entity->msix.table_offset;
 
         mmio_write(&table[vector].control, masked);
     }
 #endif /* defined(ISR_SUPPORTS_MSI) */
 
 bool
-pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
+pci_entity_toggle_msi_vector_mask(struct pci_entity *const entity,
                                   const isr_vector_t vector,
                                   const bool mask)
 {
@@ -310,20 +310,20 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
-                   "pcie: entity " PCI_ENTITY_INFO_FMT " does not support msi "
+                   "pcie: entity " PCI_ENTITY_FMT " does not support msi "
                    "or msix\n",
-                   PCI_ENTITY_INFO_FMT_ARGS(entity));
+                   PCI_ENTITY_FMT_ARGS(entity));
 
             return false;
         case PCI_ENTITY_MSI_SUPPORT_MSI: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 toggle_msi_vector_mask(entity, vector, mask);
             });
 
             return true;
         }
         case PCI_ENTITY_MSI_SUPPORT_MSIX: {
-            with_spinlock_preempt_disabled(&entity->lock, {
+            with_spinlock_preempt_disabled(&entity->device.lock, {
                 toggle_msix_vector_mask(entity, vector, mask);
             });
 
@@ -339,21 +339,11 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity_info *const entity,
     verify_not_reached();
 }
 
-const char *pci_entity_get_vendor_name(struct pci_entity_info *const entity) {
-    carr_foreach(pci_vendor_info_list, iter) {
-        if (entity->vendor_id == iter->id) {
-            return iter->name;
-        }
-    }
-
-    return "unknown";
-}
-
 __debug_optimize(3) void
-pci_entity_enable_privls(struct pci_entity_info *const entity,
+pci_entity_enable_privls(struct pci_entity *const entity,
                          const uint16_t privls)
 {
-    with_spinlock_preempt_disabled(&entity->lock, {
+    with_spinlock_preempt_disabled(&entity->device.lock, {
         const uint16_t old_command =
             pci_read(entity, struct pci_spec_entity_info_base, command);
         const uint16_t new_command =
@@ -368,8 +358,8 @@ pci_entity_enable_privls(struct pci_entity_info *const entity,
 }
 
 __debug_optimize(3)
-void pci_entity_disable_privls(struct pci_entity_info *const entity) {
-    with_spinlock_preempt_disabled(&entity->lock, {
+void pci_entity_disable_privls(struct pci_entity *const entity) {
+    with_spinlock_preempt_disabled(&entity->device.lock, {
         const uint16_t old_command =
             pci_read(entity, struct pci_spec_entity_info_base, command);
         const uint16_t new_command =
@@ -384,10 +374,8 @@ void pci_entity_disable_privls(struct pci_entity_info *const entity) {
 }
 
 __debug_optimize(3)
-void pci_entity_info_destroy(struct pci_entity_info *const entity) {
-    spinlock_deinit(&entity->lock);
-
-    struct pci_entity_bar_info *const bar_list = entity->bar_list;
+void pci_entity_destroy(struct pci_entity *const entity) {
+    struct pci_bar *const bar_list = entity->bar_list;
     const uint8_t bar_count =
         entity->header_kind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE  ?
             PCI_BAR_COUNT_FOR_BRIDGE : PCI_BAR_COUNT_FOR_GENERAL;

@@ -15,7 +15,7 @@ enum pci_driver_match : uint8_t {
     __PCI_DRIVER_MATCH_PROGIF = 1 << 3,
 };
 
-struct pci_entity_info;
+struct pci_entity;
 
 struct pci_driver {
     uint8_t match;

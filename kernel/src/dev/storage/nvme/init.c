@@ -22,8 +22,8 @@
 #define NVME_BAR_INDEX (uint32_t)0
 
 static bool pci_probe(struct device *const device) {
-    struct pci_entity_info *const pci_entity =
-        parent_of(device, struct pci_entity_info, device);
+    struct pci_entity *const pci_entity =
+        parent_of(device, struct pci_entity, device);
 
     if (!index_in_bounds(NVME_BAR_INDEX, pci_entity->max_bar_count)) {
         printk(LOGLEVEL_WARN, "nvme: pci-entity has no bars. aborting init\n");
@@ -41,9 +41,7 @@ static bool pci_probe(struct device *const device) {
            "nvme: requester-id: 0x%" PRIx16 "\n",
            pci_entity_get_requester_id(pci_entity));
 
-    struct pci_entity_bar_info *const bar =
-        &pci_entity->bar_list[NVME_BAR_INDEX];
-
+    struct pci_bar *const bar = &pci_entity->bar_list[NVME_BAR_INDEX];
     if (!bar->is_present) {
         printk(LOGLEVEL_WARN,
                "nvme: pci-device doesn't have the required bar at "
@@ -116,7 +114,7 @@ static bool pci_probe(struct device *const device) {
         return false;
     }
 
-    volatile struct nvme_registers *const regs = pci_entity_bar_get_base(bar);
+    volatile struct nvme_registers *const regs = pci_bar_get_base(bar);
     if (!nvme_controller_create(controller,
                                 &pci_entity->device,
                                 regs,

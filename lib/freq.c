@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include <lib/macros.h>
 #include "freq.h"
+#include "macros.h"
 
 __debug_optimize(3)
 struct string_view freq_units_to_sv(const enum freq_unit_kind kind) {

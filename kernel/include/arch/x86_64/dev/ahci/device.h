@@ -16,7 +16,7 @@ enum ahci_hba_device_kind : uint8_t {
 };
 
 struct ahci_hba_device {
-    struct pci_entity_info *pci_entity;
+    struct pci_entity *pci_entity;
     struct ahci_hba_port *port_list;
 
     volatile struct ahci_spec_hba_regs *regs;

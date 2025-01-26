@@ -31,7 +31,7 @@ struct virtio_device {
     struct list list;
     union {
         struct {
-            struct pci_entity_info *entity;
+            struct pci_entity *entity;
             volatile struct virtio_pci_common_cfg *common_cfg;
 
             struct range device_cfg;

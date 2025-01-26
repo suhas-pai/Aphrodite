@@ -8,6 +8,7 @@
 **/*.dSYM
 
 .cache/
+.fleet/
 .vscode/
 
 compile_commands.json
