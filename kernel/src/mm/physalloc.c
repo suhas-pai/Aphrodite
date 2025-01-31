@@ -10,10 +10,10 @@
 #include "mm/slab.h"
 
 static struct slab_allocator physalloc_slabs[14] = {0};
-static bool physalloc_is_initialized = false;
+static bool g_physalloc_is_initialized = false;
 
 __debug_optimize(3) bool physalloc_initialized() {
-    return physalloc_is_initialized;
+    return g_physalloc_is_initialized;
 }
 
 #define SLAB_ALLOC_INIT(size, alloc_flags, flags) \
@@ -42,11 +42,11 @@ void physalloc_init() {
     SLAB_ALLOC_INIT(32768, /*alloc_flags=*/0, /*flags=*/0);
     SLAB_ALLOC_INIT(65536, /*alloc_flags=*/0, /*flags=*/0);
 
-    physalloc_is_initialized = true;
+    g_physalloc_is_initialized = true;
 }
 
 __debug_optimize(3) uint64_t phys_alloc(const uint32_t size) {
-    assert_msg(physalloc_is_initialized,
+    assert_msg(g_physalloc_is_initialized,
                "mm: physalloc() called before physalloc_init()");
 
     if (__builtin_expect(size == 0, 0)) {
@@ -80,7 +80,7 @@ __debug_optimize(3) uint64_t phys_alloc(const uint32_t size) {
 
 __debug_optimize(3)
 uint64_t phys_alloc_size(const uint32_t size, uint32_t *const size_out) {
-    assert_msg(physalloc_is_initialized,
+    assert_msg(g_physalloc_is_initialized,
                "mm: physalloc() called before physalloc_init()");
 
     if (__builtin_expect(size == 0, 0)) {
@@ -115,7 +115,7 @@ uint64_t phys_alloc_size(const uint32_t size, uint32_t *const size_out) {
 
 __debug_optimize(3)
 uint64_t phys_realloc(const uint64_t buffer, const uint32_t size) {
-    assert_msg(physalloc_is_initialized,
+    assert_msg(g_physalloc_is_initialized,
                "mm: physrealloc() called before physalloc_init()");
 
     // Allow buffer=0 and buffer=INVALID_PHYS to call physalloc().

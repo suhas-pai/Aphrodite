@@ -24,6 +24,7 @@ time_format_to_string_sv_callback(
     return sv.length;
 }
 
+__debug_optimize(3)
 struct string kstrftime(const char *const format, const struct tm *const tm) {
     struct string string = STRING_NULL();
     parse_strftime_format(time_format_to_string_sv_callback,

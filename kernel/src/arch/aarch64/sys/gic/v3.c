@@ -172,19 +172,19 @@ static bool g_gic_initialized = false;
 #define GIC_REDIST_PROP_ALLOC_ORDER 1
 #define GIC_REDIST_PENDING_ALLOC_ORDER 4
 
-_Static_assert((PAGE_SIZE << GIC_REDIST_PROP_ALLOC_ORDER)
-               >= (GIC_ITS_MAX_LPIS_SUPPORTED * sizeof(uint8_t)),
+_Static_assert((PAGE_SIZE << GIC_REDIST_PROP_ALLOC_ORDER) >=
+                (GIC_ITS_MAX_LPIS_SUPPORTED * sizeof(uint8_t)),
                "GIC_REDIST_PROP_ALLOC_ORDER is too low");
 
-_Static_assert((PAGE_SIZE << GIC_REDIST_PENDING_ALLOC_ORDER)
-               >= (GIC_ITS_MAX_LPIS_SUPPORTED * sizeof(uint64_t)),
+_Static_assert((PAGE_SIZE << GIC_REDIST_PENDING_ALLOC_ORDER) >=
+                (GIC_ITS_MAX_LPIS_SUPPORTED * sizeof(uint64_t)),
                "GIC_REDIST_PENDING_ALLOC_ORDER is too low");
 
 static
 volatile struct gicd_v3_registers *gicv3_dist_for_irq(const irq_number_t irq) {
     if (irq < GIC_SPI_INTR_START) {
-        volatile struct gicv3_redist_registers *const redist_regs =
-            g_redist_mmio->base;
+        const auto redist_regs =
+            (volatile struct gicv3_redist_registers *)g_redist_mmio->base;
 
         return &redist_regs->dist;
     }
@@ -392,88 +392,101 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
     }
 }
 
-void gic_redist_init_on_this_cpu() {
+static inline
+bool wait_for_clear(volatile struct gicv3_redist_registers *const redist) {
+    bool cleared = false;
+    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+        if ((mmio_read(&redist->waker) &
+                __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
+        {
+            cleared = true;
+            break;
+        }
+
+        cpu_pause();
+    }
+
+    return cleared;
+}
+
+bool gic_redist_init_on_this_cpu() {
     volatile struct gicv3_redist_registers *const redist = g_redist_mmio->base;
+
+    const uint64_t typer = mmio_read(&redist->typer);
+    const uint32_t processor_id =
+        (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER) >>
+            GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
+
     with_intr_disabled({
-        const uint64_t typer = mmio_read(&redist->typer);
-
-        assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);
-        mmio_write(&redist->waker,
-                   rm_mask(mmio_read(&redist->waker),
-                           __GICV3_REDIST_WAKER_PROCESSOR_ASLEEP));
-
-        bool cleared = false;
-        for (int i = 0; i != MAX_ATTEMPTS; i++) {
-            if ((mmio_read(&redist->waker) &
-                    __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
-            {
-                cleared = true;
-                break;
-            }
-
-            cpu_pause();
-        }
-
-        if (!cleared) {
-            printk(LOGLEVEL_WARN, "gicv3: child-asleep bit failed to clear\n");
-            return;
-        }
-
-        mmio_write(&redist->dist.irq_group[0], UINT32_MAX);
-        mmio_write(&redist->dist.irq_group_mod[0], 0);
-        mmio_write(&redist->control,
-                   mmio_read(&redist->control) |
-                   __GICV3_REDIST_CONTROL_ENABLE_LPIS);
-
-        // Pending page has to be aligned to 64kib (log2(64kib) == 16 pages)
-        struct page *const pend_page =
-            alloc_pages_at_align(PAGE_STATE_USED,
-                                 __ALLOC_ZERO,
-                                 /*align=*/16,
-                                 GIC_REDIST_PENDING_ALLOC_ORDER);
-
-        assert_msg(pend_page != nullptr,
-                   "gicv3: failed to alloc pending page for redistributor\n");
-
-        struct page *const prop_page =
-            alloc_pages(PAGE_STATE_USED,
-                        __ALLOC_ZERO,
-                        GIC_REDIST_PROP_ALLOC_ORDER);
-
-        assert_msg(prop_page != nullptr,
-                   "gicv3: failed to alloc pending page for redistributor\n");
-
-        const uint64_t pend_phys = page_to_phys(pend_page);
-        const uint64_t prop_phys = page_to_phys(prop_page);
-
-        mmio_write(&redist->pend_baser,
-                   mmio_read(&redist->pend_baser) | pend_phys);
-
-        mmio_write(&redist->prop_baser,
-                   mmio_read(&redist->prop_baser) |
-                   prop_phys |
-                   (GIC_REDIST_IDBITS - 1));
-
-        const uint32_t processor_id =
-            (typer & __GICV3_REDIST_TYPER_PROCESSOR_NUMBER) >>
-                GICV3_REDIST_TYPER_PROCESSOR_NUMBER_SHIFT;
-
         if (processor_id != this_cpu()->processor_id) {
             printk(LOGLEVEL_WARN,
                    "gicv3: processor-id %" PRIu32 " is different than id from "
                    "bootloader: %" PRIu32 "\n",
                    processor_id,
                    this_cpu()->processor_id);
-        }
 
+            return false;
+        }
+    });
+
+    assert(typer & __GICV3_REDIST_TYPER_SUPPORTS_PHYS_LPIS);
+    mmio_write(&redist->waker,
+               rm_mask(mmio_read(&redist->waker),
+                       __GICV3_REDIST_WAKER_PROCESSOR_ASLEEP));
+
+    if (!wait_for_clear(redist)) {
+        printk(LOGLEVEL_WARN, "gicv3: child-asleep bit failed to clear\n");
+        return false;
+    }
+
+    mmio_write(&redist->dist.irq_group[0], UINT32_MAX);
+    mmio_write(&redist->dist.irq_group_mod[0], 0);
+    mmio_write(&redist->control,
+               mmio_read(&redist->control) |
+               __GICV3_REDIST_CONTROL_ENABLE_LPIS);
+
+    // Pending page has to be aligned to 64kib (log2(64kib) == 16 pages)
+    struct page *const pend_page =
+        alloc_pages_at_align(PAGE_STATE_USED,
+                             __ALLOC_ZERO,
+                             /*align=*/16,
+                             GIC_REDIST_PENDING_ALLOC_ORDER);
+
+    assert_msg(pend_page != nullptr,
+               "gicv3: failed to alloc pending page for redistributor\n");
+
+    struct page *const prop_page =
+        alloc_pages(PAGE_STATE_USED,
+                    __ALLOC_ZERO,
+                    GIC_REDIST_PROP_ALLOC_ORDER);
+
+    assert_msg(prop_page != nullptr,
+               "gicv3: failed to alloc pending page for redistributor\n");
+
+    const uint64_t pend_phys = page_to_phys(pend_page);
+    const uint64_t prop_phys = page_to_phys(prop_page);
+
+    mmio_write(&redist->pend_baser,
+               mmio_read(&redist->pend_baser) | pend_phys);
+
+    mmio_write(&redist->prop_baser,
+               mmio_read(&redist->prop_baser) |
+               prop_phys |
+               (GIC_REDIST_IDBITS - 1));
+
+    with_intr_disabled({
         this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
         this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
     });
+
+    return true;
 }
 
 void gicv3_init_on_this_cpu() {
     uint64_t icc_sre = 0;
-    gic_redist_init_on_this_cpu();
+    if (!gic_redist_init_on_this_cpu()) {
+        return;
+    }
 
     asm volatile("mrs %0, icc_sre_el1" : "=r"(icc_sre));
     asm volatile("msr icc_sre_el1, %0" :: "r"(icc_sre | __ICC_SRE_ENABLE));

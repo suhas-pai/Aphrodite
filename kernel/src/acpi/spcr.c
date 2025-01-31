@@ -14,99 +14,99 @@ void spcr_init(const struct os_acpi_spcr *const spcr) {
 
     const char *interface_kind_str = "unknown";
     switch (spcr->interface_kind) {
-        case ACPI_SPCR_INTERFACE_16550_COMPATIBLE:
+        case OS_ACPI_SPCR_INTERFACE_16550_COMPATIBLE:
             interface_kind_str = "16550-compatible";
             break;
-        case ACPI_SPCR_INTERFACE_16550_SUBSET:
+        case OS_ACPI_SPCR_INTERFACE_16550_SUBSET:
             interface_kind_str = "16550-subset";
             break;
-        case ACPI_SPCR_INTERFACE_MAX311XE_SPI:
+        case OS_ACPI_SPCR_INTERFACE_MAX311XE_SPI:
             interface_kind_str = "max311xe-spi";
             break;
-        case ACPI_SPCR_INTERFACE_ARM_PL011:
+        case OS_ACPI_SPCR_INTERFACE_ARM_PL011:
             interface_kind_str = "arm-pl011";
             break;
-        case ACPI_SPCR_INTERFACE_MSM8X60:
+        case OS_ACPI_SPCR_INTERFACE_MSM8X60:
             interface_kind_str = "msm8x60";
             break;
-        case ACPI_SPCR_INTERFACE_16550_NVIDIA:
+        case OS_ACPI_SPCR_INTERFACE_16550_NVIDIA:
             interface_kind_str = "16550-nvidia";
             break;
-        case ACPI_SPCR_INTERFACE_TI_OMAP:
+        case OS_ACPI_SPCR_INTERFACE_TI_OMAP:
             interface_kind_str = "ti-omap";
             break;
-        case ACPI_SPCR_INTERFACE_APM88XXXX:
+        case OS_ACPI_SPCR_INTERFACE_APM88XXXX:
             interface_kind_str = "apm-88xxxx";
             break;
-        case ACPI_SPCR_INTERFACE_MSM8974:
+        case OS_ACPI_SPCR_INTERFACE_MSM8974:
             interface_kind_str = "msm-8974";
             break;
-        case ACPI_SPCR_INTERFACE_SAM5250:
+        case OS_ACPI_SPCR_INTERFACE_SAM5250:
             interface_kind_str = "sam5250";
             break;
-        case ACPI_SPCR_INTERFACE_INTEL_USIF:
+        case OS_ACPI_SPCR_INTERFACE_INTEL_USIF:
             interface_kind_str = "intel-usif";
             break;
-        case ACPI_SPCR_INTERFACE_IMX6:
+        case OS_ACPI_SPCR_INTERFACE_IMX6:
             interface_kind_str = "imx6";
             break;
-        case ACPI_SPCR_INTERFACE_ARM_SBSA_32BIT:
+        case OS_ACPI_SPCR_INTERFACE_ARM_SBSA_32BIT:
             interface_kind_str = "arm-sbsa-32b";
             break;
-        case ACPI_SPCR_INTERFACE_ARM_SBSA_GENERIC:
+        case OS_ACPI_SPCR_INTERFACE_ARM_SBSA_GENERIC:
             interface_kind_str = "arm-sbsa-generic";
             break;
-        case ACPI_SPCR_INTERFACE_ARM_DCC:
+        case OS_ACPI_SPCR_INTERFACE_ARM_DCC:
             interface_kind_str = "arm-dcc";
             break;
-        case ACPI_SPCR_INTERFACE_BCM2835:
+        case OS_ACPI_SPCR_INTERFACE_BCM2835:
             interface_kind_str = "bcm-2835";
             break;
-        case ACPI_SPCR_INTERFACE_SDM845_1_8432MHZ:
+        case OS_ACPI_SPCR_INTERFACE_SDM845_1_8432MHZ:
             interface_kind_str = "sdm845-1-8432mhz";
             break;
-        case ACPI_SPCR_INTERFACE_16550_WITH_GAS:
+        case OS_ACPI_SPCR_INTERFACE_16550_WITH_GAS:
             interface_kind_str = "16550-with-gas";
             break;
-        case ACPI_SPCR_INTERFACE_SDM845_7_372MHZ:
+        case OS_ACPI_SPCR_INTERFACE_SDM845_7_372MHZ:
             interface_kind_str = "sdm845-7-372mhz";
             break;
-        case ACPI_SPCR_INTERFACE_INTEL_LPSS:
+        case OS_ACPI_SPCR_INTERFACE_INTEL_LPSS:
             interface_kind_str = "intel-lpss";
             break;
     }
 
     const char *baud_rate_str = "unknown";
     switch (spcr->baud_rate) {
-        case ACPI_SPCR_BAUD_RATE_OS_DEPENDENT:
+        case OS_ACPI_SPCR_BAUD_RATE_OS_DEPENDENT:
             baud_rate_str = "os-dependent";
             break;
-        case ACPI_SPCR_BAUD_RATE_9600:
+        case OS_ACPI_SPCR_BAUD_RATE_9600:
             baud_rate_str = "9600";
             break;
-        case ACPI_SPCR_BAUD_RATE_19200:
+        case OS_ACPI_SPCR_BAUD_RATE_19200:
             baud_rate_str = "19200";
             break;
-        case ACPI_SPCR_BAUD_RATE_57600:
+        case OS_ACPI_SPCR_BAUD_RATE_57600:
             baud_rate_str = "57600";
             break;
-        case ACPI_SPCR_BAUD_RATE_115200:
+        case OS_ACPI_SPCR_BAUD_RATE_115200:
             baud_rate_str = "115200";
             break;
     }
 
     const char *terminal_kind_str = "unknown";
     switch (spcr->terminal_kind) {
-        case ACPI_SPCR_TERMINAL_VT100:
+        case OS_ACPI_SPCR_TERMINAL_VT100:
             terminal_kind_str = "vt100";
             break;
-        case ACPI_SPCR_TERMINAL_VT100_EXT:
+        case OS_ACPI_SPCR_TERMINAL_VT100_EXT:
             terminal_kind_str = "vt100-extended";
             break;
-        case ACPI_SPCR_TERMINAL_VT_UTF8:
+        case OS_ACPI_SPCR_TERMINAL_VT_UTF8:
             terminal_kind_str = "vt-utf8";
             break;
-        case ACPI_SPCR_TERMINAL_ANSI:
+        case OS_ACPI_SPCR_TERMINAL_ANSI:
             terminal_kind_str = "ansi";
             break;
     }
@@ -148,11 +148,11 @@ void spcr_init(const struct os_acpi_spcr *const spcr) {
            spcr->serial_port.access_size,
            spcr->serial_port.address,
            spcr->interrupt_kind,
-           spcr->interrupt_kind & __ACPI_SPCR_IRQ_8259 ? "yes" : "no",
-           spcr->interrupt_kind & __ACPI_SPCR_IRQ_IOAPIC ? "yes" : "no",
-           spcr->interrupt_kind & __ACPI_SPCR_IRQ_IO_SAPIC ? "yes" : "no",
-           spcr->interrupt_kind & __ACPI_SPCR_IRQ_ARM_GIC ? "yes" : "no",
-           spcr->interrupt_kind & __ACPI_SPCR_IRQ_RISCV_PLIC ? "yes" : "no",
+           spcr->interrupt_kind & __OS_ACPI_SPCR_IRQ_8259 ? "yes" : "no",
+           spcr->interrupt_kind & __OS_ACPI_SPCR_IRQ_IOAPIC ? "yes" : "no",
+           spcr->interrupt_kind & __OS_ACPI_SPCR_IRQ_IO_SAPIC ? "yes" : "no",
+           spcr->interrupt_kind & __OS_ACPI_SPCR_IRQ_ARM_GIC ? "yes" : "no",
+           spcr->interrupt_kind & __OS_ACPI_SPCR_IRQ_RISCV_PLIC ? "yes" : "no",
            spcr->pc_interrupt,
            spcr->gsiv,
            baud_rate_str,

@@ -109,7 +109,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
 }
 
 void hpet_init(const struct os_acpi_hpet *const hpet) {
-    if (hpet->base_address.addr_space != ACPI_GAS_ADDRSPACE_KIND_SYSMEM) {
+    if (hpet->base_address.addr_space != OS_ACPI_GAS_ADDRSPACE_KIND_SYSMEM) {
         printk(LOGLEVEL_WARN,
                "hpet: address space is not system-memory. init failed\n");
         return;
@@ -163,10 +163,7 @@ void hpet_init(const struct os_acpi_hpet *const hpet) {
     g_timer_count = ((cap_and_id >> 8) & 0x1f) + 1;
     printk(LOGLEVEL_INFO, "hpet: got %" PRIu8 " timers\n", g_timer_count);
 
-    for (volatile struct hpet_addrspace_timer_info *timer = g_addrspace->timers;
-         timer != g_addrspace->timers + g_timer_count;
-         timer++)
-    {
+    ptrarr_foreach(g_addrspace->timers, g_timer_count, timer) {
         mmio_write(&timer->comparator_value, 0);
     }
 

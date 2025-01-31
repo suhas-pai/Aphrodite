@@ -11,12 +11,12 @@
 void pptt_init(const struct os_acpi_pptt *const pptt) {
     uint32_t offset = offsetof(struct os_acpi_pptt, buffer);
     while (index_in_bounds(offset, pptt->sdt.length)) {
-        const __auto_type base =
+        const auto base =
             reg_to_ptr(struct os_acpi_pptt_node_base, pptt, offset);
 
         switch (base->kind) {
-            case ACPI_PPTT_NODE_PROCESSOR_HIERARCHY: {
-                const __auto_type node =
+            case OS_OS_ACPI_PPTT_NODE_PROCESSOR_HIERARCHY: {
+                const auto node =
                     (struct os_acpi_pptt_processor_hierarchy_node *)base;
 
                 offset += sizeof(*node);
@@ -42,19 +42,19 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                        node->length,
                        node->flags,
                        node->flags &
-                        __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG ?
+                        __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_PROCESSOR_HIERARCHY_ACPI_ID_VALID ?
+                        __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_ACPI_ID_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_PROCESSOR_HIERARCHY_PROCESSOR_IS_THREAD ?
+                        __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_PROCESSOR_IS_THREAD ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_IS_LEAF ?
+                        __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_IS_LEAF ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_PROCESSOR_HIERARCHY_IDENTICAL_IMPL ?
+                        __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_IDENTICAL_IMPL ?
                             "yes" : "no",
                        node->parent_offset,
                        node->acpi_processor_id,
@@ -75,8 +75,8 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
 
                 continue;
             }
-            case ACPI_PPTT_NODE_CACHE_TYPE: {
-                const __auto_type node =
+            case OS_OS_ACPI_PPTT_NODE_CACHE_TYPE: {
+                const auto node =
                     (struct os_acpi_pptt_cache_type_node *)base;
 
                 offset += sizeof(*node);
@@ -86,55 +86,55 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                     return;
                 }
 
-                const __auto_type alloc_kind =
+                const auto alloc_kind =
                     (enum os_acpi_pptt_cache_type_node_attr_alloc_kind)
                         node->attributes &
-                            __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND;
+                            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND;
 
                 const char *alloc_kind_str = "unknown";
                 switch (alloc_kind) {
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC:
                         alloc_kind_str = "read-alloc";
                         break;
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC:
                         alloc_kind_str = "write-alloc";
                         break;
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC:
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2:
                         alloc_kind_str = "read-write-alloc";
                         break;
                 }
 
-                const __auto_type cache_kind =
+                const auto cache_kind =
                     (enum os_acpi_pptt_cache_type_node_attr_cache_kind)
                         node->attributes &
-                            __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
+                            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
 
                 const char *cache_kind_str = "unknown";
                 switch (cache_kind) {
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA:
                         cache_kind_str = "data";
                         break;
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION:
                         cache_kind_str = "instruction";
                         break;
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED:
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2:
                         cache_kind_str = "unified";
                         break;
                 }
 
-                const __auto_type wr_policy =
+                const auto wr_policy =
                     (enum os_acpi_pptt_cache_type_node_attr_write_policy)
                         node->attributes &
-                            __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
+                            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
 
                 const char *wr_policy_str = "unknown";
                 switch (wr_policy) {
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK:
                         wr_policy_str = "write-back";
                         break;
-                    case ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION:
                         wr_policy_str = "write-through";
                         break;
                 }
@@ -164,26 +164,26 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                        node->length,
                        node->flags,
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID ? "yes" : "no",
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID ? "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID ?
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID ? "yes" : "no",
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID ? "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_ALLOC_KIND_VALID ?
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_ALLOC_KIND_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_KIND_VALID ?
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_CACHE_KIND_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_WRITE_POLICY_KIND_VALID ?
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_WRITE_POLICY_KIND_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_LINE_SIZE_VALID ?
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_LINE_SIZE_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_ID_VALID ?
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_CACHE_ID_VALID ?
                             "yes" : "no",
                        node->cache_next_level,
                        node->size,

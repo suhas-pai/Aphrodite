@@ -132,3 +132,22 @@ vformat_to_string(struct string *const string,
                      list);
     return result;
 }
+
+int snprintf(char *const s, const size_t n, const char *const format, ...) {
+    va_list list;
+    va_start(list, format);
+
+    const int result = vsnprintf(s, n, format, list);
+    va_end(list);
+
+    return result;
+}
+
+int
+vsnprintf(char *const s,
+          const size_t n,
+          const char *const format,
+          va_list arg)
+{
+    return (int)vformat_to_buffer(s, n, format, arg);
+}

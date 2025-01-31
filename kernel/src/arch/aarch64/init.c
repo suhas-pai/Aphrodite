@@ -21,16 +21,15 @@
 #define QEMU_SERIAL_PHYS 0x9000000
 
 __debug_optimize(3) void arch_early_init() {
-#if !defined(AARCH64_USE_16K_PAGES)
-    const __auto_type spcr =
-        (const struct os_acpi_spcr *)acpi_lookup_sdt("SPCR");
-
+#if !defined(AARCH64_CONFIG_16K_PAGES)
     uint64_t address = QEMU_SERIAL_PHYS;
+    const auto spcr = (const struct os_acpi_spcr *)acpi_lookup_sdt("SPCR");
+
     if (spcr != nullptr) {
-        assert(spcr->interface_kind == ACPI_SPCR_INTERFACE_ARM_PL011);
-        assert(spcr->interrupt_kind & __ACPI_SPCR_IRQ_ARM_GIC);
-        assert(spcr->serial_port.access_size == ACPI_GAS_ACCESS_SIZE_4_BYTE);
-        assert(spcr->baud_rate != ACPI_SPCR_BAUD_RATE_OS_DEPENDENT);
+        assert(spcr->interface_kind == OS_ACPI_SPCR_INTERFACE_ARM_PL011);
+        assert(spcr->interrupt_kind & __OS_ACPI_SPCR_IRQ_ARM_GIC);
+        assert(spcr->serial_port.access_size == OS_ACPI_GAS_ACCESS_SIZE_4_BYTE);
+        assert(spcr->baud_rate != OS_ACPI_SPCR_BAUD_RATE_OS_DEPENDENT);
 
         address = spcr->serial_port.address;
     }
@@ -39,13 +38,13 @@ __debug_optimize(3) void arch_early_init() {
         PTE_LEAF_FLAGS | __PTE_INNER_SH | __PTE_MMIO | __PTE_UXN | __PTE_PXN;
 
     mm_early_identity_map_phys(read_ttbr0_el1(), address, pte_flags);
-#endif /* !defined(AARCH64_USE_16K_PAGES) */
+#endif /* !defined(AARCH64_CONFIG_16K_PAGES) */
 }
 
 __debug_optimize(3) void arch_post_mm_init() {
-#if !defined(AARCH64_USE_16K_PAGES)
+#if !defined(AARCH64_CONFIG_16K_PAGES)
     mm_remove_early_identity_map();
-#endif /* !defined(AARCH64_USE_16K_PAGES) */
+#endif /* !defined(AARCH64_CONFIG_16K_PAGES) */
 }
 
 void arch_init_time_for_smp();

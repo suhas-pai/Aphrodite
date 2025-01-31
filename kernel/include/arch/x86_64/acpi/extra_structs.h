@@ -22,9 +22,9 @@ enum os_acpi_hpet_event_timer_block_id_flags : uint64_t {
 };
 
 enum os_acpi_hpet_page_prot_guarantee : uint8_t {
-    ACPI_HPET_PAGE_PROT_NONE,
-    ACPI_HPET_PAGE_PROT_4K,
-    ACPI_HPET_PAGE_PROT_64K,
+    OS_ACPI_HPET_PAGE_PROT_NONE,
+    OS_ACPI_HPET_PAGE_PROT_4K,
+    OS_ACPI_HPET_PAGE_PROT_64K,
 };
 
 enum os_acpi_hpet_page_prot_and_oem_attr_flags : uint8_t {

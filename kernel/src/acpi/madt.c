@@ -146,7 +146,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                const __auto_type hdr =
+                const auto hdr =
                     (const struct os_acpi_madt_entry_iso *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -188,7 +188,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                const __auto_type hdr =
+                const auto hdr =
                     (const struct os_acpi_madt_entry_nmi_src *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -216,7 +216,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                const __auto_type hdr =
+                const auto hdr =
                     (const struct os_acpi_madt_entry_nmi *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -246,7 +246,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 continue;
             }
             case OS_ACPI_MADT_ENTRY_KIND_LOCAL_APIC_ADDR_OVERRIDE: {
-                const __auto_type size =
+                const auto size =
                     sizeof(struct os_acpi_madt_entry_lapic_addr_override);
 
                 if (iter->length != size) {
@@ -258,7 +258,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const __auto_type hdr =
+                const auto hdr =
                     (const struct os_acpi_madt_entry_lapic_addr_override *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -305,7 +305,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 continue;
             }
             case OS_ACPI_MADT_ENTRY_KIND_CPU_LOCAL_X2APIC_NMI: {
-                const __auto_type size =
+                const auto size =
                     sizeof(struct os_acpi_madt_entry_cpu_local_x2apic_nmi);
 
                 if (iter->length != size) {
@@ -317,7 +317,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const __auto_type hdr =
+                const auto hdr =
                     (const struct os_acpi_madt_entry_cpu_local_x2apic_nmi *)
                         iter;
 
@@ -347,7 +347,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const __auto_type cpu =
+                const auto cpu =
                     (const struct os_acpi_madt_entry_gic_cpu_interface *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -429,7 +429,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const __auto_type dist =
+                const auto dist =
                     (const struct os_acpi_madt_entry_gic_distributor *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -462,7 +462,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const __auto_type frame =
+                const auto frame =
                     (const struct os_acpi_madt_entry_gic_msi_frame *)iter;
 
                 assert (array_add(&msi_frame_list, &frame));
@@ -490,7 +490,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 continue;
             }
             case OS_ACPI_MADT_ENTRY_KIND_GIC_REDISTRIBUTOR: {
-                const __auto_type size =
+                const auto size =
                     sizeof(struct os_acpi_madt_entry_gicv3_redistributor);
 
                 if (iter->length != size) {
@@ -501,7 +501,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const __auto_type redist =
+                const auto redist =
                     (const struct os_acpi_madt_entry_gicv3_redistributor *)iter;
 
                 if (!range_create_and_verify(
@@ -538,7 +538,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
             #if defined(__aarch64__)
-                const __auto_type its =
+                const auto its =
                     (const struct os_acpi_madt_entry_gic_its *)iter;
 
                 assert(array_add(&its_list, &its));
@@ -558,7 +558,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
             case OS_ACPI_MADT_ENTRY_KIND_MULTIPROCESSOR_WAKEUP_SERVICE:
                 continue;
             case OS_ACPI_MADT_ENTRY_KIND_RISCV_HART_IRQ_CONTROLLER: {
-                const __auto_type size =
+                const auto size =
                     sizeof(struct os_acpi_madt_riscv_hart_irq_controller);
 
                 if (iter->length != size) {
@@ -570,7 +570,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const __auto_type ctrlr =
+                const auto ctrlr =
                     (const struct os_acpi_madt_riscv_hart_irq_controller *)iter;
 
                 struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
@@ -632,7 +632,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const __auto_type imsic =
+                const auto imsic =
                     (const struct os_acpi_madt_riscv_imsic *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -671,7 +671,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const __auto_type aplic =
+                const auto aplic =
                     (const struct os_acpi_madt_riscv_aplic *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -711,7 +711,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const __auto_type plic =
+                const auto plic =
                     (const struct os_acpi_madt_riscv_plic *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -826,7 +826,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                           ctrlr_iter)
             {
                 struct range range = RANGE_EMPTY();
-                const __auto_type ctrlr= *ctrlr_iter;
+                const auto ctrlr= *ctrlr_iter;
 
                 if (!range_create_and_verify(ctrlr->imsic_base,
                                              ctrlr->imsic_size,
@@ -862,7 +862,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                           struct os_acpi_madt_riscv_aplic *,
                           aplic_iter)
             {
-                const __auto_type aplic = *aplic_iter;
+                const auto aplic = *aplic_iter;
                 struct range range = RANGE_EMPTY();
 
                 if (!range_create_and_verify(aplic->aplic_base,

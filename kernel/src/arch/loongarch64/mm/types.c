@@ -16,7 +16,7 @@ __hidden uint64_t PAGING_MODE = 0;
 __hidden uint64_t PAGE_END = 0;
 
 __hidden
-struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
+struct largepage_level_info lg_page_level_info_list[PGT_LEVEL_COUNT] = {
     [0] = {
         .order = 0,
         .largepage_order = UINT8_MAX,

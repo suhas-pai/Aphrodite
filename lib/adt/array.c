@@ -30,7 +30,7 @@ __debug_optimize(3) bool array_initialized(const struct array array) {
 
 __debug_optimize(3)
 bool array_add(struct array *const array, const void *const item) {
-    return gbuffer_append_data(&array->gbuffer, item, array->object_size);
+    return gbuffer_add_data(&array->gbuffer, item, array->object_size);
 }
 
 __debug_optimize(3)

@@ -242,7 +242,7 @@ fill_out_device_table(struct gic_its_info *const its,
         return false;
     }
 
-    const __auto_type entry = &its->device_table[index];
+    const auto entry = &its->device_table[index];
     uint64_t phys = 0;
 
     if ((entry->flags & __GIC_ITS_DEVICE_TABLE_ENTRY_VALID) == 0) {
@@ -385,7 +385,6 @@ gic_its_init_from_info(const uint32_t id, const uint64_t phys_addr) {
                "gic/its: failed to align register range " RANGE_FMT " to "
                "page-size\n",
                RANGE_FMT_ARGS(range));
-
         return nullptr;
     }
 

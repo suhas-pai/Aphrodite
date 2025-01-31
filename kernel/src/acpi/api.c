@@ -3,11 +3,11 @@
  * © suhas pai
  */
 
-#ifdef USE_UACPI
+#ifdef CONFIG_UACPI
     #include <uacpi/event.h>
     #include <uacpi/tables.h>
     #include <uacpi/uacpi.h>
-#endif /* defined(USE_UACPI) */
+#endif /* defined(CONFIG_UACPI) */
 
 #if defined(__aarch64__)
     #include "acpi/gtdt.h"
@@ -30,10 +30,10 @@ static struct acpi_info g_info = {
     .fadt = nullptr,
     .rsdp = nullptr,
 
-#ifndef USE_UACPI
+#ifndef CONFIG_UACPI
     .mcfg = nullptr,
     .rsdt = nullptr,
-#endif /* !defined(USE_UACPI) */
+#endif /* !defined(CONFIG_UACPI) */
 
 #if defined(__aarch64__)
     .msi_frame_list = ARRAY_INIT(sizeof(struct acpi_msi_frame)),
@@ -200,9 +200,9 @@ void acpi_init(void) {
 
     acpi_recurse(acpi_init_each_sdt);
 
-    const __auto_type oem_id_length =
+    const auto oem_id_length =
         strnlen(g_info.rsdp->oem_id, sizeof(g_info.rsdp->oem_id));
-    const __auto_type oem_id =
+    const auto oem_id =
         sv_create_nocheck(g_info.rsdp->oem_id, oem_id_length);
 
     printk(LOGLEVEL_INFO,
@@ -245,7 +245,7 @@ void acpi_init(void) {
         mcfg_init(get_acpi_info()->mcfg);
     }
 
-#ifdef USE_UACPI
+#ifdef CONFIG_UACPI
     /*
      * Start with this as the first step of the initialization. This loads
      * all tables, brings the event subsystem online, and enters ACPI mode.

@@ -14,12 +14,13 @@ struct list {
     struct list *next;
 };
 
+// slist is a circular singly-linked
 struct slist {
     struct slist *next;
 };
 
 #define LIST_INIT(lvalue) { .prev = &(lvalue), .next = &(lvalue) }
-#define SLIST_INIT(lvalue) { .prev = &(lvalue) }
+#define SLIST_INIT(lvalue) { .next = &(lvalue) }
 
 __debug_optimize(3) static inline void list_init(struct list *const head) {
     head->prev = head;
@@ -81,6 +82,11 @@ static inline void list_radd(struct list *const head, struct list *const item) {
 __debug_optimize(3)
 static inline bool list_empty(const struct list *const list) {
     return list == list->prev;
+}
+
+__debug_optimize(3)
+static inline bool slist_empty(const struct slist *const list) {
+    return list == list->next;
 }
 
 __debug_optimize(3) static inline void list_remove(struct list *const elem) {

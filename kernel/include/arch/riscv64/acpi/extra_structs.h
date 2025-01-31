@@ -15,10 +15,10 @@ struct os_acpi_rhct {
 } __packed;
 
 enum acpi_rhct_node_kind : uint16_t {
-    ACPI_RHCT_NODE_KIND_ISA_STRING,
-    ACPI_RHCT_NODE_KIND_CMO,
-    ACPI_RHCT_NODE_KIND_MMU,
-    ACPI_RHCT_NODE_KIND_HART_INFO = 0xFFFF,
+    OS_ACPI_RHCT_NODE_KIND_ISA_STRING,
+    OS_ACPI_RHCT_NODE_KIND_CMO,
+    OS_ACPI_RHCT_NODE_KIND_MMU,
+    OS_ACPI_RHCT_NODE_KIND_HART_INFO = 0xFFFF,
 };
 
 struct os_acpi_rhct_node {
@@ -43,9 +43,9 @@ struct os_acpi_rhct_cmo_node {
 } __packed;
 
 enum acpi_rhct_mmu_kind : uint8_t {
-    ACPI_RHCT_MMU_KIND_SV39,
-    ACPI_RHCT_MMU_KIND_SV48,
-    ACPI_RHCT_MMU_KIND_SV57
+    OS_ACPI_RHCT_MMU_KIND_SV39,
+    OS_ACPI_RHCT_MMU_KIND_SV48,
+    OS_ACPI_RHCT_MMU_KIND_SV57
 };
 
 struct os_acpi_rhct_mmu_node {

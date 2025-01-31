@@ -63,10 +63,10 @@ struct largepage_level_info {
     uint64_t size;
 };
 
-extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
+extern struct largepage_level_info lg_page_level_info_list[PGT_LEVEL_COUNT];
 
 #define PAGE_SIZE_AT_LEVEL(level) ({ \
-    __auto_type __page_size_level_result__ = (uint64_t)0; \
+    auto __page_size_level_result__ = (uint64_t)0; \
     switch (level) { \
         case 1: \
             __page_size_level_result__ = PAGE_SIZE; \

@@ -314,7 +314,7 @@ __debug_optimize(3) enum isr_msi_support isr_get_msi_support() {
     const struct os_acpi_fadt *const fadt = get_acpi_info()->fadt;
     if (fadt != nullptr) {
         if (fadt->iapc_boot_arch_flags &
-                __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
+                __OS_ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
         {
             return ISR_MSI_SUPPORT_NONE;
         }

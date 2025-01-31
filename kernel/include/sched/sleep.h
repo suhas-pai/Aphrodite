@@ -1,6 +1,6 @@
 
 /*
- * kernel/include/sched/sleep.c
+ * kernel/include/sched/sleep.h
  * © suhas pai
  */
 

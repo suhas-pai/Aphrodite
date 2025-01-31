@@ -3,8 +3,8 @@
  * © suhas pai
  */
 
-#include "dev/uart/com1.h"
 #include "dev/uart/8250.h"
+#include "dev/uart/com1.h"
 
 void com1_init() {
     uart8250_init((port_t)0x3f8,

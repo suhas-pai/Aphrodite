@@ -53,7 +53,7 @@ struct string string_vformat(const char *const fmt, va_list list) {
 }
 
 __debug_optimize(3) static inline
-bool prepare_append(struct string *const string, const uint32_t length) {
+bool prepare_add(struct string *const string, const uint32_t length) {
     return gbuffer_ensure_can_add_capacity(&string->gbuffer, length + 1);
 }
 
@@ -62,12 +62,11 @@ string_append_char(struct string *const string,
                    const char ch,
                    const uint32_t amount)
 {
-    if (__builtin_expect(!prepare_append(string, amount), 0)) {
+    if (__builtin_expect(!prepare_add(string, amount), 0)) {
         return nullptr;
     }
 
-    if (__builtin_expect(!gbuffer_append_byte(&string->gbuffer, ch, amount), 0))
-    {
+    if (__builtin_expect(!gbuffer_add_byte(&string->gbuffer, ch, amount), 0)) {
         return nullptr;
     }
 
@@ -77,12 +76,12 @@ string_append_char(struct string *const string,
 
 __debug_optimize(3) struct string *
 string_append_sv(struct string *const string, const struct string_view sv) {
-    if (__builtin_expect(!prepare_append(string, sv.length), 0)) {
+    if (__builtin_expect(!prepare_add(string, sv.length), 0)) {
         gbuffer_destroy(&string->gbuffer);
         return nullptr;
     }
 
-    if (__builtin_expect(!gbuffer_append_sv(&string->gbuffer, sv), 0)) {
+    if (__builtin_expect(!gbuffer_add_sv(&string->gbuffer, sv), 0)) {
         gbuffer_destroy(&string->gbuffer);
         return nullptr;
     }
@@ -113,7 +112,7 @@ string_append_vformat(struct string *const string,
 
 __debug_optimize(3) struct string *
 string_append(struct string *const string, const struct string *const append) {
-    if (__builtin_expect(!prepare_append(string, string_length(*string)), 0)) {
+    if (__builtin_expect(!prepare_add(string, string_length(*string)), 0)) {
         return nullptr;
     }
 

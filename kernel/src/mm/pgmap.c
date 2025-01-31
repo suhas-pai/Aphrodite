@@ -259,7 +259,7 @@ get_leaf_pte_count_until_next_large(
     struct largepage_level_info *next_level_info = nullptr;
     if (level != 1) {
         // Start from the next level-index: (level - 1) + 1 == level
-        carr_foreach_from_index(largepage_level_info_list, jter, level) {
+        carr_foreach_from_index(lg_page_level_info_list, jter, level) {
             if (!jter->is_supported) {
                 continue;
             }
@@ -276,7 +276,7 @@ get_leaf_pte_count_until_next_large(
             return UINT64_MAX;
         }
     } else {
-        carr_foreach_from_index(largepage_level_info_list,
+        carr_foreach_from_index(lg_page_level_info_list,
                                 jter,
                                 LARGEPAGE_LEVELS[0] - 1)
         {
@@ -346,7 +346,7 @@ find_highest_possible_level(struct pg_walker *const walker,
     }
 
     bool okay = false;
-    carr_foreach_rev_from_index(largepage_level_info_list,
+    carr_foreach_rev_from_index(lg_page_level_info_list,
                                 iter,
                                 highest_possible_level - 1)
     {
@@ -495,7 +495,7 @@ write_ptes_down_from_level(
                 break;
             }
 
-            if (!largepage_level_info_list[level - 1].is_supported) {
+            if (!lg_page_level_info_list[level - 1].is_supported) {
                 continue;
             }
 
@@ -880,7 +880,7 @@ alloc_ptes_down_from_level(
                 break;
             }
 
-            if (!largepage_level_info_list[level - 1].is_supported) {
+            if (!lg_page_level_info_list[level - 1].is_supported) {
                 continue;
             }
 

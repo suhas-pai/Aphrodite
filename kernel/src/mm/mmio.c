@@ -48,7 +48,7 @@ find_virt_addr(const struct range phys_range,
 {
     for (int8_t i = PGT_LEVEL_COUNT - 1; i > 1; i--) {
         const struct largepage_level_info *const level_info =
-            &largepage_level_info_list[i];
+            &lg_page_level_info_list[i];
 
         if (!level_info->is_supported || phys_range.size < level_info->size) {
             continue;
@@ -90,8 +90,8 @@ map_mmio_region(const struct range phys_range,
     struct mmio_region *const mmio = kmalloc(sizeof(*mmio));
     if (mmio == nullptr) {
         printk(LOGLEVEL_WARN,
-               "vmap_mmio(): failed to allocate mmio_region to map phys-range "
-               RANGE_FMT "\n",
+               "vmap_mmio(): failed to allocate mmio_region to map "
+               "phys-range " RANGE_FMT "\n",
                RANGE_FMT_ARGS(phys_range));
         return nullptr;
     }

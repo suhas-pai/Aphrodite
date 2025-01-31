@@ -81,15 +81,15 @@ pci_domain_write_64(const struct pci_domain *domain,
 
 #define pci_read(entity, type, field) \
     ({ \
-        __auto_type h_var(result) = (typeof_field(type, field))0; \
-        __auto_type h_var(bus) = pci_entity_get_bus(entity); \
+        auto h_var(result) = (typeof_field(type, field))0; \
+        auto h_var(bus) = pci_entity_get_bus(entity); \
         \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
                 h_var(result) = \
                     pci_domain_read_8(pci_bus_get_domain(h_var(bus)), \
-                                      &(entity)->loc, \
-                                      offsetof(type, field)); \
+                                     &(entity)->loc, \
+                                     offsetof(type, field)); \
                 break; \
             case sizeof(uint16_t): \
                 h_var(result) = \
@@ -117,7 +117,7 @@ pci_domain_write_64(const struct pci_domain *domain,
 
 #define pci_write(entity, type, field, value) \
     ({ \
-        __auto_type h_var(bus) = pci_entity_get_bus(entity); \
+        auto h_var(bus) = pci_entity_get_bus(entity); \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
                 pci_domain_write_8(pci_bus_get_domain(h_var(bus)), \
@@ -150,8 +150,8 @@ pci_domain_write_64(const struct pci_domain *domain,
 
 #define pci_read_from_base(entity, base, type, field) \
     ({ \
-        __auto_type h_var(result) = (typeof_field(type, field))0; \
-        __auto_type h_var(bus) = pci_entity_get_bus((entity)); \
+        auto h_var(result) = (typeof_field(type, field))0; \
+        auto h_var(bus) = pci_entity_get_bus((entity)); \
         \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
@@ -186,7 +186,7 @@ pci_domain_write_64(const struct pci_domain *domain,
 
 #define pci_write_from_base(entity, base, type, field, value) \
     ({ \
-        __auto_type h_var(bus) = pci_entity_get_bus((entity)); \
+        auto h_var(bus) = pci_entity_get_bus((entity)); \
         switch (sizeof_field(type, field)) { \
             case sizeof(uint8_t): \
                 pci_domain_write_8(pci_bus_get_domain(h_var(bus)), \

@@ -38,8 +38,8 @@ range_multiply(const struct range range,
                struct range *const result_out)
 {
     struct range result = RANGE_EMPTY();
-    if (!ckd_mul(&result.front, range.front, mult)
-     || !ckd_mul(&result.size, range.size, mult))
+    if (!ckd_mul(&result.front, range.front, mult) ||
+        !ckd_mul(&result.size, range.size, mult))
     {
         return false;
     }

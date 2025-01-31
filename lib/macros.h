@@ -112,75 +112,75 @@
 #define carr_indexof(arr, iter) ((iter) - (arr))
 
 #define carr_foreach(arr, name) \
-    const __auto_type h_var(end) = carr_end(arr); \
-    for (__auto_type name = &arr[0]; name != h_var(end); name++)
+    const auto h_var(end) = carr_end(arr); \
+    for (auto name = &arr[0]; name != h_var(end); name++)
 
 #define carr_foreach_from_iter(arr, name, iter) \
-    const __auto_type h_var(end) = carr_end(arr); \
-    for (__auto_type name = (iter); name != h_var(end); name++)
+    const auto h_var(end) = carr_end(arr); \
+    for (auto name = (iter); name != h_var(end); name++)
 
 #define carr_foreach_from_index(arr, name, index) \
-    const __auto_type h_var(end) = carr_end(arr); \
-    for (__auto_type name = (arr) + (index); name < h_var(end); name++)
+    const auto h_var(end) = carr_end(arr); \
+    for (auto name = (arr) + (index); name < h_var(end); name++)
 
 #define carr_foreach_mut(arr, name) \
-    __auto_type h_var(end) = carr_end(arr); \
-    for (__auto_type name = &arr[0]; name != h_var(end); name++)
+    auto h_var(end) = carr_end(arr); \
+    for (auto name = &arr[0]; name != h_var(end); name++)
 
 #define carr_foreach_mut_for_iter(arr, name, iter) \
-    __auto_type h_var(end) = carr_end(arr); \
-    for (__auto_type name = (iter); name != h_var(end); name++)
+    auto h_var(end) = carr_end(arr); \
+    for (auto name = (iter); name != h_var(end); name++)
 
 #define carr_foreach_mut_for_index(arr, name, index) \
-    __auto_type h_var(end) = carr_end(arr); \
-    for (__auto_type name = (arr) + (index); name < h_var(end); name++)
+    auto h_var(end) = carr_end(arr); \
+    for (auto name = (arr) + (index); name < h_var(end); name++)
 
 #define carr_foreach_rev(arr, name) \
-    for (__auto_type name = carr_rbegin(arr); name >= (arr); name--)
+    for (auto name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_rev_from_iter(arr, name, iter) \
-    for (__auto_type name = (iter); name >= (arr); name--)
+    for (auto name = (iter); name >= (arr); name--)
 
 #define carr_foreach_rev_from_index(arr, name, index) \
-    for (__auto_type name = (arr) + (index); name >= (arr); name--)
+    for (auto name = (arr) + (index); name >= (arr); name--)
 
 #define carr_foreach_mut_rev(arr, name) \
-    for (__auto_type name = carr_rbegin(arr); name >= (arr); name--)
+    for (auto name = carr_rbegin(arr); name >= (arr); name--)
 
 #define carr_foreach_mut_rev_from_iter(arr, name, iter) \
-    for (__auto_type name = (iter); name >= (arr); name--)
+    for (auto name = (iter); name >= (arr); name--)
 
 #define carr_foreach_mut_rev_from_index(arr, name, index) \
-    for (__auto_type name = (arr) + (index); name >= (arr); name--)
+    for (auto name = (arr) + (index); name >= (arr); name--)
 
 #define ptrarr_foreach(the_arr, count, name) \
-    const __auto_type h_var(arr) = (the_arr); \
-    const __auto_type h_var(end) = h_var(arr) + (count); \
-    for (__auto_type name = &h_var(arr)[0]; name != h_var(end); name++)
+    const auto h_var(arr) = (the_arr); \
+    const auto h_var(end) = h_var(arr) + (count); \
+    for (auto name = &h_var(arr)[0]; name != h_var(end); name++)
 
 #define swap(a, b) ({ \
-    const __auto_type __swap_tmp = (b); \
+    const auto __swap_tmp = (b); \
     b = a; \
     a = __swap_tmp; \
 })
 
 #define max(a, b) ({ \
-    const __auto_type __max_a = (a); \
-    const __auto_type __max_b = (b); \
+    const auto __max_a = (a); \
+    const auto __max_b = (b); \
     __max_a > __max_b ? __max_a : __max_b; \
 })
 
 #define min(a, b) ({ \
-    const __auto_type __min_a = (a); \
-    const __auto_type __min_b = (b); \
+    const auto __min_a = (a); \
+    const auto __min_b = (b); \
     __min_a < __min_b ? __min_a : __min_b; \
 })
 
 #define twovar_cmp(a, b) ({ \
-    const __auto_type __twovarcmp_a = (a); \
-    const __auto_type __twovarcmp_b = (b); \
-    __twovarcmp_a < __twovarcmp_b ? -1 \
-        : __twovarcmp_a > __twovarcmp_b ? 1 : 0; \
+    const auto __two_var_cmp_a = (a); \
+    const auto __two_var_cmp_b = (b); \
+    __two_var_cmp_a < __two_var_cmp_b ? -1 \
+        : __two_var_cmp_a > __two_var_cmp_b ? 1 : 0; \
 })
 
 #define reg_to_ptr(type, base, reg) ((type *)((uint64_t)(base) + (reg)))
@@ -193,7 +193,7 @@
 
 #define RAND_VAR_NAME() VAR_CONCAT(__random__, __LINE__)
 #define bits_to_bytes_roundup(bits) ({ \
-    const __auto_type __bits_to_bytes_bits__ = (bits); \
+    const auto __bits_to_bytes_bits__ = (bits); \
     __bits_to_bytes_bits__ % sizeof_bits(uint8_t) ? \
         bits_to_bytes_noround(__bits_to_bytes_bits__) + 1 : \
         bits_to_bytes_noround(__bits_to_bytes_bits__); \
@@ -208,13 +208,13 @@
         ~0ull : ~0ull >> (sizeof_bits(uint64_t) - (n)))
 
 #define has_mask(num, mask) ({ \
-    __auto_type __has_mask_mask__ = (mask); \
+    auto __has_mask_mask__ = (mask); \
     ((num) & __has_mask_mask__) == __has_mask_mask__; \
 })
 
 #define rm_mask(num, mask) ((num) & ((typeof(num))~(mask)))
 #define set_bits_for_mask(ptr, mask, value) ({ \
-    __auto_type __set_bits_ptr__ = (ptr);  \
+    auto __set_bits_ptr__ = (ptr);  \
     if (value) { \
         *__set_bits_ptr__ |= (mask); \
     } else { \
@@ -223,20 +223,20 @@
 })
 
 #define div_round_up(a, b) ({\
-    const __auto_type __div_round_a = (a); \
-    const __auto_type __div_round_b = (b); \
+    const auto __div_round_a = (a); \
+    const auto __div_round_b = (b); \
     __div_round_a % __div_round_b != 0 ? \
         (__div_round_a / __div_round_b) + 1 : (__div_round_a / __div_round_b); \
 })
 
 #define sign_extend_from_index(num, index) ({ \
-    const __auto_type __sign_extend_num__ = (num); \
-    const __auto_type __sign_extend_index__ = (index); \
+    const auto __sign_extend_num__ = (num); \
+    const auto __sign_extend_index__ = (index); \
     \
-    __auto_type __sign_extend_result__ = __sign_extend_num__; \
-    __auto_type __sign_extend_mask__ = \
-        mask_for_n_bits(sizeof_bits(__sign_extend_num__) \
-                      - __sign_extend_index__) \
+    auto __sign_extend_result__ = __sign_extend_num__; \
+    auto __sign_extend_mask__ = \
+        mask_for_n_bits(sizeof_bits(__sign_extend_num__) - \
+                        __sign_extend_index__) \
             << __sign_extend_index__; \
     \
     set_bits_for_mask(&__sign_extend_result__, \

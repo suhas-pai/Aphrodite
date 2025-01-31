@@ -91,9 +91,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
         #endif /* defined(__x86_64__) */
 
             case PCI_DOMAIN_ECAM: {
-                const struct pci_domain_ecam *const ecam =
-                    (const struct pci_domain_ecam *)domain;
-
+                const auto ecam = (const struct pci_domain_ecam *)domain;
                 if (!range_has_loc(ecam->bus_range, address.bus)) {
                     continue;
                 }
@@ -404,8 +402,8 @@ create_and_add_vmap(const uacpi_phys_addr addr,
     list_init(&vmap->list);
     list_add(&g_vmap_list, &vmap->list);
 
-    vmap->refcount = 1;
     spin_release_restore_intr(&g_vmap_lock, flag);
+    vmap->refcount = 1;
 
     return (void *)(uint64_t)vmap->region->base;
 }
@@ -441,15 +439,17 @@ void uacpi_kernel_unmap(void *const addr, const uacpi_size len) {
 
     with_spinlock_intr_disabled(&g_vmap_lock, {
         list_foreach(&g_vmap_list, list, vmap) {
-            if (range_has(mmio_region_get_range(vmap->region), range)) {
-                vmap->refcount--;
-                if (vmap->refcount == 0) {
-                    list_deinit(&vmap->list);
-                    uacpi_kernel_free(vmap);
-                }
-
-                break;
+            if (!range_has(mmio_region_get_range(vmap->region), range)) {
+                continue;
             }
+
+            vmap->refcount--;
+            if (vmap->refcount == 0) {
+                list_deinit(&vmap->list);
+                uacpi_kernel_free(vmap);
+            }
+
+            break;
         }
     });
 }

@@ -17,7 +17,7 @@ bool ps2_mouse_probe(struct device *const the_device) {
     struct acpi_device *const device =
         parent_of(the_device, struct acpi_device, device);
 
-    const struct os_acpi_device_resources *const resources = &device->resources;
+    const auto resources = &device->resources;
     irq_number_t mouse_irq = 0;
 
     array_foreach(&resources->irq_list, const struct os_acpi_irq_info, irq) {
@@ -104,13 +104,13 @@ static void init_mouse_driver() {
     static struct acpi_driver acpi_driver = {
         .pnp_ids = pnp_ids,
         .pnp_id_count = countof(pnp_ids),
-        .resources_flags = ACPI_DRIVER_RESOURCES_IRQ,
+        .resources_flags = OS_ACPI_DRIVER_RESOURCES_IRQ,
         .get_namespace = get_namespace,
     };
 
     driver_initialize(&acpi_driver.driver,
                       acpi_bus(),
-                      /*name=*/SV_STATIC("ps2-mouse"),
+                      SV_STATIC("ps2-mouse"),
                       ps2_mouse_probe,
                       /*remove=*/nullptr,
                       /*shutdown=*/nullptr,

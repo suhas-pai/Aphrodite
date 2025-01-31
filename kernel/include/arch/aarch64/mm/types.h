@@ -10,7 +10,7 @@
 
 #define MAX_ORDER 31
 
-#if defined(AARCH64_USE_16K_PAGES)
+#if defined(AARCH64_CONFIG_16K_PAGES)
     #define PML1_SHIFT 14ul
     #define PML2_SHIFT 25ul
     #define PML3_SHIFT 36ul
@@ -38,7 +38,7 @@
     #define PML3_MASK PML1_MASK
     #define PML4_MASK PML1_MASK
     #define PML5_MASK 0xf
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 
 #define PTE_PHYS_MASK 0x0000fffffffff000ull
 #define PAGE_SHIFT PML1_SHIFT
@@ -48,9 +48,9 @@
 #define PML3(phys) (((phys) >> PML3_SHIFT) & PML3_MASK)
 #define PML4(phys) (((phys) >> PML4_SHIFT) & PML4_MASK)
 
-#if !defined(AARCH64_USE_16K_PAGES)
+#if !defined(AARCH64_CONFIG_16K_PAGES)
     #define PML5(phys) (((phys) >> PML5_SHIFT) & PML5_MASK)
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 
 #define pte_to_phys(pte, level) ({ (void)(level); (pte) & PTE_PHYS_MASK; })
 #define phys_create_pte(phys) ((pte_t)phys)
@@ -59,16 +59,16 @@ typedef uint64_t pte_t;
 
 static const uint16_t PT_LEVEL_MASKS[PGT_LEVEL_COUNT + 1] = {
     (1ull << PML1_SHIFT) - 1, PML1_MASK, PML2_MASK, PML3_MASK, PML4_MASK,
-#if !defined(AARCH64_USE_16K_PAGES)
+#if !defined(AARCH64_CONFIG_16K_PAGES)
     PML5_MASK
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 };
 
 static const uint8_t PAGE_SHIFTS[PGT_LEVEL_COUNT] = {
     PML1_SHIFT, PML2_SHIFT, PML3_SHIFT, PML4_SHIFT,
-#if !defined(AARCH64_USE_16K_PAGES)
+#if !defined(AARCH64_CONFIG_16K_PAGES)
     PML5_SHIFT
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 };
 
 static const uint8_t LARGEPAGE_LEVELS[] = { 2, 3, 4 };
@@ -76,7 +76,7 @@ static const uint8_t LARGEPAGE_SHIFTS[] = {
     PML2_SHIFT, PML3_SHIFT, PML4_SHIFT
 };
 
-#if defined(AARCH64_USE_16K_PAGES)
+#if defined(AARCH64_CONFIG_16K_PAGES)
     #define PAGE_SIZE_32MIB (1ull << PML2_SHIFT)
     #define PAGE_SIZE_64GIB (1ull << PML3_SHIFT)
     #define PAGE_SIZE_128TIB (1ull << PML4_SHIFT)
@@ -92,7 +92,7 @@ static const uint8_t LARGEPAGE_SHIFTS[] = {
     #define LARGEPAGE_LEVEL_2MIB 2
     #define LARGEPAGE_LEVEL_1GIB 3
     #define LARGEPAGE_LEVEL_512GIB 4
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 
 struct largepage_level_info {
     uint8_t order;
@@ -103,11 +103,11 @@ struct largepage_level_info {
     uint64_t size;
 };
 
-extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
+extern struct largepage_level_info lg_page_level_info_list[PGT_LEVEL_COUNT];
 
-#if defined(AARCH64_USE_16K_PAGES)
+#if defined(AARCH64_CONFIG_16K_PAGES)
     #define PAGE_SIZE_AT_LEVEL(level) ({ \
-        __auto_type __page_size_level_result__ = (uint64_t)0; \
+        auto __page_size_level_result__ = (uint64_t)0; \
         switch (level) { \
             case 1: \
                 __page_size_level_result__ = PAGE_SIZE; \
@@ -131,7 +131,7 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
     })
 #else
     #define PAGE_SIZE_AT_LEVEL(level) ({ \
-        __auto_type __page_size_level_result__ = (uint64_t)0; \
+        auto __page_size_level_result__ = (uint64_t)0; \
         switch (level) { \
             case 1: \
                 __page_size_level_result__ = PAGE_SIZE; \
@@ -153,7 +153,7 @@ extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
         } \
         __page_size_level_result__; \
     })
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 
 enum pte_flags : uint64_t {
     __PTE_VALID  = 1ull << 0,

@@ -125,4 +125,4 @@ If not provided, they are given a default value that is detailed below:
   with the list in the correct format. Default is `""`
 * `CHECK_SLABS=` to enable pervasive slab checks in `kmalloc()` and other slab allocators. Default is `0`
 * `DEBUG_LOCKS=` to enable pervasive lock integrity checks. Default is `0`
-* `USE_UACPI=` to use [uACPI](https://github.com/UltraOS/uACPI), an implementation of ACPI necessary for full device driver and hardware support. Default is `1`
+* `CONFIG_UACPI=` to use [uACPI](https://github.com/UltraOS/uACPI), an implementation of ACPI necessary for full device driver and hardware support. Default is `1`

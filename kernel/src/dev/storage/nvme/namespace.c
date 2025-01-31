@@ -233,8 +233,8 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
         if (prp_count != 0) {
             uint64_t *const prp_list =
                 &namespace->io_queue.phys_region_page_list[
-                    namespace->io_queue.phys_region_pages_count
-                  * command.readwrite.cid];
+                    namespace->io_queue.phys_region_pages_count *
+                    command.readwrite.cid];
 
             uint8_t i = 0;
             ptrarr_foreach(prp_list, prp_count, prp) {

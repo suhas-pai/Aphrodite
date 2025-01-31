@@ -63,8 +63,8 @@ else
 	override COMMON_CFLAGS += -O0
 endif
 
-ifeq ($(USE_16K_PAGES), 1)
-	override COMMON_CFLAGS += -DAARCH64_USE_16K_PAGES
+ifeq ($(CONFIG_16K_PAGES), 1)
+	override COMMON_CFLAGS += -DAARCH64_CONFIG_16K_PAGES
 endif
 
 ifeq ($(DISABLE_FLANTERM), 1)
@@ -83,9 +83,10 @@ ifeq ($(CHECK_SLABS), 1)
 	override COMMON_CFLAGS += -DCHECK_SLABS
 endif
 
-ifeq ($(USE_UACPI), 1)
-	override COMMON_CFLAGS += -DUSE_UACPI \
-		-DUACPI_FORMATTED_LOGGING -DUACPI_NATIVE_ALLOC_ZEROED
+ifeq ($(CONFIG_UACPI), 1)
+	override COMMON_CFLAGS += -DCONFIG_UACPI \
+		-DUACPI_FORMATTED_LOGGING -DUACPI_NATIVE_ALLOC_ZEROED \
+		-DUACPI_OVERRIDE_LIBC
 endif
 
 # User controllable C flags.
@@ -305,7 +306,7 @@ obj-$(ARCH)/extern/flanterm/%.c.o: src/extern/flanterm/%.c GNUmakefile
 
 obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
-	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -Wshadow -fsanitize=undefined,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -Wshadow -fsanitize=undefined,$(CFLAGS)) -Iinclude/sys/uacpi $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"

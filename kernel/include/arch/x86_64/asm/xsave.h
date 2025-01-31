@@ -228,7 +228,7 @@ static inline const char *xsave_feat_get_string(const enum xsave_feature feat) {
         case XSAVE_FEAT_HDC:
             return "hdc";
         case XSAVE_FEAT_UINTR:
-            return "uintr";
+            return "user-interrupts";
         case XSAVE_FEAT_LBR:
             return "lbr";
         case XSAVE_FEAT_HWP:

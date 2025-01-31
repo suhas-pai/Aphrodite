@@ -132,7 +132,7 @@ __debug_optimize(3) char sv_back(const struct string_view sv) {
     return sv.begin[sv.length - 1];
 }
 
-__debug_optimize(3)  int64_t
+__debug_optimize(3) int64_t
 sv_find_char(const struct string_view sv, const uint32_t index, const char ch) {
     assert(sv_has_index(sv, index));
 

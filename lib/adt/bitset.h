@@ -30,12 +30,12 @@
                 1ull << ((index) % sizeof_bits(uint64_t)))
 
 #define bitset_find_set(bitset, length, invert) ({ \
-        __auto_type h_var(bit_set) = (bitset); \
-        __auto_type h_var(len) = (uint64_t)(length); \
-        __auto_type h_var(should_invert) = (invert); \
+        auto h_var(bit_set) = (bitset); \
+        auto h_var(len) = (uint64_t)(length); \
+        auto h_var(should_invert) = (invert); \
         \
-        __auto_type h_var(result) = BITSET_INVALID; \
-        __auto_type h_var(count) = bitset_size_for_count(h_var(len)); \
+        auto h_var(result) = BITSET_INVALID; \
+        auto h_var(count) = bitset_size_for_count(h_var(len)); \
         \
         for (uint32_t h_var(index) = 0; \
              h_var(index) != h_var(count); \
@@ -69,12 +69,12 @@
     })
 
 #define bitset_find_unset(bitset, length, invert) ({ \
-        __auto_type h_var(bit_set) = (bitset); \
-        __auto_type h_var(len) = (uint64_t)(length); \
-        __auto_type h_var(should_invert) = (invert); \
+        auto h_var(bit_set) = (bitset); \
+        auto h_var(len) = (uint64_t)(length); \
+        auto h_var(should_invert) = (invert); \
         \
-        __auto_type h_var(result) = BITSET_INVALID; \
-        __auto_type h_var(count) = bitset_size_for_count(h_var(len)); \
+        auto h_var(result) = BITSET_INVALID; \
+        auto h_var(count) = bitset_size_for_count(h_var(len)); \
         \
         for (uint32_t h_var(index) = 0; \
              h_var(index) != h_var(count); \

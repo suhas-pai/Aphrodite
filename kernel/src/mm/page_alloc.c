@@ -924,7 +924,7 @@ struct page *
 alloc_large_page(const pg_level_t level, const uint64_t alloc_flags) {
     struct page_zone *zone = page_zoneiter_start();
     const struct largepage_level_info *const info =
-        &largepage_level_info_list[level - 1];
+        &lg_page_level_info_list[level - 1];
 
     if (__builtin_expect(!info->is_supported, 0)) {
         printk(LOGLEVEL_WARN,
@@ -965,7 +965,7 @@ alloc_large_page_from_zone(struct page_zone *zone,
                            const bool fallback)
 {
     const struct largepage_level_info *const info =
-        &largepage_level_info_list[level - 1];
+        &lg_page_level_info_list[level - 1];
 
     if (__builtin_expect(!info->is_supported, 0)) {
         printk(LOGLEVEL_WARN,
@@ -1133,7 +1133,7 @@ void free_large_page(struct page *const head) {
     with_spinlock_intr_disabled(&section->lock, {
         const pg_level_t level = head->largehead.level;
         struct largepage_level_info *const level_info =
-            &largepage_level_info_list[level - 1];
+            &lg_page_level_info_list[level - 1];
 
         const uint64_t page_count = 1ull << level_info->order;
         const struct page *const end = head + page_count;
@@ -1208,7 +1208,7 @@ deref_large_page(struct page *const page,
     }
 
     const struct page *const end =
-        page + (1ull << largepage_level_info_list[level - 1].order);
+        page + (1ull << lg_page_level_info_list[level - 1].order);
 
     for (struct page *iter = page; iter != end; iter++) {
         deref_page(iter, pageop);

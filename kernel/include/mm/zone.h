@@ -26,6 +26,6 @@ struct page_zone *page_zone_default();
 struct page_zone *page_zone_low4g();
 
 #define for_each_page_zone(zone) \
-    for (__auto_type zone = page_zoneiter_start(); \
-         zone != nullptr;                             \
+    for (auto zone = page_zoneiter_start(); \
+         zone != nullptr; \
          zone = page_zoneiter_next(zone))

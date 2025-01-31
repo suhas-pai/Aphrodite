@@ -424,9 +424,7 @@ static bool pci_ecam_dtb_probe(struct device *const the_device) {
                             mmio_range.front,
                             /*segment=*/0);
 
-    struct pci_bus *const root_bus =
-        pci_domain_get_root_bus(&ecam_domain->domain);
-
+    const auto root_bus = pci_domain_get_root_bus(&ecam_domain->domain);
     if (!parse_dtb_resources(node, root_bus)) {
         pci_remove_ecam_domain(ecam_domain);
         return false;
@@ -450,7 +448,7 @@ static void pci_ecam_init() {
     simple_alloc_init(&g_ecam_alloc);
     driver_initialize(&dtb_driver.driver,
                       &dtb_bus()->bus,
-                      /*name=*/SV_STATIC("pci-ecam"),
+                      SV_STATIC("pci-ecam"),
                       pci_ecam_dtb_probe,
                       /*remove=*/nullptr,
                       /*shutdown=*/nullptr,

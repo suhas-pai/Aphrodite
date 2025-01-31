@@ -1389,10 +1389,10 @@ __debug_optimize(3) void cpu_early_init() {
     collect_cpu_features();
     list_add(cpus_get_list(), &g_base_cpu_info.cpu_list);
 
-#if defined(AARCH64_USE_16K_PAGES)
+#if defined(AARCH64_CONFIG_16K_PAGES)
     assert_msg(g_cpu_features.granule_16k_supported,
                "cpu: machine doesn't support 16kib pages");
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 }
 
 #define KERNEL_IRQ_STACK_ORDER 2

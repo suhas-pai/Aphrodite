@@ -7,7 +7,7 @@
 #include "cpu/isr.h"
 #include "sched/scheduler.h"
 
-__hidden isr_vector_t g_sched_vector = 0;
+isr_vector_t g_sched_vector = 0;
 
 __debug_optimize(3) static void
 sched_handle_irq(const uint64_t intr_no,

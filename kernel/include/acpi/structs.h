@@ -311,26 +311,26 @@ struct os_acpi_madt_riscv_plic {
 
 
 enum os_acpi_gas_addrspace_kind : uint8_t {
-    ACPI_GAS_ADDRSPACE_KIND_SYSMEM,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_IO,
-    ACPI_GAS_ADDRSPACE_KIND_PCI_CONFIG,
-    ACPI_GAS_ADDRSPACE_KIND_EMBED_CONTROLLER,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_MANAGEMENT_BUS,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_CMOS,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_PCI_DEV_BAR_TARGET,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_INTELLIGENT_PLATFORM_MANAGEMENT_INFRA,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_GEN_PURPOSE_IO,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_GEN_SERIAL_BUS,
-    ACPI_GAS_ADDRSPACE_KIND_SYS_PLATFORM_COMM_CHANNEL,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYSMEM,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_IO,
+    OS_ACPI_GAS_ADDRSPACE_KIND_PCI_CONFIG,
+    OS_ACPI_GAS_ADDRSPACE_KIND_EMBED_CONTROLLER,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_MANAGEMENT_BUS,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_CMOS,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_PCI_DEV_BAR_TARGET,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_INTELLIGENT_PLATFORM_MANAGEMENT_INFRA,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_GEN_PURPOSE_IO,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_GEN_SERIAL_BUS,
+    OS_ACPI_GAS_ADDRSPACE_KIND_SYS_PLATFORM_COMM_CHANNEL,
 };
 
 enum os_acpi_gas_access_size_kind : uint8_t {
-    ACPI_GAS_ACCESS_SIZE_UNDEFINED,
+    OS_ACPI_GAS_ACCESS_SIZE_UNDEFINED,
 
-    ACPI_GAS_ACCESS_SIZE_1_BYTE,
-    ACPI_GAS_ACCESS_SIZE_2_BYTE,
-    ACPI_GAS_ACCESS_SIZE_4_BYTE,
-    ACPI_GAS_ACCESS_SIZE_8_BYTE,
+    OS_ACPI_GAS_ACCESS_SIZE_1_BYTE,
+    OS_ACPI_GAS_ACCESS_SIZE_2_BYTE,
+    OS_ACPI_GAS_ACCESS_SIZE_4_BYTE,
+    OS_ACPI_GAS_ACCESS_SIZE_8_BYTE,
 };
 
 // gas = Generic Address Structure
@@ -345,60 +345,60 @@ struct os_acpi_gas {
 } __packed;
 
 enum os_acpi_fadt_preferred_pm_profile : uint8_t {
-    ACPI_FADT_PREFERRED_PM_PROFILE_UNSPECIFIED,
-    ACPI_FADT_PREFERRED_PM_PROFILE_DESKTOP,
-    ACPI_FADT_PREFERRED_PM_PROFILE_MOBILE,
-    ACPI_FADT_PREFERRED_PM_PROFILE_WORKSTATION,
-    ACPI_FADT_PREFERRED_PM_PROFILE_ENTERPRISE_SERVER,
-    ACPI_FADT_PREFERRED_PM_PROFILE_SOHO_SERVER,
-    ACPI_FADT_PREFERRED_PM_PROFILE_APPLIANCE_PC,
-    ACPI_FADT_PREFERRED_PM_PROFILE_PERFORMANCE_SERVER,
-    ACPI_FADT_PREFERRED_PM_PROFILE_TABLET
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_UNSPECIFIED,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_DESKTOP,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_MOBILE,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_WORKSTATION,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_ENTERPRISE_SERVER,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_SOHO_SERVER,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_APPLIANCE_PC,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_PERFORMANCE_SERVER,
+    OS_ACPI_FADT_PREFERRED_PM_PROFILE_TABLET
 };
 
 enum os_acpi_fadt_flags : uint32_t {
-    __ACPI_FADT_WBINVD                             = 1 << 0,
-    __ACPI_FADT_WBINVD_FLUSH                       = 1 << 1,
-    __ACPI_FADT_PROC_C1                            = 1 << 2,
-    __ACPI_FADT_P_LVL2_UP                          = 1 << 3,
-    __ACPI_FADT_PWR_BUTTON                         = 1 << 4,
-    __ACPI_FADT_SLP_BUTTON                         = 1 << 5,
-    __ACPI_FADT_FIX_RTC                            = 1 << 6,
-    __ACPI_FADT_RTC_S4                             = 1 << 7,
-    __ACPI_FADT_TMR_VAL_EXT                        = 1 << 8,
-    __ACPI_FADT_DCK_CAP                            = 1 << 9,
-    __ACPI_FADT_RESET_REG_SUP                      = 1 << 10,
-    __ACPI_FADT_SEALED_CASE                        = 1 << 11,
-    __ACPI_FADT_HEADLESS                           = 1 << 12,
-    __ACPI_FADT_CPU_SW_SLP                         = 1 << 13,
-    __ACPI_FADT_PCI_EXP_WAK                        = 1 << 14,
-    __ACPI_FADT_USE_PLATFORM_CLOCK                 = 1 << 15,
-    __ACPI_FADT_S4_RTC_STS_VALID                   = 1 << 16,
-    __ACPI_FADT_REMOTE_POWER_ON                    = 1 << 17,
-    __ACPI_FADT_FORCE_APIC_CLUSTER                 = 1 << 18,
-    __ACPI_FADT_FORCE_APIC_PHYS_DEST_MODE          = 1 << 19,
-    __ACPI_FADT_FORCE_HW_REDUCED_ACPI              = 1 << 20,
-    __ACPI_FADT_FORCE_HW_LOW_POWER_S0_IDLE_CAPABLE = 1 << 21,
+    __OS_ACPI_FADT_WBINVD                             = 1 << 0,
+    __OS_ACPI_FADT_WBINVD_FLUSH                       = 1 << 1,
+    __OS_ACPI_FADT_PROC_C1                            = 1 << 2,
+    __OS_ACPI_FADT_P_LVL2_UP                          = 1 << 3,
+    __OS_ACPI_FADT_PWR_BUTTON                         = 1 << 4,
+    __OS_ACPI_FADT_SLP_BUTTON                         = 1 << 5,
+    __OS_ACPI_FADT_FIX_RTC                            = 1 << 6,
+    __OS_ACPI_FADT_RTC_S4                             = 1 << 7,
+    __OS_ACPI_FADT_TMR_VAL_EXT                        = 1 << 8,
+    __OS_ACPI_FADT_DCK_CAP                            = 1 << 9,
+    __OS_ACPI_FADT_RESET_REG_SUP                      = 1 << 10,
+    __OS_ACPI_FADT_SEALED_CASE                        = 1 << 11,
+    __OS_ACPI_FADT_HEADLESS                           = 1 << 12,
+    __OS_ACPI_FADT_CPU_SW_SLP                         = 1 << 13,
+    __OS_ACPI_FADT_PCI_EXP_WAK                        = 1 << 14,
+    __OS_ACPI_FADT_USE_PLATFORM_CLOCK                 = 1 << 15,
+    __OS_ACPI_FADT_S4_RTC_STS_VALID                   = 1 << 16,
+    __OS_ACPI_FADT_REMOTE_POWER_ON                    = 1 << 17,
+    __OS_ACPI_FADT_FORCE_APIC_CLUSTER                 = 1 << 18,
+    __OS_ACPI_FADT_FORCE_APIC_PHYS_DEST_MODE          = 1 << 19,
+    __OS_ACPI_FADT_FORCE_HW_REDUCED_ACPI              = 1 << 20,
+    __OS_ACPI_FADT_FORCE_HW_LOW_POWER_S0_IDLE_CAPABLE = 1 << 21,
 };
 
 enum os_acpi_fadt_iapc_boot_flags : uint8_t {
-    __ACPI_FADT_IAPC_BOOT_LEGACY_DEVICES          = 1 << 0,
-    __ACPI_FADT_IAPC_BOOT_8042                    = 1 << 1,
-    __ACPI_FADT_IAPC_BOOT_VGA_NOT_PRESENT         = 1 << 2,
-    __ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED       = 1 << 3,
-    __ACPI_FADT_IAPC_BOOT_PCIe_ASPM_NOT_SUPPORTED = 1 << 4,
-    __ACPI_FADT_IAPC_BOOT_CMOS_NOT_PRESENT        = 1 << 5,
+    __OS_ACPI_FADT_IAPC_BOOT_LEGACY_DEVICES          = 1 << 0,
+    __OS_ACPI_FADT_IAPC_BOOT_8042                    = 1 << 1,
+    __OS_ACPI_FADT_IAPC_BOOT_VGA_NOT_PRESENT         = 1 << 2,
+    __OS_ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED       = 1 << 3,
+    __OS_ACPI_FADT_IAPC_BOOT_PCIe_ASPM_NOT_SUPPORTED = 1 << 4,
+    __OS_ACPI_FADT_IAPC_BOOT_CMOS_NOT_PRESENT        = 1 << 5,
 };
 
 enum os_acpi_fadt_arm_boot_flags : uint8_t {
-    __ACPI_FADT_ARM_BOOT_PSCI_COMPLIANT = 1 << 0,
-    __ACPI_FADT_ARM_BOOT_PSCI_USE_HVC = 1 << 1,
+    __OS_ACPI_FADT_ARM_BOOT_PSCI_COMPLIANT = 1 << 0,
+    __OS_ACPI_FADT_ARM_BOOT_PSCI_USE_HVC = 1 << 1,
 };
 
 enum os_acpi_fadt_pm1_status : uint16_t {
     // This bit gets set any time the most significant bit of a 24/32-bit
     // counter changes from clear to set or set to clear.
-    __ACPI_FADT_PM1_STATUS_TIMER_CARRY_STATUS = 1 << 0,
+    __OS_ACPI_FADT_PM1_STATUS_TIMER_CARRY_STATUS = 1 << 0,
 
     /*
      * This is the bus master status bit. This bit is set any time a system bus
@@ -408,7 +408,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * incoherent cache for a processor in the C3 state when the bus master
      * performs a memory transaction).
      */
-    __ACPI_FADT_PM1_STATUS_BUS_MASTER_STATUS = 1 << 4,
+    __OS_ACPI_FADT_PM1_STATUS_BUS_MASTER_STATUS = 1 << 4,
 
     /*
      * This bit is set when an SCI is generated due to the platform runtime
@@ -418,7 +418,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * the platform runtime firmware releasing control of the Global Lock and
      * having seen the pending bit set.
      */
-    __ACPI_FADT_PM1_STATUS_GBL_STATUS = 1 << 5,
+    __OS_ACPI_FADT_PM1_STATUS_GBL_STATUS = 1 << 5,
 
     /*
      * This optional bit is set when the Power Button is pressed. In the system
@@ -441,7 +441,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * ignored by OSPM. If the power button was the cause of the wake (from an
      * S1-S4 state), then this bit is set prior to returning control to OSPM.
      */
-    __ACPI_FADT_PM1_STATUS_PWR_BTN_STATUS = 1 << 8,
+    __OS_ACPI_FADT_PM1_STATUS_PWR_BTN_STATUS = 1 << 8,
 
     /*
      * This optional bit is set when the sleep button is pressed. In the system
@@ -459,7 +459,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * If the sleep button was the cause of the wake (from an S1-S4 state), then
      * this bit is set prior to returning control to OSPM.
      */
-    __ACPI_FADT_PM1_STATUS_SLP_BTN_STATUS = 1 << 9,
+    __OS_ACPI_FADT_PM1_STATUS_SLP_BTN_STATUS = 1 << 9,
 
     /*
      * This optional bit is set when the RTC generates an alarm (asserts the RTC
@@ -473,7 +473,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * FADT is set, and the RTC was the cause of the wake from the S4 state),
      * then this bit is set prior to returning control to OSPM.
      */
-    __ACPI_FADT_PM1_STATUS_RTC_STS = 1 << 10,
+    __OS_ACPI_FADT_PM1_STATUS_RTC_STS = 1 << 10,
 
     /*
      * This bit is optional for chipsets that implement PCI Express.
@@ -497,7 +497,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * sleeping state. Thus if the bit is 1 and the system is put into a
      * sleeping state, the system will not automatically wake.
      */
-    __ACPI_FADT_PM1_STATUS_PCIEXP_WAKE_STS = 1 << 14,
+    __OS_ACPI_FADT_PM1_STATUS_PCIEXP_WAKE_STS = 1 << 14,
 
     /*
      * This bit is set when the system is in the sleeping state and an enabled
@@ -505,7 +505,7 @@ enum os_acpi_fadt_pm1_status : uint16_t {
      * working state. This bit is set by hardware and can only be cleared by
      * software writing a "1" to this bit position.
      */
-    __ACPI_FADT_PM1_STATUS_WAKE_STATUS = 1 << 15,
+    __OS_ACPI_FADT_PM1_STATUS_WAKE_STATUS = 1 << 15,
 };
 
 /*
@@ -524,11 +524,11 @@ enum os_acpi_fadt_pm1_status : uint16_t {
  */
 
 enum os_acpi_fadt_pm1_enable_registers : uint16_t {
-    __ACPI_FADT_PM1_ENABLE_TMR_EN     = 1 << 0,
-    __ACPI_FADT_PM1_ENABLE_GBL_EN     = 1 << 5,
-    __ACPI_FADT_PM1_ENABLE_PWR_BTN_EN = 1 << 8,
-    __ACPI_FADT_PM1_ENABLE_SLP_BTN_EN = 1 << 9,
-    __ACPI_FADT_PM1_ENABLE_RTC_EN     = 1 << 10,
+    __OS_ACPI_FADT_PM1_ENABLE_TMR_EN     = 1 << 0,
+    __OS_ACPI_FADT_PM1_ENABLE_GBL_EN     = 1 << 5,
+    __OS_ACPI_FADT_PM1_ENABLE_PWR_BTN_EN = 1 << 8,
+    __OS_ACPI_FADT_PM1_ENABLE_SLP_BTN_EN = 1 << 9,
+    __OS_ACPI_FADT_PM1_ENABLE_RTC_EN     = 1 << 10,
 
     /*
      * This bit disables the inputs to the PCIEXP_WAKE_STS bit in the PM1 Status
@@ -542,7 +542,7 @@ enum os_acpi_fadt_pm1_enable_registers : uint16_t {
      * prevent entry to a sleeping state. Thus if the bit is 1 and the system is
      * put into a sleeping state, the system will not automatically wake.
      */
-    __ACPI_FADT_PM1_ENABLE_PCIEXP_WAKE_EN = 1 << 14,
+    __OS_ACPI_FADT_PM1_ENABLE_PCIEXP_WAKE_EN = 1 << 14,
 };
 
 enum os_acpi_fadt_pm1_control_registers  : uint16_t {
@@ -554,7 +554,7 @@ enum os_acpi_fadt_pm1_control_registers  : uint16_t {
      * responsibility of the hardware to set or reset this bit. OSPM always
      * preserves this bit position.
      */
-    __ACPI_FADT_PM1_CONTROL_SCI_EN = 1 << 0,
+    __OS_ACPI_FADT_PM1_CONTROL_SCI_EN = 1 << 0,
 
     /*
      * When set, this bit allows the generation of a bus master request to cause
@@ -562,7 +562,7 @@ enum os_acpi_fadt_pm1_control_registers  : uint16_t {
      * bit is reset, the generation of a bus master request does not affect any
      * processor in the C3 state.
      */
-    __ACPI_FADT_PM1_CONTROL_BM_RLD = 1 << 1,
+    __OS_ACPI_FADT_PM1_CONTROL_BM_RLD = 1 << 1,
 
     /*
      * This write-only bit is used by the ACPI software to raise an event to the
@@ -574,7 +574,7 @@ enum os_acpi_fadt_pm1_control_registers  : uint16_t {
      * Global Lock and the setting of the pending bit in the FACS memory
      * structure.
      */
-    __ACPI_FADT_PM1_CONTROL_GBL_RLS = 1 << 2,
+    __OS_ACPI_FADT_PM1_CONTROL_GBL_RLS = 1 << 2,
 
     /*
      * Defines the type of sleeping or soft-off state the system enters when the
@@ -584,14 +584,14 @@ enum os_acpi_fadt_pm1_control_registers  : uint16_t {
      * state (as described by the object). OSPM takes the two values from the
      * \_Sx object and programs each value into the respective SLP_TYPx field.
      */
-    __ACPI_FADT_PM1_CONTROL_SLP_TYP = 0b111ull << 10,
+    __OS_ACPI_FADT_PM1_CONTROL_SLP_TYP = 0b111ull << 10,
 
     /*
      * This is a write-only bit and reads to it always return a zero. Setting
      * this bit causes the system to sequence into the sleeping state associated
      * with the SLP_TYPx fields programmed with the values from the \_Sx object.
      */
-    __ACPI_FADT_PM1_CONTROL_SLP_EN = 1 << 13,
+    __OS_ACPI_FADT_PM1_CONTROL_SLP_EN = 1 << 13,
 };
 
 struct os_acpi_fadt {
@@ -698,7 +698,7 @@ struct os_acpi_fadt {
 } __packed;
 
 enum os_acpi_fadt_pm2_control_registers : uint8_t {
-    __ACPI_FADT_PM2_CONTROL_ABR_DISABLE = 1 << 0,
+    __OS_ACPI_FADT_PM2_CONTROL_ABR_DISABLE = 1 << 0,
 };
 
 struct os_acpi_mcfg_entry {
@@ -717,8 +717,8 @@ struct os_acpi_mcfg {
 } __packed;
 
 enum os_acpi_gtdt_flags : uint8_t {
-    __ACPI_GTDT_EDGE_TRIGGER_IRQ = 1 << 0,
-    __ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ = 1 << 1,
+    __OS_ACPI_GTDT_EDGE_TRIGGER_IRQ = 1 << 0,
+    __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ = 1 << 1,
 
     /*
      * This timer is guaranteed to assert its interrupt and wake a processor,
@@ -726,7 +726,7 @@ enum os_acpi_gtdt_flags : uint8_t {
      * ARM Generic Timer may generate an interrupt must be supported, and must
      * be capable of waking the processor.
      */
-    __ACPI_GTDT_ALWAYS_ON_CAP = 1 << 2,
+    __OS_ACPI_GTDT_ALWAYS_ON_CAP = 1 << 2,
 };
 
 struct os_acpi_gtdt {
@@ -759,7 +759,7 @@ struct os_acpi_gtdt {
 } __packed;
 
 enum os_acpi_gtdt_platform_timer_kind : uint8_t {
-    ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK,
+    OS_ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK,
 };
 
 struct os_acpi_gtdt_platform_timer_base {
@@ -767,16 +767,16 @@ struct os_acpi_gtdt_platform_timer_base {
 } __packed;
 
 enum os_acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags : uint8_t {
-    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ =
+    __OS_ACPI_GTDT_PLAT_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ =
         1 << 0,
 
-    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_PHYSVIRT_TIMER_ACTIVE_LOW_POLARITY_IRQ =
+    __OS_ACPI_GTDT_PLAT_TIMER_GT_BLOCK_PHYSVIRT_TIMER_ACTIVE_LOW_POLARITY_IRQ =
         1 << 1,
 };
 
 enum os_acpi_gtdt_platform_timer_gt_block_timer_common_flags : uint8_t {
-    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_COMMON_SECURE = 1 << 0,
-    __ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_ALWAYS_ON_CAP = 1 << 1,
+    __OS_ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_COMMON_SECURE = 1 << 0,
+    __OS_ACPI_GTDT_PLATFORM_TIMER_GT_BLOCK_TIMER_ALWAYS_ON_CAP = 1 << 1,
 };
 
 struct os_acpi_gtdt_platform_timer_gt_block_timer {
@@ -808,10 +808,10 @@ struct os_acpi_gtdt_platform_timer_gt_block {
 } __packed;
 
 enum os_acpi_gtdt_platform_timer_generic_watchdog_flags : uint8_t {
-    __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_EDGE_TRIGGER_IRQ = 1 << 0,
-    __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_ACTIVE_LOW_POLARITY_IRQ =
+    __OS_ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_EDGE_TRIGGER_IRQ = 1 << 0,
+    __OS_ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_ACTIVE_LOW_POLARITY_IRQ =
         1 << 1,
-    __ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_SECURE_TIMER_IRQ = 1 << 2,
+    __OS_ACPI_GTDT_PLATFORM_TIMER_GENERIC_WATCHDOG_SECURE_TIMER_IRQ = 1 << 2,
 };
 
 struct os_acpi_gtdt_platform_timer_generic_watchdog {
@@ -828,8 +828,8 @@ struct os_acpi_gtdt_platform_timer_generic_watchdog {
 } __packed;
 
 enum os_acpi_pptt_node_kind : uint8_t {
-    ACPI_PPTT_NODE_PROCESSOR_HIERARCHY,
-    ACPI_PPTT_NODE_CACHE_TYPE
+    OS_OS_ACPI_PPTT_NODE_PROCESSOR_HIERARCHY,
+    OS_OS_ACPI_PPTT_NODE_CACHE_TYPE
 };
 
 struct os_acpi_pptt_node_base {
@@ -839,7 +839,7 @@ struct os_acpi_pptt_node_base {
 enum os_acpi_pptt_processor_hierarchy_node_flags : uint8_t {
     // This node of the processor topology represents the boundary of a physical
     // package, whether socketed or surface mounted.
-    __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG = 1 << 0,
+    __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_PHYSICAL_PKG = 1 << 0,
 
     /*
      * For non-leaf entries in the processor topology, the ACPI Processor ID
@@ -854,21 +854,21 @@ enum os_acpi_pptt_processor_hierarchy_node_flags : uint8_t {
      * For leaf entries in PPTT that represent processors listed in MADT, the
      * ACPI Processor ID must always be provided and this flag must be set to 1.
      */
-    __ACPI_PPTT_PROCESSOR_HIERARCHY_ACPI_ID_VALID = 1 << 1,
+    __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_ACPI_ID_VALID = 1 << 1,
 
     /*
      * For leaf entries: must be set to 1 if the processing element representing
      * this processor shares functional units with sibling nodes. For non-leaf
      * entries: must be set to 0.
      */
-    __ACPI_PPTT_PROCESSOR_HIERARCHY_PROCESSOR_IS_THREAD = 1 << 2,
+    __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_PROCESSOR_IS_THREAD = 1 << 2,
 
     /*
      * For leaf entries: must be set to 1 if the processing element representing
      * this processor shares functional units with sibling nodes. For non-leaf
      * entries: must be set to 0.
      */
-    __ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_IS_LEAF = 1 << 3,
+    __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_NODE_IS_LEAF = 1 << 3,
 
     /*
      * A value of 1 indicates that all children processors share an identical
@@ -876,7 +876,7 @@ enum os_acpi_pptt_processor_hierarchy_node_flags : uint8_t {
      * the OSPM. Note: this implies an identical processor version and identical
      * implementation reversion, not just a matching architecture revision.
      */
-    __ACPI_PPTT_PROCESSOR_HIERARCHY_IDENTICAL_IMPL = 1 << 4,
+    __OS_ACPI_PPTT_PROCESSOR_HIERARCHY_IDENTICAL_IMPL = 1 << 4,
 };
 
 struct os_acpi_pptt_processor_hierarchy_node {
@@ -893,46 +893,46 @@ struct os_acpi_pptt_processor_hierarchy_node {
 } __packed;
 
 enum os_acpi_pptt_cache_type_node_attr_alloc_kind : uint8_t {
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2,
 };
 
 enum os_acpi_pptt_cache_type_node_attr_cache_kind : uint8_t {
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED_2,
 };
 
 enum os_acpi_pptt_cache_type_node_attr_write_policy : uint8_t {
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_THROUGH
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_THROUGH
 };
 
 enum os_acpi_pptt_cache_type_node_attr_write_shifts : uint8_t {
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT = 2,
-    ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT = 4
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT = 2,
+    OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT = 4
 };
 
 enum os_acpi_pptt_cache_type_node_attr_write_masks : uint8_t {
-    __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND = 0b11,
-    __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND =
-        0b11 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT,
-    __ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY =
-        0b1 << ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND = 0b11,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND =
+        0b11 << OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY =
+        0b1 << OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT
 };
 
 enum os_acpi_pptt_cache_type_node_flags : uint8_t {
-    __ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID = 1 << 0,
-    __ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID = 1 << 1,
-    __ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID = 1 << 2,
-    __ACPI_PPTT_CACHE_TYPE_NODE_ALLOC_KIND_VALID = 1 << 3,
-    __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_KIND_VALID = 1 << 4,
-    __ACPI_PPTT_CACHE_TYPE_NODE_WRITE_POLICY_KIND_VALID = 1 << 5,
-    __ACPI_PPTT_CACHE_TYPE_NODE_LINE_SIZE_VALID = 1 << 6,
-    __ACPI_PPTT_CACHE_TYPE_NODE_CACHE_ID_VALID = 1 << 7,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID = 1 << 0,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID = 1 << 1,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID = 1 << 2,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_ALLOC_KIND_VALID = 1 << 3,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_CACHE_KIND_VALID = 1 << 4,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_WRITE_POLICY_KIND_VALID = 1 << 5,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_LINE_SIZE_VALID = 1 << 6,
+    __OS_ACPI_PPTT_CACHE_TYPE_NODE_CACHE_ID_VALID = 1 << 7,
 };
 
 struct os_acpi_pptt_cache_type_node {
@@ -959,53 +959,53 @@ struct os_acpi_pptt {
 };
 
 enum os_acpi_spcr_interface_kind : uint8_t {
-    ACPI_SPCR_INTERFACE_16550_COMPATIBLE,
-    ACPI_SPCR_INTERFACE_16550_SUBSET,
-    ACPI_SPCR_INTERFACE_MAX311XE_SPI,
-    ACPI_SPCR_INTERFACE_ARM_PL011,
-    ACPI_SPCR_INTERFACE_MSM8X60,
-    ACPI_SPCR_INTERFACE_16550_NVIDIA,
-    ACPI_SPCR_INTERFACE_TI_OMAP,
-    ACPI_SPCR_INTERFACE_APM88XXXX,
-    ACPI_SPCR_INTERFACE_MSM8974,
-    ACPI_SPCR_INTERFACE_SAM5250,
-    ACPI_SPCR_INTERFACE_INTEL_USIF,
-    ACPI_SPCR_INTERFACE_IMX6,
-    ACPI_SPCR_INTERFACE_ARM_SBSA_32BIT,
-    ACPI_SPCR_INTERFACE_ARM_SBSA_GENERIC,
-    ACPI_SPCR_INTERFACE_ARM_DCC,
-    ACPI_SPCR_INTERFACE_BCM2835,
-    ACPI_SPCR_INTERFACE_SDM845_1_8432MHZ,
-    ACPI_SPCR_INTERFACE_16550_WITH_GAS,
-    ACPI_SPCR_INTERFACE_SDM845_7_372MHZ,
-    ACPI_SPCR_INTERFACE_INTEL_LPSS,
+    OS_ACPI_SPCR_INTERFACE_16550_COMPATIBLE,
+    OS_ACPI_SPCR_INTERFACE_16550_SUBSET,
+    OS_ACPI_SPCR_INTERFACE_MAX311XE_SPI,
+    OS_ACPI_SPCR_INTERFACE_ARM_PL011,
+    OS_ACPI_SPCR_INTERFACE_MSM8X60,
+    OS_ACPI_SPCR_INTERFACE_16550_NVIDIA,
+    OS_ACPI_SPCR_INTERFACE_TI_OMAP,
+    OS_ACPI_SPCR_INTERFACE_APM88XXXX,
+    OS_ACPI_SPCR_INTERFACE_MSM8974,
+    OS_ACPI_SPCR_INTERFACE_SAM5250,
+    OS_ACPI_SPCR_INTERFACE_INTEL_USIF,
+    OS_ACPI_SPCR_INTERFACE_IMX6,
+    OS_ACPI_SPCR_INTERFACE_ARM_SBSA_32BIT,
+    OS_ACPI_SPCR_INTERFACE_ARM_SBSA_GENERIC,
+    OS_ACPI_SPCR_INTERFACE_ARM_DCC,
+    OS_ACPI_SPCR_INTERFACE_BCM2835,
+    OS_ACPI_SPCR_INTERFACE_SDM845_1_8432MHZ,
+    OS_ACPI_SPCR_INTERFACE_16550_WITH_GAS,
+    OS_ACPI_SPCR_INTERFACE_SDM845_7_372MHZ,
+    OS_ACPI_SPCR_INTERFACE_INTEL_LPSS,
 };
 
 enum os_acpi_spcr_irq_kind : uint8_t {
-    __ACPI_SPCR_IRQ_8259 = 1 << 0,
-    __ACPI_SPCR_IRQ_IOAPIC = 1 << 1,
-    __ACPI_SPCR_IRQ_IO_SAPIC = 1 << 2,
-    __ACPI_SPCR_IRQ_ARM_GIC = 1 << 3,
-    __ACPI_SPCR_IRQ_RISCV_PLIC = 1 << 4,
+    __OS_ACPI_SPCR_IRQ_8259 = 1 << 0,
+    __OS_ACPI_SPCR_IRQ_IOAPIC = 1 << 1,
+    __OS_ACPI_SPCR_IRQ_IO_SAPIC = 1 << 2,
+    __OS_ACPI_SPCR_IRQ_ARM_GIC = 1 << 3,
+    __OS_ACPI_SPCR_IRQ_RISCV_PLIC = 1 << 4,
 };
 
 enum os_acpi_spcr_baud_rate : uint8_t {
-    ACPI_SPCR_BAUD_RATE_OS_DEPENDENT,
-    ACPI_SPCR_BAUD_RATE_9600 = 3,
-    ACPI_SPCR_BAUD_RATE_19200,
-    ACPI_SPCR_BAUD_RATE_57600 = 6,
-    ACPI_SPCR_BAUD_RATE_115200,
+    OS_ACPI_SPCR_BAUD_RATE_OS_DEPENDENT,
+    OS_ACPI_SPCR_BAUD_RATE_9600 = 3,
+    OS_ACPI_SPCR_BAUD_RATE_19200,
+    OS_ACPI_SPCR_BAUD_RATE_57600 = 6,
+    OS_ACPI_SPCR_BAUD_RATE_115200,
 };
 
 enum os_acpi_spcr_terminal_kind : uint8_t {
-    ACPI_SPCR_TERMINAL_VT100,
-    ACPI_SPCR_TERMINAL_VT100_EXT,
-    ACPI_SPCR_TERMINAL_VT_UTF8,
-    ACPI_SPCR_TERMINAL_ANSI,
+    OS_ACPI_SPCR_TERMINAL_VT100,
+    OS_ACPI_SPCR_TERMINAL_VT100_EXT,
+    OS_ACPI_SPCR_TERMINAL_VT_UTF8,
+    OS_ACPI_SPCR_TERMINAL_ANSI,
 };
 
 enum os_acpi_spcr_pci_flags : uint8_t {
-    __ACPI_SPCR_PCI_DONT_SUPPRESS_PNP = 1 << 0
+    __OS_ACPI_SPCR_PCI_DONT_SUPPRESS_PNP = 1 << 0
 };
 
 struct os_acpi_spcr {

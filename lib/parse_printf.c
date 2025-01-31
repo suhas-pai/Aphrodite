@@ -58,8 +58,8 @@ read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
         }
 
         if (__builtin_expect(
-                !ckd_mul(&result, result, 10)
-             || !ckd_add(&result, result, digit), 0))
+            !ckd_mul(&result, result, 10) ||
+            !ckd_add(&result, result, digit), 0))
         {
             *iter_out = iter;
             return -1;

@@ -78,7 +78,7 @@ static void add_to_asc_list(struct freepage_array_info *const info) {
 
 __debug_optimize(3)
 static void claim_pages(const struct mm_memmap *const memmap) {
-#if defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES)
+#if defined(__aarch64__) && defined(AARCH64_CONFIG_16K_PAGES)
     struct range phys_range = memmap->range;
     if (!range_align_in(phys_range, PAGE_SIZE, &phys_range)) {
         printk(LOGLEVEL_WARN,
@@ -89,7 +89,7 @@ static void claim_pages(const struct mm_memmap *const memmap) {
     }
 #else
     const struct range phys_range = memmap->range;
-#endif /* defined(__aarch64__) && defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(__aarch64__) && defined(AARCH64_CONFIG_16K_PAGES) */
 
     struct freepage_array_info *const info = phys_to_virt(phys_range.front);
     const uint64_t page_count = PAGE_COUNT(memmap->range.size);
@@ -200,7 +200,7 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
     bool is_in_middle = false;
 
     const uint64_t alloc_amount =
-        1ull << largepage_level_info_list[level - 1].order;
+        1ull << lg_page_level_info_list[level - 1].order;
 
     list_foreach(&g_asc_freelist, asc_list, info) {
         const uint64_t avail_page_count = info->avail_page_count;
@@ -864,7 +864,7 @@ __debug_optimize(3) static inline void setup_zone_section_list() {
     const struct page_section *const end = begin + mm_get_section_count();
 
     uint32_t number = 1;
-    for (__auto_type section = begin; section != end; section++, number++) {
+    for (auto section = begin; section != end; section++, number++) {
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
                "pfn-range: " RANGE_FMT ", zone: %s\n",
@@ -903,7 +903,7 @@ void mm_post_arch_init() {
     struct page_section *const begin = mm_get_page_section_list();
     const struct page_section *const end = begin + mm_get_section_count();
 
-    for (__auto_type section = begin; section != end; section++) {
+    for (auto section = begin; section != end; section++) {
         mark_crucial_pages(section);
     }
 
@@ -915,7 +915,7 @@ void mm_post_arch_init() {
     // a section, which would have a section of 0.
 
     uint64_t number = 1;
-    for (__auto_type section = begin; section != end; section++, number++) {
+    for (auto section = begin; section != end; section++, number++) {
         set_section_for_pages(section, /*section=*/number);
     }
 

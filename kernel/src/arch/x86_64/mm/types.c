@@ -16,7 +16,7 @@ __hidden uint64_t PAGING_MODE = 0;
 __hidden uint64_t PAGE_END = 0;
 
 __hidden
-struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT] = {
+struct largepage_level_info lg_page_level_info_list[PGT_LEVEL_COUNT] = {
     [0] = {
         .order = 0,
         .largepage_order = UINT8_MAX,
@@ -61,7 +61,7 @@ __debug_optimize(3) bool pte_is_present(const pte_t pte) {
 }
 
 __debug_optimize(3) bool pg_level_can_have_large(const pg_level_t level) {
-    return largepage_level_info_list[level - 1].is_supported;
+    return lg_page_level_info_list[level - 1].is_supported;
 }
 
 __debug_optimize(3) bool pte_is_large(const pte_t pte) {

@@ -322,11 +322,12 @@ bool ps2_keyboard_probe(struct device *const the_device) {
     const port_t read_status_port =
         array_at(&resources->io_list, const struct os_acpi_io_info, 1)->minimum;
 
-    const irq_number_t keyboard_irq =
-        array_front(&resources->irq_list, const struct os_acpi_irq_info)
-            ->irq_list[0];
+    const auto keyboard_irq =
+        array_front(&resources->irq_list, const struct os_acpi_irq_info);
 
-    ps2_init_keyboard(read_status_port, input_buffer_port, keyboard_irq);
+    const irq_number_t keyboard_irq_num = keyboard_irq->irq_list[0];
+    ps2_init_keyboard(read_status_port, input_buffer_port, keyboard_irq_num);
+
     return true;
 }
 
@@ -367,13 +368,14 @@ static void init_keyboard_driver() {
     static struct acpi_driver acpi_driver = {
         .pnp_ids = pnp_ids,
         .pnp_id_count = countof(pnp_ids),
-        .resources_flags = ACPI_DRIVER_RESOURCES_IRQ | ACPI_DRIVER_RESOURCES_IO,
+        .resources_flags =
+            OS_ACPI_DRIVER_RESOURCES_IRQ | OS_ACPI_DRIVER_RESOURCES_IO,
         .get_namespace = get_namespace,
     };
 
     driver_initialize(&acpi_driver.driver,
                       acpi_bus(),
-                      /*name=*/SV_STATIC("ps2-keyboard"),
+                      SV_STATIC("ps2-keyboard"),
                       ps2_keyboard_probe,
                       /*remove=*/nullptr,
                       /*shutdown=*/nullptr,

@@ -24,15 +24,15 @@ bus_init(struct bus *const bus,
     bus->probe = probe;
 }
 
-void bus_init_root(struct bus *const bus) {
+__debug_optimize(3) void bus_init_root(struct bus *const bus) {
     bus->device.bus = dev_root_bus();
 }
 
-struct bus *bus_get_dev_parent(struct bus *const bus) {
+__debug_optimize(3) struct bus *bus_get_dev_parent(struct bus *const bus) {
     return bus->device.bus;
 }
 
-struct bus *bus_get_drv_parent(struct bus *const bus) {
+__debug_optimize(3) struct bus *bus_get_drv_parent(struct bus *const bus) {
     assert(bus->device.is_bus);
     return bus->device.driver->bus;
 }

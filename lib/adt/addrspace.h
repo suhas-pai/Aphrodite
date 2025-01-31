@@ -43,9 +43,7 @@ struct addrspace_node {
         .largest_free_to_prev = 0 \
     })
 
-#define addrspace_node_of(obj) \
-    parent_of((obj), struct addrspace_node, avlnode)
-
+#define addrspace_node_of(obj) parent_of((obj), struct addrspace_node, avlnode)
 #define addrspace_foreach_node(addrspace, node) \
     list_foreach(&addrspace->list, list, node)
 

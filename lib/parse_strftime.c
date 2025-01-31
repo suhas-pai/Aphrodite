@@ -579,7 +579,10 @@ parse_strftime_format(const parse_strftime_sv_callback sv_cb,
 
         if (unformat_buffer_sv.length != 0) {
             written_out +=
-                sv_cb(nullptr, sv_cb_info, unformat_buffer_sv, &should_continue);
+                sv_cb(nullptr,
+                      sv_cb_info,
+                      unformat_buffer_sv,
+                      &should_continue);
 
             if (!should_continue) {
                 break;

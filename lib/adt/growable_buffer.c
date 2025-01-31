@@ -169,9 +169,9 @@ gbuffer_decrement_ptr(struct growable_buffer *const gbuffer, const uint32_t amt)
 }
 
 __debug_optimize(3) bool
-gbuffer_append_data(struct growable_buffer *const gbuffer,
-                    const void *const data,
-                    const uint32_t length)
+gbuffer_add_data(struct growable_buffer *const gbuffer,
+                 const void *const data,
+                 const uint32_t length)
 {
     if (!gbuffer_ensure_can_add_capacity(gbuffer, length)) {
         return false;
@@ -184,9 +184,9 @@ gbuffer_append_data(struct growable_buffer *const gbuffer,
 }
 
 __debug_optimize(3) bool
-gbuffer_append_byte(struct growable_buffer *const gbuffer,
-                    const uint8_t byte,
-                    const uint32_t count)
+gbuffer_add_byte(struct growable_buffer *const gbuffer,
+                 const uint8_t byte,
+                 const uint32_t count)
 {
     if (!gbuffer_ensure_can_add_capacity(gbuffer, count)) {
         return false;
@@ -202,14 +202,14 @@ __debug_optimize(3) bool
 gbuffer_append_gbuffer_data(struct growable_buffer *const gbuffer,
                             const struct growable_buffer *const append)
 {
-    return gbuffer_append_data(gbuffer, append->begin, append->index);
+    return gbuffer_add_data(gbuffer, append->begin, append->index);
 }
 
 __debug_optimize(3) uint32_t
-gbuffer_append_sv(struct growable_buffer *const gbuffer,
-                  const struct string_view sv)
+gbuffer_add_sv(struct growable_buffer *const gbuffer,
+               const struct string_view sv)
 {
-    return gbuffer_append_data(gbuffer, sv.begin, sv.length);
+    return gbuffer_add_data(gbuffer, sv.begin, sv.length);
 }
 
 __debug_optimize(3) void

@@ -7,21 +7,26 @@
 #include <uacpi/utilities.h>
 
 #include "acpi/bus.h"
-#include "acpi/device.h"
-#include "acpi/driver.h"
-#include "acpi/resources.h"
+
+#ifdef CONFIG_UACPI
+    #include "acpi/device.h"
+    #include "acpi/driver.h"
+    #include "acpi/resources.h"
+#endif /* CONFIG_UACPI */
 
 #include "dev/bus.h"
 #include "dev/init.h"
-#include "dev/printk.h"
 
-#include "mm/simple_alloc.h"
+#ifdef CONFIG_UACPI
+    #include "dev/printk.h"
+    #include "mm/simple_alloc.h"
+#endif /* CONFIG_UACPI */
 
 struct acpi_bus {
     struct bus bus;
 };
 
-#ifdef USE_UACPI
+#ifdef CONFIG_UACPI
 static struct simple_alloc g_alloc;
 
 static inline struct acpi_driver *
@@ -132,7 +137,7 @@ acpi_init_one_device(void *const ctx,
 static bool acpi_bus_probe(struct bus *const the_bus) {
     (void)the_bus;
 
-#ifdef USE_UACPI
+#ifdef CONFIG_UACPI
     simple_alloc_init(&g_alloc);
     uacpi_namespace_for_each_child(uacpi_namespace_root(),
                                    acpi_init_one_device,
@@ -141,7 +146,7 @@ static bool acpi_bus_probe(struct bus *const the_bus) {
                                    UACPI_MAX_DEPTH_ANY,
                                    /*user=*/nullptr);
 
-#endif /* defined(USE_UACPI) */
+#endif /* defined(CONFIG_UACPI) */
 
     return true;
 }

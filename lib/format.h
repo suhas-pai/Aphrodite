@@ -20,3 +20,6 @@ uint32_t format_to_string(struct string *string, const char *format, ...);
 
 uint32_t
 vformat_to_string(struct string *string, const char *format, va_list list);
+
+int snprintf(char *s, size_t n, const char *format, ...);
+int vsnprintf(char *s, size_t n, const char *format, va_list arg);

@@ -29,14 +29,14 @@ uint64_t pfn_to_phys_manual(uint64_t pfn);
 struct page;
 
 #define verify_page_pointer(p) ({ \
-    __auto_type __verp = (uint64_t)(p); \
+    auto __verp = (uint64_t)(p); \
     __verp >= PAGE_OFFSET && __verp < PAGE_END &&\
     ((__verp - PAGE_OFFSET) % sizeof(struct page)) == 0; \
 })
 
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))
 #define pfn_to_page(pfn) ({ \
-    __auto_type h_var(page) = \
+    auto h_var(page) = \
         PAGE_OFFSET + ckd_mul_assert(SIZEOF_STRUCTPAGE, (pfn)); \
     assert_msg(verify_page_pointer(h_var(page)), \
                "pfn_to_page(): pfn %" PRIu64 " reaches outside range of page " \
@@ -69,14 +69,14 @@ struct page;
 #define page_to_virt(p) \
     _Generic((p), \
         const struct page *: ({ \
-            __auto_type h_var(page) = (p); \
+            auto h_var(page) = (p); \
             assert_msg(verify_page_pointer(h_var(page)), \
                        "page_to_virt(): page %p is invalid", \
                        h_var(page)); \
             phys_to_virt(page_to_phys(h_var(page))); \
         }), \
         struct page *: ({ \
-            __auto_type h_var(page) = (p); \
+            auto h_var(page) = (p); \
             assert_msg(verify_page_pointer(h_var(page)), \
                        "page_to_virt(): page %p is invalid", \
                        h_var(page)); \

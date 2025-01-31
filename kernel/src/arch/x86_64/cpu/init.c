@@ -367,7 +367,7 @@ static void init_cpuid_features() {
                 edx & __CPUID_FEAT_EXT80000001_EDX_1GIB_PAGES;
 
             struct largepage_level_info *const info =
-                &largepage_level_info_list[LARGEPAGE_LEVEL_1GIB - 1];
+                &lg_page_level_info_list[LARGEPAGE_LEVEL_1GIB - 1];
 
             info->is_supported = g_cpu_capabilities.supports_1gib_pages;
             if (g_cpu_capabilities.supports_1gib_pages) {

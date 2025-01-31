@@ -4,9 +4,11 @@
  */
 
 #include <lib/assert.h>
-#include <uacpi/sleep.h>
 
-#include "asm/irqs.h"
+#ifdef CONFIG_UACPI
+    #include <uacpi/sleep.h>
+    #include "asm/irqs.h"
+#endif
 
 void system_shutdown() {
     /*
@@ -16,6 +18,7 @@ void system_shutdown() {
      * possible later on.
      */
 
+#ifdef CONFIG_UACPI
     uacpi_status ret = uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S5);
     assert_msg(!uacpi_unlikely_error(ret),
                "sys/uacpi: failed to prepare for sleep: %s",
@@ -40,4 +43,7 @@ void system_shutdown() {
 
     // Should be unreachable code
     verify_not_reached();
+#else
+    panic("sys/shutdown: uacpi not enabled\n");
+#endif
 }

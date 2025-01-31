@@ -143,7 +143,11 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
         .regs_mmio = vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0)
     };
 
-    assert_msg(info.regs_mmio != nullptr, "ioapic: failed to map ioapic regs");
+    if (info.regs_mmio == nullptr) {
+        printk(LOGLEVEL_WARN, "ioapic: failed to map ioapic regs");
+        return;
+    }
+
     info.regs = info.regs_mmio->base;
 
     const uint32_t id_reg = ioapic_read(&info, IOAPIC_REG_ID);
@@ -221,10 +225,11 @@ ioapic_redirect_irq(const uint8_t lapic_id,
     redirect_irq(lapic_id, irq, vector, /*flags=*/0, masked);
 }
 
-void ioapic_toggle_irq_mask(uint8_t irq, bool masked) {
+void ioapic_toggle_irq_mask(const uint8_t irq, const bool masked) {
     array_foreach(&get_acpi_info()->iso_list, const struct apic_iso_info, iso) {
         if (iso->irq_src == irq) {
             toggle_irq_mask(iso->gsi, masked);
+            return;
         }
     }
 

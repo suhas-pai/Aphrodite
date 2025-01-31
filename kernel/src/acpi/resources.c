@@ -50,7 +50,7 @@ os_acpi_device_resources_collect(
     {
         switch ((enum uacpi_resource_type)iter->type) {
             case UACPI_RESOURCE_TYPE_IRQ: {
-                if ((flags & ACPI_DRIVER_RESOURCES_IRQ) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_IRQ) == 0) {
                     continue;
                 }
 
@@ -119,11 +119,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_EXTENDED_IRQ: {
-                if ((flags & ACPI_DRIVER_RESOURCES_IRQ) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_IRQ) == 0) {
                     continue;
                 }
 
-                const __auto_type irq = &iter->extended_irq;
+                const auto irq = &iter->extended_irq;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*irq)),
                                            length))
                 {
@@ -190,7 +190,7 @@ os_acpi_device_resources_collect(
                     continue;
                 }
 
-                const __auto_type dma = &iter->dma;
+                const auto dma = &iter->dma;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*dma)),
                                            length))
                 {
@@ -236,11 +236,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_DMA: {
-                if ((flags & ACPI_DRIVER_RESOURCES_DMA) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_DMA) == 0) {
                     continue;
                 }
 
-                const __auto_type dma = &iter->fixed_dma;
+                const auto dma = &iter->fixed_dma;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*dma)),
                                            length))
                 {
@@ -269,11 +269,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_IO: {
-                if ((flags & ACPI_DRIVER_RESOURCES_IO) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_IO) == 0) {
                     continue;
                 }
 
-                const __auto_type io = &iter->io;
+                const auto io = &iter->io;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*io)),
                                            length))
                 {
@@ -300,11 +300,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_IO: {
-                if ((flags & ACPI_DRIVER_RESOURCES_IO) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_IO) == 0) {
                     continue;
                 }
 
-                const __auto_type io = &iter->fixed_io;
+                const auto io = &iter->fixed_io;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*io)),
                                            length))
                 {
@@ -332,11 +332,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS16: {
-                if ((flags & ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
-                const __auto_type addr = &iter->address16;
+                const auto addr = &iter->address16;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*addr)),
                                            length))
                 {
@@ -397,11 +397,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS32: {
-                if ((flags & ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
-                const __auto_type addr = &iter->address32;
+                const auto addr = &iter->address32;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*addr)),
                                            length))
                 {
@@ -462,11 +462,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS64: {
-                if ((flags & ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
-                const __auto_type addr = &iter->address64;
+                const auto addr = &iter->address64;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*addr)),
                                            length))
                 {
@@ -524,11 +524,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS64_EXTENDED: {
-                if ((flags & ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
-                const __auto_type addr = &iter->address64_extended;
+                const auto addr = &iter->address64_extended;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*addr)),
                                            length))
                 {
@@ -581,11 +581,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_MEMORY24: {
-                if ((flags & ACPI_DRIVER_RESOURCES_MEM) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
                     continue;
                 }
 
-                const __auto_type mem = &iter->memory24;
+                const auto mem = &iter->memory24;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*mem)),
                                            length))
                 {
@@ -612,11 +612,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_MEMORY32: {
-                if ((flags & ACPI_DRIVER_RESOURCES_MEM) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
                     continue;
                 }
 
-                const __auto_type mem = &iter->memory32;
+                const auto mem = &iter->memory32;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*mem)),
                                            length))
                 {
@@ -646,11 +646,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_MEMORY32: {
-                if ((flags & ACPI_DRIVER_RESOURCES_MEM) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
                     continue;
                 }
 
-                const __auto_type mem = &iter->fixed_memory32;
+                const auto mem = &iter->fixed_memory32;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*mem)),
                                            length))
                 {
@@ -679,11 +679,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_START_DEPENDENT: {
-                if ((flags & ACPI_DRIVER_RESOURCES_DEP) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_DEP) == 0) {
                     continue;
                 }
 
-                const __auto_type dep = &iter->start_dependent;
+                const auto dep = &iter->start_dependent;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*dep)),
                                            length))
                 {
@@ -713,12 +713,12 @@ os_acpi_device_resources_collect(
             case UACPI_RESOURCE_TYPE_VENDOR_SMALL:
             case UACPI_RESOURCE_TYPE_VENDOR_LARGE: {
                 if ((flags &
-                        ACPI_DRIVER_RESOURCES_VENDOR) == 0)
+                        OS_ACPI_DRIVER_RESOURCES_VENDOR) == 0)
                 {
                     continue;
                 }
 
-                const __auto_type vendor = &iter->vendor;
+                const auto vendor = &iter->vendor;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*vendor)),
                                            length))
                 {
@@ -744,11 +744,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_GENERIC_REGISTER: {
-                if ((flags & ACPI_DRIVER_RESOURCES_REG) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_REG) == 0) {
                     continue;
                 }
 
-                const __auto_type reg = &iter->generic_register;
+                const auto reg = &iter->generic_register;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*reg)),
                                            length))
                 {
@@ -778,11 +778,11 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_GPIO_CONNECTION: {
-                if ((flags & ACPI_DRIVER_RESOURCES_GPIO) == 0) {
+                if ((flags & OS_ACPI_DRIVER_RESOURCES_GPIO) == 0) {
                     continue;
                 }
 
-                const __auto_type gpio = &iter->gpio_connection;
+                const auto gpio = &iter->gpio_connection;
                 if (!index_range_in_bounds(RANGE_INIT(offset, sizeof(*gpio)),
                                            length))
                 {

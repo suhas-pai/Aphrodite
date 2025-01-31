@@ -9,7 +9,6 @@
 #include "dev/virtio/queue/split.h"
 #include "dev/virtio/transport.h"
 
-
 #include "dev/printk.h"
 #include "mm/page_alloc.h"
 

@@ -5,7 +5,7 @@
 
 #include "dev/ide/init.h"
 
-#ifndef USE_UACPI
+#ifndef CONFIG_UACPI
     #include "dev/ps2/driver.h"
 #endif
 
@@ -23,11 +23,11 @@ extern bool g_found_ide;
 void arch_init_dev() {
     const struct os_acpi_fadt *const fadt = get_acpi_info()->fadt;
     if (fadt != nullptr &&
-        fadt->iapc_boot_arch_flags & __ACPI_FADT_IAPC_BOOT_8042)
+        fadt->iapc_boot_arch_flags & __OS_ACPI_FADT_IAPC_BOOT_8042)
     {
-    #ifndef USE_UACPI
+    #ifndef CONFIG_UACPI
         ps2_init_default();
-    #endif /* !defined(USE_UACPI) */
+    #endif /* !defined(CONFIG_UACPI) */
     } else {
         printk(LOGLEVEL_WARN, "dev: ps2 keyboard/mouse are not supported\n");
     }

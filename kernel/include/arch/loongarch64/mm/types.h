@@ -34,7 +34,7 @@
 #define PML4(phys) (((phys) >> PML4_SHIFT) & PML4_MASK)
 
 #define pte_to_phys(pte, level) ({ \
-    __auto_type __pte_to_phys_pte__ = (pte); \
+    auto __pte_to_phys_pte__ = (pte); \
     pg_level_can_have_large(level) && __pte_to_phys_pte__ & __PTE_LARGE ? \
         __pte_to_phys_pte__ & PTE_PHYS_LARGE_MASK : \
         __pte_to_phys_pte__ & PTE_PHYS_MASK; \
@@ -72,10 +72,10 @@ struct largepage_level_info {
     uint64_t size;
 };
 
-extern struct largepage_level_info largepage_level_info_list[PGT_LEVEL_COUNT];
+extern struct largepage_level_info lg_page_level_info_list[PGT_LEVEL_COUNT];
 
 #define PAGE_SIZE_AT_LEVEL(level) ({ \
-    __auto_type __page_size_level_result__ = (uint64_t)0; \
+    auto __page_size_level_result__ = (uint64_t)0; \
     switch (level) { \
         case 1: \
             __page_size_level_result__ = PAGE_SIZE; \

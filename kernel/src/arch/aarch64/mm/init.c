@@ -108,7 +108,7 @@ map_into_kernel_pagemap(struct range phys_range,
         .is_overwrite = false,
     };
 
-#if defined(AARCH64_USE_16K_PAGES)
+#if defined(AARCH64_CONFIG_16K_PAGES)
     struct range new_phys_range = RANGE_EMPTY();
     if (!range_align_in(phys_range, PAGE_SIZE, &new_phys_range)) {
         printk(LOGLEVEL_WARN,
@@ -120,7 +120,7 @@ map_into_kernel_pagemap(struct range phys_range,
 
     virt_addr += new_phys_range.front - phys_range.front;
     phys_range = new_phys_range;
-#endif /* defined(AARCH64_USE_16K_PAGES) */
+#endif /* defined(AARCH64_CONFIG_16K_PAGES) */
 
     assert_msg(
         pgmap_at(&kernel_process.pagemap, phys_range, virt_addr, &options),

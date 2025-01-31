@@ -14,50 +14,50 @@ typedef uint16_t be16_t;
 typedef uint32_t be32_t;
 typedef uint64_t be64_t;
 
-__debug_optimize(3) static inline uint16_t swap_endian_16(const uint16_t num) {
+__debug_optimize(3) static inline uint16_t swap_endian16(const uint16_t num) {
     return (num << 8) | (num >> 8);
 }
 
-__debug_optimize(3) static inline uint32_t swap_endian_32(const uint32_t num) {
+__debug_optimize(3) static inline uint32_t swap_endian32(const uint32_t num) {
     return ((num & 0xFF) << 24)
          | ((num & 0xFF00) << 8)
          | ((num & 0xFF0000) >> 8)
          | ((num & 0xFF000000) >> 24);
 }
 
-__debug_optimize(3) static inline be64_t swap_endian_64(const uint64_t num) {
-    return ((num & 0xFFULL) << 56)
-         | ((num & 0xFF00ULL) << 40)
-         | ((num & 0xFF0000ULL) << 24)
-         | ((num & 0xFF000000ULL) << 8)
-         | ((num & 0xFF00000000ULL) >> 8)
-         | ((num & 0xFF0000000000ULL) >> 24)
-         | ((num & 0xFF000000000000ULL) >> 40)
-         | ((num & 0xFF00000000000000ULL) >> 56);
+__debug_optimize(3) static inline be64_t swap_endian64(const uint64_t num) {
+    return ((num & 0xFFull) << 56)
+         | ((num & 0xFF00ull) << 40)
+         | ((num & 0xFF0000ull) << 24)
+         | ((num & 0xFF000000ull) << 8)
+         | ((num & 0xFF00000000ull) >> 8)
+         | ((num & 0xFF0000000000ull) >> 24)
+         | ((num & 0xFF000000000000ull) >> 40)
+         | ((num & 0xFF00000000000000ull) >> 56);
 }
 
 __debug_optimize(3) static inline be16_t le16_to_be(const le16_t le) {
-    return swap_endian_16(le);
+    return swap_endian16(le);
 }
 
 __debug_optimize(3) static inline be32_t le32_to_be(const le32_t le) {
-    return swap_endian_32(le);
+    return swap_endian32(le);
 }
 
 __debug_optimize(3) static inline be64_t le64_to_be(const le64_t le) {
-    return swap_endian_64(le);
+    return swap_endian64(le);
 }
 
 __debug_optimize(3) static inline le16_t be16_to_le(const be16_t be) {
-    return swap_endian_16(be);
+    return swap_endian16(be);
 }
 
 __debug_optimize(3) static inline le32_t be32_to_le(const be32_t be) {
-    return swap_endian_32(be);
+    return swap_endian32(be);
 }
 
 __debug_optimize(3) static inline le64_t be64_to_le(const be64_t be) {
-    return swap_endian_64(be);
+    return swap_endian64(be);
 }
 
 #define le_to_be(num) \

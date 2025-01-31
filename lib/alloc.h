@@ -14,7 +14,7 @@
     #define calloc_size(amt, size, out) ({ \
         uint32_t __calloc_new_size__ = 0; \
         uint32_t __calloc_obj_size__ = (size); \
-        __auto_type __calloc_result__ = \
+        auto __calloc_result__ = \
             kmalloc_size(ckd_mul_assert((uint32_t)(amt), __calloc_obj_size__), \
                          &__calloc_new_size__); \
         *(out) = __calloc_new_size__ / __calloc_obj_size__; \
@@ -27,12 +27,12 @@
 #elif defined(BUILD_TEST)
     #include <stdlib.h>
     #define malloc_size(size, out) ({ \
-        __auto_type __malloc_size__ = (size); \
+        auto __malloc_size__ = (size); \
         *(out) = __malloc_size__; \
         malloc(__malloc_size__); \
     })
     #define calloc_size(amt, size, out) ({ \
-        __auto_type __calloc_amt__ = (amt); \
+        auto __calloc_amt__ = (amt); \
         *(out) = __calloc_amt__; \
         calloc(__calloc_amt__, (size)); \
     })

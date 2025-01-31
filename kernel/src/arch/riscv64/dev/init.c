@@ -48,6 +48,8 @@ void arch_init_from_dtb() {
 
 void arch_init_dev() {
     struct devicetree *const tree = dtb_get_tree();
+    uint8_t init_count = 0;
+
     if (tree != nullptr) {
         bus_foreach_driver(&dtb_bus()->bus,
                            struct dtb_driver,
@@ -56,7 +58,11 @@ void arch_init_dev() {
         {
             if (sv_equals(drv->driver.name, SV_STATIC("riscv64-syscon"))) {
                 dtb_init_nodes_for_driver(drv, tree, tree->root);
-                continue;
+                init_count |= 1 << 0;
+
+                if (init_count == 0b111) {
+                    break;
+                }
             }
 
             const struct string_view poweroff_sv =
@@ -64,7 +70,11 @@ void arch_init_dev() {
 
             if (sv_equals(drv->driver.name, poweroff_sv)) {
                 dtb_init_nodes_for_driver(drv, tree, tree->root);
-                continue;
+                init_count |= 1 << 1;
+
+                if (init_count == 0b111) {
+                    break;
+                }
             }
 
             const struct string_view reboot_sv =
@@ -72,12 +82,16 @@ void arch_init_dev() {
 
             if (sv_equals(drv->driver.name, reboot_sv)) {
                 dtb_init_nodes_for_driver(drv, tree, tree->root);
-                continue;
+                init_count |= 1 << 2;
+
+                if (init_count == 0b111) {
+                    break;
+                }
             }
         }
     }
 
-    const __auto_type rhct =
+    const auto rhct =
         (const struct os_acpi_rhct *)acpi_lookup_sdt("RHCT");
 
     if (rhct != nullptr) {
