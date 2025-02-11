@@ -24,7 +24,7 @@ flanterm_write_char(struct terminal *const term,
                     const uint32_t amt)
 {
     struct flanterm_fb_info *const fb_info = (struct flanterm_fb_info *)term;
-    for (uint32_t i = 0; i != amt; i++) {
+    for_upto_limit(amt, i) {
         flanterm_write(fb_info->ctx, &ch, 1);
     }
 }

@@ -356,7 +356,7 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
     array_reserve_and_set_item_count(array, data_length);
 
     uint32_t *const out_list = array_begin(*array);
-    for (uint32_t i = 0; i != data_length; i++) {
+    for_upto_limit(data_length, i) {
         out_list[i] = fdt32_to_cpu(num_list[i]);
     }
 

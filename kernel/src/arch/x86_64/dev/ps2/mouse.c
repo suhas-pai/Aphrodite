@@ -104,7 +104,7 @@ static void init_mouse_driver() {
     static struct acpi_driver acpi_driver = {
         .pnp_ids = pnp_ids,
         .pnp_id_count = countof(pnp_ids),
-        .resources_flags = OS_ACPI_DRIVER_RESOURCES_IRQ,
+        .resources_flags = __OS_ACPI_DRIVER_RESOURCES_IRQ,
         .get_namespace = get_namespace,
     };
 

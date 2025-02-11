@@ -369,7 +369,7 @@ static void init_keyboard_driver() {
         .pnp_ids = pnp_ids,
         .pnp_id_count = countof(pnp_ids),
         .resources_flags =
-            OS_ACPI_DRIVER_RESOURCES_IRQ | OS_ACPI_DRIVER_RESOURCES_IO,
+            __OS_ACPI_DRIVER_RESOURCES_IRQ | __OS_ACPI_DRIVER_RESOURCES_IO,
         .get_namespace = get_namespace,
     };
 

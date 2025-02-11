@@ -19,8 +19,6 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
-static struct simple_alloc g_ecam_alloc;
-
 __debug_optimize(3)
 static inline uint64_t map_size_for_bus_range(const struct range bus_range) {
     return bus_range.size << 20;
@@ -45,9 +43,7 @@ pci_add_ecam_domain(const struct range bus_range,
         return nullptr;
     }
 
-    struct pci_domain_ecam *const ecam_domain =
-        simple_alloc(&g_ecam_alloc, sizeof(*ecam_domain));
-
+    struct pci_domain_ecam *const ecam_domain = kmalloc(sizeof(*ecam_domain));
     if (ecam_domain == nullptr) {
         printk(LOGLEVEL_WARN, "pci: failed to alloc ecam domain info\n");
         return nullptr;
@@ -445,7 +441,6 @@ static void pci_ecam_init() {
         .compat_count = countof(compat_list),
     };
 
-    simple_alloc_init(&g_ecam_alloc);
     driver_initialize(&dtb_driver.driver,
                       &dtb_bus()->bus,
                       SV_STATIC("pci-ecam"),

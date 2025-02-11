@@ -25,7 +25,7 @@ page_section_init(struct page_section *const section,
     section->max_order = 0;
     section->total_free = 0;
 
-    for (uint8_t i = 0; i != MAX_ORDER; i++) {
+    for_upto_limit(MAX_ORDER, i) {
         list_init(&section->freelist_list[i].page_list);
         section->freelist_list[i].count = 0;
     }

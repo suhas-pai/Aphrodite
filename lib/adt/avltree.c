@@ -53,7 +53,7 @@ parent_has_next(struct avlnode *node,
     struct avlnode *parent = node->parent;
     const uint32_t count = node_depth_level - depth_index - 1;
 
-    for (uint32_t i = 0; i != count; i++) {
+    for_upto_limit(count, i) {
         node = parent;
         parent = parent->parent;
     }

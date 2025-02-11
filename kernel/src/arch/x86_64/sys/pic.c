@@ -125,13 +125,13 @@ __debug_optimize(3) void pic_clear_irq_mask(uint8_t irq) {
 }
 
 __debug_optimize(3) void pic_mask_remapped_irqs() {
-    for (uint8_t i = 0; i != 8; i++) {
+    for_upto_limit(8, i) {
         pic_mask_irq(i);
     }
 }
 
 __debug_optimize(3) void pic_unmask_remapped_irqs() {
-    for (uint8_t i = 0; i != 8; i++) {
+    for_upto_limit(8, i) {
         pic_clear_irq_mask(i);
     }
 }

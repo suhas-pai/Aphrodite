@@ -113,7 +113,7 @@ virtio_split_queue_add(struct virtio_split_queue *const queue,
     const uint16_t head_index = queue->free_index;
     uint16_t free_index = head_index;
 
-    for (uint32_t i = 0; i != count; i++) {
+    for_upto_limit(count, i) {
         struct virtq_desc *const desc = &queue->desc_table[free_index];
 
         desc->phys_addr = (uint64_t)req->data;

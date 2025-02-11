@@ -158,6 +158,10 @@
     const auto h_var(end) = h_var(arr) + (count); \
     for (auto name = &h_var(arr)[0]; name != h_var(end); name++)
 
+#define for_upto_limit(lim, i) \
+    const auto h_var(limit) = (lim); \
+    for (auto i = (typeof(lim))0; i != h_var(limit); i++)
+
 #define swap(a, b) ({ \
     const auto __swap_tmp = (b); \
     b = a; \

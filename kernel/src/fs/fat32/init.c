@@ -18,8 +18,8 @@ __debug_optimize(3) static bool try_init(struct partition *const partition) {
         return false;
     }
 
-    return record.signature == FAT32_BOOTRECORD_SIGNATURE
-        && sv_equals(sv_of_carr(record.identifier),
+    return record.signature == FAT32_BOOTRECORD_SIGNATURE &&
+           sv_equals(sv_of_carr(record.identifier),
                      SV_STATIC(FAT32_BOOTRECORD_IDENTIFIER));
 }
 

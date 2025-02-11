@@ -107,7 +107,7 @@ uart8250_putc(const port_t base,
               struct uart8250_info *const info,
               const char ch)
 {
-    for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if (get_reg(base, info, UART_LSR_OFFSET) & __UART_LSR_TRANSMIT_HRE) {
             set_reg(base, info, UART_THR_OFFSET, ch);
             return;
@@ -122,7 +122,7 @@ uart8250_send_char(struct terminal *const term,
 {
     struct uart8250_info *const info = (struct uart8250_info *)term;
     with_spinlock_intr_disabled(&info->lock, {
-        for (uint32_t i = 0; i != amount; i++) {
+        for_upto_limit(amount, i) {
             uart8250_putc(info->base, info, ch);
         }
     });

@@ -677,10 +677,10 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
     // entire memmap has been used, and needs to be marked as such.
 
     const uint64_t memmap_page_count = PAGE_COUNT(memmap->range.size);
-    struct page *page = phys_to_page(memmap->range.front);
+    struct page *const page = phys_to_page(memmap->range.front);
 
-    for (uint64_t i = 0; i != memmap_page_count; i++, page++) {
-        page->state = PAGE_STATE_SYSTEM_CRUCIAL;
+    for_upto_limit(memmap_page_count, i) {
+        page[i].state = PAGE_STATE_SYSTEM_CRUCIAL;
     }
 }
 

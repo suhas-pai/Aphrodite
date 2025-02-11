@@ -63,9 +63,9 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
                  | __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_OS_OWNED_SEM);
 
         bool handoff_successful = false;
-        for (uint32_t i = 0; i != MAX_ATTEMPTS; i++) {
-            if ((mmio_read(&regs->bios_os_handoff_ctrl_status)
-                    & __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_BUSY) == 0)
+        for_upto_limit(MAX_ATTEMPTS, i) {
+            if ((mmio_read(&regs->bios_os_handoff_ctrl_status) &
+                    __AHCI_HBA_BIOS_HANDOFF_STATUS_CTRL_BIOS_BUSY) == 0)
             {
                 handoff_successful = true;
                 break;
@@ -110,7 +110,7 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
     }
 
     uint8_t usable_port_count = 0;
-    for (uint8_t index = 0; index != AHCI_HBA_MAX_PORT_COUNT; index++) {
+    for_upto_limit(AHCI_HBA_MAX_PORT_COUNT, index) {
         if ((ports_implemented & 1ull << index) == 0) {
             continue;
         }

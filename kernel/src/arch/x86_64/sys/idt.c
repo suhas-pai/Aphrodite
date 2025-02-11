@@ -106,7 +106,7 @@ void idt_load() {
 
 void idt_init() {
     pic_remap(247, 255);
-    for (uint16_t i = 0; i != countof(g_idt); i++) {
+    for_upto_limit(countof(g_idt), i) {
         idt_set_vector(i, IST_NONE, /*flags=*/0x8e);
     }
 

@@ -263,7 +263,7 @@ void boot_init() {
                               mm_memmap_list[memmap_index].range,
                               pfn);
 
-            for (uint8_t i = 0; i != MAX_ORDER; i++) {
+            for_upto_limit(MAX_ORDER, i) {
                 list_init(&section->freelist_list[i].page_list);
                 section->freelist_list[i].count = 0;
             }

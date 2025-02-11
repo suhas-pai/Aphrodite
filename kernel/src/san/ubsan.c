@@ -13,19 +13,19 @@
 
 #include "san/ubsan.h"
 
-static const char *const type_check_kind_list[] = {
-    "load of",
-    "store to",
-    "reference binding to",
-    "member access within",
-    "member call on",
-    "constructor call on",
-    "downcast of",
-    "downcast of",
-    "upcast of",
-    "cast to virtual base of",
-    "_Nonnull binding to",
-    "dynamic operation on"
+static const struct string_view type_check_kind_list[] = {
+    SV_STATIC("load of"),
+    SV_STATIC("store to"),
+    SV_STATIC("reference binding to"),
+    SV_STATIC("member access within"),
+    SV_STATIC("member call on"),
+    SV_STATIC("constructor call on"),
+    SV_STATIC("downcast of"),
+    SV_STATIC("downcast of"),
+    SV_STATIC("upcast of"),
+    SV_STATIC("cast to virtual base of"),
+    SV_STATIC("_Nonnull binding to"),
+    SV_STATIC("dynamic operation on")
 };
 
 __debug_optimize(3) void
@@ -34,9 +34,10 @@ __ubsan_handle_type_mismatch_v1(struct type_mismatch_info_v1 *const info,
 {
     if (pointer == 0) {
         printk(LOGLEVEL_ERROR,
-               "ubsan: [" SOURCE_LOCATION_FMT "] %s null pointer of type %s\n",
+               "ubsan: [" SOURCE_LOCATION_FMT "] " SV_FMT " null pointer of "
+               "type %s\n",
                SOURCE_LOCATION_FMT_ARGS(&info->location),
-               type_check_kind_list[info->type_check_kind],
+               SV_FMT_ARGS(type_check_kind_list[info->type_check_kind]),
                info->type->name);
 
     #if __has_include("asm/stack_trace.h")

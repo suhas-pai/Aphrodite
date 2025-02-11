@@ -119,7 +119,7 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
 
 __debug_optimize(3) uint16_t *
 memcpy16(uint16_t *const dst, const uint16_t *const src, const uint64_t count) {
-    for (uint64_t i = 0; i != count; i++) {
+    for_upto_limit(count, i) {
         dst[i] = src[i];
     }
 
@@ -128,7 +128,7 @@ memcpy16(uint16_t *const dst, const uint16_t *const src, const uint64_t count) {
 
 __debug_optimize(3) uint32_t *
 memcpy32(uint32_t *const dst, const uint32_t *const src, const uint64_t count) {
-    for (uint64_t i = 0; i != count; i++) {
+    for_upto_limit(count, i) {
         dst[i] = src[i];
     }
 
@@ -137,7 +137,7 @@ memcpy32(uint32_t *const dst, const uint32_t *const src, const uint64_t count) {
 
 __debug_optimize(3) uint64_t *
 memcpy64(uint64_t *const dst, const uint64_t *const src, const uint64_t count) {
-    for (uint64_t i = 0; i != count; i++) {
+    for_upto_limit(count, i) {
         dst[i] = src[i];
     }
 

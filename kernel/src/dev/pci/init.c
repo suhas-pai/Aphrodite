@@ -38,8 +38,8 @@ void pci_init_drivers() {
                 }
 
                 bool found = false;
-                for (uint8_t i = 0; i != driver->device_count; i++) {
-                    if (driver->devices[i] == entity->id) {
+                ptrarr_foreach(driver->devices, driver->device_count, id) {
+                    if (*id == entity->id) {
                         found = true;
                         break;
                     }

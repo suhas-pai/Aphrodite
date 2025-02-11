@@ -603,7 +603,7 @@ __debug_optimize(3) void *memset(void *dst, const int val, unsigned long n) {
     }
 #endif /* defined(__x86_64__) */
 
-    for (unsigned long i = 0; i != n; i++) {
+    for_upto_limit(n, i) {
         ((uint8_t *)dst)[i] = (uint8_t)val;
     }
 

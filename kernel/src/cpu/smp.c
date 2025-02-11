@@ -71,8 +71,8 @@ void smp_boot_all_cpus() {
     }
 
     printk(LOGLEVEL_INFO, "smp: booting all %" PRIu64 " cpus\n", cpu_count);
-    for (uint64_t i = 0; i != cpu_count; i++) {
-        struct limine_mp_info *const info = info_list[i];
+    ptrarr_foreach(info_list, cpu_count, info_ptr) {
+        struct limine_mp_info *const info = *info_ptr;
         if (info->field == mp_resp->bsp_field) {
             continue;
         }

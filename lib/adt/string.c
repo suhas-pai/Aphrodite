@@ -185,9 +185,9 @@ string_find_sv(struct string *const string, const struct string_view sv) {
         return -1;
     }
 
-    const char *ptr = string->gbuffer.begin;
-    for (uint32_t i = 0; i <= (string_len - sv.length); i++, ptr++) {
-        if (strncmp(ptr, sv.begin, sv.length) == 0) {
+    const char *const ptr = string->gbuffer.begin;
+    for_upto_limit(string_len - sv.length, i) {
+        if (strncmp(&ptr[i], sv.begin, sv.length) == 0) {
             return i;
         }
     }

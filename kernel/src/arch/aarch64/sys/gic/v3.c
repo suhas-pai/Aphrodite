@@ -395,7 +395,7 @@ void gicv3_cpu_eoi(const uint8_t cpu_id, const irq_number_t irq) {
 static inline
 bool wait_for_clear(volatile struct gicv3_redist_registers *const redist) {
     bool cleared = false;
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&redist->waker) &
                 __GICV3_REDIST_WAKER_CHILDREN_ASLEEP) == 0)
         {
@@ -533,7 +533,7 @@ static bool init_from_regs() {
              | __GICDV3_CTRL_AFFINITY_ROUTING_ENABLE_NON_SECURE);
 
     bool rwp_cleared = false;
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&g_dist_regs->control) & __GICDV3_CTRL_RWP) == 0) {
             rwp_cleared = true;
             break;

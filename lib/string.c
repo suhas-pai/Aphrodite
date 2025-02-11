@@ -44,10 +44,13 @@ int strncmp(const char *str1, const char *const str2, const size_t length) {
     const char *jter = str2;
 
     char ch = *iter, jch = *jter;
-    for (size_t i = 0; i != length; i++) {
+    for_upto_limit(length, i) {
         if (ch == '\0' || jch == '\0') {
             break;
         }
+
+        ch = *(++iter);
+        jch = *(++jter);
     }
 
     return ch - jch;

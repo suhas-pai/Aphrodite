@@ -8,9 +8,9 @@
 
 __debug_optimize(3) void scsi_swap_data(void *const data, const uint32_t size) {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    uint16_t *iter = data;
-    for (uint64_t i = 0; i != size / sizeof(uint16_t); i++, iter++) {
-        *iter = be_to_cpu(*iter);
+    uint16_t *const iter = data;
+    for_upto_limit(size / sizeof(uint16_t), i) {
+        iter[i] = be_to_cpu(iter[i]);
     }
 #else
     (void)data;

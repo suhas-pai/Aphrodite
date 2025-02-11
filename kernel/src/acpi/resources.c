@@ -13,11 +13,10 @@
 #include "dev/printk.h"
 
 bool
-os_acpi_device_resources_collect(
-    struct os_acpi_device_resources *const dev_resources,
-    struct simple_alloc *alloc,
-    uacpi_namespace_node *const node,
-    const uint16_t flags)
+os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
+                                 struct simple_alloc *alloc,
+                                 uacpi_namespace_node *const node,
+                                 const uint16_t flags)
 {
     if (flags == 0) {
         return true;
@@ -50,7 +49,7 @@ os_acpi_device_resources_collect(
     {
         switch ((enum uacpi_resource_type)iter->type) {
             case UACPI_RESOURCE_TYPE_IRQ: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_IRQ) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_IRQ) == 0) {
                     continue;
                 }
 
@@ -78,7 +77,7 @@ os_acpi_device_resources_collect(
                 };
 
                 if (info.irq_count == 0) {
-                    if (!array_add(&dev_resources->irq_list, &info)) {
+                    if (!array_add(&dev_res->irq_list, &info)) {
                         uacpi_free_resources(resources);
                         printk(LOGLEVEL_WARN,
                                "acpi/resources: failed to add irq-info\n");
@@ -102,11 +101,11 @@ os_acpi_device_resources_collect(
                     return false;
                 }
 
-                for (uint32_t i = 0; i < iter->irq.num_irqs; i++) {
+                for_upto_limit(iter->irq.num_irqs, i) {
                     info.irq_list[i] = irq->irqs[i];
                 }
 
-                if (!array_add(&dev_resources->irq_list, &info)) {
+                if (!array_add(&dev_res->irq_list, &info)) {
                     simple_free(alloc, info.irq_list);
                     uacpi_free_resources(resources);
 
@@ -119,7 +118,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_EXTENDED_IRQ: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_IRQ) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_IRQ) == 0) {
                     continue;
                 }
 
@@ -148,7 +147,7 @@ os_acpi_device_resources_collect(
                 };
 
                 if (info.irq_count == 0) {
-                    if (!array_add(&dev_resources->irq_list, &info)) {
+                    if (!array_add(&dev_res->irq_list, &info)) {
                         uacpi_free_resources(resources);
                         printk(LOGLEVEL_WARN,
                                "acpi/resources: failed to add irq-info\n");
@@ -173,7 +172,7 @@ os_acpi_device_resources_collect(
                 }
 
                 memcpy32(info.irq_list, irq->irqs, info.irq_count);
-                if (!array_add(&dev_resources->irq_list, &info)) {
+                if (!array_add(&dev_res->irq_list, &info)) {
                     simple_free(alloc, info.irq_list);
                     uacpi_free_resources(resources);
 
@@ -207,7 +206,7 @@ os_acpi_device_resources_collect(
                 };
 
                 if (info.channel_count == 0) {
-                    if (!array_add(&dev_resources->dma_list, &info)) {
+                    if (!array_add(&dev_res->dma_list, &info)) {
                         uacpi_free_resources(resources);
                         printk(LOGLEVEL_WARN,
                                "acpi/resources: failed to add dma-info\n");
@@ -236,7 +235,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_DMA: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_DMA) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_DMA) == 0) {
                     continue;
                 }
 
@@ -258,7 +257,7 @@ os_acpi_device_resources_collect(
                     .transfer_width = dma->transfer_width,
                 };
 
-                if (!array_add(&dev_resources->fixed_dma_list, &info)) {
+                if (!array_add(&dev_res->fixed_dma_list, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add fixed-dma-info\n");
@@ -269,7 +268,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_IO: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_IO) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_IO) == 0) {
                     continue;
                 }
 
@@ -292,7 +291,7 @@ os_acpi_device_resources_collect(
                     .length = io->length,
                 };
 
-                if (!array_add(&dev_resources->io_list, &info)) {
+                if (!array_add(&dev_res->io_list, &info)) {
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add io-info\n");
                 }
@@ -300,7 +299,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_IO: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_IO) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_IO) == 0) {
                     continue;
                 }
 
@@ -321,7 +320,7 @@ os_acpi_device_resources_collect(
                     .length = io->length,
                 };
 
-                if (!array_add(&dev_resources->fixed_io_list, &info)) {
+                if (!array_add(&dev_res->fixed_io_list, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add fixed-io-info\n");
@@ -332,7 +331,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS16: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
@@ -349,8 +348,8 @@ os_acpi_device_resources_collect(
                 }
 
                 const struct os_acpi_resource_address_u16 info = {
-                    .attribute = (struct os_acpi_address_attribute){
-                        .mem_attr = (struct os_acpi_memory_attribute){
+                    .attribute = {
+                        .mem_attr = {
                             .cache_kind = addr->common.attribute.memory.caching,
                             .range_kind =
                                 addr->common.attribute.memory.range_type,
@@ -360,7 +359,7 @@ os_acpi_device_resources_collect(
                                 addr->common.attribute.memory.write_status ==
                                 UACPI_WRITABLE,
                         },
-                        .io_attr = (struct os_acpi_io_attribute){
+                        .io_attr = {
                             .range_kind =
                                 addr->common.attribute.io.range_type,
                             .mem_kind = addr->common.attribute.io.translation,
@@ -378,7 +377,7 @@ os_acpi_device_resources_collect(
                     .maximum = addr->maximum,
                     .translation_offset = addr->translation_offset,
                     .granularity = addr->granularity,
-                    .source = (struct os_acpi_resource_source){
+                    .source = {
                         .index = addr->source.index,
                         .index_valid = addr->source.index_present,
                         .length = addr->source.length,
@@ -386,7 +385,7 @@ os_acpi_device_resources_collect(
                     },
                 };
 
-                if (!array_add(&dev_resources->addr16, &info)) {
+                if (!array_add(&dev_res->addr16, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add address16-info\n");
@@ -397,7 +396,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS32: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
@@ -451,7 +450,7 @@ os_acpi_device_resources_collect(
                     },
                 };
 
-                if (!array_add(&dev_resources->addr32, &info)) {
+                if (!array_add(&dev_res->addr32, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add address16-info\n");
@@ -462,7 +461,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS64: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
@@ -508,7 +507,7 @@ os_acpi_device_resources_collect(
                     .maximum = addr->maximum,
                     .translation_offset = addr->translation_offset,
                     .granularity = addr->granularity,
-                    .source = (struct os_acpi_resource_source){
+                    .source = {
                         .index = addr->source.index,
                         .index_valid = addr->source.index_present,
                         .length = addr->source.length,
@@ -516,7 +515,7 @@ os_acpi_device_resources_collect(
                     },
                 };
 
-                if (!array_add(&dev_resources->addr64, &info)) {
+                if (!array_add(&dev_res->addr64, &info)) {
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add address16-info\n");
                 }
@@ -524,7 +523,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_ADDRESS64_EXTENDED: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_ADDR) == 0) {
                     continue;
                 }
 
@@ -573,7 +572,7 @@ os_acpi_device_resources_collect(
                     .attributes = addr->attributes
                 };
 
-                if (!array_add(&dev_resources->addr64_ext, &info)) {
+                if (!array_add(&dev_res->addr64_ext, &info)) {
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add address16-info\n");
                 }
@@ -581,7 +580,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_MEMORY24: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
                     continue;
                 }
 
@@ -604,7 +603,7 @@ os_acpi_device_resources_collect(
                     .writable = mem->write_status == UACPI_WRITABLE,
                 };
 
-                if (!array_add(&dev_resources->memory_list, &info)) {
+                if (!array_add(&dev_res->memory_list, &info)) {
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add memory-info\n");
                 }
@@ -612,7 +611,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_MEMORY32: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
                     continue;
                 }
 
@@ -635,7 +634,7 @@ os_acpi_device_resources_collect(
                     .writable = mem->write_status == UACPI_WRITABLE,
                 };
 
-                if (!array_add(&dev_resources->memory_list, &info)) {
+                if (!array_add(&dev_res->memory_list, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add memory-info\n");
@@ -646,7 +645,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_MEMORY32: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_MEM) == 0) {
                     continue;
                 }
 
@@ -668,7 +667,7 @@ os_acpi_device_resources_collect(
                     .writable = mem->write_status == UACPI_WRITABLE,
                 };
 
-                if (!array_add(&dev_resources->memory_list, &info)) {
+                if (!array_add(&dev_res->memory_list, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add memory-info\n");
@@ -679,7 +678,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_START_DEPENDENT: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_DEP) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_DEP) == 0) {
                     continue;
                 }
 
@@ -700,7 +699,7 @@ os_acpi_device_resources_collect(
                     .perf = dep->performance,
                 };
 
-                if (!array_add(&dev_resources->dep_list, &info)) {
+                if (!array_add(&dev_res->dep_list, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add dependent-info\n");
@@ -713,7 +712,7 @@ os_acpi_device_resources_collect(
             case UACPI_RESOURCE_TYPE_VENDOR_SMALL:
             case UACPI_RESOURCE_TYPE_VENDOR_LARGE: {
                 if ((flags &
-                        OS_ACPI_DRIVER_RESOURCES_VENDOR) == 0)
+                        __OS_ACPI_DRIVER_RESOURCES_VENDOR) == 0)
                 {
                     continue;
                 }
@@ -733,7 +732,7 @@ os_acpi_device_resources_collect(
                     sv_create_nocheck((const char *)vendor->data,
                                       vendor->length);
 
-                if (!array_add(&dev_resources->vendor_list, &vendor_sv)) {
+                if (!array_add(&dev_res->vendor_list, &vendor_sv)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add vendor-info\n");
@@ -744,7 +743,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_GENERIC_REGISTER: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_REG) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_REG) == 0) {
                     continue;
                 }
 
@@ -767,7 +766,7 @@ os_acpi_device_resources_collect(
                     .address = reg->address,
                 };
 
-                if (!array_add(&dev_resources->reg_list, &info)) {
+                if (!array_add(&dev_res->reg_list, &info)) {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
                            "acpi/resources: failed to add register-info\n");
@@ -778,7 +777,7 @@ os_acpi_device_resources_collect(
                 continue;
             }
             case UACPI_RESOURCE_TYPE_GPIO_CONNECTION: {
-                if ((flags & OS_ACPI_DRIVER_RESOURCES_GPIO) == 0) {
+                if ((flags & __OS_ACPI_DRIVER_RESOURCES_GPIO) == 0) {
                     continue;
                 }
 
@@ -837,7 +836,7 @@ os_acpi_device_resources_collect(
                 memcpy(info.vendor_data, gpio->vendor_data,
                        info.vendor_data_length);
 
-                if (!array_add(&dev_resources->gpio_list, &info)) {
+                if (!array_add(&dev_res->gpio_list, &info)) {
                     simple_free(alloc, info.pin_table);
                     simple_free(alloc, info.vendor_data);
 

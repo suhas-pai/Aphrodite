@@ -57,7 +57,7 @@ remove_thread_from_listeners(struct event *const event,
                              struct thread *const thread)
 {
     const uint32_t item_count = array_item_count(event->listeners);
-    for (uint32_t index = 0; index != item_count; index++) {
+    for_upto_limit(item_count, index) {
         const struct event_listener *const listener =
             array_at(&event->listeners, const struct event_listener, index);
 

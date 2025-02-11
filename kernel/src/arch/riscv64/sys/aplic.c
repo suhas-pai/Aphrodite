@@ -129,7 +129,7 @@ init_with_regs(volatile struct aplic_registers *const regs,
     mmio_write(&regs->supervisor_msi_config_addr_high32,
                (uint64_t)imsic_region >> (32 + 12));
 
-    for (uint16_t irq = 0; irq < source_count; irq++) {
+    for_upto_limit(source_count, irq) {
         mmio_write(&regs->source_config[irq + 1],
                    APLIC_IRQ_SOURCE_MODE_RISING_EDGE);
     }

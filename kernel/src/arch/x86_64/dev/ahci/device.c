@@ -26,7 +26,7 @@ bool ahci_hba_reset() {
     mmio_write(&g_device.regs->global_host_control,
                __AHCI_HBA_GLOBAL_HOST_CTRL_HBA_RESET);
 
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         const auto ghc = mmio_read(&g_device.regs->global_host_control);
         if ((ghc & __AHCI_HBA_GLOBAL_HOST_CTRL_HBA_RESET) == 0) {
             return true;

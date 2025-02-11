@@ -151,14 +151,14 @@ enum ide_polling_result : uint8_t {
 enum ide_polling_result
 ide_polling(const uint8_t channel, const uint32_t advanced_check) {
     // (I) Delay 400 nanosecond for BSY to be set:
-    for (uint8_t i = 0; i < 4; i++) {
+    for_upto_limit(4, i) {
         // Reading the Alternate Status port wastes 100ns; loop four times.
         ide_read(channel, ATA_REG_ALT_STATUS);
     }
 
     // (II) Wait for BSY to be cleared:
     bool bsy_cleared = false;
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((ide_read(channel, ATA_REG_STATUS) & __ATA_STATUS_REG_BSY) == 0) {
             bsy_cleared = true;
             break;
@@ -308,7 +308,7 @@ ide_init(const uint32_t bar0,
 
     // 4- Print Summary:
     bool found_device = false;
-    for (uint8_t i = 0; i != 4; i++) {
+    for_upto_limit(4, i) {
         if (g_devices_list[i].reserved != 1) {
             continue;
         }

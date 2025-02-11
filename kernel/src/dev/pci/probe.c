@@ -184,8 +184,8 @@ validate_cap_offset(struct array *const prev_cap_offsets,
                                cap_range))
     {
         printk(LOGLEVEL_INFO,
-               "\t\t" "invalid entity. pci capability struct is outside entity's "
-               "data range: " RANGE_FMT "\n",
+               "\t\t" "invalid entity. pci capability struct is outside "
+               "entity's data range: " RANGE_FMT "\n",
                RANGE_FMT_ARGS(cap_range));
         return false;
     }
@@ -560,7 +560,7 @@ parse_function(struct pci_bus *const pci_bus,
             }
 
             pci_parse_capabilities(entity);
-            for (uint8_t index = 0; index != entity->max_bar_count; index++) {
+            for_upto_limit((uint8_t)entity->max_bar_count, index) {
                 struct pci_bar *const bar = &entity->bar_list[index];
 
                 const uint8_t bar_index = index;
@@ -615,17 +615,17 @@ parse_function(struct pci_bus *const pci_bus,
             }
 
             pci_parse_capabilities(entity);
-            for (uint8_t jndex = 0; jndex != entity->max_bar_count; jndex++) {
-                struct pci_bar *const bar = &entity->bar_list[jndex];
+            for_upto_limit((uint8_t)entity->max_bar_count, index) {
+                struct pci_bar *const bar = &entity->bar_list[index];
 
-                const uint8_t bar_index = jndex;
+                const uint8_t bar_index = index;
                 const enum parse_bar_result result =
-                    pci_parse_bar(entity, &jndex, /*is_bridge=*/true, bar);
+                    pci_parse_bar(entity, &index, /*is_bridge=*/true, bar);
 
                 if (result == E_PARSE_BAR_IGNORE) {
                     printk(LOGLEVEL_INFO,
                            "\t\t" "bridge bar %" PRIu8 ": ignoring\n",
-                           jndex);
+                           index);
                     continue;
                 }
 
@@ -633,7 +633,7 @@ parse_function(struct pci_bus *const pci_bus,
                     printk(LOGLEVEL_INFO,
                            "pci: failed to parse bar %" PRIu8 " for "
                            "entity, " PCI_ENTITY_FMT "\n",
-                           jndex,
+                           index,
                            PCI_ENTITY_FMT_ARGS(entity));
                     break;
                 }
@@ -732,9 +732,9 @@ pci_parse_bus(struct pci_bus *const bus,
               const uint8_t bus_id)
 {
     loc.bus += bus_id;
-    for (uint8_t slot = 0; slot != PCI_MAX_SLOT_COUNT; slot++) {
+    for_upto_limit(PCI_MAX_SLOT_COUNT, slot) {
         loc.slot = slot;
-        for (uint8_t func = 0; func != PCI_MAX_FUNCTION_COUNT; func++) {
+        for_upto_limit (PCI_MAX_FUNCTION_COUNT, func) {
             loc.function = func;
             const uint16_t vendor_id =
                 pci_domain_read_16(
@@ -777,7 +777,7 @@ bool pci_bus_probe(struct bus *const the_bus) {
     const uint8_t host_count =
         header_kind & __PCI_ENTITY_HDR_MULTFUNC ? PCI_MAX_FUNCTION_COUNT : 1;
 
-    for (uint16_t i = 0; i != host_count; i++) {
+    for_upto_limit(host_count, i) {
         if (!pci_parse_bus(bus, loc, /*bus=*/i)) {
             return false;
         }

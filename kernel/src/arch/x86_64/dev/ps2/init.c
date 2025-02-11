@@ -17,10 +17,10 @@ static bool g_keyboard_initialized = false;
 static bool g_mouse_initialized = false;
 
 #define g_write_cmd_port g_read_status_port
-#define RETRY_LIMIT 10
+#define MAX_ATTEMPTS 10
 
 __debug_optimize(3) int16_t ps2_read_input_byte() {
-    for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         const uint8_t byte = pio_read8(g_read_status_port);
         if ((byte & __PS2_STATUS_REG_OUTPUT_BUFFER_FULL) == 0) {
             cpu_pause();
@@ -34,7 +34,7 @@ __debug_optimize(3) int16_t ps2_read_input_byte() {
 }
 
 __debug_optimize(3) bool ps2_write(const port_t port, const uint8_t value) {
-    for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         const uint8_t byte = pio_read8(g_read_status_port);
         if (byte & __PS2_STATUS_REG_INPUT_BUFFER_FULL) {
             cpu_pause();
@@ -85,7 +85,7 @@ bool send_byte_to_port(const enum ps2_port_id device, const uint8_t byte) {
 
 __debug_optimize(3)
 int16_t ps2_send_to_port(const enum ps2_port_id device, const uint8_t byte) {
-    for (uint64_t i = 0; i != RETRY_LIMIT; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if (!send_byte_to_port(device, byte)) {
             return -1;
         }

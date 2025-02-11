@@ -128,7 +128,7 @@ void check_bitmap(const uint64_t size) {
             const uint64_t unset_index = 3;
             const uint64_t unset_count = 8;
 
-            for (uint8_t i = 0; i != unset_count; i++) {
+            for_upto_limit(unset_count, i) {
                 bitmap_set(&bitmap, unset_index + i, false);
             }
 

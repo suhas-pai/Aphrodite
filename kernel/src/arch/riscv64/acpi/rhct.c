@@ -73,8 +73,8 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
             }
 
             printk(LOGLEVEL_INFO,
-                   "%srhct: found mmu node:\n"
-                   "%s\tmmu kind: %s\n",
+                   "%s" "rhct: found mmu node:\n"
+                   "%s\t" "mmu kind: %s\n",
                    prefix,
                    prefix, mmu_kind);
 
@@ -90,11 +90,9 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
                    prefix, hart->offset_count,
                    prefix, hart->acpi_processor_uid);
 
-            for (uint16_t j = 0; j != hart->offset_count; j++) {
+            ptrarr_foreach(hart->offsets, hart->offset_count, offset) {
                 const auto hart_node =
-                    reg_to_ptr(struct os_acpi_rhct_node,
-                               rhct,
-                               hart->offsets[j]);
+                    reg_to_ptr(struct os_acpi_rhct_node, rhct, *offset);
 
                 print_rhct_node(rhct, hart_node, "\t\t");
             }
@@ -118,7 +116,7 @@ void acpi_rhct_init(const struct os_acpi_rhct *const rhct) {
     auto node =
         reg_to_ptr(struct os_acpi_rhct_node, rhct, rhct->node_offset);
 
-    for (uint32_t i = 0; i != rhct->node_count; i++) {
+    for_upto_limit(rhct->node_count, i) {
         print_rhct_node(rhct, node, /*prefix=*/"");
         node = reg_to_ptr(struct os_acpi_rhct_node, node, node->length);
     }

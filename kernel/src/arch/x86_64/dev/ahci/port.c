@@ -60,7 +60,7 @@ bool ahci_hba_port_start_running(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     bool cmdlist_stopped = false;
 
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&spec->cmd_status) &
                 __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
@@ -100,9 +100,9 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
                        __AHCI_HBA_PORT_CMDSTATUS_START));
 
     bool cmdlist_stopped = false;
-    for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status)
-                & __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
+    for_upto_limit(MAX_ATTEMPTS, i) {
+        if ((mmio_read(&spec->cmd_status) &
+                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
             cmdlist_stopped = true;
             break;
@@ -120,7 +120,7 @@ bool ahci_hba_port_stop_running(struct ahci_hba_port *const port) {
                        __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_ENABLE));
 
     bool fis_stopped = false;
-    for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&spec->cmd_status) &
                 __AHCI_HBA_PORT_CMDSTATUS_FIS_RECEIVE_RUNNING) == 0)
         {
@@ -146,7 +146,7 @@ static inline bool wait_for_tfd_idle(struct ahci_hba_port *const port) {
         __AHCI_HBA_TFD_STATUS_DATA_TRANSFER_REQUESTED;
 
     volatile struct ahci_spec_hba_port *const spec = port->spec;
-    for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&spec->task_file_data) & tfd_flags) == 0) {
             return true;
         }
@@ -189,7 +189,7 @@ static void comreset_port(struct ahci_hba_port *const port) {
 __debug_optimize(3)
 static inline bool wait_until_det_present(struct ahci_hba_port *const port) {
     volatile struct ahci_spec_hba_port *const spec = port->spec;
-    for (uint8_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&spec->sata_status) & AHCI_HBA_PORT_DET_PRESENT) == 0) {
             return true;
         }
@@ -483,9 +483,9 @@ __debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
                    rm_mask(cmd_status, __AHCI_HBA_PORT_CMDSTATUS_START));
     }
 
-    for (int i = 0; i != MAX_ATTEMPTS; i++) {
-        if ((mmio_read(&spec->cmd_status)
-                & __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
+    for_upto_limit(MAX_ATTEMPTS, i) {
+        if ((mmio_read(&spec->cmd_status) &
+                __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
         {
             return true;
         }
@@ -540,7 +540,7 @@ ahci_hba_port_power_on_and_spin_up(
                index + 1u);
 
         // TODO: Wait for about 1ms here
-        for (int i = 0; i != MAX_ATTEMPTS; i++) {
+        for_upto_limit(MAX_ATTEMPTS, i) {
             const uint32_t sata_status = mmio_read(&port->sata_status);
             const enum ahci_hba_port_det det =
                 sata_status & __AHCI_HBA_PORT_SATA_STAT_CTRL_DET;

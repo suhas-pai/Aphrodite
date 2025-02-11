@@ -61,7 +61,7 @@ static uint8_t early_info_count = 0;
 
 __debug_optimize(3) static
 void wait_for_tx_complete(volatile const struct pl011_registers *const dev) {
-    for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&dev->fr_offset) & __FR_BUSY) == 0) {
             return;
         }
@@ -80,7 +80,7 @@ pl011_send_char(struct terminal *const term,
     wait_for_tx_complete(device);
 
     if (ch == '\n') {
-        for (uint64_t i = 0; i != amount; i++) {
+        for_upto_limit(amount, i) {
             mmio_write(&device->dr_offset, '\r');
             wait_for_tx_complete(device);
 
@@ -88,7 +88,7 @@ pl011_send_char(struct terminal *const term,
             wait_for_tx_complete(device);
         }
     } else {
-        for (uint64_t i = 0; i != amount; i++) {
+        for_upto_limit(amount, i) {
             mmio_write(&device->dr_offset, ch);
             wait_for_tx_complete(device);
         }

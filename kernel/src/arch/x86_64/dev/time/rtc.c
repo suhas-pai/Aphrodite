@@ -31,7 +31,7 @@ enum cmos_rtc_reg_status_b_masks {
 #define MAX_ATTEMPTS 10
 
 __debug_optimize(3) static inline bool rtc_wait_until_available() {
-    for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         const uint8_t reg_a = cmos_read(CMOS_REGISTER_RTC_STATUS_A);
         if ((reg_a & __CMOS_RTC_REGSTATUS_A_UPDATE_IN_PROG) == 0) {
             return true;
@@ -120,7 +120,7 @@ bool rtc_read_cmos_info(struct rtc_cmos_info *const info_out) {
     struct rtc_cmos_info check = RTC_CMOS_INFO_INIT();
 
     bool should_return = true;
-    for (uint64_t i = 0; i != MAX_ATTEMPTS; i++) {
+    for_upto_limit(MAX_ATTEMPTS, i) {
         read_rtc_cmos_info(&info);
         read_rtc_cmos_info(&check);
 

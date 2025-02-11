@@ -29,11 +29,14 @@ virtio_device_init_queues(struct virtio_device *const device,
         return false;
     }
 
-    for (uint16_t index = 0; index != queue_count; index++) {
-        if (!virtio_split_queue_init(device, &queue_list[index], index)) {
+    uint32_t index = 0;
+    ptrarr_foreach(queue_list, queue_count, queue) {
+        if (!virtio_split_queue_init(device, queue, index)) {
             kfree(queue_list);
             return false;
         }
+
+        index++;
     }
 
     device->queue_list = queue_list;
