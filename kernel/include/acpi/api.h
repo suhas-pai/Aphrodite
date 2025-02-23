@@ -50,6 +50,10 @@ struct acpi_info {
 
 void acpi_init();
 
+#ifdef CONFIG_UACPI
+void uacpi_init();
+#endif /* defined(CONFIG_UACPI) */
+
 const struct os_acpi_sdt *acpi_lookup_sdt(const char signature[static 4]);
 const struct acpi_info *get_acpi_info();
 

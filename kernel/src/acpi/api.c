@@ -244,8 +244,10 @@ void acpi_init(void) {
     if (get_acpi_info()->mcfg != nullptr) {
         mcfg_init(get_acpi_info()->mcfg);
     }
+}
 
 #ifdef CONFIG_UACPI
+void uacpi_init() {
     /*
      * Start with this as the first step of the initialization. This loads
      * all tables, brings the event subsystem online, and enters ACPI mode.
@@ -310,5 +312,5 @@ void acpi_init(void) {
      * recommended step is namespace enumeration and device discovery so you
      * can bind drivers to ACPI objects.
      */
-#endif
 }
+#endif /* defined(CONFIG_UACPI) */
