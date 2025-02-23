@@ -401,7 +401,7 @@ void *memccpy(void *dst, const void *src, int ch, unsigned long n) {
 }
 
 #define DECL_MEM_COPY_BACK_FUNC(type) \
-    __debug_optimize(3) static inline unsigned long  \
+    __debug_optimize(3) static inline unsigned long \
     VAR_CONCAT(_memcpy_bw_, type)(void *const dst, \
                                   const void *const src, \
                                   const unsigned long n) \

@@ -1,4 +1,4 @@
-# Aphrodite
+# Aeneas
 
 An operating system written in C17 (gnu17), for `x86_64`, `aarch64`, and `riscv64`.
 `loongarch64` is being worked on but isn't currently functional.

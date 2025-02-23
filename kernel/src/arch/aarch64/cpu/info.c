@@ -17,9 +17,6 @@ __hidden struct cpu_info g_base_cpu_info = {
 
     .spe_overflow_interrupt = 0,
 
-    .gic_its_pend_page = nullptr,
-    .gic_its_prop_page = nullptr,
-
     .in_lpi = false,
     .in_exception = false,
 };

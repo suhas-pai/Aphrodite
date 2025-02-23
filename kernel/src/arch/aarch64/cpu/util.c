@@ -45,11 +45,17 @@ struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     cpu->spe_overflow_interrupt = 0;
     cpu->icid = 0;
 
-    cpu->gic_its_pend_page = nullptr;
-    cpu->gic_its_prop_page = nullptr;
-
     cpu->in_lpi = false;
     cpu->in_exception = false;
+
+    const uint64_t percpu_size = (uint64_t)(percpu_end - percpu_start);
+    if (percpu_size != 0) {
+        cpu->percpu_base = kmalloc(percpu_size);
+        assert_msg(cpu->percpu_base != nullptr,
+                   "cpu: failed to alloc percpu");
+
+        memcpy(cpu->percpu_base, percpu_start, percpu_size);
+    }
 
     sched_init_on_cpu(cpu);
     list_add(cpus_get_list(), &cpu->cpu_list);

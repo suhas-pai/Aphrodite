@@ -26,12 +26,12 @@ struct mutex_waiter {
         .thread = current_thread() \
     })
 
-void mutex_init(struct mutex *const mutex) {
+__debug_optimize(3) void mutex_init(struct mutex *const mutex) {
     list_init(&mutex->waiters);
     mutex->flags = 0;
 }
 
-bool
+__debug_optimize(3) bool
 mutex_lock_fast(struct mutex *const mutex,
                 struct thread *const thread,
                 uintptr_t *const flags)
@@ -123,7 +123,7 @@ try_contention(struct mutex *const mutex,
     return CONTENTION_AND_ACQ_RETRY;
 }
 
-static bool
+__debug_optimize(3) static bool
 try_contention_and_hold(struct mutex *const mutex, uintptr_t *const flags) {
     while (true) {
         const enum contention_result result =

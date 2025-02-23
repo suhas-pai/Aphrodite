@@ -39,10 +39,10 @@ enum uart_lsr : uint8_t {
     __UART_LSR_FIFO_ERROR = 1 << 7,
 
     __UART_LSR_BRK_ERROR =
-        __UART_LSR_BREAK_INTERRUPT
-      | __UART_LSR_FRAME_ERROR
-      | __UART_LSR_PARITY_ERROR
-      | __UART_LSR_OVERRUN_ERROR
+        __UART_LSR_BREAK_INTERRUPT |
+        __UART_LSR_FRAME_ERROR |
+        __UART_LSR_PARITY_ERROR |
+        __UART_LSR_OVERRUN_ERROR
 };
 
 struct uart8250_info {
@@ -262,7 +262,7 @@ static void init_drivers() {
 
     driver_initialize(&dtb_driver.driver,
                       &dtb_bus()->bus,
-                      /*name=*/SV_STATIC("uart8250"),
+                      SV_STATIC("uart8250"),
                       uart8250_dtb_probe,
                       /*remove=*/nullptr,
                       /*shutdown=*/nullptr,

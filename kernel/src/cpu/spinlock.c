@@ -29,6 +29,8 @@ __debug_optimize(3) void spin_acquire(struct spinlock *const lock) {
 
         cpu_pause();
     }
+
+    verify_not_reached();
 }
 
 __debug_optimize(3) void spin_release(struct spinlock *const lock) {

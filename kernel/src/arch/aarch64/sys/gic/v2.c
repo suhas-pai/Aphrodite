@@ -241,7 +241,7 @@ static struct mmio_region *g_cpu_mmio = nullptr;
 static volatile struct gic_cpu_interface *g_cpu = nullptr;
 
 static struct list g_msi_info_list = LIST_INIT(g_msi_info_list);
-static struct range g_cpu_phys_range= RANGE_EMPTY();
+static struct range g_cpu_phys_range = RANGE_EMPTY();
 
 static bool g_dist_initialized = false;
 static bool g_use_split_eoi = false;

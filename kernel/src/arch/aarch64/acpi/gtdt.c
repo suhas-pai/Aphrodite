@@ -14,8 +14,9 @@ void gtdt_init(const struct os_acpi_gtdt *const gtdt) {
         (gtdt->secure_el1_timer_flags & __OS_ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity secure_el1_polarity =
-        (gtdt->secure_el1_timer_flags & __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
-            IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
+        (gtdt->secure_el1_timer_flags &
+            __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
+                IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
     const enum irq_trigger_mode non_secure_el1_trigger_mode =
         (gtdt->non_secure_el1_timer_flags & __OS_ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
@@ -27,8 +28,9 @@ void gtdt_init(const struct os_acpi_gtdt *const gtdt) {
         (gtdt->virtual_el1_timer_flags & __OS_ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity virtual_el1_polarity =
-        (gtdt->virtual_el1_timer_flags & __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
-            IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
+        (gtdt->virtual_el1_timer_flags &
+            __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
+                IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
     const enum irq_trigger_mode el2_trigger_mode =
         (gtdt->el2_timer_flags & __OS_ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
@@ -39,8 +41,9 @@ void gtdt_init(const struct os_acpi_gtdt *const gtdt) {
         (gtdt->virtual_el2_timer_flags & __OS_ACPI_GTDT_EDGE_TRIGGER_IRQ) ?
             IRQ_TRIGGER_MODE_EDGE : IRQ_TRIGGER_MODE_LEVEL;
     const enum irq_polarity virtual_el2_polarity =
-        (gtdt->virtual_el2_timer_flags & __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
-            IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
+        (gtdt->virtual_el2_timer_flags &
+            __OS_ACPI_GTDT_ACTIVE_LOW_POLARITY_IRQ) ?
+                IRQ_POLARITY_LOW : IRQ_POLARITY_HIGH;
 
     printk(LOGLEVEL_INFO,
            "gtdt:\n"

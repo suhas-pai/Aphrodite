@@ -30,4 +30,5 @@ __debug_optimize(3) void arch_post_mm_init() {
 
 __debug_optimize(3) void arch_init() {
     mm_arch_init();
+    cpu_post_mm_init();
 }

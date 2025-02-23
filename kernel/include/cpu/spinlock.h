@@ -8,7 +8,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct spinlock {
+#include <lib/thread_safety.h>
+
+struct CAPABILITY("spinlock") spinlock {
     _Atomic uint32_t front;
     _Atomic uint32_t back;
 };

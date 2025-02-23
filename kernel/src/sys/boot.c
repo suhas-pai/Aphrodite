@@ -66,8 +66,8 @@ static volatile struct limine_dtb_request dtb_request = {
 };
 
 __attribute__((section(".requests")))
-static volatile struct limine_boot_time_request boot_time_request = {
-    .id = LIMINE_BOOT_TIME_REQUEST,
+static volatile struct limine_date_at_boot_request boot_time_request = {
+    .id = LIMINE_DATE_AT_BOOT_REQUEST,
     .revision = 0,
     .response = nullptr,
 };
@@ -311,10 +311,10 @@ void boot_post_early_init() {
         panic("boot: boot-time not found\n");
     }
 
-    assert_msg(boot_time_request.response->boot_time > 0,
+    assert_msg(boot_time_request.response->timestamp > 0,
                "boot: boot-time is zero\n");
 
-    boot_time = (uint64_t)boot_time_request.response->boot_time;
+    boot_time = (uint64_t)boot_time_request.response->timestamp;
     printk(LOGLEVEL_INFO, "boot: boot timestamp is %" PRIu64 ": ", boot_time);
 
     const struct tm tm = tm_from_stamp((uint64_t)boot_time);

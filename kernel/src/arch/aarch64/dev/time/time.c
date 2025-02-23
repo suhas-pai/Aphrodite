@@ -107,7 +107,7 @@ static void enable_dtb_timer_irqs() {
                    "in ACPI, or '/timer' node in dtb");
     }
 
-    struct devicetree_prop_interrupts *const intr_prop =
+    const auto intr_prop =
         (struct devicetree_prop_interrupts *)(uint64_t)
             devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPTS);
 
@@ -181,9 +181,10 @@ enable_gtdt_timer_irqs(const uint32_t secure_el1_timer_gsiv,
 
     gicd_set_irq_trigger_mode(virtual_el1_timer_gsiv, virtual_el1_trigger_mode);
 
-    /* gicd_set_irq_trigger_mode(el2_timer_gsiv, el2_trigger_mode);
-       gicd_set_irq_trigger_mode(virtual_el2_timer_gsiv,
-                                 virtual_el2_trigger_mode); */
+#if 0
+    gicd_set_irq_trigger_mode(el2_timer_gsiv, el2_trigger_mode);
+    gicd_set_irq_trigger_mode(virtual_el2_timer_gsiv, virtual_el2_trigger_mode);
+#endif
 
     gicd_unmask_irq(secure_el1_timer_gsiv);
     gicd_unmask_irq(non_secure_el1_timer_gsiv);

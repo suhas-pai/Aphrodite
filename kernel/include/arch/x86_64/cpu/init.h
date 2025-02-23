@@ -8,3 +8,5 @@
 void cpu_init();
 void cpu_early_init();
 void cpu_init_for_smp();
+
+void cpu_post_mm_init();

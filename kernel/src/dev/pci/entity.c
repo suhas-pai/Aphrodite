@@ -310,8 +310,8 @@ pci_entity_toggle_msi_vector_mask(struct pci_entity *const entity,
     switch (entity->msi_support) {
         case PCI_ENTITY_MSI_SUPPORT_NONE:
             printk(LOGLEVEL_WARN,
-                   "pcie: entity " PCI_ENTITY_FMT " does not support msi "
-                   "or msix\n",
+                   "pcie: entity " PCI_ENTITY_FMT " does not support msi or "
+                   "msix\n",
                    PCI_ENTITY_FMT_ARGS(entity));
 
             return false;

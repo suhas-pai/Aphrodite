@@ -6,9 +6,11 @@
 #pragma once
 
 #include <lib/list.h>
+
+#include <lib/thread_safety.h>
 #include <lib/time.h>
 
-struct mutex {
+struct CAPABILITY("mutex") mutex {
     _Atomic(uintptr_t) flags;
     struct list waiters;
 };

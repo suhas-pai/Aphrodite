@@ -41,10 +41,9 @@ static bool pl031_dtb_probe(struct device *const the_device) {
     const struct dtb_device *const device =
         parent_of(the_device, struct dtb_device, device);
 
-    const struct devicetree_node *const node = device->node;
-    const struct devicetree_prop_reg *const reg_prop =
+    const auto reg_prop =
         (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+            devicetree_node_get_prop(device->node, DEVICETREE_PROP_REG);
 
     if (reg_prop == nullptr) {
         printk(LOGLEVEL_INFO, "pl031: dtb-node is missing a 'reg' prop\n");
@@ -61,9 +60,7 @@ static bool pl031_dtb_probe(struct device *const the_device) {
         array_front(&reg_list, struct devicetree_prop_reg_info);
 
     struct range reg_range = RANGE_EMPTY();
-    if (!range_create_and_verify(reg_info->address,
-                                 reg_info->size,
-                                 &reg_range))
+    if (!range_create_and_verify(reg_info->address, reg_info->size, &reg_range))
     {
         printk(LOGLEVEL_INFO, "pl031: dtb-node's 'reg' prop range overflows\n");
         return false;
@@ -114,7 +111,7 @@ static void init_drivers() {
 
     driver_initialize(&dtb_driver.driver,
                       &dtb_bus()->bus,
-                      /*name=*/SV_STATIC("arm-pl031"),
+                      SV_STATIC("arm-pl031"),
                       pl031_dtb_probe,
                       /*remove=*/nullptr,
                       /*shutdown=*/nullptr,

@@ -164,6 +164,9 @@ static struct mmio_region *g_redist_mmio = nullptr;
 
 static bool g_gic_initialized = false;
 
+__percpu static void *gic_its_pend_page = nullptr;
+__percpu static volatile uint32_t *gic_its_prop_page = nullptr;
+
 #define MAX_ATTEMPTS 100
 #define GICD_BITS_PER_IFACE 8
 #define GICD_DEFAULT_PRIO 0xA0
@@ -238,6 +241,10 @@ gicdv3_free_msi_vector(struct device *const device,
     }
 }
 
+__debug_optimize(3) volatile uint32_t *gicdv3_get_its_prop_page() {
+    return *percpu(gic_its_prop_page);
+}
+
 __debug_optimize(3)
 void gicdv3_set_irq_affinity(const irq_number_t irq, const uint8_t affinity) {
     if (irq < GIC_SPI_INTR_START) {
@@ -268,7 +275,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
         return;
     }
 
-    volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+    const auto dist = gicv3_dist_for_irq(irq);
 
     const uint32_t bit_offset = (irq % sizeof_bits(uint16_t)) * 2;
     const uint32_t bit_value = mode == IRQ_TRIGGER_MODE_EDGE ? 0b10 : 0b00;
@@ -306,7 +313,7 @@ gicdv3_set_irq_trigger_mode(const irq_number_t irq,
 
 __debug_optimize(3)
 void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
-    volatile struct gicd_v3_registers *const dist = gicv3_dist_for_irq(irq);
+    const auto dist = gicv3_dist_for_irq(irq);
 
     const uint8_t index = irq / sizeof(uint32_t);
     const uint8_t bit_index = (irq % sizeof(uint32_t)) * GICD_BITS_PER_IFACE;
@@ -317,8 +324,8 @@ void gicdv3_set_irq_priority(const irq_number_t irq, const uint8_t priority) {
                                  memory_order_relaxed);
 
         atomic_store_explicit(&dist->irq_priority[index],
-                              rm_mask(irq_priority, 0xFFull << bit_index)
-                            | (uint32_t)priority << bit_index,
+                              rm_mask(irq_priority, 0xFFull << bit_index) |
+                                (uint32_t)priority << bit_index,
                               memory_order_relaxed);
     });
 }
@@ -349,7 +356,7 @@ volatile uint64_t *gicdv3_get_msi_address(const isr_vector_t vector) {
 
     struct gic_its_info *its = nullptr;
     list_foreach(gic_its_get_list(), list, its) {
-        volatile uint64_t *const address = gic_its_get_msi_address(its);
+        const auto address = gic_its_get_msi_address(its);
         return address;
     }
 
@@ -475,8 +482,8 @@ bool gic_redist_init_on_this_cpu() {
                (GIC_REDIST_IDBITS - 1));
 
     with_intr_disabled({
-        this_cpu_mut()->gic_its_pend_page = phys_to_virt(pend_phys);
-        this_cpu_mut()->gic_its_prop_page = phys_to_virt(prop_phys);
+        *percpu(gic_its_pend_page) = phys_to_virt(pend_phys);
+        *percpu(gic_its_prop_page) = phys_to_virt(prop_phys);
     });
 
     return true;
@@ -638,7 +645,7 @@ static bool gicv3_dtb_probe(struct device *const the_driver) {
         return false;
     }
 
-    struct devicetree_prop_reg_info *const dist_reg_info =
+    const auto dist_reg_info =
         array_front(&reg_prop->list, struct devicetree_prop_reg_info);
 
     if (dist_reg_info->size < sizeof(struct gicd_v3_registers)) {
@@ -649,7 +656,7 @@ static bool gicv3_dtb_probe(struct device *const the_driver) {
     }
 
     struct range redist_range = RANGE_EMPTY();
-    struct devicetree_prop_reg_info *const redist_reg_info =
+    const auto redist_reg_info =
         array_at(&reg_prop->list, struct devicetree_prop_reg_info, /*index=*/1);
 
     if (!range_create_and_verify(redist_reg_info->address,

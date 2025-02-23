@@ -90,8 +90,8 @@ volatile void *pci_bar_get_base(const struct pci_bar *const bar) {
                 RANGE_INIT(res->child_base, res->size);
 
             if (range_has_loc(child_range, offset)) {
-                return res->mmio->base
-                     + range_index_for_loc(child_range, offset);
+                return res->mmio->base +
+                       range_index_for_loc(child_range, offset);
             }
         }
 

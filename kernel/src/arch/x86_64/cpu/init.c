@@ -11,6 +11,7 @@
 #include "cpu/info.h"
 #include "dev/printk.h"
 
+#include "mm/kmalloc.h"
 #include "sched/thread.h"
 #include "sys/gdt.h"
 
@@ -490,4 +491,16 @@ void cpu_init() {
 __debug_optimize(3) void cpu_init_for_smp() {
     init_cpuid_features();
     cpu_init();
+}
+
+void cpu_post_mm_init() {
+    const uint64_t percpu_size = (uint64_t)(percpu_end - percpu_start);
+    if (percpu_size == 0) {
+        return;
+    }
+
+    this_cpu_mut()->percpu_base = kmalloc(percpu_size);
+    assert_msg(this_cpu()->percpu_base != nullptr, "Failed to allocate percpu");
+
+    memcpy(this_cpu()->percpu_base, percpu_start, percpu_size);
 }

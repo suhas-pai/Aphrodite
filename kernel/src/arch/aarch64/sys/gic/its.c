@@ -4,9 +4,10 @@
  */
 
 #include <lib/adt/bitset.h>
-
 #include "dev/pci/entity.h"
+
 #include "sys/gic/its.h"
+#include "sys/gic/v3.h"
 
 #include "asm/irqs.h"
 
@@ -332,12 +333,10 @@ gic_its_alloc_msi_vector(struct gic_its_info *const its,
     }
 
     with_preempt_disabled({
-        volatile uint32_t *const prop_page =
-            ((volatile uint32_t *)this_cpu()->gic_its_prop_page);
-
+        volatile uint32_t *const prop_page = gicdv3_get_its_prop_page();
         mmio_write(&prop_page[vector],
-                   __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED
-                 | GICD_DEFAULT_PRIO <<
+                   __GIC_ITS_LPI_CONFIG_TABLE_ENTRY_ENABLED |
+                   GICD_DEFAULT_PRIO <<
                     GIC_ITS_LPI_CONFIG_TABLE_ENTRY_PRIORITY_SHIFT);
     });
 

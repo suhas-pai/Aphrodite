@@ -220,7 +220,7 @@ __debug_optimize(3) uint64_t
 isr_get_msi_address(const struct cpu_info *const cpu, const isr_vector_t vector)
 {
     (void)vector;
-    return cpu->imsic_phys;
+    return imsic_get_phys(RISCV64_PRIVL_SUPERVISOR, cpu);
 }
 
 __debug_optimize(3) uint64_t
@@ -228,7 +228,7 @@ isr_get_msix_address(const struct cpu_info *const cpu,
                      const isr_vector_t vector)
 {
     (void)vector;
-    return cpu->imsic_phys;
+    return imsic_get_phys(RISCV64_PRIVL_SUPERVISOR, cpu);
 }
 
 __debug_optimize(3) enum isr_msi_support isr_get_msi_support() {

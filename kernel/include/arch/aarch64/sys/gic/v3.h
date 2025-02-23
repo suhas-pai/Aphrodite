@@ -25,6 +25,8 @@ gicdv3_free_msi_vector(struct device *device,
                        isr_vector_t vector,
                        uint16_t msi_index);
 
+volatile uint32_t *gicdv3_get_its_prop_page();
+
 void gicdv3_set_irq_affinity(irq_number_t irq, uint8_t iface);
 void gicdv3_set_irq_trigger_mode(irq_number_t irq, enum irq_trigger_mode mode);
 void gicdv3_set_irq_priority(irq_number_t irq, uint8_t priority);

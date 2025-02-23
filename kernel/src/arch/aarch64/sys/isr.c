@@ -29,10 +29,10 @@ struct intr_info {
 extern void *const ivt_el1;
 static bitset_decl(g_vector_bitset, ISR_IRQ_COUNT - GIC_SPI_INTR_START);
 
-// irqs correspond to spi intrs on arm
+__percpu static struct irq_pin local_irq_pin_list[GIC_PPI_INTR_LAST + 1] = {0};
 
 static struct irq_pin
-g_irq_pin_list[GIC_SPI_INTR_LAST - GIC_SPI_INTR_START] = {0};
+g_irq_pin_list[GIC_SPI_INTR_LAST - GIC_SPI_INTR_START + 1] = {0};
 
 static struct intr_info g_irq_info_list[ISR_IRQ_COUNT] = {0};
 static struct intr_info g_lpi_irq_info_list[GIC_ITS_MAX_LPIS_SUPPORTED] = {0};
@@ -155,12 +155,21 @@ isr_set_msi_vector(const isr_vector_t vector,
            vector);
 }
 
-struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
-    if (!index_in_bounds(irq, countof(g_irq_pin_list))) {
-        return nullptr;
+__debug_optimize(3) struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
+    if (irq <= GIC_PPI_INTR_LAST) {
+        struct irq_pin *pin = NULL;
+        with_intr_disabled({
+            pin = percpu(local_irq_pin_list)[irq];
+        });
+
+        return pin;
     }
 
-    return &g_irq_pin_list[irq];
+    if (index_in_bounds(irq, GIC_SPI_INTR_RANGE.size)) {
+        return &g_irq_pin_list[irq - GIC_SPI_INTR_START];
+    }
+
+    return nullptr;
 }
 
 bool

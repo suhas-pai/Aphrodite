@@ -16,8 +16,6 @@ static struct cpu_info g_base_cpu_info = {
     .cmo_size = 0,
     .hart_id = 0,
     .timer_start = 0,
-    .imsic_phys = 0,
-    .imsic_page = nullptr
 };
 
 struct cpus_info g_cpus_info = {
@@ -69,6 +67,15 @@ struct cpu_info *cpu_add(const struct limine_mp_info *const info) {
     cpu->cbo_size = 0;
     cpu->cmo_size = 0;
     cpu->hart_id = info->hartid;
+
+    const uint64_t percpu_size = (uint64_t)(percpu_end - percpu_start);
+    if (percpu_size != 0) {
+        cpu->percpu_base = kmalloc(percpu_size);
+        assert_msg(cpu->percpu_base != nullptr,
+                   "cpu: failed to alloc percpu");
+
+        memcpy(cpu->percpu_base, percpu_start, percpu_size);
+    }
 
     sched_init_on_cpu(cpu);
     list_add(cpus_get_list(), &cpu->cpu_list);

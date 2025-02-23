@@ -9,6 +9,7 @@
 #include "cpu/info.h"
 #include "dev/printk.h"
 
+#include "mm/kmalloc.h"
 #include "sched/thread.h"
 #include "sys/boot.h"
 
@@ -67,7 +68,7 @@ static void setup_from_dtb(const uint32_t hartid) {
         assert_msg(devicetree_prop_other_get_u32(cmo_prop, &cmo_size),
                    "cpu: dtb node's cmo-size prop is malformed");
 
-        assert_msg(cbo_size < PAGE_SIZE,
+        assert_msg(cbo_size <= PAGE_SIZE,
                    "cpu: cbo-size is greater than page-size");
 
         this_cpu_mut()->cbo_size = (uint16_t)cbo_size;
@@ -86,4 +87,17 @@ __debug_optimize(3) void cpu_early_init() {
 __debug_optimize(3) void cpu_init_from_dtb() {
     const struct limine_mp_response *const mp_resp = boot_get_mp();
     setup_from_dtb(mp_resp->bsp_hartid);
+}
+
+__debug_optimize(3) void cpu_post_mm_init() {
+    const uint64_t percpu_size = (uint64_t)(percpu_end - percpu_start);
+    if (percpu_size == 0) {
+        return;
+    }
+
+    this_cpu_mut()->percpu_base = kmalloc(percpu_size);
+    assert_msg(this_cpu()->percpu_base != nullptr,
+               "cpu: failed to alloc percpu");
+
+    memcpy(this_cpu()->percpu_base, percpu_start, percpu_size);
 }

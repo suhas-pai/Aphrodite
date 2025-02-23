@@ -17,8 +17,8 @@ round_up(const uint64_t number,
         return true;
     }
 
-    if (!ckd_add(result_out, number, multiple - 1)
-     || !ckd_mul(result_out, *result_out / multiple, multiple))
+    if (!ckd_add(result_out, number, multiple - 1) ||
+        !ckd_mul(result_out, *result_out / multiple, multiple))
     {
         return false;
     }

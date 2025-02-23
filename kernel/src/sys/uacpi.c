@@ -21,7 +21,6 @@
 
 #include "mm/kmalloc.h"
 #include "mm/memmap.h"
-
 #include "mm/simple_alloc.h"
 
 #include "sched/sleep.h"

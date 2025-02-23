@@ -6,6 +6,8 @@
 #include "asm/irqs.h"
 #include "cpu/isr.h"
 #include "sched/scheduler.h"
+
+#include "sys/imsic.h"
 #include "sys/mmio.h"
 
 __hidden isr_vector_t g_sched_sgi_vector = 0;
@@ -20,7 +22,9 @@ ipi_handler(const uint64_t intr_no,
 }
 
 void sched_init_irq() {
-    g_sched_sgi_vector = isr_alloc_msi_vector(/*device=*/nullptr, /*msi_index=*/0);
+    g_sched_sgi_vector =
+        isr_alloc_msi_vector(/*device=*/nullptr, /*msi_index=*/0);
+
     isr_set_msi_vector(g_sched_sgi_vector,
                        ipi_handler,
                        /*ctx=*/nullptr,
@@ -29,10 +33,14 @@ void sched_init_irq() {
 
 void sched_self_ipi() {
     with_intr_disabled({
-        mmio_write(&this_cpu()->imsic_page[0], g_sched_sgi_vector);
+        const auto imsic_page =
+            imsic_get_page(RISCV64_PRIVL_SUPERVISOR, this_cpu());
+
+        mmio_write(&imsic_page[0], g_sched_sgi_vector);
     });
 }
 
 __debug_optimize(3) void sched_send_ipi(const struct cpu_info *const cpu) {
-    mmio_write(&cpu->imsic_page[0], g_sched_sgi_vector);
+    const auto imsic_page = imsic_get_page(RISCV64_PRIVL_SUPERVISOR, cpu);
+    mmio_write(&imsic_page[0], g_sched_sgi_vector);
 }

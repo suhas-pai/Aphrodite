@@ -11,6 +11,7 @@
 #include "cpu/init.h"
 
 #include "dev/printk.h"
+#include "mm/kmalloc.h"
 #include "mm/page_alloc.h"
 #include "sched/thread.h"
 
@@ -1397,6 +1398,15 @@ __debug_optimize(3) void cpu_early_init() {
 
 #define KERNEL_IRQ_STACK_ORDER 2
 
+static void init_percpu(struct cpu_info *const cpu) {
+    const uint64_t percpu_size = (uint64_t)(percpu_end - percpu_start);
+
+    cpu->percpu_base = kmalloc(percpu_size);
+    assert_msg(cpu->percpu_base != nullptr, "cpu: failed to alloc percpu");
+
+    memcpy(cpu->percpu_base, percpu_start, percpu_size);
+}
+
 void cpu_init_for_smp(struct cpu_info *const cpu) {
     // cpu->mpidr is already set in cpu_add().
     cpu->irq_stack =
@@ -1431,6 +1441,8 @@ void cpu_post_mm_init() {
 
     assert_msg(this_cpu()->irq_stack != nullptr,
                "cpu: failed to alloc irq stack");
+
+    init_percpu(&g_base_cpu_info);
 
     // FIXME:
 #if 0

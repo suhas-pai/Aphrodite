@@ -58,4 +58,5 @@ __debug_optimize(3) void arch_init() {
     idt_init();
     cpu_init();
     mm_arch_init();
+    cpu_post_mm_init();
 }

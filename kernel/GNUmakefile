@@ -18,13 +18,13 @@ ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
 endif
 
 # User controllable C compiler command.
-CC := cc
+CC := clang
 
 # User controllable archiver command.
 AR := ar
 
 # Same thing for "ld" (the linker).
-LD := ld
+LD := ld.lld
 
 override LD_IS_LLD := no
 ifeq ($(shell $(LD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
@@ -105,7 +105,7 @@ LDFLAGS :=
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -d cc-runtime || ! test -f include/limine.h ); echo $$?),0)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs || ! test -d cc-runtime || ! test -f include/limine.h ); echo $$?),0)
         $(error Please run the ./get-deps script first)
     endif
 endif
@@ -133,9 +133,9 @@ override CPPFLAGS := \
 	-I include \
 	-I include/arch/$(ARCH) \
 	-isystem src/extern \
-	-isystem freestnd-c-hdrs-0bsd \
+	-isystem freestnd-c-hdrs \
 	$(CPPFLAGS) \
-	-DLIMINE_API_REVISION=2 \
+	-DLIMINE_API_REVISION=3 \
 	-MMD \
 	-MP
 
@@ -271,7 +271,7 @@ cc-runtime-$(ARCH)/cc-runtime.a: GNUmakefile cc-runtime/*
 		CC="$(CC)" \
 		AR="$(AR)" \
 		CFLAGS="$(filter-out -Wsign-conversion -Wundef,$(CFLAGS))" \
-		CPPFLAGS='-isystem ../freestnd-c-hdrs-0bsd -DCC_RUNTIME_NO_FLOAT'
+		CPPFLAGS='-isystem ../freestnd-c-hdrs -DCC_RUNTIME_NO_FLOAT'
 
 include/dev/pci/vendors.h:
 	curl -Lo src/dev/pci/pci.ids https://pci-ids.ucw.cz/v2.2/pci.ids
@@ -333,7 +333,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -rf bin-* obj-* freestnd-c-hdrs-0bsd cc-runtime* src/limine.h
+	rm -rf bin-* obj-* freestnd-c-hdrs cc-runtime* src/limine.h
 
 .PHONY: install
 install: all

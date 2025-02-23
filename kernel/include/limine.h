@@ -1,6 +1,6 @@
 /* BSD Zero Clause License */
 
-/* Copyright (C) 2022-2024 mintsuki and contributors.
+/* Copyright (C) 2022-2025 mintsuki and contributors.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted.
@@ -35,7 +35,7 @@ extern "C" {
 #  define LIMINE_API_REVISION 0
 #endif
 
-#if LIMINE_API_REVISION > 2
+#if LIMINE_API_REVISION > 3
 #  error "limine.h API revision unsupported"
 #endif
 
@@ -86,7 +86,11 @@ struct limine_file {
     LIMINE_PTR(void *) address;
     uint64_t size;
     LIMINE_PTR(char *) path;
+#if LIMINE_API_REVISION >= 3
+    LIMINE_PTR(char *) string;
+#else
     LIMINE_PTR(char *) cmdline;
+#endif
     uint32_t media_type;
     uint32_t unused;
     uint32_t tftp_ip;
@@ -112,6 +116,21 @@ struct limine_bootloader_info_request {
     uint64_t id[4];
     uint64_t revision;
     LIMINE_PTR(struct limine_bootloader_info_response *) response;
+};
+
+/* Executable command line */
+
+#define LIMINE_EXECUTABLE_CMDLINE_REQUEST { LIMINE_COMMON_MAGIC, 0x4b161536e598651e, 0xb390ad4a2f1f303a }
+
+struct limine_executable_cmdline_response {
+    uint64_t revision;
+    LIMINE_PTR(char *) cmdline;
+};
+
+struct limine_executable_cmdline_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_executable_cmdline_response *) response;
 };
 
 /* Firmware type */
@@ -530,7 +549,11 @@ struct limine_kernel_file_request {
 
 struct limine_internal_module {
     LIMINE_PTR(const char *) path;
+#if LIMINE_API_REVISION >= 3
+    LIMINE_PTR(const char *) string;
+#else
     LIMINE_PTR(const char *) cmdline;
+#endif
     uint64_t flags;
 };
 
@@ -627,19 +650,39 @@ struct limine_efi_memmap_request {
     LIMINE_PTR(struct limine_efi_memmap_response *) response;
 };
 
-/* Boot time */
+/* Date at boot */
 
-#define LIMINE_BOOT_TIME_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
+#if LIMINE_API_REVISION >= 3
+#  define LIMINE_DATE_AT_BOOT_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
+#else
+#  define LIMINE_BOOT_TIME_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
+#endif
 
+#if LIMINE_API_REVISION >= 3
+struct limine_date_at_boot_response {
+#else
 struct limine_boot_time_response {
+#endif
     uint64_t revision;
+#if LIMINE_API_REVISION >= 3
+    int64_t timestamp;
+#else
     int64_t boot_time;
+#endif
 };
 
+#if LIMINE_API_REVISION >= 3
+struct limine_date_at_boot_request {
+#else
 struct limine_boot_time_request {
+#endif
     uint64_t id[4];
     uint64_t revision;
+#if LIMINE_API_REVISION >= 3
+    LIMINE_PTR(struct limine_date_at_boot_response *) response;
+#else
     LIMINE_PTR(struct limine_boot_time_response *) response;
+#endif
 };
 
 /* Executable address */

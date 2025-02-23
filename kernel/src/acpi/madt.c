@@ -600,20 +600,6 @@ void madt_init(const struct os_acpi_madt *const madt) {
                        (void *)ctrlr->imsic_base,
                        ctrlr->imsic_size);
 
-                if (cpu != nullptr) {
-                    struct mmio_region *const imsic_mmio =
-                        vmap_mmio(RANGE_INIT(ctrlr->imsic_base,
-                                             ctrlr->imsic_size),
-                                  PROT_READ | PROT_WRITE,
-                                  /*flags=*/0);
-
-                    assert_msg(imsic_mmio != nullptr,
-                               "madt: failed to map imsic page\n");
-
-                    cpu->imsic_phys = ctrlr->imsic_base;
-                    cpu->imsic_page = imsic_mmio->base;
-                }
-
                 assert(array_add(&hart_irq_ctlr_list, &ctrlr));
             #else
                 printk(LOGLEVEL_WARN,
@@ -838,18 +824,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                struct cpu_info *const cpu = cpu_for_id_mut(ctrlr->hart_id);
-                if (cpu == nullptr) {
-                    printk(LOGLEVEL_WARN,
-                           "madt: found hart irq controller pointing to "
-                           "unknown cpu, with hart-id: %" PRIu64 "\n",
-                           ctrlr->hart_id);
-
-                    continue;
-                }
-
-                cpu->imsic_phys = ctrlr->imsic_base;
-                cpu->imsic_page = imsic_add_region(ctrlr->hart_id, range);
+                imsic_add_region(ctrlr->hart_id, range);
             }
 
             imsic_init_from_acpi(

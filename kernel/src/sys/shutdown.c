@@ -11,6 +11,7 @@
 #endif
 
 void system_shutdown() {
+#ifdef CONFIG_UACPI
     /*
      * Prepare the system for shutdown.
      * This will run the \_PTS & \_SST methods, if they exist, as well as
@@ -18,7 +19,6 @@ void system_shutdown() {
      * possible later on.
      */
 
-#ifdef CONFIG_UACPI
     uacpi_status ret = uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S5);
     assert_msg(!uacpi_unlikely_error(ret),
                "sys/uacpi: failed to prepare for sleep: %s",
@@ -38,7 +38,7 @@ void system_shutdown() {
      */
     ret = uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S5);
     assert_msg(!uacpi_unlikely_error(ret),
-               "failed to enter sleep: %s",
+               "sys/uacpi: failed to enter sleep: %s",
                uacpi_status_to_string(ret));
 
     // Should be unreachable code

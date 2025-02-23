@@ -297,8 +297,44 @@ void imsic_enable(const enum riscv64_privl privl) {
     verify_not_reached();
 }
 
+__percpu static volatile uint32_t *imsic_page = nullptr;
+__percpu static uint64_t imsic_phys = 0;
+
+__debug_optimize(3) volatile uint32_t *
+imsic_get_page(const enum riscv64_privl privl,
+               const struct cpu_info *const cpu)
+{
+    switch (privl) {
+        case RISCV64_PRIVL_MACHINE:
+            return nullptr;
+        case RISCV64_PRIVL_SUPERVISOR:
+            return *percpu_of(cpu, imsic_page);
+    }
+
+    verify_not_reached();
+}
+
+__debug_optimize(3) uint64_t
+imsic_get_phys(const enum riscv64_privl privl,
+               const struct cpu_info *const cpu)
+{
+    switch (privl) {
+        case RISCV64_PRIVL_MACHINE:
+            return 0;
+        case RISCV64_PRIVL_SUPERVISOR:
+            return *percpu_of(cpu, imsic_phys);
+    }
+
+    verify_not_reached();
+}
+
 __debug_optimize(3) volatile void *
 imsic_add_region(const uint64_t hart_id, const struct range range) {
+    struct cpu_info *const cpu = cpu_for_id_mut(hart_id);
+    if (cpu == nullptr) {
+        return nullptr;
+    }
+
     struct mmio_region *const mmio =
         vmap_mmio(range, PROT_READ | PROT_WRITE, /*flags=*/0);
 
@@ -313,6 +349,10 @@ imsic_add_region(const uint64_t hart_id, const struct range range) {
     };
 
     assert(array_add(&g_supervisor_region_list, &region));
+
+    *percpu_of(cpu, imsic_page) = mmio->base;
+    *percpu_of(cpu, imsic_phys) = range.front;
+
     return mmio->base;
 }
 

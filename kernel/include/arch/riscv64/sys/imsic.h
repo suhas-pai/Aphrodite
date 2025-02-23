@@ -22,6 +22,11 @@ imsic_init_from_dtb(const struct devicetree *tree,
 
 void imsic_enable(enum riscv64_privl privl);
 
+volatile uint32_t *
+imsic_get_page(enum riscv64_privl privl, const struct cpu_info *cpu);
+
+uint64_t imsic_get_phys(enum riscv64_privl privl, const struct cpu_info *cpu);
+
 volatile void *imsic_add_region(uint64_t hart_id, struct range range);
 volatile void *imsic_region_for_hartid(const uint64_t hart_id);
 

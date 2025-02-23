@@ -52,7 +52,7 @@ void arch_init_dev() {
 
     if (tree != nullptr) {
         bus_foreach_driver(&dtb_bus()->bus,
-                           struct dtb_driver,
+                           const struct dtb_driver,
                            driver.list,
                            drv)
         {

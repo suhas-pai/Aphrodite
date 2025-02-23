@@ -37,6 +37,12 @@ SECTIONS
         *(.rodata .rodata.*)
     } :rodata
 
+    .percpu : {
+        percpu_start = .;
+        KEEP(*(.percpu*))
+        percpu_end = .;
+    } :rodata
+
     .dev_inits : {
         dev_inits_start = .;
         KEEP(*(.dev_inits*))
