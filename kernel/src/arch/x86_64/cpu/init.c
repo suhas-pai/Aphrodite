@@ -361,21 +361,10 @@ static void init_cpuid_features() {
                    edx);
 
             const uint32_t expected_edx_features =
-                __CPUID_FEAT_EXT80000001_EDX_SYSCALL_SYSRET;
+                __CPUID_FEAT_EXT80000001_EDX_SYSCALL_SYSRET |
+                __CPUID_FEAT_EXT80000001_EDX_1GIB_PAGES;
 
             assert((edx & expected_edx_features) == expected_edx_features);
-            g_cpu_capabilities.supports_1gib_pages =
-                edx & __CPUID_FEAT_EXT80000001_EDX_1GIB_PAGES;
-
-            struct largepage_level_info *const info =
-                &lg_page_level_info_list[LARGEPAGE_LEVEL_1GIB - 1];
-
-            info->is_supported = g_cpu_capabilities.supports_1gib_pages;
-            if (g_cpu_capabilities.supports_1gib_pages) {
-                printk(LOGLEVEL_INFO, "cpu: supports 1gib pages\n");
-            } else {
-                printk(LOGLEVEL_INFO, "cpu: does NOT support 1gib pages\n");
-            }
         }
         {
             uint64_t eax, ebx, ecx, edx;

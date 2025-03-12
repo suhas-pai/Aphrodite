@@ -36,7 +36,7 @@ struct largepage_level_info lg_page_level_info_list[PGT_LEVEL_COUNT] = {
         .largepage_order = 1,
         .level = LARGEPAGE_LEVEL_1GIB,
         .size = PAGE_SIZE_1GIB,
-        .is_supported = false
+        .is_supported = true
     }
 };
 

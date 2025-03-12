@@ -272,10 +272,13 @@ ifeq ($(ARCH),x86_64)
 	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
 	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
 	xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin \
-		-no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus \
-		-apm-block-size 2048 --efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		-no-emul-boot -boot-load-size 4 -boot-info-table \
+		-hfsplus -apm-block-size 2048 \
+		--efi-boot boot/limine/limine-uefi-cd.bin \
+		-efi-boot-part --efi-boot-image \
+		--protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
+	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).iso -m 1:2:3:4
 	./limine/limine bios-install $(IMAGE_NAME).iso
 endif
 ifeq ($(ARCH),aarch64)
@@ -284,7 +287,8 @@ ifeq ($(ARCH),aarch64)
 	xorriso -as mkisofs -R -r -J \
 		-hfsplus -apm-block-size 2048 \
 		--efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		-efi-boot-part --efi-boot-image \
+		--protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 endif
 ifeq ($(ARCH),riscv64)
@@ -293,7 +297,8 @@ ifeq ($(ARCH),riscv64)
 	xorriso -as mkisofs -R -r -J \
 		-hfsplus -apm-block-size 2048 \
 		--efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		-efi-boot-part --efi-boot-image \
+		--protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 endif
 ifeq ($(ARCH),loongarch64)
@@ -302,7 +307,8 @@ ifeq ($(ARCH),loongarch64)
 	xorriso -as mkisofs -R -r -J \
 		-hfsplus -apm-block-size 2048 \
 		--efi-boot boot/limine/limine-uefi-cd.bin \
-		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		-efi-boot-part --efi-boot-image \
+		--protective-msdos-label \
 		iso_root -o $(IMAGE_NAME).iso
 endif
 	rm -rf iso_root
@@ -310,9 +316,11 @@ endif
 $(IMAGE_NAME).hdd: limine/limine kernel
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
-	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
 ifeq ($(ARCH),x86_64)
+	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00 -m 1
 	./limine/limine bios-install $(IMAGE_NAME).hdd
+else
+	PATH=$$PATH:/usr/sbin:/sbin sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
 endif
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT ::/boot ::/boot/limine

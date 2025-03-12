@@ -65,7 +65,8 @@ build this project.
 This project also requires installing `nasm`, `xorriso`, `sgdisk`, and `mtools`.
 Make sure to add llvm's installation folder to your `$PATH` environment variable.
 
-Note that `mtools` and `sgdisk` are only required to build the `hdd` targets.
+Note that `mtools` are only required to build the `hdd` targets. `sgdisk` is only
+required to build `x86_64` and `hdd` targets
 
 #### Targets
 
