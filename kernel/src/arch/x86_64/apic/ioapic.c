@@ -24,7 +24,7 @@ enum ioapic_redir_reg_shifts : uint8_t {
 };
 
 __debug_optimize(3) uint64_t
-create_ioapic_redirect_request(
+ioapic_redirect_request_create(
     const uint8_t vector,
     const enum ioapic_redirect_req_delivery_mode delivery_mode,
     const enum ioapic_redirect_req_dest_mode dest_mode,
@@ -74,7 +74,7 @@ redirect_irq(const uint8_t lapic_id,
 
     const uint8_t redirect_table_index = irq - ioapic->gsi_base;
     const uint64_t req_value =
-        create_ioapic_redirect_request(vector,
+        ioapic_redirect_request_create(vector,
                                        IOAPIC_REDIRECT_REQ_DELIVERY_MODE_FIXED,
                                        IOAPIC_REDIRECT_REQ_DEST_MODE_PHYSICAL,
                                        flags,
