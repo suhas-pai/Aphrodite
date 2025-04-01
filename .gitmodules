@@ -3,4 +3,4 @@
 	url = https://github.com/UltraOS/uACPI.git
 [submodule "kernel/src/extern/flanterm"]
 	path = submodules/flanterm
-	url = https://github.com/mintsuki/flanterm.git
+	url = https://codeberg.org/mintsuki/flanterm
