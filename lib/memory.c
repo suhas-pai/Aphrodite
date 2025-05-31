@@ -9,7 +9,7 @@
 #define REP_MIN 32
 
 __debug_optimize(3)
-uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
+uint16_t *memset16(uint16_t *restrict buf, uint64_t count, const uint16_t c) {
 #if defined(__x86_64__)
     if (count > REP_MIN) {
         void *ret = buf;
@@ -30,7 +30,7 @@ uint16_t *memset16(uint16_t *buf, uint64_t count, const uint16_t c) {
 }
 
 __debug_optimize(3)
-uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
+uint32_t *memset32(uint32_t *restrict buf, uint64_t count, const uint32_t c) {
     void *const ret = buf;
 #if defined(__x86_64__)
     if (count > REP_MIN) {
@@ -74,7 +74,7 @@ uint32_t *memset32(uint32_t *buf, uint64_t count, const uint32_t c) {
 }
 
 __debug_optimize(3)
-uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
+uint64_t *memset64(uint64_t *restrict buf, uint64_t count, const uint64_t c) {
     void *ret = buf;
 #if defined(__x86_64__)
     if (count > 32) {
@@ -118,7 +118,10 @@ uint64_t *memset64(uint64_t *buf, uint64_t count, const uint64_t c) {
 }
 
 __debug_optimize(3) uint16_t *
-memcpy16(uint16_t *const dst, const uint16_t *const src, const uint64_t count) {
+memcpy16(uint16_t *const restrict dst,
+         const uint16_t *const restrict src,
+         const uint64_t count)
+{
     for_upto_limit(count, i) {
         dst[i] = src[i];
     }
@@ -127,7 +130,10 @@ memcpy16(uint16_t *const dst, const uint16_t *const src, const uint64_t count) {
 }
 
 __debug_optimize(3) uint32_t *
-memcpy32(uint32_t *const dst, const uint32_t *const src, const uint64_t count) {
+memcpy32(uint32_t *const restrict dst,
+         const uint32_t *const restrict src,
+         const uint64_t count)
+{
     for_upto_limit(count, i) {
         dst[i] = src[i];
     }
@@ -136,7 +142,10 @@ memcpy32(uint32_t *const dst, const uint32_t *const src, const uint64_t count) {
 }
 
 __debug_optimize(3) uint64_t *
-memcpy64(uint64_t *const dst, const uint64_t *const src, const uint64_t count) {
+memcpy64(uint64_t *const restrict dst,
+         const uint64_t *const restrict src,
+         const uint64_t count)
+{
     for_upto_limit(count, i) {
         dst[i] = src[i];
     }
@@ -145,7 +154,10 @@ memcpy64(uint64_t *const dst, const uint64_t *const src, const uint64_t count) {
 }
 
 __debug_optimize(3) bool
-membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
+membuf8_is_all(uint8_t *const restrict buf,
+               const uint64_t count,
+               const uint8_t c)
+{
     ptrarr_foreach(buf, count, iter) {
         if (*iter != c) {
             return false;
@@ -156,7 +168,10 @@ membuf8_is_all(uint8_t *const buf, const uint64_t count, const uint8_t c) {
 }
 
 __debug_optimize(3) bool
-membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
+membuf16_is_all(uint16_t *const restrict buf,
+               const uint64_t count,
+               const uint16_t c)
+{
     ptrarr_foreach(buf, count, iter) {
         if (*iter != c) {
             return false;
@@ -166,8 +181,11 @@ membuf16_is_all(uint16_t *const buf, const uint64_t count, const uint16_t c) {
     return true;
 }
 
-__debug_optimize(3)
-bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
+__debug_optimize(3) bool
+membuf32_is_all(uint32_t *restrict buf,
+                uint64_t count, const
+                uint32_t c)
+{
 #if defined(__aarch64__)
     if (count >= 2) {
         uint32_t left = 0;
@@ -209,7 +227,7 @@ bool membuf32_is_all(uint32_t *buf, uint64_t count, const uint32_t c) {
 }
 
 __debug_optimize(3)
-bool membuf64_is_all(uint64_t *buf, uint64_t count, const uint64_t c) {
+bool membuf64_is_all(uint64_t *restrict buf, uint64_t count, const uint64_t c) {
 #if defined(__aarch64__)
     if (count >= 2) {
         uint64_t left = 0;

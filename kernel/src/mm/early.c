@@ -367,6 +367,7 @@ __debug_optimize(3) void mm_init() {
                index + 1,
                RANGE_FMT_ARGS(memmap->range),
                type_desc);
+
         index++;
     }
 
