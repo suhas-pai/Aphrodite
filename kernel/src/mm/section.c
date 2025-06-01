@@ -57,7 +57,10 @@ __debug_optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
 __debug_optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
     ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         if (range_has_loc(iter->range, phys)) {
-            return iter->pfn + PAGE_COUNT(phys - iter->range.front);
+            const uint64_t relative_phys =
+                range_index_for_loc(iter->range, phys);
+
+            return iter->pfn + PAGE_COUNT(relative_phys);
         }
     }
 

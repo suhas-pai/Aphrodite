@@ -188,6 +188,30 @@ __debug_optimize(3) uint64_t early_alloc_page() {
     return free_page;
 }
 
+#if defined(DEBUG_EARLY_ALLOC)
+#define print_freepage_list(head, field, name) \
+    do { \
+        struct freepage_array_info *iter = nullptr;  \
+        uint32_t i = 1; \
+        \
+        printk(LOGLEVEL_INFO, "mm: printing list " name "\n"); \
+        list_foreach(head, field, iter) { \
+            printk(LOGLEVEL_INFO, \
+                   "\tmm: #%u: freepage_array_info at " RANGE_FMT ", " \
+                   "avail_page_count=%" PRIu64 \
+                   ", total_page_count=%" PRIu64 "\n", \
+                   i, \
+                   RANGE_FMT_ARGS( \
+                    RANGE_INIT(virt_to_phys(iter), \
+                               iter->total_page_count << PAGE_SHIFT)), \
+                   iter->avail_page_count, \
+                   iter->total_page_count); \
+ \
+            i++; \
+        } \
+    } while (false)
+#endif /* defined(DEBUG_EARLY_ALLOC) */
+
 __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
     if (__builtin_expect(list_empty(&g_asc_freelist), 0)) {
         printk(LOGLEVEL_ERROR, "mm: ran out of free-pages\n");
@@ -284,6 +308,11 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
             list_deinit(&info->asc_list);
         }
     }
+
+#if defined(DEBUG_EARLY_ALLOC)
+    print_freepage_list(&g_freepage_list, list, "freepage-list");
+    print_freepage_list(&g_asc_freelist, asc_list, "asc-freepage-list");
+#endif /* defined(DEBUG_EARLY_ALLOC) */
 
     zero_multiple_pages(phys_to_virt(free_page), alloc_amount);
     g_total_free_pages_remaining -= alloc_amount;
@@ -611,10 +640,11 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
             continue;
         }
 
+        struct page *const start = phys_to_page(memmap->range.front);
+
         // Mark the range from the beginning of the memmap, to the first free
         // page as unusable.
 
-        struct page *const start = phys_to_page(memmap->range.front);
         struct page *page = start;
         struct page *const unusable_end = virt_to_page(iter);
 
@@ -685,33 +715,26 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
     }
 }
 
-__debug_optimize(3) static void
-set_section_for_pages(const struct page_section *const memmap,
-                      const page_section_t section)
-{
+__debug_optimize(3) static void assign_section_numbers_to_pages() {
     struct freepage_array_info *iter = nullptr;
+    const struct page_section *const section_list =
+        mm_get_page_section_list();
+
     list_foreach(&g_freepage_list, list, iter) {
         uint64_t iter_phys = virt_to_phys(iter);
-        uint64_t back_phys =
-            iter_phys + (iter->avail_page_count << PAGE_SHIFT) - PAGE_SIZE;
-
-        if (!range_has_loc(memmap->range, iter_phys)) {
-            if (!range_has_loc(memmap->range, back_phys)) {
-                continue;
-            }
-
-            // This memmap has pages inside iter's range, but not starting at
-            // iter's range.
-
-            iter_phys = memmap->range.front;
-        }
-
-        back_phys =
-            min(range_get_end_assert(memmap->range) - PAGE_SIZE, back_phys);
 
         // Mark all usable pages that exist from in iter.
         struct page *page = phys_to_page(iter_phys);
-        const struct page *const end = phys_to_page(back_phys) + 1;
+        const struct page *const end = page + iter->total_page_count;
+
+        const page_section_t section =
+            (page_section_t)(phys_to_section(iter_phys) - section_list) + 1;
+
+        printk(LOGLEVEL_INFO,
+               "mm: marking pages in range " RANGE_FMT " as section %u\n",
+               RANGE_FMT_ARGS(
+                RANGE_INIT(iter_phys, iter->total_page_count << PAGE_SHIFT)),
+               section);
 
         for (; page != end; page++) {
             page->section = section;
@@ -908,17 +931,10 @@ void mm_post_arch_init() {
         mark_crucial_pages(section);
     }
 
-    boot_merge_usable_memmaps();
     split_sections_for_zones();
     setup_zone_section_list();
 
-    // Start section-numbers at one so we can see if there's any pages missing
-    // a section, which would have a section of 0.
-
-    uint64_t number = 1;
-    for (auto section = begin; section != end; section++, number++) {
-        set_section_for_pages(section, /*section=*/number);
-    }
+    assign_section_numbers_to_pages();
 
     printk(LOGLEVEL_INFO, "mm: finished setting up structpage table\n");
     pagezones_init();

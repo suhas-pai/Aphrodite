@@ -40,6 +40,8 @@ bool range_create_and_verify(uint64_t base, uint64_t size, struct range *out);
 struct range range_create_upto(uint64_t size);
 struct range range_create_end(uint64_t front, uint64_t size);
 
+struct range range_merge(struct range left, struct range right);
+
 struct range range_from_index(struct range range, uint64_t index);
 struct range range_from_loc(struct range range, uint64_t loc);
 
@@ -81,3 +83,4 @@ uint64_t range_index_for_loc(struct range range, uint64_t loc);
 bool range_has(struct range range, struct range other);
 bool range_has_index_range(struct range range, struct range other);
 bool range_overlaps(struct range range, struct range other);
+bool range_adjacent(struct range range, struct range other);

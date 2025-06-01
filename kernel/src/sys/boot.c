@@ -161,6 +161,23 @@ __debug_optimize(3) uint64_t mm_get_full_section_mask() {
     return mask_for_n_bits(mm_page_section_count);
 }
 
+__debug_optimize(3) static void sort_memmap_list() {
+    // Sort the memmap list in ascending order based on range.front.
+    for (uint64_t i = 0; i != mm_memmap_count - 1; i++) {
+        for (uint64_t j = i + 1; j != mm_memmap_count; j++) {
+            if (mm_memmap_list[i].range.front > mm_memmap_list[j].range.front) {
+                swap(mm_memmap_list[i], mm_memmap_list[j]);
+            }
+        }
+    }
+}
+
+__debug_optimize(3) static inline
+bool is_usable_memmap(const struct mm_memmap *const memmap) {
+    // TODO: Include bootloader-reclaimable memmaps in this check.
+    return memmap->kind == MM_MEMMAP_KIND_USABLE;
+}
+
 void boot_init() {
     assert(hhdm_request.response != nullptr);
     assert(exec_addr_request.response != nullptr);
@@ -198,15 +215,6 @@ void boot_init() {
     const struct limine_memmap_response *const resp = memmap_request.response;
 
     uint8_t memmap_index = 0;
-    uint8_t usable_index = 0;
-
-    // Usable (and bootloader-reclaimable) memmaps are sparsely located in the
-    // physical memory-space, but are stored together (contiguously) in the
-    // structpage-table in virtual-memory.
-    // To accomplish this, assign each memmap placed in the structpage-table a
-    // pfn that will be assigned to the first page residing in the memmap.
-
-    uint64_t pfn = 0;
     ptrarr_foreach(resp->entries, resp->entry_count, entry) {
         if (memmap_index == countof(mm_memmap_list)) {
             panic("boot: too many memmaps\n");
@@ -231,52 +239,74 @@ void boot_init() {
             range = subrange_from_index(range, PAGE_SIZE);
         }
 
-        // If we find overlapping memmaps, try and fix the range of our current
-        // memmap based on the range of the previous memmap. We assume the
-        // memory-maps are sorted in ascending order.
-
-        if (memmap_index != 0) {
-            const struct range prev_range =
-                mm_memmap_list[memmap_index - 1].range;
-
-            if (range_overlaps(prev_range, range)) {
-                if (range_has(prev_range, range)) {
-                    // If the previous memmap completely contains this memmap,
-                    // then simply skip this memmap.
-
-                    continue;
-                }
-
-                range = range_from_loc(range, range_get_end_assert(prev_range));
-            }
-        }
-
         mm_memmap_list[memmap_index].range = range;
         mm_memmap_list[memmap_index].kind = memmap->type + 1;
-
-        if (memmap->type == LIMINE_MEMMAP_USABLE) {
-            struct page_section *const section =
-                &mm_page_section_list[usable_index];
-
-            page_section_init(section,
-                              /*zone=*/nullptr,
-                              mm_memmap_list[memmap_index].range,
-                              pfn);
-
-            for_upto_limit(MAX_ORDER, i) {
-                list_init(&section->freelist_list[i].page_list);
-                section->freelist_list[i].count = 0;
-            }
-
-            pfn += PAGE_COUNT(range.size);
-            usable_index++;
-        }
 
         memmap_index++;
     }
 
     mm_memmap_count = memmap_index;
-    mm_page_section_count = usable_index;
+    sort_memmap_list();
+
+    // Merge usable, contiguous memmaps in the (now guaranteed to be sorted)
+    // memmap list.
+
+    ptrarr_foreach(&mm_memmap_list[1], mm_memmap_count, memmap) {
+        struct mm_memmap *const prev_memmap = &memmap[-1];
+        if (!is_usable_memmap(prev_memmap) || !is_usable_memmap(memmap)) {
+            continue;
+        }
+
+        const struct range range = memmap->range;
+        const struct range prev_range = prev_memmap->range;
+
+        if (!range_overlaps(prev_range, range) &&
+            !range_adjacent(prev_range, range))
+         {
+            continue;
+        }
+
+        prev_memmap->range = range_merge(prev_range, range);
+
+        const struct mm_memmap *const end = &mm_memmap_list[mm_memmap_count];
+        memmove(memmap, &memmap[1], distance(memmap, end));
+
+        // We have removed the current memmap, so we need to decrement
+        // the memmap count and index.
+
+        mm_memmap_count--;
+        memmap = prev_memmap;
+    }
+
+    // Usable (and bootloader-reclaimable) memmaps are sparsely located in the
+    // physical memory-space, but are stored together (contiguously) in the
+    // structpage-table in virtual-memory.
+    // To accomplish this, assign each memmap placed in the structpage-table a
+    // pfn that will be assigned to the first page residing in the memmap.
+
+    uint8_t section_index = 0;
+    uint64_t pfn = 0;
+
+    ptrarr_foreach(mm_memmap_list, memmap_index, memmap) {
+        // The page-section list is a list of usable memmaps.
+        if (!is_usable_memmap(memmap)) {
+            continue;
+        }
+
+        struct page_section *const section =
+            &mm_page_section_list[section_index];
+
+        page_section_init(section, /*zone=*/nullptr, memmap->range, pfn);
+        for_upto_limit(MAX_ORDER, i) {
+            list_init(&section->freelist_list[i].page_list);
+            section->freelist_list[i].count = 0;
+        }
+
+        section_index++;
+        pfn += PAGE_COUNT(memmap->range.size);
+    }
+
+    mm_page_section_count = section_index;
 }
 
 void boot_post_early_init() {
@@ -319,34 +349,6 @@ void boot_post_early_init() {
 
     const struct tm tm = tm_from_stamp((uint64_t)boot_time);
     printk_strftime(LOGLEVEL_INFO, "%c\n", &tm);
-}
-
-__debug_optimize(3) void boot_merge_usable_memmaps() {
-    for (uint64_t index = 1; index != mm_page_section_count; index++) {
-        struct page_section *const memmap = &mm_page_section_list[index];
-        do {
-            struct page_section *const prev_memmap = memmap - 1;
-            const uint64_t prev_end = range_get_end_assert(prev_memmap->range);
-
-            if (prev_end != memmap->range.front) {
-                break;
-            }
-
-            prev_memmap->range.size += memmap->range.size;
-
-            // Remove the current memmap.
-            const uint64_t move_amount =
-                (mm_page_section_count - (index + 1)) *
-                sizeof(struct page_section);
-
-            memmove(memmap, memmap + 1, move_amount);
-            mm_page_section_count--;
-
-            if (index == mm_page_section_count) {
-                return;
-            }
-        } while (true);
-    }
 }
 
 __debug_optimize(3)

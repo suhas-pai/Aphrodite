@@ -89,6 +89,10 @@ ifeq ($(CONFIG_UACPI), 1)
 		-DUACPI_OVERRIDE_LIBC
 endif
 
+ifeq ($(DEBUG_EARLY_ALLOC), 1)
+	override COMMON_CFLAGS += -DDEBUG_EARLY_ALLOC
+endif
+
 # User controllable C flags.
 EXTRA_CFLAGS := $(COMMON_CFLAGS)
 

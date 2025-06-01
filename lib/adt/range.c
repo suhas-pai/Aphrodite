@@ -32,6 +32,19 @@ struct range range_create_end(const uint64_t front, const uint64_t end) {
     return RANGE_INIT(front, (end - front));
 }
 
+__debug_optimize(3)
+struct range range_merge(struct range left, struct range right) {
+    assert(left.front <= right.front);
+
+    uint64_t left_end = 0;
+    if (!ckd_add(&left_end, left.front, left.size)) {
+        return RANGE_EMPTY();
+    }
+
+    const uint64_t new_size = left.size + (right.front - left_end) + right.size;
+    return RANGE_INIT(left.front, new_size);
+}
+
 __debug_optimize(3) bool
 range_multiply(const struct range range,
                const uint64_t mult,
@@ -272,4 +285,14 @@ __debug_optimize(3)
 bool range_overlaps(const struct range range, const struct range other) {
     return range_has_loc(range, other.front) ||
            range_has_loc(other, range.front);
+}
+
+__debug_optimize(3)
+bool range_adjacent(const struct range range, const struct range other) {
+    uint64_t end = 0;
+    if (!ckd_add(&end, range.front, range.size)) {
+        return false;
+    }
+
+    return other.front == end;
 }

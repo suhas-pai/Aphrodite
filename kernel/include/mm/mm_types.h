@@ -37,7 +37,7 @@ struct page;
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))
 #define pfn_to_page(pfn) ({ \
     auto h_var(page) = \
-        PAGE_OFFSET + ckd_mul_assert(SIZEOF_STRUCTPAGE, (pfn)); \
+        ckd_add_assert(PAGE_OFFSET, ckd_mul_assert(SIZEOF_STRUCTPAGE, (pfn))); \
     assert_msg(verify_page_pointer(h_var(page)), \
                "pfn_to_page(): pfn %" PRIu64 " reaches outside range of page " \
                "range", \
