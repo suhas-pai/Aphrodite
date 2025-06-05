@@ -156,7 +156,11 @@
 #define ptrarr_foreach(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
     const auto h_var(end) = h_var(arr) + (count); \
-    for (auto name = &h_var(arr)[0]; name != h_var(end); name++)
+    for (auto name = &h_var(arr)[0]; name < h_var(end); name++)
+
+#define ptrarr_foreach_mut(the_arr, count, name) \
+    const auto h_var(arr) = (the_arr); \
+    for (auto name = &h_var(arr)[0]; name < h_var(arr) + (count); name++)
 
 #define for_upto_limit(lim, i) \
     const auto h_var(limit) = (lim); \

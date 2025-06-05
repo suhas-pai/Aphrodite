@@ -22,6 +22,8 @@ struct freepage_array_info {
     struct list list;
     struct list asc_list;
 
+    struct mm_memmap *memmap;
+
     // Number of available pages in this freepage_array_info struct.
     uint64_t avail_page_count;
 
@@ -722,23 +724,29 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
 
     list_foreach(&g_freepage_list, list, iter) {
         uint64_t iter_phys = virt_to_phys(iter);
+        uint64_t back_phys =
+            virt_to_phys((void *)iter +
+                         ((iter->avail_page_count - 1) << PAGE_SHIFT));
 
-        // Mark all usable pages that exist from in iter.
-        struct page *page = phys_to_page(iter_phys);
-        const struct page *const end = page + iter->total_page_count;
+        do {
+            struct page_section *const section = phys_to_section(iter_phys);
+            uint64_t sect_back_phys = back_phys;
 
-        const page_section_t section =
-            (page_section_t)(phys_to_section(iter_phys) - section_list) + 1;
+            if (!range_has_loc(section->range, sect_back_phys)) {
+                sect_back_phys =
+                    range_get_end_assert(section->range) - PAGE_SIZE;
+            }
 
-        printk(LOGLEVEL_INFO,
-               "mm: marking pages in range " RANGE_FMT " as section %u\n",
-               RANGE_FMT_ARGS(
-                RANGE_INIT(iter_phys, iter->total_page_count << PAGE_SHIFT)),
-               section);
+            struct page *page = phys_to_page(iter_phys);
+            const struct page *const end = phys_to_page(sect_back_phys) + 1;
 
-        for (; page != end; page++) {
-            page->section = section;
-        }
+            const page_section_t section_number = (section - section_list) + 1;
+            for (; page != end; page++) {
+                page->section = section_number;
+            }
+
+            iter_phys = sect_back_phys + PAGE_SIZE;
+        } while (iter_phys <= back_phys);
     }
 }
 
@@ -777,9 +785,7 @@ __debug_optimize(3) static uint64_t free_all_pages() {
 
             int8_t jorder = iorder;
             for (; jorder >= 0; jorder--) {
-                const struct page *const back_page =
-                    page + (1ull << jorder) - 1;
-
+                const auto back_page = page + (1ull << jorder) - 1;
                 if (section == page_to_section(back_page)) {
                     break;
                 }
@@ -797,9 +803,7 @@ __debug_optimize(3) static uint64_t free_all_pages() {
                 section->min_order = (uint8_t)jorder;
             }
 
-            const struct range freed_range =
-                RANGE_INIT(phys, free_count << PAGE_SHIFT);
-
+            const auto freed_range = RANGE_INIT(phys, free_count << PAGE_SHIFT);
             printk(LOGLEVEL_INFO,
                    "mm: freed %" PRIu64 " pages at " RANGE_FMT " to zone %s\n",
                    free_count,
@@ -862,12 +866,12 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
 }
 
 __debug_optimize(3) static inline void split_sections_for_zones() {
-    struct page_section *const section_list = mm_get_page_section_list();
-    for (uint8_t i = 0; i != mm_get_section_count(); i++) {
-        struct page_section *const section = section_list + i;
-
-        struct page_zone *const begin_zone = phys_to_zone(section->range.front);
-        struct page_zone *const back_zone =
+    ptrarr_foreach_mut(mm_get_page_section_list(),
+                       mm_get_section_count(),
+                       section)
+    {
+        const auto begin_zone = phys_to_zone(section->range.front);
+        const auto back_zone =
             phys_to_zone(range_get_end_assert(section->range) - PAGE_SIZE);
 
         if (section->zone == nullptr) {
@@ -884,29 +888,29 @@ __debug_optimize(3) static inline void split_sections_for_zones() {
 }
 
 __debug_optimize(3) static inline void setup_zone_section_list() {
-    struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_section_count();
-
     uint32_t number = 1;
-    for (auto section = begin; section != end; section++, number++) {
+    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
                "pfn-range: " RANGE_FMT ", zone: %s\n",
                number,
-               RANGE_FMT_ARGS(section->range),
+               RANGE_FMT_ARGS(sect->range),
                RANGE_FMT_ARGS(
-                RANGE_INIT(section->pfn, PAGE_COUNT(section->range.size))),
-               section->zone->name);
+                RANGE_INIT(sect->pfn, PAGE_COUNT(sect->range.size))),
+               sect->zone->name);
 
-        list_add(&section->zone->section_list, &section->zone_list);
+        list_add(&sect->zone->section_list, &sect->zone_list);
+        number++;
     }
 }
 
 void mm_post_arch_init() {
     // Claim bootloader-reclaimable memmaps now that we've switched to our own
     // pagemap.
+
     // FIXME: Avoid claiming thees pages until we setup our own stack.
 
+#if 0
     mm_for_each_memmap(memmap) {
         if (memmap->kind == MM_MEMMAP_KIND_BOOTLOADER_RECLAIMABLE) {
             // Don't claim bootloader-reclaimable memmaps until after we
@@ -914,9 +918,10 @@ void mm_post_arch_init() {
             // we allocate the root physical page of the bootloader's
             // page tables.
 
-            //claim_pages(memmap);
+            claim_pages(memmap);
         }
     }
+#endif
 
     // Iterate over the usable-memmaps (sections) 2 times:
     //  1. Iterate to mark used-pages first. This must be done first because
@@ -924,11 +929,8 @@ void mm_post_arch_init() {
     //     its obvious which pages are used.
     //  2. Set the section field in page->flags.
 
-    struct page_section *const begin = mm_get_page_section_list();
-    const struct page_section *const end = begin + mm_get_section_count();
-
-    for (auto section = begin; section != end; section++) {
-        mark_crucial_pages(section);
+    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
+        mark_crucial_pages(sect);
     }
 
     split_sections_for_zones();

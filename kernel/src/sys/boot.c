@@ -172,8 +172,8 @@ __debug_optimize(3) static void sort_memmap_list() {
     }
 }
 
-__debug_optimize(3) static inline
-bool is_usable_memmap(const struct mm_memmap *const memmap) {
+__debug_optimize(3)
+static inline bool is_usable_memmap(const struct mm_memmap *const memmap) {
     // TODO: Include bootloader-reclaimable memmaps in this check.
     return memmap->kind == MM_MEMMAP_KIND_USABLE;
 }
@@ -212,7 +212,7 @@ void boot_init() {
         rsdp = phys_to_virt((uint64_t)rsdp_request.response->address);
     }
 
-    const struct limine_memmap_response *const resp = memmap_request.response;
+    const auto resp = memmap_request.response;
 
     uint8_t memmap_index = 0;
     ptrarr_foreach(resp->entries, resp->entry_count, entry) {
@@ -220,7 +220,7 @@ void boot_init() {
             panic("boot: too many memmaps\n");
         }
 
-        const struct limine_memmap_entry *const memmap = *entry;
+        const auto memmap = *entry;
         struct range range = RANGE_EMPTY();
 
         if (!range_create_and_verify(memmap->base, memmap->length, &range)) {
@@ -231,6 +231,7 @@ void boot_init() {
             panic("boot: failed to align memmap");
         }
 
+        // Ignore the first page in memory, which is reserved as the null page.
         if (range.front == 0) {
             if (range.size == PAGE_SIZE) {
                 continue;
@@ -251,7 +252,7 @@ void boot_init() {
     // Merge usable, contiguous memmaps in the (now guaranteed to be sorted)
     // memmap list.
 
-    ptrarr_foreach(&mm_memmap_list[1], mm_memmap_count, memmap) {
+    ptrarr_foreach(&mm_memmap_list[1], mm_memmap_count - 1, memmap) {
         struct mm_memmap *const prev_memmap = &memmap[-1];
         if (!is_usable_memmap(prev_memmap) || !is_usable_memmap(memmap)) {
             continue;
@@ -287,7 +288,7 @@ void boot_init() {
     uint8_t section_index = 0;
     uint64_t pfn = 0;
 
-    ptrarr_foreach(mm_memmap_list, memmap_index, memmap) {
+    ptrarr_foreach(mm_memmap_list, mm_memmap_count, memmap) {
         // The page-section list is a list of usable memmaps.
         if (!is_usable_memmap(memmap)) {
             continue;
