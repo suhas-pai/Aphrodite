@@ -22,8 +22,6 @@ struct freepage_array_info {
     struct list list;
     struct list asc_list;
 
-    struct mm_memmap *memmap;
-
     // Number of available pages in this freepage_array_info struct.
     uint64_t avail_page_count;
 
