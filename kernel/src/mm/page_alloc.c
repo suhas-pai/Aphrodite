@@ -76,7 +76,7 @@ setup_pages_in_lock(struct page *const page,
                     const enum page_state state)
 {
     switch (state) {
-        case PAGE_STATE_SYSTEM_CRUCIAL:
+        case PAGE_STATE_SYSTEM_CRITICAL:
             verify_not_reached();
         case PAGE_STATE_KERNEL_STACK:
         case PAGE_STATE_USER_STACK:
@@ -500,7 +500,7 @@ setup_pages_for_state(struct page *const page,
                       const struct largepage_level_info *const large_info)
 {
     switch (state) {
-        case PAGE_STATE_SYSTEM_CRUCIAL:
+        case PAGE_STATE_SYSTEM_CRITICAL:
             verify_not_reached();
         case PAGE_STATE_USED: {
             const uint64_t page_count = 1ull << order;

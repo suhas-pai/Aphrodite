@@ -45,7 +45,8 @@ static inline void list_add(struct list *const head, struct list *const item) {
     list_add_common(item, head, head->next);
 }
 
-typedef int (*list_add_inorder_compare_t)(struct list *head, struct list *item);
+typedef int
+(*list_add_inorder_compare_t)(const struct list *head, const struct list *item);
 
 __debug_optimize(3) static inline void
 list_add_inorder(struct list *const head,

@@ -182,10 +182,7 @@ membuf16_is_all(uint16_t *const restrict buf,
 }
 
 __debug_optimize(3) bool
-membuf32_is_all(uint32_t *restrict buf,
-                uint64_t count, const
-                uint32_t c)
-{
+membuf32_is_all(uint32_t *restrict buf, uint64_t count, const uint32_t c) {
 #if defined(__aarch64__)
     if (count >= 2) {
         uint32_t left = 0;

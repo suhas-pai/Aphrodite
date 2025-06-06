@@ -32,7 +32,7 @@ struct freepage_array_info {
 
 static inline void
 freepage_array_info_init(struct freepage_array_info *const info,
-                        const uint64_t page_count)
+                         const uint64_t page_count)
 {
     list_init(&info->list);
     list_init(&info->asc_list);
@@ -50,7 +50,7 @@ _Static_assert(sizeof(struct freepage_array_info) <= PAGE_SIZE,
 //  One that stores pages in ascending order of the number of free pages.
 
 // The address ascending order is needed later in post-arch setup to mark all
-// system-crucial pages, while the ascending free-page list is used so smaller
+// system-critical pages, while the ascending free-page list is used so smaller
 // areas are emptied before larger areas are used.
 
 static struct list g_freepage_list = LIST_INIT(g_freepage_list);
@@ -59,21 +59,25 @@ static struct list g_asc_freelist = LIST_INIT(g_asc_freelist);
 static uint64_t g_total_free_pages = 0;
 static uint64_t g_total_free_pages_remaining = 0;
 
-__debug_optimize(3)
-static void add_to_asc_list(struct freepage_array_info *const info) {
-    struct freepage_array_info *iter = nullptr;
-    struct freepage_array_info *prev =
-        parent_of(&g_asc_freelist, struct freepage_array_info, asc_list);
+static int
+asc_list_compare(const struct list *const a, const struct list *const b) {
+    const struct freepage_array_info *const a_info =
+        parent_of(a, struct freepage_array_info, asc_list);
+    const struct freepage_array_info *const b_info =
+        parent_of(b, struct freepage_array_info, asc_list);
 
-    list_foreach(&g_asc_freelist, asc_list, iter) {
-        if (info->avail_page_count < iter->avail_page_count) {
-            break;
-        }
-
-        prev = iter;
+    if (a_info->avail_page_count < b_info->avail_page_count) {
+        return -1;
+    } else if (a_info->avail_page_count > b_info->avail_page_count) {
+        return 1;
     }
 
-    list_add(&prev->asc_list, &info->asc_list);
+    return 0;
+}
+
+__debug_optimize(3)
+static void add_to_asc_list(struct freepage_array_info *const info) {
+    list_add_inorder(&g_asc_freelist, &info->asc_list, asc_list_compare);
 }
 
 __debug_optimize(3)
@@ -191,23 +195,23 @@ __debug_optimize(3) uint64_t early_alloc_page() {
 #if defined(DEBUG_EARLY_ALLOC)
 #define print_freepage_list(head, field, name) \
     do { \
-        struct freepage_array_info *iter = nullptr;  \
-        uint32_t i = 1; \
+        struct freepage_array_info *h_var(iter) = nullptr;  \
+        uint32_t h_var(i) = 1; \
         \
         printk(LOGLEVEL_INFO, "mm: printing list " name "\n"); \
-        list_foreach(head, field, iter) { \
+        list_foreach(head, field, h_var(iter)) { \
             printk(LOGLEVEL_INFO, \
                    "\tmm: #%u: freepage_array_info at " RANGE_FMT ", " \
                    "avail_page_count=%" PRIu64 \
                    ", total_page_count=%" PRIu64 "\n", \
-                   i, \
+                   h_var(i), \
                    RANGE_FMT_ARGS( \
-                    RANGE_INIT(virt_to_phys(iter), \
-                               iter->total_page_count << PAGE_SHIFT)), \
-                   iter->avail_page_count, \
-                   iter->total_page_count); \
+                    RANGE_INIT(virt_to_phys(h_var(iter)), \
+                               h_var(iter)->total_page_count << PAGE_SHIFT)), \
+                   h_var(iter)->avail_page_count, \
+                   h_var(iter)->total_page_count); \
  \
-            i++; \
+            h_var(i)++; \
         } \
     } while (false)
 #endif /* defined(DEBUG_EARLY_ALLOC) */
@@ -430,7 +434,7 @@ mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
                     /*alloc_pgtable=*/nullptr,
                     /*free_pgtable=*/nullptr);
 
-    for (pg_level_t level = (uint8_t)walker.level;
+    for (pg_level_t level = (pg_level_t)walker.level;
          level <= walker.top_level;
          level++)
     {
@@ -632,7 +636,7 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
 }
 
 __debug_optimize(3)
-static void mark_crucial_pages(const struct page_section *const memmap) {
+static void mark_critical_pages(const struct page_section *const memmap) {
     struct freepage_array_info *iter = nullptr;
     list_foreach(&g_asc_freelist, asc_list, iter) {
         uint64_t iter_phys = virt_to_phys(iter);
@@ -649,7 +653,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
         struct page *const unusable_end = virt_to_page(iter);
 
         for (; page != unusable_end; page++) {
-            page->state = PAGE_STATE_SYSTEM_CRUCIAL;
+            page->state = PAGE_STATE_SYSTEM_CRITICAL;
         }
 
         while (true) {
@@ -661,7 +665,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
                  i != iter->total_page_count;
                  i++, page++)
             {
-                page->state = PAGE_STATE_SYSTEM_CRUCIAL;
+                page->state = PAGE_STATE_SYSTEM_CRITICAL;
             }
 
             iter = list_next(iter, list);
@@ -673,7 +677,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
                     start + PAGE_COUNT(memmap->range.size);
 
                 for (; page != memmap_end; page++) {
-                    page->state = PAGE_STATE_SYSTEM_CRUCIAL;
+                    page->state = PAGE_STATE_SYSTEM_CRITICAL;
                 }
 
                 return;
@@ -688,7 +692,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
                     start + PAGE_COUNT(memmap->range.size);
 
                 for (; page != memmap_end; page++) {
-                    page->state = PAGE_STATE_SYSTEM_CRUCIAL;
+                    page->state = PAGE_STATE_SYSTEM_CRITICAL;
                 }
 
                 return;
@@ -699,7 +703,7 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
 
             struct page *const end = phys_to_page(iter_phys);
             for (; page != end; page++) {
-                page->state = PAGE_STATE_SYSTEM_CRUCIAL;
+                page->state = PAGE_STATE_SYSTEM_CRITICAL;
             }
         }
     }
@@ -711,18 +715,17 @@ static void mark_crucial_pages(const struct page_section *const memmap) {
     struct page *const page = phys_to_page(memmap->range.front);
 
     for_upto_limit(memmap_page_count, i) {
-        page[i].state = PAGE_STATE_SYSTEM_CRUCIAL;
+        page[i].state = PAGE_STATE_SYSTEM_CRITICAL;
     }
 }
 
 __debug_optimize(3) static void assign_section_numbers_to_pages() {
     struct freepage_array_info *iter = nullptr;
-    const struct page_section *const section_list =
-        mm_get_page_section_list();
+    const auto section_list = mm_get_page_section_list();
 
     list_foreach(&g_freepage_list, list, iter) {
-        uint64_t iter_phys = virt_to_phys(iter);
-        uint64_t back_phys =
+        auto iter_phys = virt_to_phys(iter);
+        auto back_phys =
             virt_to_phys((void *)iter +
                          ((iter->avail_page_count - 1) << PAGE_SHIFT));
 
@@ -736,9 +739,10 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
             }
 
             struct page *page = phys_to_page(iter_phys);
-            const struct page *const end = phys_to_page(sect_back_phys) + 1;
 
+            const auto end = phys_to_page(sect_back_phys) + 1;
             const page_section_t section_number = (section - section_list) + 1;
+
             for (; page != end; page++) {
                 page->section = section_number;
             }
@@ -921,14 +925,8 @@ void mm_post_arch_init() {
     }
 #endif
 
-    // Iterate over the usable-memmaps (sections) 2 times:
-    //  1. Iterate to mark used-pages first. This must be done first because
-    //     it needs to be done before memmaps are merged, as before the merge,
-    //     its obvious which pages are used.
-    //  2. Set the section field in page->flags.
-
     ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
-        mark_crucial_pages(sect);
+        mark_critical_pages(sect);
     }
 
     split_sections_for_zones();

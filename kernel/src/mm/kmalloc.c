@@ -95,8 +95,8 @@ void *kmalloc_size(const uint32_t size, uint32_t *const size_out) {
 
     if (__builtin_expect(size > KMALLOC_MAX, 0)) {
         printk(LOGLEVEL_WARN,
-               "mm: kmalloc_size() can't allocate %" PRIu32 " bytes, max is %d "
-               "bytes\n",
+               "mm: kmalloc_size() can't allocate %" PRIu32 " bytes, max is "
+               "%" PRIu32 " bytes\n",
                size,
                KMALLOC_MAX);
         return nullptr;
