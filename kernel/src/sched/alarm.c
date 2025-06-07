@@ -33,10 +33,11 @@ void alarm_create_for_self(struct alarm *const alarm, const usec_t time) {
     alarm_create(alarm, time, alarm_self_callback, current_thread());
 }
 
-__debug_optimize(3)
-static int compare(struct list *const theirs, struct list *const ours) {
-    struct alarm *const their_alarm = parent_of(theirs, struct alarm, list);
-    struct alarm *const our_alarm = parent_of(ours, struct alarm, list);
+__debug_optimize(3) static
+int compare(const struct list *const theirs, const struct list *const ours) {
+    const struct alarm *const our_alarm = parent_of(ours, struct alarm, list);
+    const struct alarm *const their_alarm =
+        parent_of(theirs, struct alarm, list);
 
     return twovar_cmp(their_alarm->remaining, our_alarm->remaining);
 }

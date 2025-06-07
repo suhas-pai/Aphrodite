@@ -730,7 +730,7 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
                          ((iter->avail_page_count - 1) << PAGE_SHIFT));
 
         do {
-            struct page_section *const section = phys_to_section(iter_phys);
+            const auto section = phys_to_section(iter_phys);
             uint64_t sect_back_phys = back_phys;
 
             if (!range_has_loc(section->range, sect_back_phys)) {
