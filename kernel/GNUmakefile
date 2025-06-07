@@ -268,15 +268,6 @@ all: bin-$(ARCH)/$(KERNEL)
 -include $(HEADER_DEPS)
 
 # Link rules for building the C compiler runtime.
-cc-runtime-$(ARCH)/cc-runtime.a: GNUmakefile cc-runtime/*
-	rm -rf cc-runtime-$(ARCH)
-	cp -r cc-runtime cc-runtime-$(ARCH)
-	$(MAKE) -C cc-runtime-$(ARCH) -f cc-runtime.mk \
-		CC="$(CC)" \
-		AR="$(AR)" \
-		CFLAGS="$(filter-out -Wsign-conversion -Wundef,$(CFLAGS))" \
-		CPPFLAGS='-isystem ../freestnd-c-hdrs -DCC_RUNTIME_NO_FLOAT'
-
 include/dev/pci/vendors.h:
 	curl -Lo src/dev/pci/pci.ids https://pci-ids.ucw.cz/v2.2/pci.ids
 	awk '/^[^#[:blank:]C]/ { num=""$$1; name=$$0; sub("^"num, "", name); sub("[[:blank:]]+", "", name); print "PCI_VENDOR(0x"num",\""name"\")" }' src/dev/pci/pci.ids > $@
@@ -290,9 +281,9 @@ include/dev/pci/vendors.h:
 # GNU binutils, for silly reasons, forces the ELF type to ET_EXEC even for
 # relocatable PIEs, if the base load address is non-0.
 # See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
-bin-$(ARCH)/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ) cc-runtime-$(ARCH)/cc-runtime.a
+bin-$(ARCH)/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
 	@mkdir -p "$$(dirname $@)"
-	$(LD) $(OBJ) cc-runtime-$(ARCH)/cc-runtime.a $(LDFLAGS) -o $@
+	$(LD) $(OBJ) $(LDFLAGS) -o $@
 	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
 
 # Compilation rules for *.c files.
@@ -300,7 +291,7 @@ obj-$(ARCH)/%.c.o: src/%.c GNUmakefile include/dev/pci/vendors.h
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-obj-$(ARCH)/cc-runtime.c.o: src/cc-runtime.c GNUmakefile
+obj-$(ARCH)/cc-runtime-$(ARCH)/src/cc-runtime.c.o: cc-runtime-$(ARCH)/src/cc-runtime.c GNUmakefile
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wundef,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
