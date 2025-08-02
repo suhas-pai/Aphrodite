@@ -7,29 +7,6 @@ test -z "$srcdir" && srcdir=.
 
 cd "$srcdir"
 
-clone_repo_commit() {
-    if test -d "$2/.git"; then
-        git -C "$2" reset --hard
-        git -C "$2" clean -fd
-        if ! git -C "$2" checkout $3; then
-            rm -rf "$2"
-        fi
-    else
-        if test -d "$2"; then
-            set +x
-            echo "error: '$2' is not a Git repository"
-            exit 1
-        fi
-    fi
-    if ! test -d "$2"; then
-        git clone $1 "$2"
-        if ! git -C "$2" checkout $3; then
-            rm -rf "$2"
-            exit 1
-        fi
-    fi
-}
-
 download_by_hash() {
     DOWNLOAD_COMMAND="curl -Lo"
     if ! command -v "${DOWNLOAD_COMMAND%% *}" >/dev/null 2>&1; then
@@ -64,22 +41,49 @@ download_by_hash() {
     fi
 }
 
+clone_repo_commit() {
+    if test -d "$2/.git"; then
+        git -C "$2" reset --hard
+        git -C "$2" clean -fd
+        if ! git -C "$2" -c advice.detachedHead=false checkout $3; then
+            rm -rf "$2"
+        fi
+    else
+        if test -d "$2"; then
+            set +x
+            echo "error: '$2' is not a Git repository" 1>&2
+            exit 1
+        fi
+    fi
+    if ! test -d "$2"; then
+        git clone $1 "$2"
+        if ! git -C "$2" -c advice.detachedHead=false checkout $3; then
+            rm -rf "$2"
+            exit 1
+        fi
+    fi
+}
+
 clone_repo_commit \
     https://codeberg.org/osdev/freestnd-c-hdrs-0bsd.git \
     freestnd-c-hdrs \
-    a87c192f3eb66b0806740dc67325f9ad23fc2d0b
+    5e4e9e70278fe89ea328d359a58aff4f4a94b165
 
 clone_repo_commit \
     https://codeberg.org/osdev/cc-runtime.git \
     cc-runtime \
     dae79833b57a01b9fd3e359ee31def69f5ae899b
 
-download_by_hash \
-    https://github.com/limine-bootloader/limine/raw/4687a182be23939c2d9f15db970382dc353ed956/limine.h \
-    include/limine.h \
-    6879e626f34c1be25ac2f72bf43b083fc2b53887280bb0fcdaee790e258c6974
+clone_repo_commit \
+    https://github.com/limine-bootloader/limine-protocol.git \
+    limine-protocol \
+    fedf97facd1c473ee8720f8dfd5a71d03490d928
 
 download_by_hash \
     https://gist.githubusercontent.com/suhas-pai/2a6c1c4d32491aaf363ee3b1b3884390/raw/541482dbc61862bba8a156edaae57faa2995d791/stdatomic.h \
-    freestnd-c-hdrs/stdatomic.h \
+    freestnd-c-hdrs/include/stdatomic.h \
     5e5d78080b2126535ee724a03082fea398dd5afb98548d95177c738a1fc17abe
+
+set +x
+
+printf "\nDependencies obtained successfully!\n"

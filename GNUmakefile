@@ -1,6 +1,14 @@
 # Nuke built-in rules and variables.
-MAKEFLAGS += -rR
-.SUFFIXES:
+ifeq ($(__BASH_MAKE_COMPLETION__)$(GMAKE_BUILTINS),)
+override TMP_INC := $(shell mktemp)
+$(shell for t in DEFAULT $(MAKECMDGOALS); do printf ".PHONY: $$t\n$$t:\n\t@true\n" >>'$(TMP_INC)'; done)
+$(shell printf "\t@rm -f '\$$(TMP_INC)'\n\t@\$$(MAKE) -rR \$$(MAKECMDGOALS) GMAKE_BUILTINS=off\n" >>'$(TMP_INC)')
+include $(TMP_INC)
+else
+
+# This is the name that our final executable will have.
+# Change as needed.
+override OUTPUT := kernel
 
 DEFAULT_MACHINE=virt
 ifeq ($(ARCH),x86_64)
@@ -27,10 +35,10 @@ else
 endif
 
 # Target architecture to build for. Default to x86_64.
-ARCH := x86_64
+ARCH ?= x86_64
 
 # Default user QEMU flags. These are appended to the QEMU command calls.
-QEMUFLAGS := -M $(MACHINE) -m $(MEM) -smp $(SMP)
+QEMUFLAGS ?= -M $(MACHINE) -m $(MEM) -smp $(SMP)
 
 # Check if the architecture is supported.
 ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
@@ -40,11 +48,11 @@ endif
 override IMAGE_NAME := template-$(ARCH)
 
 # Toolchain for building the 'limine' executable for the host.
-HOST_CC := cc
-HOST_CFLAGS := -g -O2 -pipe
-HOST_CPPFLAGS :=
-HOST_LDFLAGS :=
-HOST_LIBS :=
+HOST_CC ?= cc
+HOST_CFLAGS ?= -g -O2 -pipe
+HOST_CPPFLAGS ?=
+HOST_LDFLAGS ?=
+HOST_LIBS ?=
 
 EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime
 ifeq ($(DEBUG),1)
@@ -363,3 +371,5 @@ distclean:
 uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/$(OUTPUT)-$(ARCH)"
 	-rmdir "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)"
+
+endif

@@ -258,3 +258,22 @@ void mm_arch_init() {
 
     printk(LOGLEVEL_INFO, "mm: finished setting up\n");
 }
+
+void mm_smp_init() {
+    const uint64_t pat_msr_orig = msr_read(IA32_MSR_PAT);
+    const uint64_t pat_msr =
+        rm_mask(pat_msr_orig,
+                (MSR_PAT_ENTRY_MASK << MSR_PAT_INDEX_PAT2)
+              | (MSR_PAT_ENTRY_MASK) << MSR_PAT_INDEX_PAT3);
+
+    printk(LOGLEVEL_INFO,
+           "mm: pat msr original value is 0x%" PRIx64 "\n",
+           pat_msr_orig);
+
+    const uint64_t uncacheable_mask =
+        (uint64_t)MSR_PAT_ENCODING_UNCACHEABLE << MSR_PAT_INDEX_PAT2;
+    const uint64_t write_combining_mask =
+        (uint64_t)MSR_PAT_ENCODING_WRITE_COMBINING << MSR_PAT_INDEX_PAT3;
+
+    msr_write(IA32_MSR_PAT, pat_msr | uncacheable_mask | write_combining_mask);
+}

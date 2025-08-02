@@ -215,7 +215,7 @@ void boot_init() {
     const auto resp = memmap_request.response;
 
     uint8_t memmap_index = 0;
-    ptrarr_foreach(resp->entries, resp->entry_count, entry) {
+    arrptr_foreach(resp->entries, resp->entry_count, entry) {
         if (memmap_index == countof(mm_memmap_list)) {
             panic("boot: too many memmaps\n");
         }
@@ -252,7 +252,8 @@ void boot_init() {
     // Merge usable, contiguous memmaps in the (now guaranteed to be sorted)
     // memmap list.
 
-    ptrarr_foreach(&mm_memmap_list[1], mm_memmap_count - 1, memmap) {
+    const auto end = &mm_memmap_list[mm_memmap_count];
+    arrptr_foreach_mut(&mm_memmap_list[1], mm_memmap_count - 1, memmap) {
         struct mm_memmap *const prev_memmap = &memmap[-1];
         if (!is_usable_memmap(prev_memmap) || !is_usable_memmap(memmap)) {
             continue;
@@ -263,14 +264,12 @@ void boot_init() {
 
         if (!range_overlaps(prev_range, range) &&
             !range_adjacent(prev_range, range))
-         {
+        {
             continue;
         }
 
         prev_memmap->range = range_merge(prev_range, range);
-
-        const struct mm_memmap *const end = &mm_memmap_list[mm_memmap_count];
-        memmove(memmap, &memmap[1], distance(memmap, end));
+        memmove(memmap, &memmap[1], distance(&memmap[1], end));
 
         // We have removed the current memmap, so we need to decrement
         // the memmap count and index.
@@ -288,16 +287,15 @@ void boot_init() {
     uint8_t section_index = 0;
     uint64_t pfn = 0;
 
-    ptrarr_foreach(mm_memmap_list, mm_memmap_count, memmap) {
+    arrptr_foreach(mm_memmap_list, mm_memmap_count, memmap) {
         // The page-section list is a list of usable memmaps.
         if (!is_usable_memmap(memmap)) {
             continue;
         }
 
-        struct page_section *const section =
-            &mm_page_section_list[section_index];
-
+        const auto section = &mm_page_section_list[section_index];
         page_section_init(section, /*zone=*/nullptr, memmap->range, pfn);
+
         for_upto_limit(MAX_ORDER, i) {
             list_init(&section->freelist_list[i].page_list);
             section->freelist_list[i].count = 0;
@@ -374,14 +372,9 @@ struct page_section *boot_add_section_at(struct page_section *const section) {
 }
 
 __debug_optimize(3) void boot_recalculate_pfns() {
-    struct page_section *section = mm_page_section_list;
-    const struct page_section *const end =
-        &mm_page_section_list[mm_page_section_count];
-
-    for (uint64_t pfn = 0;
-         section != end;
-         section++, pfn += PAGE_COUNT(section->range.size))
-    {
+    uint64_t pfn = 0;
+    arrptr_foreach(mm_get_page_section_list(), mm_page_section_count, section) {
         section->pfn = pfn;
+        pfn += PAGE_COUNT(section->range.size);
     }
 }

@@ -163,7 +163,7 @@ void hpet_init(const struct os_acpi_hpet *const hpet) {
     g_timer_count = ((cap_and_id >> 8) & 0x1f) + 1;
     printk(LOGLEVEL_INFO, "hpet: got %" PRIu8 " timers\n", g_timer_count);
 
-    ptrarr_foreach(g_addrspace->timers, g_timer_count, timer) {
+    arrptr_foreach(g_addrspace->timers, g_timer_count, timer) {
         mmio_write(&timer->comparator_value, 0);
     }
 

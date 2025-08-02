@@ -38,7 +38,7 @@ void pci_init_drivers() {
                 }
 
                 bool found = false;
-                ptrarr_foreach(driver->devices, driver->device_count, id) {
+                arrptr_foreach(driver->devices, driver->device_count, id) {
                     if (*id == entity->id) {
                         found = true;
                         break;

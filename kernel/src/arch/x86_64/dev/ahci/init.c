@@ -187,7 +187,7 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
     }
 
     bool init_one_port = false;
-    ptrarr_foreach(hba->port_list, hba->port_count, port) {
+    arrptr_foreach(hba->port_list, hba->port_count, port) {
         if (ahci_spec_hba_port_init(port)) {
             init_one_port = true;
         }

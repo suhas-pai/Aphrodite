@@ -67,7 +67,7 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint64_t);
 
-        ptrarr_foreach(data, entry_count, entry) {
+        arrptr_foreach(data, entry_count, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -83,7 +83,7 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint32_t);
 
-        ptrarr_foreach(data, entry_count, entry) {
+        arrptr_foreach(data, entry_count, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -110,7 +110,7 @@ static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint64_t);
 
-        ptrarr_foreach(data, entry_count, entry) {
+        arrptr_foreach(data, entry_count, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -124,7 +124,7 @@ static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
             (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
             sizeof(uint32_t);
 
-        ptrarr_foreach(data, entry_count, entry) {
+        arrptr_foreach(data, entry_count, entry) {
             if (*entry == 0) {
                 continue;
             }

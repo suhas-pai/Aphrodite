@@ -688,7 +688,8 @@ os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
                 {
                     uacpi_free_resources(resources);
                     printk(LOGLEVEL_WARN,
-                           "acpi/resources: dependent resource out of bounds\n");
+                           "acpi/resources: dependent resource out of "
+                           "bounds\n");
 
                     return false;
                 }

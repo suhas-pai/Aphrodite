@@ -153,12 +153,12 @@
 #define carr_foreach_mut_rev_from_index(arr, name, index) \
     for (auto name = (arr) + (index); name >= (arr); name--)
 
-#define ptrarr_foreach(the_arr, count, name) \
+#define arrptr_foreach(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
     const auto h_var(end) = h_var(arr) + (count); \
     for (auto name = &h_var(arr)[0]; name < h_var(end); name++)
 
-#define ptrarr_foreach_mut(the_arr, count, name) \
+#define arrptr_foreach_mut(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
     for (auto name = &h_var(arr)[0]; name < h_var(arr) + (count); name++)
 

@@ -237,7 +237,7 @@ nvme_namespace_rwlba(struct nvme_namespace *const namespace,
                     command.readwrite.cid];
 
             uint8_t i = 0;
-            ptrarr_foreach(prp_list, prp_count, prp) {
+            arrptr_foreach(prp_list, prp_count, prp) {
                 *prp = command.readwrite.prp2 + (PAGE_SIZE * i);
                 i++;
             }

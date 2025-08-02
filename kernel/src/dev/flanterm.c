@@ -57,7 +57,7 @@ void setup_flanterm() {
     }
 
     uint64_t i = 0;
-    ptrarr_foreach(boot_get_fb()->framebuffers, fb_count, framebuffer_ptr) {
+    arrptr_foreach(boot_get_fb()->framebuffers, fb_count, framebuffer_ptr) {
         const struct limine_framebuffer *const framebuffer = *framebuffer_ptr;
         struct flanterm_context *const context =
             flanterm_fb_init(/*_malloc=*/nullptr,

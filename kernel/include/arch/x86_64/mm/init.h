@@ -6,3 +6,4 @@
 #pragma once
 
 void mm_arch_init();
+void mm_smp_init();

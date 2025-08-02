@@ -410,7 +410,7 @@ __debug_optimize(3) void mm_init() {
 
     printk(LOGLEVEL_INFO,
            "mm: system has " SIZE_UNIT_FMT " of available memory\n",
-           SIZE_UNIT_FMT_ARGS_ABBREV(g_total_free_pages * PAGE_SIZE));
+           SIZE_UNIT_FMT_ARGS_ABBREV(g_total_free_pages << PAGE_SHIFT));
 }
 
 __debug_optimize(3)
@@ -596,8 +596,7 @@ mm_early_identity_map_phys(const uint64_t root_phys,
                             /*free_pgtable_cb_info=*/nullptr);
 
     assert_msg(walker_result == E_PGWALKER_OK,
-               "mm: failed to fill out pagemap in "
-               "mm_early_identity_map_phys()");
+               "mm: failed to fill out pagemap in " __FUNCTION__ "()");
 
     pte_t *const pte = &walker.tables[0][walker.indices[0]];
     pte_write(pte, phys | pte_flags);
@@ -724,13 +723,13 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
     const auto section_list = mm_get_page_section_list();
 
     list_foreach(&g_freepage_list, list, iter) {
-        auto iter_phys = virt_to_phys(iter);
+        auto phys = virt_to_phys(iter);
         auto back_phys =
             virt_to_phys((void *)iter +
                          ((iter->avail_page_count - 1) << PAGE_SHIFT));
 
         do {
-            const auto section = phys_to_section(iter_phys);
+            const auto section = phys_to_section(phys);
             uint64_t sect_back_phys = back_phys;
 
             if (!range_has_loc(section->range, sect_back_phys)) {
@@ -738,17 +737,15 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
                     range_get_end_assert(section->range) - PAGE_SIZE;
             }
 
-            struct page *page = phys_to_page(iter_phys);
-
             const auto end = phys_to_page(sect_back_phys) + 1;
             const page_section_t section_number = (section - section_list) + 1;
 
-            for (; page != end; page++) {
+            for (struct page *page = phys_to_page(phys); page != end; page++) {
                 page->section = section_number;
             }
 
-            iter_phys = sect_back_phys + PAGE_SIZE;
-        } while (iter_phys <= back_phys);
+            phys = sect_back_phys + PAGE_SIZE;
+        } while (phys <= back_phys);
     }
 }
 
@@ -853,7 +850,7 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
     struct page_zone *const zone = section->zone;
 
     uint64_t search_front = section->range.front;
-    uint64_t mid_index = section->range.size / 2;
+    uint64_t mid_index = section->range.size >> 1;
 
     while (mid_index != 0) {
         if (phys_to_zone(search_front + mid_index) == zone) {
@@ -868,7 +865,7 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
 }
 
 __debug_optimize(3) static inline void split_sections_for_zones() {
-    ptrarr_foreach_mut(mm_get_page_section_list(),
+    arrptr_foreach_mut(mm_get_page_section_list(),
                        mm_get_section_count(),
                        section)
     {
@@ -891,7 +888,7 @@ __debug_optimize(3) static inline void split_sections_for_zones() {
 
 __debug_optimize(3) static inline void setup_zone_section_list() {
     uint32_t number = 1;
-    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
+    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
                "pfn-range: " RANGE_FMT ", zone: %s\n",
@@ -925,7 +922,7 @@ void mm_post_arch_init() {
     }
 #endif
 
-    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
+    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
         mark_critical_pages(sect);
     }
 

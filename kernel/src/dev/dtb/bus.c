@@ -28,7 +28,10 @@ dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
         }
 
         bool found = false;
-        ptrarr_foreach(dtb_driver->compat_list, dtb_driver->compat_count, compat_list) {
+        arrptr_foreach(dtb_driver->compat_list,
+                       dtb_driver->compat_count,
+                       compat_list)
+        {
             if (devicetree_prop_compat_has_sv(compat_prop, *compat_list)) {
                 found = true;
                 break;

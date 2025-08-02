@@ -34,7 +34,7 @@ page_section_init(struct page_section *const section,
 }
 
 __debug_optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
-    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
+    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         if (range_has_loc(iter->range, phys)) {
             return iter;
         }
@@ -44,7 +44,7 @@ __debug_optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
 }
 
 __debug_optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
-    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
+    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         const auto pfn_range = RANGE_INIT(pfn, PAGE_COUNT(iter->range.size));
         if (range_has_loc(pfn_range, pfn)) {
             return iter;
@@ -55,7 +55,7 @@ __debug_optimize(3) struct page_section *pfn_to_section(const uint64_t pfn) {
 }
 
 __debug_optimize(3) uint64_t phys_to_pfn(const uint64_t phys) {
-    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
+    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         if (range_has_loc(iter->range, phys)) {
             const uint64_t relative_phys =
                 range_index_for_loc(iter->range, phys);
@@ -78,7 +78,7 @@ __debug_optimize(3) uint64_t page_to_phys(const struct page *const page) {
 }
 
 __debug_optimize(3) uint64_t pfn_to_phys_manual(const uint64_t pfn) {
-    ptrarr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
+    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         const auto pfn_range =
             RANGE_INIT(iter->pfn, PAGE_COUNT(iter->range.size));
 

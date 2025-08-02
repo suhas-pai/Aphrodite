@@ -633,6 +633,29 @@ pgmap_at(struct pagemap *const pagemap,
     return result;
 }
 
+__debug_optimize(3) static enum pgmap_alloc_result
+alloc_and_write_leaf_ptes(pte_t *const start,
+                          const pte_t *const end,
+                          const uint64_t pte_flags,
+                          const pgmap_alloc_page_t alloc_a_page,
+                          void *const alloc_page_cb_info,
+                          pte_t **const pte_out)
+{
+    pte_t *pte = start;
+    for (; pte != end; pte++) {
+        const uint64_t phys = alloc_a_page(alloc_page_cb_info);
+        if (__builtin_expect(phys == INVALID_PHYS, 0)) {
+            *pte_out = pte;
+            return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
+        }
+
+        pte_write(pte, phys_create_pte(phys) | pte_flags);
+    }
+
+    *pte_out = pte;
+    return E_PGMAP_ALLOC_OK;
+}
+
 __debug_optimize(3) static inline enum pgmap_alloc_result
 alloc_ptes_at_level(
     struct pg_walker *const walker,
@@ -655,14 +678,6 @@ alloc_ptes_at_level(
     } else {
         verify_not_reached();
     }
-
-    const pgmap_alloc_page_t alloc_a_page = alloc_options->alloc_page;
-    void *const alloc_page_cb_info = alloc_options->alloc_page_cb_info;
-
-    const pgmap_alloc_large_page_t alloc_a_large_page =
-        alloc_options->alloc_large_page;
-    void *const alloc_large_page_cb_info =
-        alloc_options->alloc_large_page_cb_info;
 
     uint64_t leaf_ptes_remaining = *leaf_ptes_remaining_out;
     uint64_t write_pte_count =
@@ -689,24 +704,53 @@ alloc_ptes_at_level(
         const pte_t *const end = min(pte + write_pte_count, table_end);
 
         if (level > 1) {
-            for (; pte != end; pte++) {
+            const pgmap_alloc_large_page_t alloc_a_large_page =
+                alloc_options->alloc_large_page;
+            void *const alloc_large_page_cb_info =
+                alloc_options->alloc_large_page_cb_info;
+
+            while (pte != end) {
                 const uint64_t phys =
                     alloc_a_large_page(level, alloc_large_page_cb_info);
 
                 if (phys == INVALID_PHYS) {
-                    return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
+                    // Try allocating with smaller page sizes if we failed at
+                    // this level.
+                    if (level > 1) {
+                        level--;
+                        continue;
+                    }
+
+                    const enum pgmap_alloc_result alloc_result =
+                        alloc_and_write_leaf_ptes(
+                            pte,
+                            end,
+                            pte_flags,
+                            alloc_options->alloc_page,
+                            alloc_options->alloc_page_cb_info,
+                            &pte);
+
+                    if (__builtin_expect(alloc_result != E_PGMAP_ALLOC_OK, 0)) {
+                        return alloc_result;
+                    }
+
+                    break;
                 }
 
                 pte_write(pte, phys_create_pte(phys) | pte_flags);
+                pte++;
             }
         } else {
-            for (; pte != end; pte++) {
-                const uint64_t phys = alloc_a_page(alloc_page_cb_info);
-                if (__builtin_expect(phys == INVALID_PHYS, 0)) {
-                    return E_PGMAP_ALLOC_PAGE_ALLOC_FAIL;
-                }
+            const enum pgmap_alloc_result alloc_result =
+                alloc_and_write_leaf_ptes(pte,
+                                          end,
+                                          pte_flags,
+                                          alloc_options->alloc_page,
+                                          alloc_options->alloc_page_cb_info,
+                                          &pte);
 
-                pte_write(pte, phys_create_pte(phys) | pte_flags);
+            if (__builtin_expect(alloc_result != E_PGMAP_ALLOC_OK, 0)) {
+                return alloc_result;
             }
         }
 

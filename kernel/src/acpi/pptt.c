@@ -64,7 +64,7 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                     printk(LOGLEVEL_INFO, "\t" "private resource offsets:\n");
 
                     uint32_t i = 0;
-                    ptrarr_foreach(node->private_resource_offsets,
+                    arrptr_foreach(node->private_resource_offsets,
                                    node->private_resource_count,
                                    res_offset)
                     {
@@ -168,12 +168,14 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                        node->length,
                        node->flags,
                        node->flags &
-                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID ? "yes" : "no",
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_SIZE_VALID ?
+                            "yes" : "no",
                        node->flags &
                         __OS_ACPI_PPTT_CACHE_TYPE_NODE_SET_COUNT_VALID ?
                             "yes" : "no",
                        node->flags &
-                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID ? "yes" : "no",
+                        __OS_ACPI_PPTT_CACHE_TYPE_NODE_ASSOC_VALID ?
+                            "yes" : "no",
                        node->flags &
                         __OS_ACPI_PPTT_CACHE_TYPE_NODE_ALLOC_KIND_VALID ?
                             "yes" : "no",

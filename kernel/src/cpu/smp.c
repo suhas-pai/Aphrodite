@@ -37,7 +37,7 @@ void smp_init() {
     }
 
 #if !defined(__loongarch64)
-    ptrarr_foreach(smp_resp->cpus, smp_resp->cpu_count, cpu_iter) {
+    arrptr_foreach(smp_resp->cpus, smp_resp->cpu_count, cpu_iter) {
         const struct limine_mp_info *const cpu = *cpu_iter;
     #ifdef __aarch64__
         const uint64_t processor_id = cpu->mpidr;
@@ -71,7 +71,7 @@ void smp_boot_all_cpus() {
     }
 
     printk(LOGLEVEL_INFO, "smp: booting all %" PRIu64 " cpus\n", cpu_count);
-    ptrarr_foreach(info_list, cpu_count, info_ptr) {
+    arrptr_foreach(info_list, cpu_count, info_ptr) {
         struct limine_mp_info *const info = *info_ptr;
         if (info->field == mp_resp->bsp_field) {
             continue;

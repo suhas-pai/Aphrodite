@@ -24,7 +24,7 @@ struct mm_memmap {
 };
 
 #define mm_for_each_memmap(memmap) \
-    ptrarr_foreach(mm_get_memmap_list(), mm_get_memmap_count(), memmap)
+    arrptr_foreach(mm_get_memmap_list(), mm_get_memmap_count(), memmap)
 
 const struct mm_memmap *mm_get_memmap_list();
 uint8_t mm_get_memmap_count();

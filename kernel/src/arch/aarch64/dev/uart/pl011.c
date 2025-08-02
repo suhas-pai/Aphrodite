@@ -251,7 +251,7 @@ static bool pl011_dtb_probe(struct device *const device) {
     const uint64_t offset = reg_info->address - reg_range.front;
     const port_t address = mmio->base + offset;
 
-    ptrarr_foreach(early_infos, early_info_count, info) {
+    arrptr_foreach(early_infos, early_info_count, info) {
         if ((port_t)info->regs == address) {
             return true;
         }

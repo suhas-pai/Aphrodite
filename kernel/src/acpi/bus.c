@@ -32,7 +32,7 @@ static struct simple_alloc g_alloc;
 static inline struct acpi_driver *
 match_driver_by_hid(const struct uacpi_id_string string) {
     bus_foreach_driver(acpi_bus(), struct acpi_driver, driver.list, drv) {
-        ptrarr_foreach(drv->pnp_ids, drv->pnp_id_count, id) {
+        arrptr_foreach(drv->pnp_ids, drv->pnp_id_count, id) {
             const uint32_t length = string.size - 1;
             if (sv_equals(*id, sv_create_nocheck(string.value, length))) {
                 return drv;
@@ -46,11 +46,11 @@ match_driver_by_hid(const struct uacpi_id_string string) {
 static inline struct acpi_driver *
 match_driver_by_cid(const struct uacpi_pnp_id_list *const list) {
     bus_foreach_driver(acpi_bus(), struct acpi_driver, driver.list, drv) {
-        ptrarr_foreach(list->ids, list->num_ids, id) {
+        arrptr_foreach(list->ids, list->num_ids, id) {
             const struct string_view sv =
                 sv_create_nocheck(id->value, id->size - 1);
 
-            ptrarr_foreach(drv->pnp_ids, drv->pnp_id_count, drv_id) {
+            arrptr_foreach(drv->pnp_ids, drv->pnp_id_count, drv_id) {
                 if (sv_equals(*drv_id, sv)) {
                     return drv;
                 }

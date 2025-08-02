@@ -47,7 +47,7 @@ struct hashmap {
     })
 
 #define hashmap_foreach_bucket(hashmap, iter) \
-    ptrarr_foreach((hashmap)->buckets, (hashmap)->bucket_count, iter)
+    arrptr_foreach((hashmap)->buckets, (hashmap)->bucket_count, iter)
 
 #define hashmap_bucket_foreach_node(bucket, iter) \
     struct hashmap_node *iter = nullptr; \
@@ -55,7 +55,7 @@ struct hashmap {
 
 #define hashmap_foreach_node(hashmap, iter) \
     struct hashmap_node *iter = nullptr; \
-    ptrarr_foreach((hashmap)->buckets, (hashmap)->bucket_count, h_var(bucket)) \
+    arrptr_foreach((hashmap)->buckets, (hashmap)->bucket_count, h_var(bucket)) \
         if (*h_var(bucket) != nullptr) \
             list_foreach(&(*h_var(bucket))->node_list, list, iter)
 

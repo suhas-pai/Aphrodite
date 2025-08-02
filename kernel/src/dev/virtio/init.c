@@ -30,7 +30,7 @@ virtio_device_init_queues(struct virtio_device *const device,
     }
 
     uint32_t index = 0;
-    ptrarr_foreach(queue_list, queue_count, queue) {
+    arrptr_foreach(queue_list, queue_count, queue) {
         if (!virtio_split_queue_init(device, queue, index)) {
             kfree(queue_list);
             return false;

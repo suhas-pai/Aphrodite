@@ -22,6 +22,7 @@ alarm_create(struct alarm *const alarm,
     alarm->triggered = false;
 }
 
+__debug_optimize(3)
 static void alarm_self_callback(struct alarm *const alarm, void *const ctx) {
     (void)alarm;
 
@@ -29,6 +30,7 @@ static void alarm_self_callback(struct alarm *const alarm, void *const ctx) {
     sched_wake(thread);
 }
 
+__debug_optimize(3)
 void alarm_create_for_self(struct alarm *const alarm, const usec_t time) {
     alarm_create(alarm, time, alarm_self_callback, current_thread());
 }

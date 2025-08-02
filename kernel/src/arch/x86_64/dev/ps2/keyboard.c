@@ -302,7 +302,7 @@ bool ps2_keyboard_probe(struct device *const the_device) {
             printk(LOGLEVEL_INFO, "\t\t" "[shared]\n");
         }
 
-        ptrarr_foreach(irq->irq_list, irq->irq_count, irq_num) {
+        arrptr_foreach(irq->irq_list, irq->irq_count, irq_num) {
             printk(LOGLEVEL_INFO, "\t\t" "irq %" PRIu32 "\n", *irq_num);
 
             struct irq_pin *const pin = isr_get_irq_pin(*irq_num);

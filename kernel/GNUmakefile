@@ -1,6 +1,10 @@
 # Nuke built-in rules and variables.
-MAKEFLAGS += -rR
-.SUFFIXES:
+ifeq ($(__BASH_MAKE_COMPLETION__)$(GMAKE_BUILTINS),)
+override TMP_INC := $(shell mktemp)
+$(shell for t in DEFAULT $(MAKECMDGOALS); do printf ".PHONY: $$t\n$$t:\n\t@true\n" >>'$(TMP_INC)'; done)
+$(shell printf "\t@rm -f '\$$(TMP_INC)'\n\t@\$$(MAKE) -rR \$$(MAKECMDGOALS) GMAKE_BUILTINS=off\n" >>'$(TMP_INC)')
+include $(TMP_INC)
+else
 
 # This is the name that our final kernel executable will have.
 # Change as needed.
@@ -17,14 +21,30 @@ ifeq ($(filter $(ARCH),aarch64 loongarch64 riscv64 x86_64),)
     $(error Architecture $(ARCH) not supported)
 endif
 
+# User controllable toolchain and toolchain prefix.
+TOOLCHAIN :=
+TOOLCHAIN_PREFIX :=
+ifneq ($(TOOLCHAIN),)
+    ifeq ($(TOOLCHAIN_PREFIX),)
+        TOOLCHAIN_PREFIX := $(TOOLCHAIN)-
+    endif
+endif
+
 # User controllable C compiler command.
-CC := clang
+ifneq ($(TOOLCHAIN_PREFIX),)
+    CC := $(TOOLCHAIN_PREFIX)gcc
+else
+    CC := cc
+endif
 
-# User controllable archiver command.
-AR := ar
+# User controllable linker command.
+LD := $(TOOLCHAIN_PREFIX)ld
 
-# Same thing for "ld" (the linker).
-LD := ld.lld
+# Defaults overrides for variables if using "llvm" as toolchain.
+ifeq ($(TOOLCHAIN),llvm)
+    CC := clang
+    LD := ld.lld
+endif
 
 override LD_IS_LLD := no
 ifeq ($(shell $(LD) --version 2>&1 | grep -i 'LLD' >/dev/null 2>&1 && echo 1),1)
@@ -109,13 +129,13 @@ LDFLAGS :=
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs || ! test -d cc-runtime || ! test -f include/limine.h ); echo $$?),0)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs || ! test -d cc-runtime || ! test -d limine-protocol ); echo $$?),0)
         $(error Please run the ./get-deps script first)
     endif
 endif
 
 # Check if CC is Clang.
-override CC_IS_CLANG := $(shell ! $(CC) --version | grep 'clang' >/dev/null 2>&1; echo $$?)
+override CC_IS_CLANG := $(shell ! $(CC) --version 2>/dev/null | grep -q '^Target: '; echo $$?)
 
 # Internal C flags that should not be changed by the user.
 override CFLAGS += \
@@ -126,7 +146,6 @@ override CFLAGS += \
 	-ffreestanding \
 	-fno-stack-protector \
 	-fno-stack-check \
-	-fno-lto \
 	-fPIE \
 	-ffunction-sections \
 	-fdata-sections \
@@ -137,7 +156,8 @@ override CPPFLAGS := \
 	-I include \
 	-I include/arch/$(ARCH) \
 	-isystem src/extern \
-	-isystem freestnd-c-hdrs \
+	-I limine-protocol/include \
+    -isystem freestnd-c-hdrs/include \
 	$(CPPFLAGS) \
 	-DLIMINE_API_REVISION=3 \
 	-MMD \
@@ -176,16 +196,18 @@ endif
 ifeq ($(ARCH),x86_64)
 	ifeq ($(CC_IS_CLANG),1)
 		override CC += \
-			-target x86_64-unknown-none
+			-target x86_64-unknown-none-elf
 	endif
 	override CFLAGS += \
 		-m64 \
 		-march=x86-64-v4 \
+		-mabi=sysv \
 		-mno-80387 \
 		-mno-mmx \
 		-mno-sse \
 		-mno-sse2 \
-		-mno-red-zone
+		-mno-red-zone \
+		-mcmodel=kernel
 	override LDFLAGS += \
 		-m elf_x86_64
 	override NASMFLAGS += \
@@ -195,7 +217,7 @@ endif
 ifeq ($(ARCH),aarch64)
 	ifeq ($(CC_IS_CLANG),1)
 		override CC += \
-			-target aarch64-unknown-none
+			-target aarch64-unknown-none-elf
 	else
 		override CFLAGS += \
 			-mno-outline-atomics
@@ -210,7 +232,7 @@ endif
 ifeq ($(ARCH),riscv64)
 	ifeq ($(CC_IS_CLANG),1)
 		override CC += \
-			-target riscv64-unknown-none
+			-target riscv64-unknown-none-elf
 		override CFLAGS += \
 			-march=rv64imaczicboz
 	else
@@ -228,11 +250,14 @@ endif
 ifeq ($(ARCH),loongarch64)
     ifeq ($(CC_IS_CLANG),1)
         override CC += \
-            -target loongarch64-unknown-none
+            -target loongarch64-unknown-none-elf
     endif
     override CFLAGS += \
         -march=loongarch64 \
-        -mabi=lp64s
+        -mabi=lp64s \
+        -mfpu=none \
+        -msimd=none \
+        -mno-relax
     override LDFLAGS += \
         -m elf64loongarch \
         --no-relax
@@ -240,15 +265,14 @@ endif
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS += \
-	--build-id=none \
 	-nostdlib \
+	-static \
 	-pie \
-	-z text \
 	-z max-page-size=0x1000 \
-	-gc-sections \
+	--gc-sections \
 	-T src/arch/$(ARCH)/linker.ld
 
-SRCFILES := $(shell find -L src -type f -not -path "src/arch/*" -not -path "*/.*" | LC_ALL=C sort)
+SRCFILES := $(shell find -L src -type f -not -path "src/arch/*" -not -path "*/.*" 2>/dev/null | LC_ALL=C sort)
 SRCFILES += $(shell find -L src/arch/$(ARCH) -type f | LC_ALL=C sort)
 
 override CFILES := $(filter %.c,$(SRCFILES))
@@ -319,7 +343,7 @@ obj-$(ARCH)/%.S.o: src/%.S GNUmakefile
 # Compilation rules for *.asm (nasm) files.
 obj-$(ARCH)/%.asm.o: src/%.asm GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	nasm -felf64 $(˚NASMFLAGS) $< -o $@
+	nasm -felf64 $(shell printf '%s' '$(NASMFLAGS)' | sed -E 's/(^|[[:space:]])-g($$|[[:space:]])/\1-g -F dwarf\2/g') $< -o $@
 
 # Remove object files and the final executable.
 .PHONY: clean
@@ -328,7 +352,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -rf bin-* obj-* freestnd-c-hdrs cc-runtime* src/limine.h
+	rm -rf bin-* obj-* freestnd-c-hdrs cc-runtime* limine-protocol
 
 .PHONY: install
 install: all
@@ -337,3 +361,5 @@ install: all
 
 print:
 	@echo $(CFILES)
+
+endif

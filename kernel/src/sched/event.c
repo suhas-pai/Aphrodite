@@ -10,14 +10,14 @@
 
 __debug_optimize(3) static inline void
 lock_events(struct event *const *const events, const uint32_t event_count) {
-    ptrarr_foreach(events, event_count, event) {
+    arrptr_foreach(events, event_count, event) {
         spin_acquire(&(*event)->lock);
     }
 }
 
 __debug_optimize(3) static inline void
 unlock_events(struct event *const *const events, const uint32_t event_count) {
-    ptrarr_foreach(events, event_count, event) {
+    arrptr_foreach(events, event_count, event) {
         spin_release(&(*event)->lock);
     }
 }
@@ -25,7 +25,7 @@ unlock_events(struct event *const *const events, const uint32_t event_count) {
 __debug_optimize(3) static inline int64_t
 find_pending(struct event *const *const events, const uint32_t event_count) {
     uint32_t i = 0;
-    ptrarr_foreach(events, event_count, iter) {
+    arrptr_foreach(events, event_count, iter) {
         struct event *const event = *iter;
         if (event->pending != 0) {
             event->pending--;
@@ -43,7 +43,7 @@ add_listeners_to_events(struct event *const *const events,
                         const uint32_t event_count,
                         struct thread *const thread)
 {
-    ptrarr_foreach(events, event_count, event_ptr) {
+    arrptr_foreach(events, event_count, event_ptr) {
         struct event *const event = *event_ptr;
         const struct event_listener listener =
             EVENT_LISTENER_INIT(thread, array_item_count(event->listeners));

@@ -90,7 +90,7 @@ print_rhct_node(const struct os_acpi_rhct *const rhct,
                    prefix, hart->offset_count,
                    prefix, hart->acpi_processor_uid);
 
-            ptrarr_foreach(hart->offsets, hart->offset_count, offset) {
+            arrptr_foreach(hart->offsets, hart->offset_count, offset) {
                 const auto hart_node =
                     reg_to_ptr(struct os_acpi_rhct_node, rhct, *offset);
 

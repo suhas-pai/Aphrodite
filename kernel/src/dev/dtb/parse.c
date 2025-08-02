@@ -144,7 +144,7 @@ parse_reg_pairs(const void *const dtb,
     struct devicetree_prop_reg_info *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
 
-    ptrarr_foreach(info, entry_count, entry) {
+    arrptr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair(&data,
                              data_end,
                              (uint32_t)addr_cells,
@@ -214,7 +214,7 @@ parse_ranges_prop(const void *const dtb,
     struct devicetree_prop_range_info *const info = array_begin(*array);
     const fdt32_t *const data_end = data + data_length;
 
-    ptrarr_foreach(info, entry_count, entry) {
+    arrptr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair_and_flags(&data,
                                        data_end,
                                        (uint32_t)child_addr_cells,
@@ -625,7 +625,7 @@ parse_specifier_map_prop(const void *const dtb,
     const fdt32_t *const data_end = data + data_length;
 
     uint32_t i = 0;
-    ptrarr_foreach(info, entry_count, entry) {
+    arrptr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair(&data,
                              data_end,
                              entry_size,

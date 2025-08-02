@@ -380,7 +380,7 @@ void pci_entity_destroy(struct pci_entity *const entity) {
         entity->header_kind == PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE  ?
             PCI_BAR_COUNT_FOR_BRIDGE : PCI_BAR_COUNT_FOR_GENERAL;
 
-    ptrarr_foreach(bar_list, bar_count, bar) {
+    arrptr_foreach(bar_list, bar_count, bar) {
         if (bar->mmio != nullptr) {
             vunmap_mmio(bar->mmio);
         }

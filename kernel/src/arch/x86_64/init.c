@@ -39,6 +39,7 @@ __debug_optimize(3) void arch_init_for_smp(struct limine_mp_info *const info) {
 
     sched_set_current_thread(cpu->idle_thread);
     switch_to_pagemap(&kernel_process.pagemap);
+    mm_smp_init();
 
     lapic_init();
     atomic_store_explicit(&smp_info->booted, true, memory_order_seq_cst);
