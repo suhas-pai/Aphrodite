@@ -725,8 +725,7 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
     list_foreach(&g_freepage_list, list, iter) {
         auto phys = virt_to_phys(iter);
         auto back_phys =
-            virt_to_phys((void *)iter +
-                         ((iter->avail_page_count - 1) << PAGE_SHIFT));
+            phys + ((iter->avail_page_count - 1) << PAGE_SHIFT);
 
         do {
             const auto section = phys_to_section(phys);

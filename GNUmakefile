@@ -1,10 +1,5 @@
-# Nuke built-in rules and variables.
-ifeq ($(__BASH_MAKE_COMPLETION__)$(GMAKE_BUILTINS),)
-override TMP_INC := $(shell mktemp)
-$(shell for t in DEFAULT $(MAKECMDGOALS); do printf ".PHONY: $$t\n$$t:\n\t@true\n" >>'$(TMP_INC)'; done)
-$(shell printf "\t@rm -f '\$$(TMP_INC)'\n\t@\$$(MAKE) -rR \$$(MAKECMDGOALS) GMAKE_BUILTINS=off\n" >>'$(TMP_INC)')
-include $(TMP_INC)
-else
+# Nuke built-in rules.
+.SUFFIXES:
 
 # This is the name that our final executable will have.
 # Change as needed.
@@ -371,5 +366,3 @@ distclean:
 uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/$(OUTPUT)-$(ARCH)"
 	-rmdir "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)"
-
-endif

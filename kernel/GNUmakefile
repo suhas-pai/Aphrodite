@@ -1,10 +1,5 @@
-# Nuke built-in rules and variables.
-ifeq ($(__BASH_MAKE_COMPLETION__)$(GMAKE_BUILTINS),)
-override TMP_INC := $(shell mktemp)
-$(shell for t in DEFAULT $(MAKECMDGOALS); do printf ".PHONY: $$t\n$$t:\n\t@true\n" >>'$(TMP_INC)'; done)
-$(shell printf "\t@rm -f '\$$(TMP_INC)'\n\t@\$$(MAKE) -rR \$$(MAKECMDGOALS) GMAKE_BUILTINS=off\n" >>'$(TMP_INC)')
-include $(TMP_INC)
-else
+# Nuke built-in rules.
+.SUFFIXES:
 
 # This is the name that our final kernel executable will have.
 # Change as needed.
@@ -121,7 +116,7 @@ CPPFLAGS :=
 
 ifeq ($(ARCH), x86_64)
 # User controllable nasm flags.
-NASMFLAGS := -F dwarf -g
+NASMFLAGS := -g
 endif
 
 # User controllable linker flags. We set none by default.
@@ -166,7 +161,8 @@ override CPPFLAGS := \
 ifeq ($(ARCH),x86_64)
 	# Internal nasm flags that should not be changed by the user.
 	override NASMFLAGS += \
-		-Wall
+		$(patsubst -g,-g -F dwarf,$(NASMFLAGS)) \
+        -Wall
 endif
 
 ifeq ($(RELEASE), 1)
@@ -361,5 +357,3 @@ install: all
 
 print:
 	@echo $(CFILES)
-
-endif

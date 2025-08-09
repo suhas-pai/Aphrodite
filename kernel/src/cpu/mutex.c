@@ -340,7 +340,7 @@ bool mutex_lock_with_timeout(struct mutex *const mutex, const usec_t timeout) {
     return result;
 }
 
-static bool
+__debug_optimize(3) static bool
 mutex_unlock_fast(struct mutex *const mutex,
                   struct thread *const thread,
                   uintptr_t *const flags)
@@ -392,7 +392,7 @@ bool try_contention_for_unlock(struct mutex *const mutex, uintptr_t flags) {
     return false;
 }
 
-static bool mutex_unlock_slow(struct mutex *const mutex) {
+static void mutex_unlock_slow(struct mutex *const mutex) {
     assert_msg(!list_empty(&mutex->waiters),
                "mutex_unlock(%p) has no waiters, despite unlock attempt failed",
                mutex);
@@ -412,7 +412,6 @@ static bool mutex_unlock_slow(struct mutex *const mutex) {
     }
 
     atomic_store_explicit(&mutex->flags, desired, memory_order_relaxed);
-    return true;
 }
 
 void mutex_unlock(struct mutex *const mutex) {
@@ -434,14 +433,11 @@ void mutex_unlock(struct mutex *const mutex) {
     // possibility in try_contention_for_unlock() that another thread has the
     // responsibility for waking up a waiter, and we don't have to do anything.
 
-    bool result = true;
     with_preempt_disabled({
         if (try_contention_for_unlock(mutex, flags)) {
-            result = mutex_unlock_slow(mutex);
+            mutex_unlock_slow(mutex);
         }
     });
-
-    assert_msg(result, "mutex_unlock(%p) somehow failed", mutex);
 }
 
 bool mutex_try_lock(struct mutex *const mutex) {

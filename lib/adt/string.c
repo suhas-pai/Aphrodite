@@ -38,7 +38,7 @@ __debug_optimize(3) struct string string_format(const char *const fmt, ...) {
     va_list list;
     va_start(list, fmt);
 
-    struct string result = string_vformat(fmt, list);
+    const struct string result = string_vformat(fmt, list);
 
     va_end(list);
     return result;
