@@ -153,18 +153,61 @@
 #define carr_foreach_mut_rev_from_index(arr, name, index) \
     for (auto name = (arr) + (index); name >= (arr); name--)
 
+#define arrptr_back(the_arr, count) ((the_arr) + ((count) - 1))
+#define arrptr_end(the_arr, count) ((the_arr) + (count))
+
+#define arrptr_size(object_size, count) ((object_size) * (count))
+
+#define arrptr_rbegin(the_arr, count) arrptr_back(the_arr, count)
+#define arrptr_rend(the_arr) ((the_arr) - 1)
+
+#define ptrrange_rbegin(the_arr, the_end) ((the_end) - 1)
+#define ptrrange_rback(the_arr) (the_arr)
+#define ptrrange_rend(the_arr, the_end) ((the_arr) - 1)
+
 #define arrptr_foreach(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
-    const auto h_var(end) = h_var(arr) + (count); \
+    const auto h_var(end) = arrptr_end(h_var(arr), count); \
     for (auto name = &h_var(arr)[0]; name < h_var(end); name++)
 
 #define arrptr_foreach_mut(the_arr, count, name) \
+    for (auto name = &(the_arr)[0]; \
+         name < arrptr_end((the_arr), (count)); \
+         name++)
+
+#define arrptr_foreach_rev(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
-    for (auto name = &h_var(arr)[0]; name < h_var(arr) + (count); name++)
+    for (auto name = arrptr_rbegin(h_var(arr), count); \
+         name >= h_var(arr); \
+         name--)
+
+#define arrptr_foreach_rev_mut(the_arr, count, name) \
+    const auto h_var(arr) = (the_arr); \
+    for (auto name = arrptr_rbegin(h_var(arr), count); \
+         name >= h_var(arr); \
+         name--)
+
+#define ptrrange_foreach(the_arr, the_end, name) \
+    const auto h_var(arr) = (the_arr); \
+    const auto h_var(end) = (the_end); \
+    for (auto name = &h_var(arr)[0]; name < h_var(end); name++)
+
+#define ptrrange_foreach_mut(the_arr, the_end, name) \
+    for (auto name = &(the_arr)[0]; name < (the_end); name++)
+
+#define ptrrange_foreach_rev(the_arr, the_end, name) \
+    const auto h_var(begin) = ptrrange_rbegin(the_arr, the_end); \
+    const auto h_var(end) = ptrrange_rback(the_arr); \
+    for (auto name = h_var(begin); name >= h_var(end); name--)
+
+#define ptrrange_foreach_rev_mut(the_arr, the_end, name) \
+    for (auto name = ptrrange_rbegin(the_arr); \
+         name >= ptrrange_rback(the_end); \
+         name--)
 
 #define for_upto_limit(lim, i) \
     const auto h_var(limit) = (lim); \
-    for (auto i = (typeof(lim))0; i != h_var(limit); i++)
+    for (auto i = (typeof(lim))0; i < h_var(limit); i++)
 
 #define swap(a, b) ({ \
     const auto __swap_tmp = (b); \

@@ -40,6 +40,11 @@ void array_remove_index(struct array *const array, const uint32_t index) {
                          RANGE_INIT(byte_index, array->object_size));
 }
 
+void array_remove_item(struct array *const array, const void *const item) {
+    const uint32_t index = array_indexof(*array, item);
+    array_remove_index(array, index);
+}
+
 __debug_optimize(3)
 bool array_remove_range(struct array *const array, const struct range range) {
     struct range byte_range = RANGE_EMPTY();

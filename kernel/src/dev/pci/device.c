@@ -17,7 +17,7 @@ __debug_optimize(3) struct pci_device *pci_device() {
     return &g_pci_device;
 }
 
-static void init_pci_device() {
+__debug_optimize(3) static void init_pci_device() {
     bus_init_root(&g_pci_device.bus);
 }
 

@@ -310,6 +310,7 @@ bool ps2_keyboard_probe(struct device *const the_device) {
                 printk(LOGLEVEL_WARN,
                        "ps2/keyboard: irq " IRQ_NUMBER_FMT " not found\n",
                        *irq_num);
+
                 continue;
             }
 

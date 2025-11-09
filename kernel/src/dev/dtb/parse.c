@@ -142,7 +142,7 @@ parse_reg_pairs(const void *const dtb,
     array_reserve_and_set_item_count(array, entry_count);
 
     struct devicetree_prop_reg_info *const info = array_begin(*array);
-    const fdt32_t *const data_end = data + data_length;
+    const fdt32_t *const data_end = arrptr_end(data, data_length);
 
     arrptr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair(&data,
@@ -212,7 +212,7 @@ parse_ranges_prop(const void *const dtb,
     array_reserve_and_set_item_count(array, entry_count);
 
     struct devicetree_prop_range_info *const info = array_begin(*array);
-    const fdt32_t *const data_end = data + data_length;
+    const fdt32_t *const data_end = arrptr_end(data, data_length);
 
     arrptr_foreach(info, entry_count, entry) {
         if (!parse_cell_pair_and_flags(&data,
@@ -483,7 +483,7 @@ parse_interrupt_map_prop(const void *const dtb,
         return true;
     }
 
-    const fdt32_t *const data_end = data + data_length;
+    const fdt32_t *const data_end = arrptr_end(data, data_length);
     while (data < data_end) {
         struct devicetree_prop_intr_map_entry info;
         if (!parse_cell_pair_and_flags(&data,
@@ -622,7 +622,7 @@ parse_specifier_map_prop(const void *const dtb,
     array_reserve_and_set_item_count(array, entry_count);
 
     struct devicetree_prop_spec_map_entry *const info = array_begin(*array);
-    const fdt32_t *const data_end = data + data_length;
+    const fdt32_t *const data_end = arrptr_end(data, data_length);
 
     uint32_t i = 0;
     arrptr_foreach(info, entry_count, entry) {
@@ -1720,7 +1720,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         const uint32_t intr_count = iter->count / intr_cells_prop->count;
 
         const fdt32_t *data = iter->data;
-        const fdt32_t *const end = iter->data + iter->count;
+        const fdt32_t *const end = arrptr_end(iter->data, iter->count);
 
         for (uint32_t i = 0;
              i != intr_count; i++,

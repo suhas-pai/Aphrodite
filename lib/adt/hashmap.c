@@ -313,8 +313,8 @@ hashmap_resize(struct hashmap *const hashmap, const uint32_t bucket_count) {
             continue;
         }
 
-        hashmap_bucket_foreach_node(bucket, jter) {
-            if (!hashmap_add(hashmap, jter->key, jter->data)) {
+        hashmap_bucket_foreach_node(bucket, node) {
+            if (!hashmap_add(hashmap, node->key, node->data)) {
                 hashmap_destroy(hashmap);
 
                 hashmap->buckets = old_buckets;

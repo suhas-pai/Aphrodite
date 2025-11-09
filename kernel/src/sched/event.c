@@ -56,13 +56,10 @@ __debug_optimize(3) static inline void
 remove_thread_from_listeners(struct event *const event,
                              struct thread *const thread)
 {
-    const uint32_t item_count = array_item_count(event->listeners);
-    for_upto_limit(item_count, index) {
-        const struct event_listener *const listener =
-            array_at(&event->listeners, const struct event_listener, index);
-
+    array_foreach_mut(&event->listeners, const struct event_listener, listener)
+    {
         if (listener->waiter == thread) {
-            array_remove_index(&event->listeners, index);
+            array_remove_item(&event->listeners, listener);
             return;
         }
     }

@@ -41,3 +41,4 @@
 #endif /* defined(BUILD_TEST) */
 
 void *memset_ones(void *dst, unsigned long n);
+void *memmove_end(void *dst, const void *src, const void *end);

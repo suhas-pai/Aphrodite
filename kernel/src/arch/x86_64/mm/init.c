@@ -134,10 +134,9 @@ static void setup_kernel_pagemap(uint64_t *const kernel_memmap_size_out) {
     // its own range.
 
     mm_for_each_memmap(memmap) {
-        // ACPI's RSDP pointer and other ACPI information is currently stored in
-        // a reserved memmap, so map reserved memmaps in the HHDM for now.
-
-        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY) {
+        if (memmap->kind == MM_MEMMAP_KIND_BAD_MEMORY ||
+            memmap->kind == MM_MEMMAP_KIND_RESERVED)
+        {
             continue;
         }
 
@@ -224,8 +223,7 @@ static void fill_kernel_pagemap_struct(const uint64_t kernel_memmap_size) {
            RANGE_FMT_ARGS(hhdm->node.range));
 
     assert_msg(
-        addrspace_add_node(&kernel_process.pagemap.addrspace,
-                           &null_area->node)
+        addrspace_add_node(&kernel_process.pagemap.addrspace, &null_area->node)
      && addrspace_add_node(&kernel_process.pagemap.addrspace, &mmio->node)
      && addrspace_add_node(&kernel_process.pagemap.addrspace, &kernel->node)
      && addrspace_add_node(&kernel_process.pagemap.addrspace, &hhdm->node),

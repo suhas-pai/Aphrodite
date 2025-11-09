@@ -116,7 +116,7 @@ static void toggle_irq_mask(const uint8_t irq, const bool masked) {
 
 void
 ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
-    if (!has_align(base, PAGE_SIZE)) {
+    if (!is_page_aligned(base)) {
         printk(LOGLEVEL_WARN,
                "ioapic: io-apic with apic-id %" PRIu8 ", gsib %" PRIu32 ", "
                "base %p is not aligned on a page boundary. ignoring\n",

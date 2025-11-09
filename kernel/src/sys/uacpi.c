@@ -106,6 +106,7 @@ uacpi_kernel_pci_device_open(const uacpi_pci_address address,
             }
         }
 
+        spin_release_restore_intr(&pci_device()->bus.device.lock, flag);
         verify_not_reached();
     }
 

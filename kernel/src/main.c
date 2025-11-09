@@ -23,12 +23,12 @@
 
 #include "sys/boot.h"
 
-// Set the base revision to 3, this is recommended as this is the latest
+// Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
 // See specification for further info.
 
-__attribute__((used, section(".requests")))
-static volatile LIMINE_BASE_REVISION(3)
+__attribute__((used, section(".limine_requests")))
+static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
 
 static void test_alloc_largepage() {
     struct page *const largepage =
@@ -63,13 +63,12 @@ void arch_post_mm_init();
 // linker script accordingly.
 void kmain(void) {
     // Ensure the bootloader actually understands our base revision (see spec).
-    if (LIMINE_BASE_REVISION_SUPPORTED == false) {
+    if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         cpu_idle();
     }
 
     cpu_early_init();
 
-    // Note: we assume the framebuffer model is RGB with 32-bit pixels.
     boot_init();
     setup_flanterm();
 
@@ -100,7 +99,7 @@ void kmain(void) {
     test_alloc_largepage();
 
     printk(LOGLEVEL_INFO, "kernel: finished initializing\n");
-    sched_sleep_us(seconds_to_micro(5));
+    sched_sleep_us(sec_to_usec(5));
     printk(LOGLEVEL_INFO, "kernel: sleep worked\n");
 
     intr_disable();

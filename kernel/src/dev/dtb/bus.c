@@ -10,8 +10,6 @@
 #include "dev/init.h"
 #include "mm/kmalloc.h"
 
-static struct simple_alloc g_alloc;
-
 bool
 dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
                           const struct devicetree *const tree,
@@ -64,7 +62,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
 
     device_initialize(&device->device,
                       &dtb_bus()->bus,
-                      /*driver=*/&dtb_driver->driver,
+                      &dtb_driver->driver,
                       /*init_name=*/SV_EMPTY());
 
     device->tree = tree;
@@ -83,7 +81,6 @@ next:
 }
 
 static bool dtb_bus_probe(struct bus *const bus) {
-    simple_alloc_init(&g_alloc);
     bus_foreach_driver(bus, struct dtb_driver, driver.list, driver) {
         assert_msg(driver->match_flags != 0,
                    "driver " SV_FMT "'s dtb-driver is missing its match_flags "

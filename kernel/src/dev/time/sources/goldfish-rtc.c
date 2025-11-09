@@ -88,7 +88,7 @@ static bool goldfish_rtc_dtb_probe(struct device *const the_device) {
     const struct devicetree_prop_reg_info *const reg =
         array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
-    if (!has_align(reg->address, PAGE_SIZE)) {
+    if (!is_page_aligned(reg->address)) {
         printk(LOGLEVEL_WARN,
                "goldfish-rtc: address is not aligned to page-size\n");
         return false;

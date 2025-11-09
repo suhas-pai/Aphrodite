@@ -222,10 +222,9 @@ bool vunmap_mmio(struct mmio_region *const region) {
 
     if (result) {
         kfree(region);
-        return true;
     }
 
-    return false;
+    return result;
 }
 
 __debug_optimize(3)

@@ -473,7 +473,7 @@ bool init_msi_frame(const uint64_t phys_addr, struct mmio_region *const mmio) {
 }
 
 void gicv2_add_msi_frame(const uint64_t phys_base_address) {
-    if (!has_align(phys_base_address, PAGE_SIZE)) {
+    if (!is_page_aligned(phys_base_address)) {
         printk(LOGLEVEL_WARN,
                 "gicd: msi frame's physical base address %p is not aligned "
                 "to the page-size (%" PRIu32 ")\n",

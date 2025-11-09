@@ -33,6 +33,12 @@ struct page *
 alloc_pages(enum page_state state, uint64_t alloc_flags, uint8_t order);
 
 struct page *
+alloc_pages_count(enum page_state state,
+                  uint64_t alloc_flags,
+                  uint16_t count,
+                  uint16_t *count_out);
+
+struct page *
 alloc_pages_at_align(enum page_state state,
                      uint64_t alloc_flags,
                      uint8_t align,

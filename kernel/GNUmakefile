@@ -52,7 +52,7 @@ COMMON_CFLAGS = -g3 -pipe -Wcast-align -Wcast-qual -Wsign-conversion -Werror \
 				 -Isrc/arch/$(ARCH) -DBUILD_KERNEL -Wno-microsoft \
 				 -Wno-address-of-packed-member -fno-omit-frame-pointer \
 				 -fms-extensions -DFLANTERM_FB_SUPPORT_BPP -DSCHED_BASIC \
-				 -fsanitize=undefined
+				 -fsanitize=undefined -Wno-default-const-init-field-unsafe
 
 OUR_CFLAGS = -Wformat-nonliteral  -Wformat-security  -Wformat-y2k
 
@@ -123,8 +123,8 @@ endif
 LDFLAGS :=
 
 # Ensure the dependencies have been obtained.
-ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs || ! test -d cc-runtime || ! test -d limine-protocol ); echo $$?),0)
+ifneq ($(filter-out clean distclean,$(MAKECMDGOALS)),)
+    ifeq ($(wildcard .deps-obtained),)
         $(error Please run the ./get-deps script first)
     endif
 endif
@@ -154,7 +154,6 @@ override CPPFLAGS := \
 	-I limine-protocol/include \
     -isystem freestnd-c-hdrs/include \
 	$(CPPFLAGS) \
-	-DLIMINE_API_REVISION=3 \
 	-MMD \
 	-MP
 
@@ -235,6 +234,7 @@ ifeq ($(ARCH),riscv64)
 		override CFLAGS += \
 			-march=rv64imac_zicsr_zifencei
 	endif
+
 	override CFLAGS += \
 		-mabi=lp64 \
 		-mno-relax
@@ -252,11 +252,9 @@ ifeq ($(ARCH),loongarch64)
         -march=loongarch64 \
         -mabi=lp64s \
         -mfpu=none \
-        -msimd=none \
-        -mno-relax
+        -msimd=none
     override LDFLAGS += \
-        -m elf64loongarch \
-        --no-relax
+        -m elf64loongarch
 endif
 
 # Internal linker flags that should not be changed by the user.
@@ -268,8 +266,8 @@ override LDFLAGS += \
 	--gc-sections \
 	-T src/arch/$(ARCH)/linker.ld
 
-SRCFILES := $(shell find -L src -type f -not -path "src/arch/*" -not -path "*/.*" 2>/dev/null | LC_ALL=C sort)
-SRCFILES += $(shell find -L src/arch/$(ARCH) -type f | LC_ALL=C sort)
+override SRCFILES := $(shell find -L src -type f -not -path "src/arch/*" -not -path "*/.*" 2>/dev/null | LC_ALL=C sort)
+override SRCFILES += $(shell find -L src/arch/$(ARCH) -type f 2>/dev/null | LC_ALL=C sort)
 
 override CFILES := $(filter %.c,$(SRCFILES))
 override ASFILES := $(filter %.S,$(SRCFILES))
@@ -302,29 +300,29 @@ include/dev/pci/vendors.h:
 # relocatable PIEs, if the base load address is non-0.
 # See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
 bin-$(ARCH)/$(KERNEL): GNUmakefile src/arch/$(ARCH)/linker.ld $(OBJ)
-	@mkdir -p "$$(dirname $@)"
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	@mkdir -p "$(dir $@)"
+	$(LD) $(LDFLAGS) $(OBJ) -o $@
 	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc
 
 # Compilation rules for *.c files.
 obj-$(ARCH)/%.c.o: src/%.c GNUmakefile include/dev/pci/vendors.h
-	@mkdir -p "$$(dirname $@)"
+	@mkdir -p "$(dir $@)"
 	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/cc-runtime-$(ARCH)/src/cc-runtime.c.o: cc-runtime-$(ARCH)/src/cc-runtime.c GNUmakefile
-	@mkdir -p "$$(dirname $@)"
+	@mkdir -p "$(dir $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wundef,$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/flanterm/%.c.o: src/extern/flanterm/%.c GNUmakefile
-	@mkdir -p "$$(dirname $@)"
+	@mkdir -p "$(dir $@)"
 	$(CC) $(filter-out "-Wsign-conversion -fsanitize=undefined",$(CFLAGS)) $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
-	@mkdir -p "$$(dirname $@)"
+	@mkdir -p "$(dir $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wcast-align -Wcast-qual -Wshadow -fsanitize=undefined,$(CFLAGS)) -Iinclude/sys/uacpi $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
-	@mkdir -p "$$(dirname $@)"
+	@mkdir -p "$(dir $@)"
 	$(CC) $(filter-out -Wsign-conversion -Wcast-align -fsanitize=undefined,$(CFLAGS)) -Wno-unused-parameter -isystem src/extern/libfdt $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/lib/%.c.o: src/extern/lib/%.c GNUmakefile
@@ -333,12 +331,12 @@ obj-$(ARCH)/extern/lib/%.c.o: src/extern/lib/%.c GNUmakefile
 
 # Compilation rules for *.S files.
 obj-$(ARCH)/%.S.o: src/%.S GNUmakefile
-	mkdir -p "$$(dirname $@)"
+	mkdir -p "$(dir $@)"
 	$(CC) $(CFLAGS) $(OUR_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 obj-$(ARCH)/%.asm.o: src/%.asm GNUmakefile
-	mkdir -p "$$(dirname $@)"
+	mkdir -p "$(dir $@)"
 	nasm -felf64 $(shell printf '%s' '$(NASMFLAGS)' | sed -E 's/(^|[[:space:]])-g($$|[[:space:]])/\1-g -F dwarf\2/g') $< -o $@
 
 # Remove object files and the final executable.
@@ -348,7 +346,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -rf bin-* obj-* freestnd-c-hdrs cc-runtime* limine-protocol
+	rm -rf bin-* obj-* .deps-obtained freestnd-c-hdrs cc-runtime* limine-protocol
 
 .PHONY: install
 install: all

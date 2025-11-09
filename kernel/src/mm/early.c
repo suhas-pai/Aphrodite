@@ -354,6 +354,7 @@ __debug_optimize(3) void mm_early_init() {
                 break;
             case MM_MEMMAP_KIND_EXEC_AND_MODULES:
             case MM_MEMMAP_KIND_FRAMEBUFFER:
+            case MM_MEMMAP_KIND_ACPI_TABLES:
                 break;
         }
     }
@@ -392,6 +393,9 @@ __debug_optimize(3) void mm_init() {
                 break;
             case MM_MEMMAP_KIND_FRAMEBUFFER:
                 type_desc = "framebuffer";
+                break;
+            case MM_MEMMAP_KIND_ACPI_TABLES:
+                type_desc = "acpi-tables";
                 break;
         }
 
@@ -720,15 +724,15 @@ static void mark_critical_pages(const struct page_section *const memmap) {
 
 __debug_optimize(3) static void assign_section_numbers_to_pages() {
     struct freepage_array_info *iter = nullptr;
-    const auto section_list = mm_get_page_section_list();
+    const struct page_section *const section_list = mm_get_page_section_list();
 
     list_foreach(&g_freepage_list, list, iter) {
-        auto phys = virt_to_phys(iter);
-        auto back_phys =
+        uint64_t phys = virt_to_phys(iter);
+        uint64_t back_phys =
             phys + ((iter->avail_page_count - 1) << PAGE_SHIFT);
 
         do {
-            const auto section = phys_to_section(phys);
+            const struct page_section *const section = phys_to_section(phys);
             uint64_t sect_back_phys = back_phys;
 
             if (!range_has_loc(section->range, sect_back_phys)) {
@@ -736,11 +740,11 @@ __debug_optimize(3) static void assign_section_numbers_to_pages() {
                     range_get_end_assert(section->range) - PAGE_SIZE;
             }
 
-            const auto end = phys_to_page(sect_back_phys) + 1;
-            const page_section_t section_number = (section - section_list) + 1;
+            const struct page *const end = phys_to_page(sect_back_phys) + 1;
+            const page_section_t section_ordinal = (section - section_list) + 1;
 
-            for (struct page *page = phys_to_page(phys); page != end; page++) {
-                page->section = section_number;
+            ptrrange_foreach(phys_to_page(phys), end, page) {
+                page->section = section_ordinal;
             }
 
             phys = sect_back_phys + PAGE_SIZE;
@@ -887,14 +891,15 @@ __debug_optimize(3) static inline void split_sections_for_zones() {
 
 __debug_optimize(3) static inline void setup_zone_section_list() {
     uint32_t number = 1;
+
     arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
+        const struct range pfn_range = page_section_get_pfn_range(sect);
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
                "pfn-range: " RANGE_FMT ", zone: %s\n",
                number,
                RANGE_FMT_ARGS(sect->range),
-               RANGE_FMT_ARGS(
-                RANGE_INIT(sect->pfn, PAGE_COUNT(sect->range.size))),
+               RANGE_FMT_ARGS(pfn_range),
                sect->zone->name);
 
         list_add(&sect->zone->section_list, &sect->zone_list);

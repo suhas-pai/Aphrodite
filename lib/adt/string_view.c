@@ -119,7 +119,7 @@ __debug_optimize(3) uint64_t sv_hash(const struct string_view sv) {
     }
 
     // TODO:
-    return 0;
+    verify_not_reached();
 }
 
 __debug_optimize(3) char sv_front(const struct string_view sv) {

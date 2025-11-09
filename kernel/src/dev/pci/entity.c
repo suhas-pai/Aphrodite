@@ -14,12 +14,13 @@
 #include "mm/kmalloc.h"
 #include "sys/mmio.h"
 
+__debug_optimize(3)
 struct pci_bus *pci_entity_get_bus(const struct pci_entity *const entity) {
     return parent_of(entity->device.bus, struct pci_bus, bus);
 }
 
-__debug_optimize(3) uint16_t
-pci_entity_get_requester_id(const struct pci_entity *const entity) {
+__debug_optimize(3)
+uint16_t pci_entity_get_requester_id(const struct pci_entity *const entity) {
     return (uint16_t)entity->loc.bus << 8 |
            (uint16_t)entity->loc.slot << 3 |
            entity->loc.function;

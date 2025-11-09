@@ -358,8 +358,8 @@ struct virtio_mmio_device {
     volatile uint32_t driver_features_select; // Write-only
     _Alignas(16) volatile uint32_t queue_select; // Write-only
 
-    volatile const uint32_t queue_num_max;
-    volatile uint32_t queue_num; // Write-only
+    volatile const uint32_t queue_size_max;
+    volatile uint32_t queue_size; // Write-only
     volatile const uint64_t padding_1;
     volatile uint32_t queue_ready;
 
@@ -543,6 +543,21 @@ struct virtq_used {
 
     struct virtq_used_elem ring[]; // Queue size
     // le16_t avail_event; /* Only if VIRTIO_F_EVENT_IDX */
+};
+
+struct pvirtq_desc {
+    le64_t address;
+    le32_t length;
+
+    le16_t id;
+    le16_t flags;
+};
+
+struct pvirtq_desc_event {
+    // Descriptor Ring Change Event Offset
+    le16_t desc_event_off : 15;
+    // Descriptor Ring Change Event Wrap Counter
+    le16_t desc_event_wrap : 1;
 };
 
 enum virtio_block_feature_flags {

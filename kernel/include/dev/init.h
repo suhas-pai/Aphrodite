@@ -17,9 +17,9 @@ extern char dev_inits_start[];
 extern char dev_inits_end[];
 
 #define dev_inits_foreach(iter) \
-    for (dev_init_t *iter = (dev_init_t *)(uint64_t)dev_inits_start; \
-         (uint64_t)iter < (uint64_t)dev_inits_end; \
-         iter++) \
+    ptrrange_foreach((dev_init_t *)(uint64_t)dev_inits_start, \
+                     (dev_init_t *)(uint64_t)dev_inits_end, \
+                     iter)
 
 #define __dev_init __attribute__((used, section(".dev_inits")))
 #define MAKE_DEV_INIT_FUNC(name) \

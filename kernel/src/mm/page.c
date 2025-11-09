@@ -132,7 +132,7 @@ void set_pages_dirty(struct page *const page, const uint64_t amount) {
                 lg_page_level_info_list[iter->largehead.level - 1].order;
 
             struct page *tail = iter + 1;
-            const struct page *const end = iter + (1ull << order);
+            const struct page *const end = arrptr_end(iter, 1ull << order);
 
             for (; tail != end; tail++) {
                 page_set_flag(tail, __PAGE_IS_DIRTY);

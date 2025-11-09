@@ -17,10 +17,17 @@ struct array {
     struct array h_var(array) = *(list);                                       \
     assert(sizeof(type) == h_var(array).object_size);                          \
                                                                                \
-    type *const h_var(begin) = (type *)array_begin(h_var(array));              \
-    type *const h_var(end) = (type *)(uint64_t)array_end(h_var(array));        \
+    ptrrange_foreach((type *)array_begin(h_var(array)),                        \
+                     (type *)(uint64_t)array_end(h_var(array)),                \
+                     item)
+
+#define array_foreach_mut(list, type, item) \
+    struct array h_var(array) = *(list);                                       \
+    assert(sizeof(type) == h_var(array).object_size);                          \
                                                                                \
-    for (type *item = h_var(begin); item != h_var(end); item++)
+    ptrrange_foreach_mut((type *)array_begin(h_var(array)),                    \
+                         (type *)(uint64_t)array_end(h_var(array)),            \
+                         item)
 
 #define array_foreach_from_index(list, type, item, index) \
     struct array h_var(array) = *(list);                                       \
@@ -28,10 +35,19 @@ struct array {
     assert(sizeof(type) == h_var(array)->object_size);                         \
     assert(index_in_bounds(index, array_item_count(h_var(array))));            \
                                                                                \
-    type *const h_var(begin) = (type *)array_begin(h_var(array));              \
-    type *const h_var(end) = (type *)(uint64_t)array_end(h_var(array));        \
+    ptrrange_foreach((type *)array_begin(h_var(array)) + index,                \
+                     (type *)(uint64_t)array_end(h_var(array)),                \
+                     item)
+
+#define array_foreach_mut_from_index(list, type, item, index) \
+    struct array h_var(array) = *(list);                                       \
                                                                                \
-    for (type *item = h_var(begin) + index; item != h_var(end); item++)
+    assert(sizeof(type) == h_var(array)->object_size);                         \
+    assert(index_in_bounds(index, array_item_count(h_var(array))));            \
+                                                                               \
+    ptrrange_foreach_mut((type *)array_begin(h_var(array)) + index,            \
+                         (type *)(uint64_t)array_end(h_var(array)),            \
+                         item)
 
 #define ARRAY_INIT(size) \
     ((struct array){ .gbuffer = GBUFFER_INIT(), .object_size = (size) })
@@ -49,6 +65,8 @@ bool array_initialized(struct array array);
 bool array_add(struct array *array, const void *item);
 
 void array_remove_index(struct array *array, uint32_t index);
+void array_remove_item(struct array *array, const void *item);
+
 bool array_remove_range(struct array *array, struct range range);
 
 void *array_begin(struct array array);

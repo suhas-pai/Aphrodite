@@ -163,7 +163,7 @@ pci_bar_read_u32(struct pci_entity *const entity,
     if (bar->is_mmio) {
         assert_msg(bar->mmio != nullptr,
                    "pci: trying to read uint32 at offset 0x%" PRIx32 " from "
-                   "bar that isn't mapped",
+                   "mmio bar that isn't mapped",
                    offset);
 
         return mmio_read_32(pci_bar_get_base(bar) + offset);

@@ -44,40 +44,39 @@ __debug_optimize(3) bool thread_runnable(const struct thread *const thread) {
 }
 
 __debug_optimize(3)
-bool thread_enqueued_nolock(const struct thread *const thread) {
+bool is_on_runlist_nolock(const struct thread *const thread) {
     return !list_empty(&thread->sched_info.list);
 }
 
 __debug_optimize(3) bool thread_enqueued(const struct thread *const thread) {
     bool result = false;
     with_spinlock_intr_disabled(&g_run_queue_lock, {
-        result = thread_enqueued_nolock(thread);
+        result = is_on_runlist_nolock(thread);
     });
 
     return result;
 }
 
-__debug_optimize(3)
-bool thread_running_nolock(const struct thread *const thread) {
+__debug_optimize(3) bool is_running_nolock(const struct thread *const thread) {
     return thread->cpu != nullptr;
 }
 
 __debug_optimize(3) bool thread_running(const struct thread *const thread) {
     bool result = false;
     with_spinlock_intr_disabled(&g_run_queue_lock, {
-        result = thread_running_nolock(thread);
+        result = is_running_nolock(thread);
     });
 
     return result;
 }
 
 __debug_optimize(3)
-static void sched_enqueue_thread_for_use(struct thread *const thread) {
+static void sched_add_to_run_list(struct thread *const thread) {
     list_radd(&g_run_queue, &thread->sched_info.list);
 }
 
 __debug_optimize(3)
-static void sched_dequeue_thread_for_use(struct thread *const thread) {
+static void sched_remove_from_run_list(struct thread *const thread) {
     list_remove(&thread->sched_info.list);
 }
 
@@ -87,8 +86,8 @@ __debug_optimize(3) void sched_wake(struct thread *const thread) {
         // thread so only enqueue-for-use for threads that are not running and
         // aren't already enqueued.
 
-        if (!thread_running_nolock(thread) && !thread_enqueued_nolock(thread)) {
-            sched_enqueue_thread_for_use(thread);
+        if (!is_running_nolock(thread) && !is_on_runlist_nolock(thread)) {
+            sched_add_to_run_list(thread);
         }
 
         atomic_store_explicit(&thread->sched_info.runnable,
@@ -103,7 +102,7 @@ __debug_optimize(3) void sched_dequeue_thread(struct thread *const thread) {
                                false,
                                memory_order_relaxed);
 
-        sched_dequeue_thread_for_use(thread);
+        sched_remove_from_run_list(thread);
     });
 }
 
@@ -118,10 +117,10 @@ static struct thread *get_next_thread(struct thread *const prev) {
         }
 
         if (thread_runnable(prev)) {
-            sched_enqueue_thread_for_use(prev);
+            sched_add_to_run_list(prev);
         }
 
-        sched_dequeue_thread_for_use(next);
+        sched_remove_from_run_list(next);
         spin_release_restore_intr(&g_run_queue_lock, flag);
 
         return next;
@@ -148,8 +147,8 @@ static void update_alarm_list(struct thread *const current_thread) {
 
     list_foreach_mut(alarm_list, list, iter, tmp) {
         const usec_t time_spent =
-            current_thread->sched_info.timeslice
-          - current_thread->sched_info.remaining;
+            current_thread->sched_info.timeslice -
+            current_thread->sched_info.remaining;
 
         if (iter->remaining > time_spent) {
             iter->remaining -= time_spent;

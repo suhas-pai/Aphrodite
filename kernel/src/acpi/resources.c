@@ -360,8 +360,7 @@ os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
                                 UACPI_WRITABLE,
                         },
                         .io_attr = {
-                            .range_kind =
-                                addr->common.attribute.io.range_type,
+                            .range_kind = addr->common.attribute.io.range_type,
                             .mem_kind = addr->common.attribute.io.translation,
                             .translation_kind =
                                 addr->common.attribute.io.translation_type,
@@ -425,8 +424,7 @@ os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
                                 UACPI_WRITABLE,
                         },
                         .io_attr = {
-                            .range_kind =
-                                addr->common.attribute.io.range_type,
+                            .range_kind = addr->common.attribute.io.range_type,
                             .mem_kind = addr->common.attribute.io.translation,
                             .translation_kind =
                                 addr->common.attribute.io.translation_type,
@@ -490,8 +488,7 @@ os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
                                 UACPI_WRITABLE,
                         },
                         .io_attr = {
-                            .range_kind =
-                                addr->common.attribute.io.range_type,
+                            .range_kind = addr->common.attribute.io.range_type,
                             .mem_kind = addr->common.attribute.io.translation,
                             .translation_kind =
                                 addr->common.attribute.io.translation_type,

@@ -16,69 +16,69 @@
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent.
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
     .revision = 0,
     .response = nullptr
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_hhdm_request hhdm_request = {
-    .id = LIMINE_HHDM_REQUEST,
+    .id = LIMINE_HHDM_REQUEST_ID,
     .revision = 0,
     .response = nullptr
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_executable_address_request exec_addr_request = {
-    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
+    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID,
     .revision = 0,
     .response = nullptr
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_memmap_request memmap_request = {
-    .id = LIMINE_MEMMAP_REQUEST,
+    .id = LIMINE_MEMMAP_REQUEST_ID,
     .revision = 0,
     .response = nullptr
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_paging_mode_request paging_mode_request = {
-    .id = LIMINE_PAGING_MODE_REQUEST,
+    .id = LIMINE_PAGING_MODE_REQUEST_ID,
     .revision = 0,
     .response = nullptr
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_rsdp_request rsdp_request = {
-    .id = LIMINE_RSDP_REQUEST,
+    .id = LIMINE_RSDP_REQUEST_ID,
     .revision = 0,
     .response = nullptr,
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_dtb_request dtb_request = {
-    .id = LIMINE_DTB_REQUEST,
+    .id = LIMINE_DTB_REQUEST_ID,
     .revision = 0,
     .response = nullptr
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_date_at_boot_request boot_time_request = {
-    .id = LIMINE_DATE_AT_BOOT_REQUEST,
+    .id = LIMINE_DATE_AT_BOOT_REQUEST_ID,
     .revision = 0,
     .response = nullptr,
 };
 
-__attribute__((section(".requests")))
+__attribute__((section(".limine_requests")))
 static volatile struct limine_mp_request mp_request = {
-    .id = LIMINE_MP_REQUEST,
+    .id = LIMINE_MP_REQUEST_ID,
     .revision = 0,
     .response = nullptr,
 #if defined(__x86_64__)
-    .flags = LIMINE_MP_X2APIC,
+    .flags = LIMINE_MP_RESPONSE_X86_64_X2APIC,
 #else
     .flags = 0,
 #endif /* defined(__x86_64__) */
@@ -90,10 +90,12 @@ static uint64_t g_slide = 0;
 // These can also be moved anywhere, to any .c file, as seen fit.
 
 __attribute__((used, section(".requests_start_marker")))
-static volatile LIMINE_REQUESTS_START_MARKER;
+static volatile uint64_t limine_requests_start_marker[] =
+    LIMINE_REQUESTS_START_MARKER;
 
 __attribute__((used, section(".requests_end_marker")))
-static volatile LIMINE_REQUESTS_END_MARKER;
+static volatile uint64_t limine_requests_end_marker[] =
+    LIMINE_REQUESTS_END_MARKER;
 
 static struct limine_framebuffer_response framebuffer_resp = {0};
 static struct limine_mp_response *mp_response = nullptr;
@@ -206,15 +208,13 @@ void boot_init() {
         dtb = dtb_request.response->dtb_ptr;
     }
 
-    if (rsdp_request.response != nullptr &&
-        rsdp_request.response->address != 0)
-    {
-        rsdp = phys_to_virt((uint64_t)rsdp_request.response->address);
+    if (rsdp_request.response != nullptr) {
+        rsdp = rsdp_request.response->address;
     }
 
-    const auto resp = memmap_request.response;
-
+    const struct limine_memmap_response *const resp = memmap_request.response;
     uint8_t memmap_index = 0;
+
     arrptr_foreach(resp->entries, resp->entry_count, entry) {
         if (memmap_index == countof(mm_memmap_list)) {
             panic("boot: too many memmaps\n");
@@ -252,7 +252,9 @@ void boot_init() {
     // Merge usable, contiguous memmaps in the (now guaranteed to be sorted)
     // memmap list.
 
-    const auto end = &mm_memmap_list[mm_memmap_count];
+    const struct mm_memmap *const end =
+        arrptr_end(mm_memmap_list, mm_memmap_count);
+
     arrptr_foreach_mut(&mm_memmap_list[1], mm_memmap_count - 1, memmap) {
         struct mm_memmap *const prev_memmap = &memmap[-1];
         if (!is_usable_memmap(prev_memmap) || !is_usable_memmap(memmap)) {
@@ -269,7 +271,7 @@ void boot_init() {
         }
 
         prev_memmap->range = range_merge(prev_range, range);
-        memmove(memmap, &memmap[1], distance(&memmap[1], end));
+        memmove_end(memmap, &memmap[1], end);
 
         // We have removed the current memmap, so we need to decrement
         // the memmap count and index.
@@ -352,20 +354,19 @@ void boot_post_early_init() {
 
 __debug_optimize(3)
 void boot_remove_section(struct page_section *const section) {
-    const uint64_t length =
-        distance(section + 1, &mm_page_section_list[mm_page_section_count]);
+    const void *const end =
+        arrptr_end(mm_page_section_list, mm_page_section_count);
 
-    memmove(section, section + 1, length);
+    memmove_end(section, section + 1, end);
 }
 
 __debug_optimize(3)
 struct page_section *boot_add_section_at(struct page_section *const section) {
     assert(mm_page_section_count < MM_MAX_SECTION_COUNT);
+    const void *const end =
+        arrptr_end(mm_page_section_list, mm_page_section_count);
 
-    const uint64_t length =
-        distance(section, &mm_page_section_list[mm_page_section_count]);
-
-    memmove(section + 1, section, length);
+    memmove_end(section + 1, section, end);
     mm_page_section_count++;
 
     return section;

@@ -33,6 +33,12 @@ SECTIONS
     /* Move to the next memory page for .rodata */
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
+    .rodata : {
+        *(.rodata .rodata.*)
+        *(.srodata .srodata.*)
+        *(.sdata2 .sdata2.*)
+    } :rodata
+
     /* Add a .note.gnu.build-id output section in case a build ID flag is added to the */
     /* linker command. */
     .note.gnu.build-id : {
@@ -65,9 +71,9 @@ SECTIONS
 
         /* Place the sections that contain the Limine requests as part of the .data */
         /* output section. */
-        KEEP(*(.requests_start_marker))
-        KEEP(*(.requests))
-        KEEP(*(.requests_end_marker))
+        KEEP(*(.limine_requests_start_marker))
+        KEEP(*(.limine_requests))
+        KEEP(*(.limine_requests_end_marker))
 
         *(.sdata .sdata.*)
     } :data

@@ -3,13 +3,12 @@
  * © suhas pai
  */
 
+#include "dev/time/hpet.h"
 #include <lib/adt/bitset.h>
 
 #include <lib/align.h>
 #include <lib/freq.h>
 #include <lib/time.h>
-
-#include "dev/time/hpet.h"
 
 #include "asm/irqs.h"
 #include "cpu/spinlock.h"
@@ -83,7 +82,7 @@ __debug_optimize(3) usec_t hpet_read() {
 void hpet_oneshot_fsec(const fsec_t fsec) {
     uint64_t index = 0;
     with_spinlock_intr_disabled(&g_lock, {
-        index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+        index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/true);
     });
 
     while (!index_in_bounds(index, g_timer_count)) {
@@ -94,7 +93,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
                      /*drop_after_recv=*/true);
 
         with_spinlock_intr_disabled(&g_lock, {
-            index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/1);
+            index = bitset_find_unset(g_bitset, /*length=*/1, /*invert=*/true);
         });
     }
 
@@ -109,7 +108,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
 }
 
 void hpet_init(const struct os_acpi_hpet *const hpet) {
-    if (hpet->base_address.addr_space != OS_ACPI_GAS_ADDRSPACE_KIND_SYSMEM) {
+    if (hpet->base_gas.addr_space != OS_ACPI_GAS_ADDRSPACE_KIND_SYSMEM) {
         printk(LOGLEVEL_WARN,
                "hpet: address space is not system-memory. init failed\n");
         return;
@@ -120,19 +119,18 @@ void hpet_init(const struct os_acpi_hpet *const hpet) {
 
     if (!has_64bit_counter) {
         printk(LOGLEVEL_WARN,
-               "hpet: does not support 64-bit counters. aborting init\n");
+               "hpet: driver only supports 64-bit counters. Aborting init\n");
         return;
     }
 
-    if (!has_align(hpet->base_address.address, PAGE_SIZE)) {
+    if (!is_page_aligned(hpet->base_gas.address)) {
         printk(LOGLEVEL_WARN,
                "hpet: address-space is not aligned to page size\n");
         return;
     }
 
     struct range range = RANGE_EMPTY();
-    if (!range_create_and_verify(hpet->base_address.address, PAGE_SIZE, &range))
-    {
+    if (!range_create_and_verify(hpet->base_gas.address, PAGE_SIZE, &range)) {
         printk(LOGLEVEL_WARN, "hpet: address-space's range overflows\n");
         return;
     }

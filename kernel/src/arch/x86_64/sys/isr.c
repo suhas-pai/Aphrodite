@@ -8,6 +8,7 @@
 #include <lib/align.h>
 #include <lib/util.h>
 
+#include <stdatomic.h>
 #include "acpi/api.h"
 
 #include "apic/ioapic.h"
@@ -32,7 +33,7 @@ struct isr_func_info {
     isr_func_t handler;
     void *ctx;
 
-    bool masked : 1;
+    _Atomic(bool) masked;
 };
 
 static struct spinlock g_lock = SPINLOCK_INIT();
@@ -144,11 +145,11 @@ __debug_optimize(3) void isr_unmask_irq(struct irq_pin *const pin) {
 }
 
 __debug_optimize(3) void isr_mask_intr(const isr_vector_t vector) {
-    g_funcs[vector].masked = true;
+    atomic_store(&g_funcs[vector].masked, true);
 }
 
 __debug_optimize(3) void isr_unmask_intr(const isr_vector_t vector) {
-    g_funcs[vector].masked = false;
+    atomic_store(&g_funcs[vector].masked, false);
 }
 
 extern void
@@ -160,7 +161,7 @@ isr_handle_interrupt(const uint64_t vector, struct thread_context *const frame)
     struct isr_func_info *const info = &g_funcs[vector];
     this_cpu_mut()->called_eoi = false;
 
-    if (info->masked) {
+    if (atomic_load(&info->masked)) {
         lapic_eoi();
         return;
     }
@@ -250,11 +251,11 @@ isr_set_msi_vector(const isr_vector_t vector,
 }
 
 struct irq_pin *isr_get_irq_pin(const irq_number_t irq) {
-    if (!index_in_bounds(irq, countof(g_irq_pin_list))) {
-        return nullptr;
+    if (index_in_bounds(irq, countof(g_irq_pin_list))) {
+        return &g_irq_pin_list[irq];
     }
 
-    return &g_irq_pin_list[irq];
+    return nullptr;
 }
 
 bool

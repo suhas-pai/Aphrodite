@@ -32,7 +32,7 @@ __debug_optimize(3) struct bus *bus_get_dev_parent(struct bus *const bus) {
     return bus->device.bus;
 }
 
-__debug_optimize(3) struct bus *bus_get_drv_parent(struct bus *const bus) {
+__debug_optimize(3) struct bus *bus_get_driver_parent(struct bus *const bus) {
     assert(bus->device.is_bus);
     return bus->device.driver->bus;
 }

@@ -55,7 +55,8 @@ struct virtio_device *virtio_device_init(struct virtio_device *const device) {
 
     const struct virtio_driver *const driver = &virtio_drivers[device->kind];
     if (driver->init == nullptr) {
-        printk(LOGLEVEL_WARN, "virtio-pci: ignoring device, no driver found\n");
+        printk(LOGLEVEL_WARN,
+               "virtio-init: ignoring device, no driver found\n");
         return nullptr;
     }
 
@@ -89,8 +90,10 @@ struct virtio_device *virtio_device_init(struct virtio_device *const device) {
     // The transitional driver MUST execute the initialization sequence as
     // described in 3.1 but omitting the steps 5 and 6.
 
-    const bool is_legacy = (features & __VIRTIO_DEVFEATURE_VERSION_1) == 0;
-    if (!is_legacy) {
+    device->has_legacy_interface =
+        (features & __VIRTIO_DEVFEATURE_VERSION_1) == 0;
+
+    if (!device->has_legacy_interface) {
         // 5. Set the FEATURES_OK status bit. The driver MUST NOT accept new
         // feature bits after this step.
 

@@ -131,4 +131,5 @@ pgwalker_fill_in_to(struct pg_walker *walker,
 uint64_t pgwalker_get_virt_addr(const struct pg_walker *walker);
 uint64_t pgwalker_get_phys_addr(const struct pg_walker *walker);
 
+pte_t *pgwalker_get_pte(const struct pg_walker *walker, pg_level_t level);
 bool pgwalker_points_to_largepage(const struct pg_walker *walker);

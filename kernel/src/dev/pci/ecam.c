@@ -36,7 +36,7 @@ pci_add_ecam_domain(const struct range bus_range,
                                  &range))
     {
         printk(LOGLEVEL_WARN,
-               "pci: ecam domain at base %p, segment %" PRIu16 " overflows\n",
+               "pci/ecam: domain at base %p, segment %" PRIu16 " overflows\n",
                (void *)base_addr,
                segment);
 
@@ -45,7 +45,7 @@ pci_add_ecam_domain(const struct range bus_range,
 
     struct pci_domain_ecam *const ecam_domain = kmalloc(sizeof(*ecam_domain));
     if (ecam_domain == nullptr) {
-        printk(LOGLEVEL_WARN, "pci: failed to alloc ecam domain info\n");
+        printk(LOGLEVEL_WARN, "pci/ecam: failed to alloc domain info\n");
         return nullptr;
     }
 
@@ -267,7 +267,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
         return false;
     }
 
-    uint32_t index = 0;
+    uint32_t number = 1;
     array_foreach(&ranges_prop->list,
                   const struct devicetree_prop_range_info,
                   iter)
@@ -276,7 +276,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
             printk(LOGLEVEL_WARN,
                    "pci/ecam: range #%" PRIu32 " in 'ranges' dtb-node prop has "
                    "a size of zero\n",
-                   index + 1);
+                   number);
             continue;
         }
 
@@ -288,7 +288,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
             printk(LOGLEVEL_WARN,
                    "pci/ecam: range #%" PRIu32 " in 'ranges' dtb-node prop "
                    "overflows\n",
-                   index + 1);
+                   number);
             continue;
         }
 
@@ -297,7 +297,7 @@ parse_dtb_resources(const struct devicetree_node *const node,
             printk(LOGLEVEL_WARN,
                    "pci/ecam: can't align range #%" PRIu32 " in 'ranges' "
                    "dtb-node prop has a size of zero\n",
-                   index);
+                   number);
             continue;
         }
 
@@ -318,11 +318,11 @@ parse_dtb_resources(const struct devicetree_node *const node,
             printk(LOGLEVEL_WARN,
                    "pci/ecam: failed to mmio-map range #%" PRIu32 " in "
                    "'ranges' dtb-node prop has a size of zero\n",
-                   index);
+                   number);
             continue;
         }
 
-        struct pci_bus_resource resource =
+        const struct pci_bus_resource resource =
             PCI_BUS_RESOURCE_INIT(res_kind,
                                   /*host_base=*/iter->parent_bus_address,
                                   /*child_base=*/iter->child_bus_address,
@@ -331,12 +331,16 @@ parse_dtb_resources(const struct devicetree_node *const node,
                                   /*is_host_mmio=*/true);
 
         if (!array_add(&root_bus->resources, &resource)) {
+            vunmap_mmio(mmio);
             printk(LOGLEVEL_INFO,
-                   "pci/ecam: failed to add resource to bus-list\n");
+                   "pci/ecam: failed to add resource from range #%" PRIu32 " "
+                   "in 'ranges' dtb-node prop to bus-list\n",
+                   number);
+
             return false;
         }
 
-        index++;
+        number++;
     }
 
     return true;
@@ -402,10 +406,10 @@ static bool pci_ecam_dtb_probe(struct device *const the_device) {
         return false;
     }
 
-    if (!range_has_index_range(mmio_range,
-                               RANGE_INIT(bus_range.front,
-                                          map_size_for_bus_range(bus_range))))
-    {
+    const struct range bus_mmio_range =
+        RANGE_INIT(mmio_range.front, map_size_for_bus_range(bus_range));
+
+    if (!range_has_index_range(mmio_range, bus_mmio_range)) {
         printk(LOGLEVEL_INFO,
                "pci/ecam: bus-range " RANGE_FMT " of dtb node can't fit in "
                "provided mmio-range " RANGE_FMT "\n",

@@ -147,7 +147,7 @@ pl011_init(struct bus *const bus,
                       SV_STATIC("pl011"));
 
     volatile struct pl011_registers *const regs =
-        (volatile struct pl011_registers *)base;
+        (volatile struct pl011_registers *)(uint64_t)base;
 
     const uint32_t cr = mmio_read(&regs->cr_offset);
     uint32_t lcr = mmio_read(&regs->lcr_offset);
@@ -279,7 +279,7 @@ static void init_drivers() {
 
     driver_initialize(&dtb_driver.driver,
                       &dtb_bus()->bus,
-                      /*name=*/SV_STATIC("arm-pl011"),
+                      SV_STATIC("arm-pl011"),
                       pl011_dtb_probe,
                       /*remove=*/nullptr,
                       /*shutdown=*/nullptr,

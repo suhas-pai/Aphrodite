@@ -265,12 +265,10 @@ static bool ahci_pci_probe(struct device *const device) {
                                       /*masked=*/false);
     });
 
-    volatile struct ahci_spec_hba_regs *const regs =
-        pci_bar_get_base(bar);
-
+    volatile struct ahci_spec_hba_regs *const regs = pci_bar_get_base(bar);
     struct ahci_hba_device *const hba = ahci_hba_get();
-    hba->pci_entity = pci_entity;
 
+    hba->pci_entity = pci_entity;
     if (!init_with_regs(regs)) {
         isr_free_msi_vector(&pci_entity->device, g_hba_vector, /*msi_index=*/0);
         pci_entity_toggle_msi_vector_mask(pci_entity,

@@ -33,6 +33,11 @@ page_section_init(struct page_section *const section,
     list_init(&section->zone_list);
 }
 
+struct range
+page_section_get_pfn_range(const struct page_section *const section) {
+    return RANGE_INIT(section->pfn, PAGE_COUNT(section->range.size));
+}
+
 __debug_optimize(3) struct page_section *phys_to_section(const uint64_t phys) {
     arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), iter) {
         if (range_has_loc(iter->range, phys)) {

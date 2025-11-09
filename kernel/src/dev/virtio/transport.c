@@ -49,21 +49,22 @@ virtio_pci_read_device_info(struct virtio_device *const device,
     volatile void *const device_cfg =
         (volatile void *)device->pci.device_cfg.front;
 
-    if (device_cfg != nullptr) {
-        switch (size) {
-            case sizeof(uint8_t):
-                *(uint8_t *)buf = mmio_read_8(device_cfg + offset);
-                return;
-            case sizeof(uint16_t):
-                *(uint16_t *)buf = mmio_read_16(device_cfg + offset);
-                return;
-            case sizeof(uint32_t):
-                *(uint32_t *)buf = mmio_read_32(device_cfg + offset);
-                return;
-            case sizeof(uint64_t):
-                *(uint64_t *)buf = mmio_read_64(device_cfg + offset);
-                return;
-        }
+    assert_msg(device_cfg != nullptr,
+               "virtio-pci: device config space is null\n");
+
+    switch (size) {
+        case sizeof(uint8_t):
+            *(uint8_t *)buf = mmio_read_8(device_cfg + offset);
+            return;
+        case sizeof(uint16_t):
+            *(uint16_t *)buf = mmio_read_16(device_cfg + offset);
+            return;
+        case sizeof(uint32_t):
+            *(uint32_t *)buf = mmio_read_32(device_cfg + offset);
+            return;
+        case sizeof(uint64_t):
+            *(uint64_t *)buf = mmio_read_64(device_cfg + offset);
+            return;
     }
 
     verify_not_reached();
@@ -78,21 +79,29 @@ virtio_pci_write_device_info(struct virtio_device *const device,
     volatile void *const device_cfg =
         (volatile void *)device->pci.device_cfg.front;
 
-    if (device_cfg != nullptr) {
-        switch (size) {
-            case sizeof(uint8_t):
-                mmio_write_8(device_cfg + offset, *(const uint8_t *)buf);
-                return;
-            case sizeof(uint16_t):
-                mmio_write_16(device_cfg + offset, *(const uint16_t *)buf);
-                return;
-            case sizeof(uint32_t):
-                mmio_write_32(device_cfg + offset, *(const uint32_t *)buf);
-                return;
-            case sizeof(uint64_t):
-                mmio_write_64(device_cfg + offset, *(const uint64_t *)buf);
-                return;
-        }
+    assert_msg(device_cfg != nullptr,
+               "virtio-pci: device config space is null\n");
+
+    const struct range range = RANGE_INIT(offset, size);
+    assert_msg(range_has_index_range(device->pci.device_cfg, range),
+               "virtio-pci: attempting to write bytes in range " RANGE_FMT
+               " outside of device config space " RANGE_FMT "\n",
+               RANGE_FMT_ARGS(range),
+               RANGE_FMT_ARGS(device->pci.device_cfg));
+
+    switch (size) {
+        case sizeof(uint8_t):
+            mmio_write_8(device_cfg + offset, *(const uint8_t *)buf);
+            return;
+        case sizeof(uint16_t):
+            mmio_write_16(device_cfg + offset, *(const uint16_t *)buf);
+            return;
+        case sizeof(uint32_t):
+            mmio_write_32(device_cfg + offset, *(const uint32_t *)buf);
+            return;
+        case sizeof(uint64_t):
+            mmio_write_64(device_cfg + offset, *(const uint64_t *)buf);
+            return;
     }
 
     verify_not_reached();
@@ -268,14 +277,14 @@ virtio_mmio_select_queue(struct virtio_device *const device,
 
 uint16_t
 virtio_mmio_selected_queue_max_size(struct virtio_device *const device) {
-    return mmio_read(&device->mmio.header->queue_num_max);
+    return mmio_read(&device->mmio.header->queue_size_max);
 }
 
 void
 virtio_mmio_set_selected_queue_size(struct virtio_device *const device,
                                     const uint16_t size)
 {
-    mmio_write(&device->mmio.header->queue_num, size);
+    mmio_write(&device->mmio.header->queue_size, size);
 }
 
 void

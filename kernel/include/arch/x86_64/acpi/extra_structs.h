@@ -35,7 +35,7 @@ enum os_acpi_hpet_page_prot_and_oem_attr_flags : uint8_t {
 struct os_acpi_hpet {
     struct os_acpi_sdt sdt;
     uint32_t event_timer_block_id;
-    struct os_acpi_gas base_address;
+    struct os_acpi_gas base_gas;
     uint8_t hpet_number;
     uint16_t main_counter_min_clock_tick_periodic;
     uint8_t page_prot_and_oem_attr;

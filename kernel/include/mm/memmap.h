@@ -16,6 +16,7 @@ enum mm_memmap_kind : uint8_t {
     MM_MEMMAP_KIND_BOOTLOADER_RECLAIMABLE,
     MM_MEMMAP_KIND_EXEC_AND_MODULES,
     MM_MEMMAP_KIND_FRAMEBUFFER,
+    MM_MEMMAP_KIND_ACPI_TABLES
 };
 
 struct mm_memmap {

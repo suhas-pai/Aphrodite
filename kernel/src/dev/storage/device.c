@@ -206,7 +206,7 @@ storage_device_init(struct storage_device *const device,
 
         printk(LOGLEVEL_WARN,
                "storage: partition #%" PRIu8 " has an unknown filesystem\n",
-               partition_index);
+               partition_index + 1);
 
         partition_index++;
     }

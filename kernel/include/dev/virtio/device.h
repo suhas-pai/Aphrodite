@@ -62,6 +62,8 @@ struct virtio_device {
 
     enum virtio_device_transport_kind transport_kind : 1;
     enum virtio_device_kind kind : 6;
+
+    bool has_legacy_interface : 1;
 };
 
 #define VIRTIO_DEVICE_PCI_INIT(name) \

@@ -24,8 +24,8 @@ struct string_view {
 
 #define SV_STATIC(c_str) \
     ((struct string_view){ .begin = (c_str), .length = LEN_OF(c_str) })
-#define sv_foreach(sv, iter) \
-    for (const char *iter = sv.begin; iter != (sv.begin + sv.length); iter++)
+
+#define sv_foreach(sv, iter) arrptr_foreach((sv).begin, (sv).length, iter)
 
 #define sv_of_carr(field) sv_create_length(field, sizeof(field))
 #define sv_of_carr_not_full(field) sv_create_upto_length(field, sizeof(field))

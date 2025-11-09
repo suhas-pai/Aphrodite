@@ -33,7 +33,7 @@ add_to_freelist_order(struct page_section *const section,
     list_add(&freelist->page_list, &page->freelist_head.freelist);
 
     if (freelist_order != 0) {
-        struct page *const back = page + (1ull << freelist_order) - 1;
+        struct page *const back = arrptr_back(page, 1ull << freelist_order);
 
         page_set_state(back, PAGE_STATE_FREE_LIST_TAIL);
         back->freelist_tail.head = page;
@@ -61,7 +61,7 @@ add_to_freelist_order_from_higher(struct page_section *const section,
     list_add(&freelist->page_list, &page->freelist_head.freelist);
 
     if (freelist_order != 0) {
-        struct page *const back = page + (1ull << freelist_order) - 1;
+        struct page *const back = arrptr_back(page, 1ull << freelist_order);
 
         back->state = PAGE_STATE_FREE_LIST_TAIL;
         back->freelist_tail.head = page;
@@ -81,9 +81,8 @@ setup_pages_in_lock(struct page *const page,
         case PAGE_STATE_KERNEL_STACK:
         case PAGE_STATE_USER_STACK:
         case PAGE_STATE_USED: {
-            const struct page *const end = page + (1ull << order);
-            for (struct page *iter = page; iter != end; iter++) {
-                page_set_state(page, state);
+            arrptr_foreach(page, 1ull << order, iter) {
+                page_set_state(iter, state);
             }
 
             return page;
@@ -95,9 +94,7 @@ setup_pages_in_lock(struct page *const page,
             verify_not_reached();
         case PAGE_STATE_SLAB_HEAD: {
             page_set_state(page, state);
-
-            const struct page *const end = page + (1ull << order);
-            for (struct page *iter = page + 1; iter != end; iter++) {
+            arrptr_foreach(page + 1, (1ull << order) - 1, iter) {
                 page_set_state(iter, PAGE_STATE_SLAB_TAIL);
             }
 
@@ -110,9 +107,7 @@ setup_pages_in_lock(struct page *const page,
             return page;
         case PAGE_STATE_LARGE_HEAD: {
             page_set_state(page, PAGE_STATE_LARGE_HEAD);
-
-            const struct page *const end = page + (1ull << order);
-            for (struct page *iter = page + 1; iter != end; iter++) {
+            arrptr_foreach(page + 1, (1ull << order) - 1, iter) {
                 page_set_state(iter, PAGE_STATE_LARGE_TAIL);
             }
 
@@ -366,14 +361,12 @@ get_from_freelist_order_at_align(struct page_section *const section,
     return result;
 }
 
-// Setup pages while holding the section's lock. This setup needs to be as fast
-// as possible because this is done under the section's lock.
-
 static void
-place_head_range_of_free_pages_lower(struct page *page,
-                                     struct page_section *const section,
-                                     const uint64_t amount,
-                                     const uint8_t orig_order)
+place_head_range_of_free_pages_in_lower_order(
+    struct page *page,
+    struct page_section *const section,
+    const uint64_t amount,
+    const uint8_t orig_order)
 {
     int8_t order = orig_order - 1;
     uint64_t avail = amount;
@@ -420,10 +413,10 @@ get_large_from_freelist_order(struct page_section *const section,
     const uint64_t align = PAGE_SIZE << large_order;
     if (large_order != freelist_order) {
         take_only_order_off_freelist(section,
-                                freelist_order,
-                                head,
-                                large_order,
-                                PAGE_STATE_USED);
+                                     freelist_order,
+                                     head,
+                                     large_order,
+                                     PAGE_STATE_USED);
 
         if (!has_align(page_phys, align)) {
             uint64_t new_phys = 0;
@@ -432,6 +425,7 @@ get_large_from_freelist_order(struct page_section *const section,
                        "mm: alloc_large_page() failed to align page's physical "
                        "address to boundary at order %" PRIu8 "\n",
                        large_order);
+
                 return nullptr;
             }
 
@@ -441,16 +435,16 @@ get_large_from_freelist_order(struct page_section *const section,
             setup_pages_in_lock(page, large_order, PAGE_STATE_LARGE_HEAD);
 
             const uint64_t free_amount = (uint64_t)(page - head);
-            place_head_range_of_free_pages_lower(head,
-                                                 section,
-                                                 free_amount,
-                                                 freelist_order);
+            place_head_range_of_free_pages_in_lower_order(head,
+                                                          section,
+                                                          free_amount,
+                                                          freelist_order);
 
             struct page *const begin = page + (1ull << large_order);
+            const struct page *const end =
+                arrptr_end(head, 1ull << freelist_order);
 
-            const struct page *const end = head + (1ull << freelist_order);
             const uint64_t count = (uint64_t)(end - begin);
-
             if (count != 0) {
                 free_range_of_pages(begin, section, count, freelist_order);
             }
@@ -504,9 +498,7 @@ setup_pages_for_state(struct page *const page,
             verify_not_reached();
         case PAGE_STATE_USED: {
             const uint64_t page_count = 1ull << order;
-            const struct page *const end = page + page_count;
-
-            for (struct page *iter = page; iter != end; iter++) {
+            arrptr_foreach(page, page_count, iter) {
                 list_init(&page->used.delayed_free_list);
                 refcount_init(&page->used.refcount);
             }
@@ -536,8 +528,7 @@ setup_pages_for_state(struct page *const page,
             zero_multiple_pages(page_to_virt(page), 1ull << order);
             list_init(&page->slab.head.slab_list);
 
-            const struct page *const end = page + (1ull << order);
-            for (struct page *iter = page + 1; iter != end; iter++) {
+            arrptr_foreach(page + 1, (1ull << order) - 1, iter) {
                 iter->slab.tail.head = page;
             }
 
@@ -558,8 +549,7 @@ setup_pages_for_state(struct page *const page,
             list_init(&page->largehead.delayed_free_list);
             page->largehead.level = large_info->level;
 
-            const struct page *const end = page + (1ull << order);
-            for (struct page *iter = page + 1; iter != end; iter++) {
+            arrptr_foreach(page + 1, (1ull << order) - 1, iter) {
                 refcount_init(&iter->largetail.refcount);
                 iter->largetail.head = page;
             }
@@ -761,6 +751,33 @@ alloc_pages(const enum page_state state,
     }
 
     return nullptr;
+}
+
+struct page *
+alloc_pages_count(const enum page_state state,
+                  const uint64_t alloc_flags,
+                  const uint16_t count,
+                  uint16_t *const count_out)
+{
+    uint8_t order = 0;
+    while ((1ull << order) < count && order < MAX_ORDER) {
+        order++;
+    }
+
+    if (__builtin_expect(order >= MAX_ORDER, 0)) {
+        printk(LOGLEVEL_WARN,
+               "mm: alloc_pages_count() got count >= MAX_ORDER\n");
+
+        return nullptr;
+    }
+
+    struct page *const page = alloc_pages(state, alloc_flags, order);
+    if (page == nullptr) {
+        return nullptr;
+    }
+
+    *count_out = 1ull << order;
+    return page;
 }
 
 struct page *
@@ -1026,7 +1043,7 @@ early_free_pages_from_section(struct page *const page,
 
     const uint64_t count = 1ull << order;
     if (order != 0) {
-        struct page *const back = page + (count - 1);
+        struct page *const back = arrptr_back(page, count);
 
         back->state = PAGE_STATE_FREE_LIST_TAIL;
         back->freelist_tail.head = page;
@@ -1138,7 +1155,7 @@ void free_large_page(struct page *const head) {
         const uint64_t page_count = 1ull << level_info->order;
         const struct page *const end = head + page_count;
 
-        for (struct page *page = head; page < end;) {
+        ptrrange_foreach(head, end, page) {
             if (!ref_down(&page->largehead.page_refcount)) {
                 page++;
                 continue;
@@ -1175,11 +1192,13 @@ void free_pages(struct page *page, const uint8_t order) {
         return;
     }
 
+    struct page_section *section = page_to_section(page);
     uint64_t amount = 1ull << order;
+
     if (find_nearby_free_pages(page, amount, &page, &amount)) {
-        free_range_of_pages(page, page_to_section(page), amount, MAX_ORDER);
+        free_range_of_pages(page, section, amount, MAX_ORDER);
     } else {
-        add_to_freelist_order(page_to_section(page), order, page);
+        add_to_freelist_order(section, order, page);
     }
 }
 
@@ -1207,10 +1226,8 @@ deref_large_page(struct page *const page,
         return page;
     }
 
-    const struct page *const end =
-        page + (1ull << lg_page_level_info_list[level - 1].order);
-
-    for (struct page *iter = page; iter != end; iter++) {
+    const uint64_t count = 1ull << lg_page_level_info_list[level - 1].order;
+    arrptr_foreach(page, count, iter) {
         deref_page(iter, pageop);
     }
 

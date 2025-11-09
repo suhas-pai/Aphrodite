@@ -79,7 +79,7 @@ acpi_init_one_device(void *const ctx,
             uacpi_namespace_node_generate_absolute_path(node);
 
         printk(LOGLEVEL_WARN,
-               "Unable to retrieve node %s information: %s\n",
+               "Unable to retrieve node %s, information: %s\n",
                path,
                uacpi_status_to_string(ret));
 

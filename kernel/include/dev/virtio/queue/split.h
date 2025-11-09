@@ -28,8 +28,8 @@ virtio_split_queue_init(struct virtio_device *device,
 
 void
 virtio_split_queue_add(struct virtio_split_queue *queue,
-                       struct virtio_queue_request *req,
-                       uint32_t count);
+                       struct virtio_queue_request *req_list,
+                       uint32_t req_count);
 
 void
 virtio_split_queue_commit(struct virtio_device *device,

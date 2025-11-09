@@ -12,7 +12,7 @@
 #include "dev/printk.h"
 #include "mm/page_alloc.h"
 
-#define VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER 0
+#define VIRTIO_SPLIT_QUEUE_ALIGN PAGE_SIZE
 
 bool
 virtio_split_queue_init(struct virtio_device *const device,
@@ -20,26 +20,33 @@ virtio_split_queue_init(struct virtio_device *const device,
                         const uint16_t queue_index)
 {
     virtio_device_select_queue(device, queue_index);
-    const uint16_t desc_count =
+    const uint16_t queue_size =
         min(virtio_device_selected_queue_max_size(device),
             VIRTQ_MAX_DESC_COUNT);
 
-    _Static_assert(
-        // Desc Table
-        sizeof(struct virtq_desc) * VIRTQ_MAX_DESC_COUNT
-        // Avail ring
-        + sizeof(struct virtq_avail) + (sizeof(le16_t) * VIRTQ_MAX_DESC_COUNT)
-        // Used Ring
-        + (sizeof(struct virtq_used)
-          + (sizeof(struct virtq_used_elem) * VIRTQ_MAX_DESC_COUNT))
-            <= (PAGE_SIZE << VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER),
-        "virtio/split-queue: VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER needs to be "
-        "increased");
+    const uint32_t desc_table_size =
+        arrptr_size(sizeof(struct virtq_desc), queue_size);
 
+    uint32_t avail_ring_offset = desc_table_size;
+    if (device->has_legacy_interface) {
+        avail_ring_offset =
+            align_up_assert(avail_ring_offset, VIRTIO_SPLIT_QUEUE_ALIGN);
+    }
+
+    const uint32_t avail_ring_size =
+        sizeof(struct virtq_avail) + arrptr_size(sizeof(le16_t), queue_size);
+
+    const uint32_t used_ring_offset = avail_ring_offset + avail_ring_size;
+    const uint32_t used_ring_size =
+        sizeof(struct virtq_used) +
+        arrptr_size(sizeof(le32_t), VIRTQ_MAX_DESC_COUNT);
+
+    uint16_t page_count = PAGE_COUNT(used_ring_offset + used_ring_size);
     struct page *const page =
-        alloc_pages(PAGE_STATE_USED,
-                    __ALLOC_ZERO,
-                    VIRTIO_SPLIT_QUEUE_ALLOC_PAGE_ORDER);
+        alloc_pages_count(PAGE_STATE_USED,
+                          __ALLOC_ZERO,
+                          page_count,
+                          &page_count);
 
     if (page == nullptr) {
         printk(LOGLEVEL_WARN,
@@ -54,23 +61,16 @@ virtio_split_queue_init(struct virtio_device *const device,
 
     struct virtq_desc *const desc_table = page_ptr;
     struct virtq_avail *const avail_ring =
-        (struct virtq_avail *)(desc_table + desc_count);
+        (struct virtq_avail *)(page_ptr + desc_table_size);
 
-    const uint32_t avail_ring_size =
-        sizeof(struct virtq_avail) + (sizeof(le16_t) * desc_count);
-    struct virtq_used *const used_ring =
-        (void *)avail_ring + align_up_assert(avail_ring_size, /*boundary=*/4);
-
+    struct virtq_used *const used_ring = (void *)page_ptr + used_ring_offset;
     const uint64_t page_phys = page_to_phys(page);
-    const uint32_t desc_table_size = sizeof(struct virtq_desc) * desc_count;
 
     virtio_device_set_selected_queue_desc_phys(device, page_phys);
     virtio_device_set_selected_queue_driver_phys(device,
-                                                 page_phys + desc_table_size);
+                                                 page_phys + avail_ring_offset);
     virtio_device_set_selected_queue_device_phys(device,
-                                                 page_phys +
-                                                 desc_table_size +
-                                                 avail_ring_size);
+                                                 page_phys + used_ring_offset);
 
     virtio_device_enable_selected_queue(device);
 
@@ -78,7 +78,7 @@ virtio_split_queue_init(struct virtio_device *const device,
     // Outside the loop, set the next index for the last desc to 0.
 
     struct virtq_desc *const begin = desc_table;
-    const struct virtq_desc *const back = begin + (desc_count - 1);
+    const struct virtq_desc *const back = arrptr_back(begin, queue_size - 1);
 
     struct virtq_desc *iter = begin;
     uint16_t next_index = 1;
@@ -93,9 +93,9 @@ virtio_split_queue_init(struct virtio_device *const device,
     queue->page = page;
     queue->desc_table = desc_table;
     queue->avail_ring = avail_ring;
-
-    queue->desc_count = desc_count;
     queue->used_ring = used_ring;
+
+    queue->desc_count = queue_size;
     queue->free_index = 0;
     queue->chain_count = 0;
     queue->index = queue_index;
@@ -105,21 +105,22 @@ virtio_split_queue_init(struct virtio_device *const device,
 
 void
 virtio_split_queue_add(struct virtio_split_queue *const queue,
-                       struct virtio_queue_request *const req,
-                       const uint32_t count)
+                       struct virtio_queue_request *const req_list,
+                       const uint32_t req_count)
 {
-    assert_msg(count != 0, "virtio/split-queue: add() got count=0");
+    assert_msg(req_count != 0, "virtio/split-queue: add() got req_count=0");
+    struct virtio_queue_request *const back = arrptr_back(req_list, req_count);
 
     const uint16_t head_index = queue->free_index;
     uint16_t free_index = head_index;
 
-    for_upto_limit(count, i) {
+    arrptr_foreach(req_list, req_count, req) {
         struct virtq_desc *const desc = &queue->desc_table[free_index];
 
         desc->phys_addr = (uint64_t)req->data;
         desc->len = req->size;
 
-        if (i != count - 1) {
+        if (req != back) {
             desc->flags = __VIRTQ_DESC_F_NEXT;
         }
 

@@ -508,8 +508,8 @@ __debug_optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     } else {
     #if defined(__x86_64__)
         if (n >= REP_MOVSB_MIN) {
-            void *dst_back = &((uint8_t *)dst)[n - 1];
-            const void *src_back = &((const uint8_t *)src)[n - 1];
+            void *dst_back = arrptr_back((uint8_t *)dst, n);
+            const void *src_back = arrptr_back((const uint8_t *)src, n);
 
             asm volatile ("std\n"
                           "rep movsb\n"
@@ -541,6 +541,12 @@ __debug_optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     }
 
     return ret;
+}
+
+void *
+memmove_end(void *const dst, const void *const src, const void *const end) {
+    assert(src <= end);
+    return memmove(dst, src, distance(src, end));
 }
 
 #if defined(__x86_64__)
@@ -617,7 +623,7 @@ void *memset_explicit(void *dst, const int val, const unsigned long n) {
 
 __debug_optimize(3)
 void *memchr(const void *const ptr, const int ch, const size_t count) {
-    const uint8_t *const end = ptr + count;
+    const uint8_t *const end = arrptr_end((const uint8_t *)ptr, count);
     for (const uint8_t *iter = (const uint8_t *)ptr; iter != end; iter++) {
         if (*iter == ch) {
             return (void *)(uint64_t)iter;

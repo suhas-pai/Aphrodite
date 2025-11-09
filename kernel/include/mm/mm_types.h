@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <lib/align.h>
 #include <lib/macros.h>
 #include <lib/overflow.h>
 
@@ -21,6 +22,7 @@
 #define SECTION_MASK 0xFF
 
 #define __page_aligned __aligned(PAGE_SIZE)
+#define is_page_aligned(addr) has_align((addr), PAGE_SIZE)
 
 uint64_t phys_to_pfn(uint64_t phys);
 uint64_t page_to_phys(const struct page *page);

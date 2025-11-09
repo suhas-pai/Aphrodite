@@ -43,11 +43,11 @@ endif
 override IMAGE_NAME := template-$(ARCH)
 
 # Toolchain for building the 'limine' executable for the host.
-HOST_CC ?= cc
-HOST_CFLAGS ?= -g -O2 -pipe
-HOST_CPPFLAGS ?=
-HOST_LDFLAGS ?=
-HOST_LIBS ?=
+HOST_CC := cc
+HOST_CFLAGS := -g -O2 -pipe
+HOST_CPPFLAGS :=
+HOST_LDFLAGS :=
+HOST_LIBS :=
 
 EXTRA_QEMU_ARGS=-d unimp -d guest_errors -d int -D ./log.txt -rtc base=localtime
 ifeq ($(DEBUG),1)
@@ -248,7 +248,7 @@ ovmf/ovmf-code-$(ARCH).fd:
 
 limine/limine:
 	rm -rf limine
-	git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1
+	git clone https://codeberg.org/Limine/Limine.git limine --branch=v10.x-binary --depth=1
 	$(MAKE) -C limine \
 		CC="$(HOST_CC)" \
 		CFLAGS="$(HOST_CFLAGS)" \
@@ -256,12 +256,11 @@ limine/limine:
 		LDFLAGS="$(HOST_LDFLAGS)" \
 		LIBS="$(HOST_LIBS)"
 
-kernel-deps:
+kernel/.deps-obtained:
 	./kernel/get-deps
-	touch kernel-deps
 
 .PHONY: kernel
-kernel: kernel-deps
+kernel: kernel/.deps-obtained
 	$(MAKE) -C kernel DEBUG=$(DEBUG) DISABLE_FLANTERM=$(DISABLE_FLANTERM) DEBUG_LOCKS=$(DEBUG_LOCKS) CHECK_SLABS=$(CHECK_SLABS) CONFIG_16K_PAGES=$(CONFIG_16K_PAGES) CONFIG_UACPI=$(CONFIG_UACPI) DEBUG_EARLY_ALLOC=$(DEBUG_EARLY_ALLOC)
 
 $(IMAGE_NAME).iso: limine/limine kernel
@@ -360,9 +359,3 @@ clean:
 distclean:
 	$(MAKE) -C kernel distclean
 	rm -rf iso_root-* *.iso *.hdd kernel-deps limine ovmf*
-
-# Try to undo whatever the "install" target did.
-.PHONY: uninstall
-uninstall:
-	rm -f "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/$(OUTPUT)-$(ARCH)"
-	-rmdir "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)"

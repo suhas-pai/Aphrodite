@@ -31,7 +31,8 @@ struct bus {
 
 #define bus_foreach_driver(bus, type, field, iter) \
     type *iter = nullptr; \
-    list_foreach(&(bus)->driver_list, field, iter) \
+    __auto_type h_var(bus_) = (bus); \
+    list_foreach(&h_var(bus_)->driver_list, field, iter) \
 
 #define bus_foreach_device(bus, type, field, iter) \
     type *iter = nullptr; \
@@ -47,7 +48,7 @@ bus_init(struct bus *bus,
          bus_probe_t probe);
 
 struct bus *bus_get_dev_parent(struct bus *bus);
-struct bus *bus_get_drv_parent(struct bus *bus);
+struct bus *bus_get_driver_parent(struct bus *bus);
 
 void bus_subsystem_init();
 

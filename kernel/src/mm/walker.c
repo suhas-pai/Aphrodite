@@ -127,8 +127,8 @@ pgwalker_create_from_root_phys(struct pg_walker *const walker,
                                const pgwalker_alloc_pgtable_t alloc_pgtable,
                                const pgwalker_free_pgtable_t free_pgtable)
 {
-    assert(has_align(root_phys, PAGE_SIZE));
-    assert(has_align(virt_addr, PAGE_SIZE));
+    assert(is_page_aligned(root_phys));
+    assert(is_page_aligned(virt_addr));
 
     walker->level = pgt_get_top_level();
     walker->top_level = walker->level;
@@ -146,8 +146,8 @@ pgwalker_create_from_root_phys(struct pg_walker *const walker,
         if (prev_table != nullptr) {
             const pg_level_t parent_level = level + 1;
             const pg_index_t index = walker->indices[parent_level - 1];
-
             const pte_t entry = pte_read(&prev_table[index]);
+
             if (pte_is_present(entry)) {
                 if (!pg_level_can_have_large(parent_level) ||
                     !pte_is_large(entry))
@@ -238,9 +238,12 @@ setup_levels_lower_than(struct pg_walker *const walker,
         pte = table;
         entry = pte_read(pte);
 
-        if (!pte_is_present(entry) ||
-            (pg_level_can_have_large(level) && pte_is_large(entry)))
-        {
+        if (!pte_is_present(entry)) {
+            walker->level = level;
+            break;
+        }
+
+        if (pg_level_can_have_large(level) && pte_is_large(entry)) {
             walker->level = level;
             break;
         }
@@ -654,6 +657,15 @@ uint64_t pgwalker_get_phys_addr(const struct pg_walker *const walker) {
     }
 
     return pte_to_phys(pte, level);
+}
+
+__debug_optimize(3)
+pte_t *pgwalker_get_pte(const struct pg_walker *walker, pg_level_t level) {
+    if (__builtin_expect(level < 1, 0)) {
+        return nullptr;
+    }
+
+    return &walker->tables[level - 1][walker->indices[level - 1]];
 }
 
 __debug_optimize(3)

@@ -65,9 +65,9 @@ SECTIONS
 
         /* Place the sections that contain the Limine requests as part of the .data */
         /* output section. */
-        KEEP(*(.requests_start_marker))
-        KEEP(*(.requests))
-        KEEP(*(.requests_end_marker))
+        KEEP(*(.limine_requests_start_marker))
+        KEEP(*(.limine_requests))
+        KEEP(*(.limine_requests_end_marker))
     } :data
 
     /* Dynamic section for relocations, both in its own PHDR and inside data PHDR */

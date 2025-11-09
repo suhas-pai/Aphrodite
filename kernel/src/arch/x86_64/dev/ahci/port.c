@@ -7,6 +7,7 @@
 #include <lib/size.h>
 #include <lib/util.h>
 
+#include "dev/ahci/structs.h"
 #include "dev/ata/atapi.h"
 #include "dev/ata/defines.h"
 
@@ -21,6 +22,7 @@
 #include "mm/kmalloc.h"
 #include "mm/zone.h"
 
+#include "sched/sleep.h"
 #include "sys/mmio.h"
 
 #define AHCI_HBA_PORT_MAX_COUNT mib(4)
@@ -473,8 +475,6 @@ __debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
      * attempt a port reset or a full HBA reset to recover.
      */
 
-    // TODO: Implement 500ms wait
-
     volatile struct ahci_spec_hba_port *const spec = port->spec;
     const uint32_t cmd_status = mmio_read(&spec->cmd_status);
 
@@ -483,6 +483,7 @@ __debug_optimize(3) bool ahci_hba_port_stop(struct ahci_hba_port *const port) {
                    rm_mask(cmd_status, __AHCI_HBA_PORT_CMDSTATUS_START));
     }
 
+    sched_sleep_us(msec_to_usec(500));
     for_upto_limit(MAX_ATTEMPTS, i) {
         if ((mmio_read(&spec->cmd_status) &
                 __AHCI_HBA_PORT_CMDSTATUS_CMD_LIST_RUNNING) == 0)
@@ -699,18 +700,13 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         return false;
     }
 
-    volatile struct ahci_spec_port_cmdhdr *cmd_header =
+    volatile struct ahci_spec_port_cmdhdr *cmd_header_list =
         phys_to_virt(cmd_list_phys);
-    const volatile struct ahci_spec_port_cmdhdr *const end =
-        cmd_header + AHCI_HBA_CMD_HDR_COUNT;
 
+    uint64_t cmdtable_phys = phys_range.front;
     uint8_t cmdhdr_index = 0;
-    for (uint64_t cmdtable_phys = phys_range.front;
-         cmd_header != end;
-         cmd_header++,
-         cmdtable_phys += sizeof(struct ahci_spec_hba_cmd_table),
-         cmdhdr_index++)
-    {
+
+    arrptr_foreach(cmd_header_list, AHCI_HBA_CMD_HDR_COUNT, cmd_header) {
         mmio_write(&cmd_header->cmd_table_base_lower32,
                    (uint32_t)cmdtable_phys);
 
@@ -720,6 +716,9 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
         }
 
         cmdhdr_info_list[cmdhdr_index] = AHCI_HBA_PORT_CMDHDR_INFO_INIT();
+
+        cmdtable_phys += sizeof(struct ahci_spec_hba_cmd_table);
+        cmdhdr_index++;
     }
 
     struct mmio_region *const mmio =
