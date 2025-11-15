@@ -684,8 +684,8 @@ static bool gicv2_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_reg *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN, "gicv2: dtb-node is missing reg property\n");
@@ -735,8 +735,9 @@ static bool gicv2_dtb_probe(struct device *const the_device) {
         }
 
         const struct devicetree_prop_reg *const msi_reg_prop =
-            (const struct devicetree_prop_reg *)(uint64_t)
-                devicetree_node_get_prop(child_node, DEVICETREE_PROP_REG);
+            cast_to_ptr(const struct devicetree_prop_reg *,
+                        devicetree_node_get_prop(child_node,
+                                                 DEVICETREE_PROP_REG));
 
         if (msi_reg_prop == nullptr) {
             printk(LOGLEVEL_WARN,

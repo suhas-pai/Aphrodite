@@ -462,7 +462,7 @@ write_ptes_down_from_level(struct pg_walker *const walker,
                 break;
             }
 
-            if (!lg_page_level_info_list[level - 1].is_supported) {
+            if (!pg_level_can_have_large(level)) {
                 continue;
             }
 

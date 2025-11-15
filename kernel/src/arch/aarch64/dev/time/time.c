@@ -108,8 +108,8 @@ static void enable_dtb_timer_irqs() {
     }
 
     const auto intr_prop =
-        (struct devicetree_prop_interrupts *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPTS);
+        cast_to_ptr(struct devicetree_prop_interrupts *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPTS));
 
     assert_msg(intr_prop != nullptr,
                "time: 'interrupts' prop not found in '/timer' dtb-node");

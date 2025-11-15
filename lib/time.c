@@ -16,7 +16,7 @@
 __debug_optimize(3)
 uint8_t hour12_to_24hour(const uint8_t hour, const bool is_pm) {
     // Use modulo to wrap hour 12 to hour 0
-    return is_pm ? ((hour % 12) + 12) : (hour % 12);
+    return is_pm ? (hour % 12) + 12 : hour % 12;
 }
 
 __debug_optimize(3) uint8_t hour24_to_12hour(const uint8_t hour) {
@@ -72,8 +72,7 @@ get_week_count_at_day(const enum weekday weekday,
 
     const uint8_t delta =
         is_monday_first ?
-            ((weekday != WEEKDAY_SUNDAY) ? (WEEKDAY_COUNT + 1) : 1) :
-            WEEKDAY_COUNT;
+            (weekday != WEEKDAY_SUNDAY ? WEEKDAY_COUNT + 1 : 1) : WEEKDAY_COUNT;
 
     return (days_since_jan_1 + delta - (unsigned)weekday) / WEEKDAY_COUNT;
 }
@@ -101,7 +100,11 @@ __debug_optimize(3) bool year_is_leap_year(const uint64_t year) {
 }
 
 __debug_optimize(3) uint16_t year_get_day_count(const uint64_t year) {
-    return MIN_DAYS_IN_YEAR + (year_is_leap_year(year) ? 1 : 0);
+    if (year_is_leap_year(year)) {
+        return MIN_DAYS_IN_YEAR + 1;
+    }
+
+    return MIN_DAYS_IN_YEAR;
 }
 
 __debug_optimize(3) int year_to_tm_year(const uint64_t year) {
@@ -152,7 +155,7 @@ __debug_optimize(3) uint64_t tm_year_to_year(const int tm_year) {
 }
 
 __debug_optimize(3) enum weekday weekday_prev(const enum weekday weekday) {
-    return (weekday != WEEKDAY_SUNDAY) ? weekday - 1 : WEEKDAY_SATURDAY;
+    return weekday != WEEKDAY_SUNDAY ? weekday - 1 : WEEKDAY_SATURDAY;
 }
 
 __debug_optimize(3) enum weekday weekday_next(const enum weekday weekday) {
@@ -517,7 +520,7 @@ iso_8601_get_week_number(const enum weekday weekday,
     assert(weekday_valid(weekday));
     assert(month_valid(month));
 
-    enum weekday jan_1_weekday = (weekday - (days_since_jan_1 % WEEKDAY_COUNT));
+    enum weekday jan_1_weekday = weekday - (days_since_jan_1 % WEEKDAY_COUNT);
     if (jan_1_weekday < 0) {
         jan_1_weekday += WEEKDAY_COUNT;
     }

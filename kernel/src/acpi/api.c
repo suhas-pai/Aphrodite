@@ -62,12 +62,11 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     }
 
     if (has_xsdt()) {
-        uint64_t *const data = (uint64_t *)(uint64_t)g_info.rsdt->ptrs;
-        const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
-            sizeof(uint64_t);
+        uint64_t *const data = cast_to_ptr(uint64_t *, g_info.rsdt->ptrs);
+        const uint64_t *const end =
+            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
 
-        arrptr_foreach(data, entry_count, entry) {
+        ptrrange_foreach(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -78,12 +77,11 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
             }
         }
     } else {
-        uint32_t *const data = (uint32_t *)(uint64_t)g_info.rsdt->ptrs;
-        const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
-            sizeof(uint32_t);
+        uint32_t *const data = cast_to_ptr(uint32_t *, g_info.rsdt->ptrs);
+        const uint32_t *const end =
+            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
 
-        arrptr_foreach(data, entry_count, entry) {
+        ptrrange_foreach(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -105,12 +103,11 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
 __debug_optimize(3)
 static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
     if (has_xsdt()) {
-        uint64_t *const data = (uint64_t *)(uint64_t)g_info.rsdt->ptrs;
-        const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
-            sizeof(uint64_t);
+        uint64_t *const data = cast_to_ptr(uint64_t *, g_info.rsdt->ptrs);
+        const uint64_t *const end =
+            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
 
-        arrptr_foreach(data, entry_count, entry) {
+        ptrrange_foreach(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -119,12 +116,11 @@ static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
             callback(sdt);
         }
     } else {
-        uint32_t *const data = (uint32_t *)(uint64_t)g_info.rsdt->ptrs;
-        const uint32_t entry_count =
-            (g_info.rsdt->sdt.length - sizeof(struct os_acpi_sdt)) /
-            sizeof(uint32_t);
+        uint32_t *const data = cast_to_ptr(uint32_t *, g_info.rsdt->ptrs);
+        const uint32_t *const end =
+            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
 
-        arrptr_foreach(data, entry_count, entry) {
+        ptrrange_foreach(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }

@@ -1052,7 +1052,7 @@ setup_ata_h2d_fis(struct ahci_spec_hba_cmd_table *const cmd_table,
                   const uint8_t sector_count)
 {
     struct ahci_spec_fis_reg_h2d *const h2d_fis =
-        (struct ahci_spec_fis_reg_h2d *)(uint64_t)cmd_table->command_fis;
+        cast_to_ptr(struct ahci_spec_fis_reg_h2d *, cmd_table->command_fis);
 
     h2d_fis->fis_type = AHCI_FIS_KIND_REG_H2D;
     h2d_fis->flags = __AHCI_FIS_REG_H2D_IS_ATA_CMD;

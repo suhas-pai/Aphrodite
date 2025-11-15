@@ -6,7 +6,7 @@
 #pragma once
 #include <lib/macros.h>
 
-#define KMALLOC_MAX (uint32_t)12288
+#define KMALLOC_MAX (uint32_t)32768
 
 void kmalloc_check_slabs();
 

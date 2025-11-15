@@ -51,8 +51,8 @@ static bool virtio_mmio_dtb_probe(struct device *const the_device) {
 
     const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_reg *const reg =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_reg *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg == nullptr) {
         printk(LOGLEVEL_WARN,

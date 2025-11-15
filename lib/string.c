@@ -71,6 +71,11 @@ __debug_optimize(3) char *strchr(const char *const str, const int ch) {
 
 #endif /* !defined(BUILD_TEST) */
 
+void *
+memmove_end(void *const dst, const void *const src, const void *const end) {
+    return memmove(dst, src, distance(src, end));
+}
+
 #if defined(__x86_64__)
     #define REP_MIN 128
 #endif /* defined(__x86_64__) */

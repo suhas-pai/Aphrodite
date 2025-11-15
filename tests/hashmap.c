@@ -36,7 +36,7 @@ void test_add_and_get(struct hashmap *const hashmap, int object) {
 }
 
 void test_get(struct hashmap *const hashmap, const int object) {
-    void *const hm_object = hashmap_get(hashmap, (void *)(uint64_t)object);
+    void *const hm_object = hashmap_get(hashmap, cast_to_ptr(void *, object));
 
     assert(hm_object != nullptr);
     assert(*(int *)hm_object == object);
@@ -44,7 +44,8 @@ void test_get(struct hashmap *const hashmap, const int object) {
 
 void test_remove(struct hashmap *const hashmap, int object) {
     int a = 0;
-    assert(hashmap_remove(hashmap, (void *)(uint64_t)object, &a));
+
+    assert(hashmap_remove(hashmap, cast_to_ptr(void *, object), &a));
     assert(a == object);
 }
 

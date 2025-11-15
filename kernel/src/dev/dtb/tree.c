@@ -130,7 +130,7 @@ devicetree_node_free(struct devicetree *const tree,
 
         hashmap_bucket_foreach_node(bucket, map_node) {
             struct devicetree_prop **const prop_ptr =
-                (struct devicetree_prop **)(uint64_t)map_node->data;
+                cast_to_ptr(struct devicetree_prop **, map_node->data);
 
             struct devicetree_prop *const prop = *prop_ptr;
             switch (prop->kind) {
@@ -138,7 +138,7 @@ devicetree_node_free(struct devicetree *const tree,
                     goto free_prop;
                 case DEVICETREE_PROP_REG: {
                     struct devicetree_prop_reg *const reg_prop =
-                        (struct devicetree_prop_reg *)(uint64_t)prop;
+                        cast_to_ptr(struct devicetree_prop_reg *, prop);
 
                     array_destroy(&reg_prop->list);
                     goto free_prop;
@@ -146,7 +146,7 @@ devicetree_node_free(struct devicetree *const tree,
                 case DEVICETREE_PROP_RANGES:
                 case DEVICETREE_PROP_DMA_RANGES: {
                     struct devicetree_prop_ranges *const ranges_prop =
-                        (struct devicetree_prop_ranges *)(uint64_t)prop;
+                        cast_to_ptr(struct devicetree_prop_ranges *, prop);
 
                     array_destroy(&ranges_prop->list);
                     goto free_prop;
@@ -161,14 +161,14 @@ devicetree_node_free(struct devicetree *const tree,
                     goto free_prop;
                 case DEVICETREE_PROP_INTERRUPTS: {
                     struct devicetree_prop_interrupts *const intr_prop =
-                        (struct devicetree_prop_interrupts *)(uint64_t)prop;
+                        cast_to_ptr(struct devicetree_prop_interrupts *, prop);
 
                     array_destroy(&intr_prop->list);
                     goto free_prop;
                 }
                 case DEVICETREE_PROP_INTR_MAP: {
                     struct devicetree_prop_intr_map *const map_prop =
-                        (struct devicetree_prop_intr_map *)(uint64_t)prop;
+                        cast_to_ptr(struct devicetree_prop_intr_map *, prop);
 
                     array_destroy(&map_prop->list);
                     goto free_prop;
@@ -179,8 +179,8 @@ devicetree_node_free(struct devicetree *const tree,
                     goto free_prop;
                 case DEVICETREE_PROP_INTR_MAP_MASK: {
                     struct devicetree_prop_intr_map_mask *const map_prop =
-                        (struct devicetree_prop_intr_map_mask *)
-                            (uint64_t)prop;
+                        cast_to_ptr(struct devicetree_prop_intr_map_mask *,
+                                    prop);
 
                     array_destroy(&map_prop->list);
                     goto free_prop;
@@ -189,7 +189,8 @@ devicetree_node_free(struct devicetree *const tree,
                     goto free_prop;
                 case DEVICETREE_PROP_SPECIFIER_MAP: {
                     struct devicetree_prop_specifier_map *const map_prop =
-                        (struct devicetree_prop_specifier_map *)(uint64_t)prop;
+                        cast_to_ptr(struct devicetree_prop_specifier_map *,
+                                    prop);
 
                     array_destroy(&map_prop->list);
                     goto free_prop;

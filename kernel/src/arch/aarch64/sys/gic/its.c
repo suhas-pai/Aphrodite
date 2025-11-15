@@ -593,8 +593,8 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_reg *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN,
@@ -619,8 +619,8 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
     }
 
     const struct devicetree_prop_phandle *const phandle_prop =
-        (const struct devicetree_prop_phandle *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE);
+        cast_to_ptr(const struct devicetree_prop_phandle *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE));
 
     if (phandle_prop == nullptr) {
         printk(LOGLEVEL_WARN,

@@ -225,7 +225,7 @@ identify_namespaces(struct nvme_controller *const controller,
         return false;
     }
 
-    const uint32_t *const nsid_list = (const uint32_t *)(uint64_t)ident;
+    const uint32_t *const nsid_list = cast_to_ptr(const uint32_t *, ident);
     arrptr_foreach(nsid_list, namespace_count, nsid) {
         if (!ordinal_in_bounds(*nsid, namespace_count)) {
             continue;

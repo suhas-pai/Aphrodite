@@ -144,10 +144,7 @@ int snprintf(char *const s, const size_t n, const char *const format, ...) {
 }
 
 int
-vsnprintf(char *const s,
-          const size_t n,
-          const char *const format,
-          va_list arg)
+vsnprintf(char *const s, const size_t n, const char *const format, va_list arg)
 {
     return (int)vformat_to_buffer(s, n, format, arg);
 }

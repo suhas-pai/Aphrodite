@@ -37,7 +37,7 @@ struct string_view sv_drop_front(const struct string_view sv) {
 }
 
 __debug_optimize(3) char *sv_begin_mut(const struct string_view sv) {
-    return (char *)(uint64_t)sv.begin;
+    return cast_to_ptr(char *, sv.begin);
 }
 
 __debug_optimize(3) const char *sv_end(const struct string_view sv) {
@@ -93,28 +93,28 @@ __debug_optimize(3) uint64_t sv_hash(const struct string_view sv) {
             case 1:
                 return sv.begin[0];
             case 2:
-                return *(uint16_t *)(uint64_t)sv.begin;
+                return *cast_to_ptr(uint16_t *, sv.begin);
             case 3:
-                return (uint64_t)*(uint16_t *)(uint64_t)sv.begin |
+                return (uint64_t)*cast_to_ptr(uint16_t *, sv.begin) |
                        ((uint32_t)sv.begin[2] << 16);
             case 4:
-                return (uint64_t)*(uint16_t *)(uint64_t)sv.begin |
+                return (uint64_t)*cast_to_ptr(uint16_t *, sv.begin) |
                        ((uint32_t)sv.begin[2] << 16) |
                        ((uint32_t)sv.begin[3] << 24);
             case 5:
-                return (uint64_t)*(uint32_t *)(uint64_t)sv.begin |
+                return (uint64_t)*cast_to_ptr(uint32_t *, sv.begin) |
                        ((uint64_t)sv.begin[4] << 32);
             case 6:
-                return (uint64_t)*(uint32_t *)(uint64_t)sv.begin |
+                return (uint64_t)*cast_to_ptr(uint32_t *, sv.begin) |
                        ((uint64_t)sv.begin[4] << 32) |
                        ((uint64_t)sv.begin[5] << 40);
             case 7:
-                return (uint64_t)*(uint32_t *)(uint64_t)sv.begin |
+                return (uint64_t)*cast_to_ptr(uint32_t *, sv.begin) |
                        ((uint64_t)sv.begin[4] << 32) |
                        ((uint64_t)sv.begin[5] << 40) |
                        ((uint64_t)sv.begin[6] << 48);
             case 8:
-                return *(uint64_t *)(uint64_t)sv.begin;
+                return *cast_to_ptr(uint64_t *, sv.begin);
         }
     }
 

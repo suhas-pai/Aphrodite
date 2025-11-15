@@ -253,8 +253,8 @@ parse_dtb_resources(const struct devicetree_node *const node,
                     struct pci_bus *const root_bus)
 {
     const struct devicetree_prop_ranges *const ranges_prop =
-        (const struct devicetree_prop_ranges *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_RANGES);
+        cast_to_ptr(const struct devicetree_prop_ranges *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_RANGES));
 
     if (ranges_prop == nullptr) {
         printk(LOGLEVEL_WARN,
@@ -352,8 +352,8 @@ static bool pci_ecam_dtb_probe(struct device *const the_device) {
 
     const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_reg *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN,
@@ -368,8 +368,9 @@ static bool pci_ecam_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_bus_range *const bus_range_prop =
-        (const struct devicetree_prop_bus_range *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_PCI_BUS_RANGE);
+        cast_to_ptr(const struct devicetree_prop_bus_range *,
+                    devicetree_node_get_prop(node,
+                                             DEVICETREE_PROP_PCI_BUS_RANGE));
 
     if (bus_range_prop == nullptr) {
         printk(LOGLEVEL_WARN,

@@ -543,12 +543,6 @@ __debug_optimize(3) void *memmove(void *dst, const void *src, unsigned long n) {
     return ret;
 }
 
-void *
-memmove_end(void *const dst, const void *const src, const void *const end) {
-    assert(src <= end);
-    return memmove(dst, src, distance(src, end));
-}
-
 #if defined(__x86_64__)
     #define REP_MIN 48
 #endif /* defined(__x86_64__) */
@@ -626,7 +620,7 @@ void *memchr(const void *const ptr, const int ch, const size_t count) {
     const uint8_t *const end = arrptr_end((const uint8_t *)ptr, count);
     for (const uint8_t *iter = (const uint8_t *)ptr; iter != end; iter++) {
         if (*iter == ch) {
-            return (void *)(uint64_t)iter;
+            return cast_to_ptr(void *, iter);
         }
     }
 

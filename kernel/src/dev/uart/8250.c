@@ -213,8 +213,8 @@ static bool uart8250_dtb_probe(struct device *const the_device) {
 
     const struct devicetree_node *const node = device->node;
     const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_reg *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {
         printk(LOGLEVEL_WARN, "uart8250: 'reg' property in dtb is missing\n");
@@ -230,8 +230,8 @@ static bool uart8250_dtb_probe(struct device *const the_device) {
         array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
 
     const struct devicetree_prop_clock_frequency *const clock_freq_prop =
-        (const struct devicetree_prop_clock_frequency *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_clock_frequency *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (clock_freq_prop == nullptr) {
         printk(LOGLEVEL_WARN,

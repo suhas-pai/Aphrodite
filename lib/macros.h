@@ -100,7 +100,7 @@
 #define SECTOR_SIZE 512
 
 #define parent_of(ptr, type, name) \
-    ((type *)(uint64_t)((const void *)ptr - offsetof(type, name)))
+    cast_to_ptr(type *, (const void *)ptr - offsetof(type, name))
 
 #define h_var(token) VAR_CONCAT(VAR_CONCAT_3(__, token, __), __LINE__)
 #define countof(carr) (sizeof(carr) / sizeof((carr)[0]))
@@ -167,7 +167,7 @@
 
 #define arrptr_foreach(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
-    const auto h_var(end) = arrptr_end(h_var(arr), count); \
+    const auto h_var(end) = arrptr_end(h_var(arr), (count)); \
     for (auto name = &h_var(arr)[0]; name < h_var(end); name++)
 
 #define arrptr_foreach_mut(the_arr, count, name) \
@@ -249,6 +249,8 @@
         bits_to_bytes_noround(__bits_to_bytes_bits__) + 1 : \
         bits_to_bytes_noround(__bits_to_bytes_bits__); \
 })
+
+#define cast_to_ptr(type, value) ((type)(uint64_t)(value))
 
 #define bits_to_bytes_noround(bits) ((bits) / 8)
 #define bytes_to_bits(bits) ((bits) * 8)

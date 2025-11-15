@@ -11,7 +11,7 @@
 __debug_optimize(3) uint32_t
 hashmap_no_hash(const hashmap_key_t key, const struct hashmap *const hashmap) {
     (void)hashmap;
-    return (uint32_t)(uint64_t)key;
+    return cast_to_ptr(uint32_t, key);
 }
 
 struct hashmap *

@@ -147,7 +147,7 @@ pl011_init(struct bus *const bus,
                       SV_STATIC("pl011"));
 
     volatile struct pl011_registers *const regs =
-        (volatile struct pl011_registers *)(uint64_t)base;
+        cast_to_ptr(volatile struct pl011_registers *, base);
 
     const uint32_t cr = mmio_read(&regs->cr_offset);
     uint32_t lcr = mmio_read(&regs->lcr_offset);
@@ -208,8 +208,8 @@ static bool pl011_dtb_probe(struct device *const device) {
 
     const struct devicetree_node *const node = dtb_device->node;
     const struct devicetree_prop_reg *const reg_prop =
-        (const struct devicetree_prop_reg *)(uint64_t)
-            devicetree_node_get_prop(node, DEVICETREE_PROP_REG);
+        cast_to_ptr(const struct devicetree_prop_reg *,
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {
         printk(LOGLEVEL_INFO, "pl031: dtb-node is missing a 'reg' prop\n");

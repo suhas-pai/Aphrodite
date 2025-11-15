@@ -16,8 +16,8 @@ extern char fs_drivers_start[];
 extern char fs_drivers_end[];
 
 #define fs_driver_foreach(iter) \
-    ptrrange_foreach((struct fs_driver *)(uint64_t)fs_drivers_start, \
-                     (struct fs_driver *)(uint64_t)fs_drivers_end, \
+    ptrrange_foreach(cast_to_ptr(struct fs_driver *, fs_drivers_start), \
+                     cast_to_ptr(struct fs_driver *, fs_drivers_end), \
                      iter)
 
 #define __fs_driver __attribute__((used, section(".fs_drivers")))

@@ -207,8 +207,7 @@ convert_cstr_to_64int(const char *string,
     }
 
     if (is_neg) {
-        if (__builtin_expect(
-                ckd_sub((int64_t *)result_out, 0, *result_out), 0))
+        if (__builtin_expect(ckd_sub((int64_t *)result_out, 0, *result_out), 0))
         {
             return E_STR_TO_NUM_UNDERFLOW;
         }
@@ -722,7 +721,7 @@ strtoul(const char *const str, char **const endptr, const int base) {
     const enum str_to_num_result error =
         cstr_to_unsigned(str,
                          options,
-                         (const char **)(uint64_t)endptr,
+                         cast_to_ptr(const char **, endptr),
                          &result);
 
     if (error != E_STR_TO_NUM_OK) {

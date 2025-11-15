@@ -405,7 +405,7 @@ create_and_add_vmap(const uacpi_phys_addr addr,
     spin_release_restore_intr(&g_vmap_lock, flag);
     vmap->refcount = 1;
 
-    return (void *)(uint64_t)vmap->region->base;
+    return cast_to_ptr(void *, vmap->region->base);
 }
 
 void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
@@ -426,7 +426,7 @@ void *uacpi_kernel_map(const uacpi_phys_addr addr, const uacpi_size len) {
             vmap->refcount++;
             spin_release_restore_intr(&g_vmap_lock, flag);
 
-            return (void *)(uint64_t)vmap->region->base;
+            return cast_to_ptr(void *, vmap->region->base);
         }
     }
 

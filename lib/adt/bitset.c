@@ -28,7 +28,7 @@ bitset_find_set(uint64_t *const bitset,
 
         if (index_in_bounds(result, length)) {
             if (invert) {
-                bitset[index] = rm_mask((bitset)[index], 1ull << bit_index);
+                bitset[index] = rm_mask(bitset[index], 1ull << bit_index);
             }
         } else {
             result = BITSET_INVALID;
