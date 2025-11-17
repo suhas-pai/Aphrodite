@@ -685,7 +685,9 @@ static bool gicv3_dtb_probe(struct device *const the_driver) {
     }
 
     if (count != 1) {
-        printk(LOGLEVEL_WARN, "gicv3: '#redistributor-regions' must be one\n");
+        printk(LOGLEVEL_WARN,
+               "gicv3: '#redistributor-regions' list must have a size of "
+               "one\n");
         return false;
     }
 

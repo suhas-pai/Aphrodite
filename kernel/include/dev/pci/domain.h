@@ -88,8 +88,8 @@ pci_domain_write_64(const struct pci_domain *domain,
             case sizeof(uint8_t): \
                 h_var(result) = \
                     pci_domain_read_8(pci_bus_get_domain(h_var(bus)), \
-                                     &(entity)->loc, \
-                                     offsetof(type, field)); \
+                                      &(entity)->loc, \
+                                      offsetof(type, field)); \
                 break; \
             case sizeof(uint16_t): \
                 h_var(result) = \

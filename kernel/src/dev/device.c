@@ -75,6 +75,6 @@ __debug_optimize(3) bool device_resume(struct device *const device) {
     return device->driver->resume(device);
 }
 
-__debug_optimize(3) bool device_remove(struct device *device) {
+__debug_optimize(3) bool device_remove(struct device *const device) {
     return device->driver->remove(device);
 }

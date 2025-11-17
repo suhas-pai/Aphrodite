@@ -17,7 +17,11 @@ static struct terminal *g_first_term = nullptr;
 
 __debug_optimize(3) void printk_add_terminal(struct terminal *const term) {
     with_intr_disabled({
-        term->next = g_first_term;
+        slist_add(/*prev=*/(struct terminal *)nullptr,
+                  /*next=*/g_first_term,
+                  next,
+                  term);
+
         g_first_term = term;
     });
 }
@@ -44,10 +48,7 @@ write_char(struct printf_spec_info *const spec_info,
     (void)cb_info;
     (void)cont_out;
 
-    for (struct terminal *term = g_first_term;
-         term != nullptr;
-         term = term->next)
-    {
+    slist_foreach(g_first_term, next, term) {
         term->emit_ch(term, ch, amount);
     }
 
@@ -64,10 +65,7 @@ write_sv(struct printf_spec_info *const spec_info,
     (void)cb_info;
     (void)cont_out;
 
-    for (struct terminal *term = g_first_term;
-         term != nullptr;
-         term = term->next)
-    {
+    slist_foreach(g_first_term, next, term) {
         term->emit_sv(term, sv);
     }
 

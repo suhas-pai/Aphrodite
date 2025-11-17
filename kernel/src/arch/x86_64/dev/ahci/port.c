@@ -39,11 +39,11 @@ __debug_optimize(3)
 static uint8_t find_free_cmdhdr(struct ahci_hba_port *const port) {
     uint8_t slot = UINT8_MAX;
     with_spinlock_intr_disabled(&port->lock, {
-        if (port->ports_bitset != UINT32_MAX) {
-            slot = find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
-            if (index_in_bounds(slot, sizeof_bits(uint32_t))) {
-                port->ports_bitset |= 1ul << slot;
-            }
+        slot = find_lsb_zero_bit(port->ports_bitset, /*start_index=*/0);
+        if (index_in_bounds(slot, sizeof_bits(uint32_t))) {
+            port->ports_bitset |= 1ul << slot;
+        } else {
+            slot = UINT8_MAX;
         }
     });
 

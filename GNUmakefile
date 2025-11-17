@@ -87,10 +87,10 @@ VIRTIO_CD_QEMU_ARG=""
 VIRTIO_HDD_QEMU_ARG=""
 
 QEMU_CDROM_ARGS=\
-	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
+	-drive if=pflash,unit=0,format=raw,file=edk2-ovmf/ovmf-code-$(ARCH).fd,readonly=on \
 
 QEMU_HDD_ARGS=\
-	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
+	-drive if=pflash,unit=0,format=raw,file=edk2-ovmf/ovmf-code-$(ARCH).fd,readonly=on \
 
 ifeq ($(DRIVE_KIND),block)
 	ifeq ($(ARCH),riscv64)
@@ -136,7 +136,7 @@ run: run-$(ARCH)
 run-hdd: run-hdd-$(ARCH)
 
 .PHONY: run-x86_64
-run-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+run-x86_64: edk2-ovmf $(IMAGE_NAME).iso
 	qemu-system-$(ARCH) \
 		-cpu max \
 		$(QEMUFLAGS) \
@@ -144,7 +144,7 @@ run-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-x86_64
-run-hdd-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+run-hdd-x86_64: edk2-ovmf $(IMAGE_NAME).hdd
 	qemu-system-$(ARCH) \
 		-cpu max \
 		$(QEMUFLAGS) \
@@ -152,7 +152,7 @@ run-hdd-x86_64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-aarch64
-run-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+run-aarch64: edk2-ovmf $(IMAGE_NAME).iso
 	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
@@ -164,7 +164,7 @@ run-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-aarch64
-run-hdd-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+run-hdd-aarch64: edk2-ovmf $(IMAGE_NAME).hdd
 	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
@@ -176,7 +176,7 @@ run-hdd-aarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-riscv64
-run-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+run-riscv64: edk2-ovmf $(IMAGE_NAME).iso
 	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
@@ -188,7 +188,7 @@ run-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-riscv64
-run-hdd-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+run-hdd-riscv64: edk2-ovmf $(IMAGE_NAME).hdd
 	qemu-system-$(ARCH) \
 		-cpu max \
 		-device ramfb \
@@ -200,7 +200,7 @@ run-hdd-riscv64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-loongarch64
-run-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
+run-loongarch64: edk2-ovmf $(IMAGE_NAME).iso
 	qemu-system-$(ARCH) \
 		-device ramfb \
 		-device qemu-xhci \
@@ -211,7 +211,7 @@ run-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).iso
 		$(EXTRA_QEMU_ARGS)
 
 .PHONY: run-hdd-loongarch64
-run-hdd-loongarch64: ovmf/ovmf-code-$(ARCH).fd $(IMAGE_NAME).hdd
+run-hdd-loongarch64: edk2-ovmf $(IMAGE_NAME).hdd
 	qemu-system-$(ARCH) \
 		-device ramfb \
 		-device qemu-xhci \
@@ -238,13 +238,8 @@ run-hdd-bios: $(IMAGE_NAME).hdd
 		$(QEMUFLAGS) \
 		$(EXTRA_QEMU_ARGS)
 
-ovmf/ovmf-code-$(ARCH).fd:
-	mkdir -p ovmf
-	curl -Lo $@ https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-$(ARCH).fd
-	case "$(ARCH)" in \
-		aarch64) dd if=/dev/zero of=$@ bs=1 count=0 seek=67108864 2>/dev/null;; \
-		riscv64) dd if=/dev/zero of=$@ bs=1 count=0 seek=33554432 2>/dev/null;; \
-	esac
+edk2-ovmf:
+	curl -L https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/edk2-ovmf.tar.gz | gunzip | tar -xf -
 
 limine/limine:
 	rm -rf limine
@@ -358,4 +353,4 @@ clean:
 .PHONY: distclean
 distclean:
 	$(MAKE) -C kernel distclean
-	rm -rf iso_root-* *.iso *.hdd kernel-deps limine ovmf*
+	rm -rf iso_root-* *.iso *.hdd kernel-deps limine ekd2-ovmf

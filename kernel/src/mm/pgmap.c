@@ -629,10 +629,10 @@ pgmap_at(struct pagemap *const pagemap,
     struct pageop pageop;
 
     /*
-     * There's a chance the virtual address is pointing into the middle of a
-     * large page, in which case we have to split the large page and
-     * appropriately setup the current_split_info, but only if the large page
-     * needs to be replaced (has a different phys-addr or different flags).
+     * There's a chance the virtual address is pointing into a large page, in
+     * which case we have to split the large page and appropriately setup the
+     * current_split_info, but only if the large page needs to be replaced (has
+     * a different phys-addr or different flags).
      */
 
     if (options->is_overwrite) {

@@ -14,13 +14,7 @@ struct list {
     struct list *next;
 };
 
-// slist is a circular singly-linked
-struct slist {
-    struct slist *next;
-};
-
 #define LIST_INIT(lvalue) { .prev = &(lvalue), .next = &(lvalue) }
-#define SLIST_INIT(lvalue) { .next = &(lvalue) }
 
 __debug_optimize(3) static inline void list_init(struct list *const head) {
     head->prev = head;
@@ -45,6 +39,24 @@ static inline void list_add(struct list *const head, struct list *const item) {
     list_add_common(item, head, head->next);
 }
 
+#define slist_add(prev_, next_, field, item) \
+    do {                                                                       \
+        const auto h_var(prev) = (prev_);                                      \
+        const auto h_var(next) = (next_);                                      \
+        (item)->field = h_var(next);                                           \
+        if (h_var(prev) != nullptr) {                                          \
+            h_var(prev)->field = (item);                                       \
+        }                                                                      \
+    } while (0)
+
+#define slist_remove(prev, item, field) \
+    do {                                        \
+        const auto h_var(prev) = (prev);        \
+        if (h_var(prev) != nullptr) {           \
+            h_var(prev)->field = (item)->field; \
+        }                                       \
+    } while (0)
+
 typedef int
 (*list_add_inorder_compare_t)(const struct list *head, const struct list *item);
 
@@ -65,15 +77,6 @@ list_add_inorder(struct list *const head,
     list_add(prev, item);
 }
 
-__debug_optimize(3) static inline void
-slist_add(struct slist *const head,
-          struct slist *const tail,
-          struct slist *const item)
-{
-    tail->next = item;
-    item->next = head;
-}
-
 // Add to back of list
 __debug_optimize(3)
 static inline void list_radd(struct list *const head, struct list *const item) {
@@ -85,11 +88,6 @@ static inline bool list_empty(const struct list *const list) {
     return list == list->prev;
 }
 
-__debug_optimize(3)
-static inline bool slist_empty(const struct slist *const list) {
-    return list == list->next;
-}
-
 __debug_optimize(3) static inline void list_remove(struct list *const elem) {
     elem->next->prev = elem->prev;
     elem->prev->next = elem->next;
@@ -98,38 +96,12 @@ __debug_optimize(3) static inline void list_remove(struct list *const elem) {
     elem->next = elem;
 }
 
-__debug_optimize(3) static inline
-void slist_remove(struct slist *const head, struct slist *const elem) {
-    for (struct slist *iter = head->next; iter != head; iter = iter->next) {
-        if (iter->next == elem) {
-            iter->next = elem->next;
-            break;
-        }
-    }
-
-    verify_not_reached();
-}
-
 __debug_optimize(3) static inline void list_deinit(struct list *const elem) {
     elem->next->prev = elem->prev;
     elem->prev->next = elem->next;
 
     elem->prev = nullptr;
     elem->next = nullptr;
-}
-
-__debug_optimize(3) static inline
-void slist_delete(struct slist *const head, struct slist *const elem) {
-    for (struct slist *iter = head->next; iter != head; iter = iter->next) {
-        if (iter->next == elem) {
-            iter->next = elem->next;
-            elem->next = nullptr;
-
-            break;
-        }
-    }
-
-    verify_not_reached();
 }
 
 #define list_rm(type, elem, field) \
@@ -158,7 +130,14 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
     for (iter = list_tail(list, typeof(*iter), field); &iter->field != (list); \
          iter = list_prev(iter, field))
 
-#define slist_foreach(list, field, iter) list_foreach(list, field, iter)
+#define slist_foreach(list, field, iter) \
+    for (auto iter = g_first_term; iter != nullptr; iter = iter->field)
+
+#define slist_foreach_mut(list, field, iter, tmp) \
+    for (auto iter = g_first_term, tmp = iter->field; \
+         iter != nullptr; \
+         iter = tmp, tmp = iter->field)
+
 #define list_count(list, type, field) ({ \
     uint64_t __result__ = 0;             \
     type *__iter__ = nullptr;               \
@@ -173,9 +152,6 @@ void slist_delete(struct slist *const head, struct slist *const elem) {
              tmp = list_next(iter, field);             \
          &iter->field != (list);                       \
          iter = tmp, tmp = list_next(iter, field))
-
-#define slist_foreach_mut(list, field, iter, tmp) \
-    list_foreach_mut(list, field, iter, tmp)
 
 #define list_foreach_rev_mut(list, field, iter, tmp) \
     for (iter = list_tail(list, typeof(*iter), field), \
