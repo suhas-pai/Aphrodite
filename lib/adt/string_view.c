@@ -17,7 +17,7 @@ sv_substring_length(const struct string_view sv,
 
 __debug_optimize(3) struct string_view
 sv_substring_from(const struct string_view sv, const uint32_t index) {
-    assert(index == sv.length || sv_has_index(sv, index));
+    assert(sv_has_index(sv, index) || index == sv.length);
     return sv_create_length(sv.begin + index, sv.length - index);
 }
 
@@ -132,8 +132,16 @@ __debug_optimize(3) char sv_back(const struct string_view sv) {
     return sv.begin[sv.length - 1];
 }
 
+__debug_optimize(3)
+int64_t sv_find_char(const struct string_view sv, const char ch) {
+    return sv_find_char_from_index(sv, 0, ch);
+}
+
 __debug_optimize(3) int64_t
-sv_find_char(const struct string_view sv, const uint32_t index, const char ch) {
+sv_find_char_from_index(const struct string_view sv,
+                        const uint32_t index,
+                        const char ch)
+{
     assert(sv_has_index(sv, index));
 
     char *const ptr = strchr(sv.begin + index, ch);
@@ -141,7 +149,37 @@ sv_find_char(const struct string_view sv, const uint32_t index, const char ch) {
         return (uint32_t)distance(sv.begin, ptr);
     }
 
-    return -1;
+    return SV_NPOS;
+}
+
+__debug_optimize(3)
+int64_t sv_find_char_rev(const struct string_view sv, const char ch) {
+    if (__builtin_expect(sv_is_empty(sv), 0)) {
+        return SV_NPOS;
+    }
+
+    return sv_find_char_rev_from_index(sv, sv.length - 1, ch);
+}
+
+__debug_optimize(3) int64_t
+sv_find_char_rev_from_index(const struct string_view sv,
+                            const uint32_t index,
+                            const char ch)
+{
+    assert(sv_has_index(sv, index));
+
+    // TODO: Optimize
+    for_upto_limit_rev(index, i) {
+        if (sv.begin[i] == ch) {
+            return i;
+        }
+    }
+
+    return SV_NPOS;
+}
+
+__debug_optimize(3) bool sv_is_empty(struct string_view sv) {
+    return sv.length == 0;
 }
 
 __debug_optimize(3)

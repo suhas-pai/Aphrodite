@@ -6,8 +6,8 @@
 #pragma once
 #include <stdint.h>
 
-#include <lib/overflow.h>
-#include <lib/string.h>
+#include "../overflow.h"
+#include "../string.h"
 
 #include "range.h"
 
@@ -25,6 +25,7 @@ struct string_view {
 #define SV_STATIC(c_str) \
     ((struct string_view){ .begin = (c_str), .length = LEN_OF(c_str) })
 
+#define SV_NPOS (int64_t)-1
 #define sv_foreach(sv, iter) arrptr_foreach((sv).begin, (sv).length, iter)
 
 #define sv_of_carr(field) sv_create_length(field, sizeof(field))
@@ -88,7 +89,14 @@ uint64_t sv_hash(struct string_view sv);
 char sv_front(struct string_view sv);
 char sv_back(struct string_view sv);
 
-int64_t sv_find_char(struct string_view sv, uint32_t index, char ch);
+int64_t sv_find_char(struct string_view sv, char ch);
+int64_t sv_find_char_from_index(struct string_view sv, uint32_t index, char ch);
+int64_t sv_find_char_rev(struct string_view sv, char ch);
+
+int64_t
+sv_find_char_rev_from_index(struct string_view sv, uint32_t index, char ch);
+
+bool sv_is_empty(struct string_view sv);
 bool sv_equals(struct string_view sv, struct string_view sv2);
 
 bool sv_has_prefix(struct string_view sv, struct string_view prefix);

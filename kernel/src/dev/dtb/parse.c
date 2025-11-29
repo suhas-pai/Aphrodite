@@ -257,9 +257,9 @@ parse_model_prop(const struct fdt_property *const fdt_prop,
                  struct string_view *const model_out)
 {
     const struct string_view model_sv = get_prop_data_sv(fdt_prop);
-    const int64_t comma_index = sv_find_char(model_sv, /*index=*/0, ',');
+    const int64_t comma_index = sv_find_char(model_sv, ',');
 
-    if (comma_index == -1) {
+    if (comma_index == SV_NPOS) {
         return false;
     }
 

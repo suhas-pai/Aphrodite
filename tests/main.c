@@ -9,6 +9,7 @@ extern void test_time();
 extern void test_avltree();
 extern void test_bitmap();
 extern void test_hashmap();
+extern void test_path();
 
 int main() {
     test_convert();
@@ -17,6 +18,7 @@ int main() {
     test_avltree();
     test_bitmap();
     test_hashmap();
+    test_path();
 
     return 0;
 }
