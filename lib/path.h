@@ -11,12 +11,15 @@ struct string_view path_cstr_basename(const char *c_str);
 struct string_view path_cstr_extension(const char *c_str);
 struct string_view path_cstr_filename(const char *c_str);
 
+bool path_cstr_is_relative(const char *path);
 struct string_view path_cstr_filename_without_extension(const char *path);
 
 struct string_view path_sv_dirname(struct string_view path);
 struct string_view path_sv_basename(struct string_view path);
 struct string_view path_sv_extension(struct string_view path);
 struct string_view path_sv_filename(struct string_view path);
+
+bool path_sv_is_relative(struct string_view path);
 
 struct string_view
 path_sv_filename_without_extension(struct string_view path);

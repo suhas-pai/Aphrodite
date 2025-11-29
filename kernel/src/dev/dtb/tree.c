@@ -4,8 +4,9 @@
  */
 
 #include <lib/adt/string_view.h>
-#include "dev/dtb/tree.h"
+#include <lib/path.h>
 
+#include "dev/dtb/tree.h"
 #include "mm/kmalloc.h"
 
 #define DEVICETREE_PHANDLE_MAP_BUCKET_COUNT 10
@@ -66,35 +67,12 @@ struct devicetree_node *
 devicetree_get_node_at_path(const struct devicetree *const tree,
                             const struct string_view path)
 {
-    if (__builtin_expect(path.length == 0 || sv_front(path) != '/', 0)) {
+    if (path_sv_is_relative(path)) {
         return nullptr;
     }
 
     struct devicetree_node *node = tree->root;
-    if (path.length == 1) {
-        return node;
-    }
-
-    if (__builtin_expect(node == nullptr, 0)) {
-        return nullptr;
-    }
-
-    uint32_t component_begin = 1;
-    do {
-        int64_t component_length = sv_find_char(path, component_begin, '/');
-        if (component_length != -1) {
-            component_length -= component_begin;
-            if (__builtin_expect(component_length == 0, 0)) {
-                // `//` component found in path string.
-                return nullptr;
-            }
-        } else {
-            component_length = path.length - component_begin;
-        }
-
-        const struct string_view component_sv =
-            sv_substring_length(path, component_begin, component_length);
-
+    path_sv_foreach_component(path, component_sv) {
         bool found = false;
         devicetree_node_foreach_child(node, iter) {
             if (sv_equals(iter->name, component_sv)) {
@@ -107,13 +85,8 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
             return nullptr;
         }
 
-        if (component_begin + component_length == path.length) {
-            return iter;
-        }
-
-        component_begin = component_begin + component_length + 1;
         node = iter;
-    } while (true);
+    }
 
     return nullptr;
 }

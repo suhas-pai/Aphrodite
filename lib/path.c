@@ -87,9 +87,17 @@ struct string_view path_sv_extension(const struct string_view path) {
     return sv_substring_from(basename, index);
 }
 
+__debug_optimize(3) bool path_cstr_is_relative(const char *const path) {
+    return *path != '/';
+}
+
 __debug_optimize(3) struct string_view
 path_cstr_filename_without_extension(const char *const path) {
     return path_sv_filename_without_extension(sv_create(path));
+}
+
+__debug_optimize(3) bool path_sv_is_relative(const struct string_view path) {
+    return sv_front(path) != '/';
 }
 
 __debug_optimize(3) struct string_view
@@ -118,7 +126,7 @@ struct string_view path_cstr_get_first_component(const char *const path) {
         return sv_create(path);
     }
 
-    const int64_t first_slash_idx = distance(path, first_slash);
+    const uint64_t first_slash_idx = distance(path, first_slash);
     return sv_create_nocheck(path, (uint32_t)first_slash_idx);
 }
 
@@ -162,7 +170,7 @@ path_cstr_get_next_component(const char *const path,
         return sv_create(remaining_path);
     }
 
-    const int64_t next_slash_idx = distance(remaining_path, next_slash);
+    const uint64_t next_slash_idx = distance(remaining_path, next_slash);
     return sv_create_nocheck(remaining_path, (uint32_t)next_slash_idx);
 }
 
