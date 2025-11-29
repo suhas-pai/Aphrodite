@@ -499,4 +499,6 @@ void test_convert() {
     carr_foreach(num_to_str_test_list, test) {
         run_num_to_str_test(test);
     }
+
+    printf("convert: All tests passed!\n");
 }

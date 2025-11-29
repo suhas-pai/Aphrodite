@@ -431,7 +431,6 @@ void pci_entity_destroy(struct pci_entity *const entity) {
     entity->interrupt_pin = 0;
 
     entity->supports_pcie = false;
-    entity->msix_enabled = false;
 
     entity->max_bar_count = 0;
     entity->msi_pcie_offset = 0;

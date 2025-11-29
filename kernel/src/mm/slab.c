@@ -82,7 +82,6 @@ get_free_object(struct page *const page, struct slab_allocator *const alloc) {
 }
 
 __debug_optimize(3) void slab_verify(struct slab_allocator *const alloc) {
-#if defined(CHECK_SLABS)
     if (list_empty(&alloc->free_slab_head_list)) {
         return;
     }
@@ -111,9 +110,6 @@ __debug_optimize(3) void slab_verify(struct slab_allocator *const alloc) {
 
         verify_free_object(free_obj, alloc);
     }
-#else
-    (void)alloc;
-#endif /* defined(CHECK_SLABS) */
 }
 
 bool

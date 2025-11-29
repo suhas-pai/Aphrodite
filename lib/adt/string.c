@@ -177,7 +177,7 @@ int64_t string_find_char(struct string *const string, char ch) {
 __debug_optimize(3) int64_t
 string_find_sv(struct string *const string, const struct string_view sv) {
     const uint32_t string_len = string_length(*string);
-    if (string_len == 0 || sv.length == 0) {
+    if (__builtin_expect(string_len == 0 || sv.length == 0, 0)) {
         return -1;
     }
 
@@ -204,11 +204,11 @@ string_find_string(struct string *const string, const struct string *const find)
 __debug_optimize(3)
 struct string_view string_to_sv(const struct string string) {
     const uint32_t length = string_length(string);
-    if (length == 0) {
-        return SV_EMPTY();
+    if (length != 0) {
+        return sv_create_nocheck(string.gbuffer.begin, length);
     }
 
-    return sv_create_nocheck(string.gbuffer.begin, length);
+    return SV_EMPTY();
 }
 
 __debug_optimize(3) const char *string_to_cstr(const struct string string) {

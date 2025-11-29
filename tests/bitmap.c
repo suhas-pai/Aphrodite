@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include <stdio.h>
 #include <lib/adt/bitmap.h>
 
 void
@@ -256,4 +257,6 @@ void test_bitmap() {
     check_bitmap(2);
     check_bitmap(1024);
     check_bitmap(163840);
+
+    printf("bitmap: All tests passed!\n");
 }

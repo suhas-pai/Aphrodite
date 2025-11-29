@@ -82,7 +82,7 @@ static bool pl031_dtb_probe(struct device *const the_device) {
     }
 
     const uint64_t offset = reg_info->address - reg_range.front;
-    g_header = (volatile struct pl031_header *)(g_mmio->base + offset);
+    g_header = reg_to_ptr(volatile struct pl031_header, g_mmio->base, offset);
 
     const struct tm tm = tm_from_stamp(pl031_get_wallclock());
     struct string string = kstrftime("%c", &tm);

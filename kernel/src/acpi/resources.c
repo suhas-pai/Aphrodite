@@ -171,7 +171,7 @@ os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
                     return false;
                 }
 
-                memcpy32(info.irq_list, irq->irqs, info.irq_count);
+                arrptr_copy(info.irq_list, irq->irqs, info.irq_count);
                 if (!array_add(&dev_res->irq_list, &info)) {
                     simple_free(alloc, info.irq_list);
                     uacpi_free_resources(resources);
@@ -231,7 +231,10 @@ os_acpi_device_resources_collect(struct os_acpi_device_resources *const dev_res,
                     return false;
                 }
 
-                memcpy(info.channel_list, dma->channels, info.channel_count);
+                arrptr_copy(info.channel_list,
+                            dma->channels,
+                            info.channel_count);
+
                 continue;
             }
             case UACPI_RESOURCE_TYPE_FIXED_DMA: {

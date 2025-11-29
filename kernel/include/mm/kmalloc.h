@@ -7,6 +7,8 @@
 #include <lib/macros.h>
 
 #define KMALLOC_MAX (uint32_t)32768
+#define kmalloc_arr(type, count) \
+    ((type *)kmalloc(ckd_mul_assert(sizeof(type), (uint32_t)(count))))
 
 void kmalloc_check_slabs();
 

@@ -99,9 +99,7 @@ static bool init_with_regs(volatile struct ahci_spec_hba_regs *const regs) {
            "ahci: has %" PRIu32 " ports implemented\n",
            ports_implemented_count);
 
-    hba->port_list =
-        kmalloc(sizeof(struct ahci_hba_port) * ports_implemented_count);
-
+    hba->port_list = kmalloc_arr(struct ahci_hba_port, ports_implemented_count);
     if (hba->port_list == nullptr) {
         printk(LOGLEVEL_WARN,
                "ahci: failed to allocate memory for port list\n");

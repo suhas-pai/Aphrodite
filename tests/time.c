@@ -18,13 +18,13 @@ static struct tm *get_time_now() {
     return localtime(&ts);
 }
 
+static char buffer[1024] = {0};
+static char strftime_buffer[sizeof(buffer)] = {0};
+
 static void test_match(const char *const fmt) {
     const struct tm *const tm = get_time_now();
 
-    char buffer[1024] = {0};
     time_format_to_string_buffer(buffer, sizeof(buffer), fmt, tm);
-
-    char strftime_buffer[sizeof(buffer)] = {0};
     strftime(strftime_buffer, sizeof(strftime_buffer), fmt, tm);
 
     if (strcmp(buffer, strftime_buffer) != 0) {
@@ -150,5 +150,6 @@ int test_time() {
     test_match("%OW");
     test_match("%Oy");
 
+    printf("time: All tests passed!\n");
     return 0;
 }

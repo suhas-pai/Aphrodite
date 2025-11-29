@@ -27,13 +27,13 @@ pci_bus_create(struct pci_domain *const domain,
              pci_bus_probe);
 
     pci_bus->resources = ARRAY_INIT(sizeof(struct pci_bus_resource));
-
     pci_bus->bus_id = bus_id;
     pci_bus->segment = segment;
 
     return pci_bus;
 }
 
+__debug_optimize(3)
 struct pci_domain *pci_bus_get_domain(struct pci_bus *const pci_bus) {
     return parent_of(bus_get_dev_parent(&pci_bus->bus), struct pci_domain, bus);
 }

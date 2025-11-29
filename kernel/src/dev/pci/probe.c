@@ -548,8 +548,7 @@ parse_function(struct pci_bus *const pci_bus,
         case PCI_SPEC_ENTITY_HDR_KIND_GENERAL:
             entity->max_bar_count = PCI_BAR_COUNT_FOR_GENERAL;
             entity->bar_list =
-                kmalloc(sizeof(struct pci_bar) *
-                        entity->max_bar_count);
+                kmalloc_arr(struct pci_bar, entity->max_bar_count);
 
             if (entity->bar_list == nullptr) {
                 pci_entity_destroy(entity);
@@ -603,8 +602,7 @@ parse_function(struct pci_bus *const pci_bus,
         case PCI_SPEC_ENTITY_HDR_KIND_PCI_BRIDGE:
             entity->max_bar_count = PCI_BAR_COUNT_FOR_BRIDGE;
             entity->bar_list =
-                kmalloc(sizeof(struct pci_bar) *
-                        entity->max_bar_count);
+                kmalloc_arr(struct pci_bar, entity->max_bar_count);
 
             if (entity->bar_list == nullptr) {
                 pci_entity_destroy(entity);

@@ -21,8 +21,7 @@ void fadt_init(const struct os_acpi_fadt *const fadt) {
            "fadt: flags: 0x%" PRIx32 "\n",
            fadt->iapc_boot_arch_flags);
 
-    if (fadt->iapc_boot_arch_flags &
-            __OS_ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
+    if (fadt->iapc_boot_arch_flags & __OS_ACPI_FADT_IAPC_BOOT_MSI_NOT_SUPPORTED)
     {
         printk(LOGLEVEL_WARN, "fadt: msi is not supported\n");
     }

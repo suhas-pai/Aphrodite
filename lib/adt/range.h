@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
-#include <lib/inttypes.h>
+
+#include "../inttypes.h"
 
 struct range {
     uint64_t front;

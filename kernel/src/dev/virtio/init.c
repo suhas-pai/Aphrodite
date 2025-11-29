@@ -19,7 +19,7 @@ virtio_device_init_queues(struct virtio_device *const device,
                           const uint16_t queue_count)
 {
     struct virtio_split_queue *const queue_list =
-        kmalloc(sizeof(struct virtio_split_queue) * queue_count);
+        kmalloc_arr(struct virtio_split_queue, queue_count);
 
     if (queue_list == nullptr) {
         printk(LOGLEVEL_WARN,

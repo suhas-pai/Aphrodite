@@ -155,4 +155,6 @@ void test_format() {
 
     const char buffer2[] = "Hello, There";
     test_format_to_buffer(countof(buffer), "Hel", "%.*s", 3, buffer2);
+
+    printf("format: All tests passed!\n");
 }

@@ -64,9 +64,9 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     if (has_xsdt()) {
         uint64_t *const data = cast_to_ptr(uint64_t *, g_info.rsdt->ptrs);
         const uint64_t *const end =
-            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
+            reg_to_ptr(const void, g_info.rsdt, g_info.rsdt->sdt.length);
 
-        ptrrange_foreach(data, end, entry) {
+        ptrrange_foreach_safe(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -79,9 +79,9 @@ const struct os_acpi_sdt *acpi_lookup_sdt(const char sig[static const 4]) {
     } else {
         uint32_t *const data = cast_to_ptr(uint32_t *, g_info.rsdt->ptrs);
         const uint32_t *const end =
-            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
+            reg_to_ptr(const void, g_info.rsdt, g_info.rsdt->sdt.length);
 
-        ptrrange_foreach(data, end, entry) {
+        ptrrange_foreach_safe(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -105,9 +105,9 @@ static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
     if (has_xsdt()) {
         uint64_t *const data = cast_to_ptr(uint64_t *, g_info.rsdt->ptrs);
         const uint64_t *const end =
-            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
+            reg_to_ptr(const void, g_info.rsdt, g_info.rsdt->sdt.length);
 
-        ptrrange_foreach(data, end, entry) {
+        ptrrange_foreach_safe(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }
@@ -118,9 +118,9 @@ static inline void acpi_recurse(void (*callback)(const struct os_acpi_sdt *)) {
     } else {
         uint32_t *const data = cast_to_ptr(uint32_t *, g_info.rsdt->ptrs);
         const uint32_t *const end =
-            (const void *)g_info.rsdt + g_info.rsdt->sdt.length;
+            reg_to_ptr(const void, g_info.rsdt, g_info.rsdt->sdt.length);
 
-        ptrrange_foreach(data, end, entry) {
+        ptrrange_foreach_safe(data, end, entry) {
             if (*entry == 0) {
                 continue;
             }

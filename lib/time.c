@@ -20,7 +20,7 @@ uint8_t hour12_to_24hour(const uint8_t hour, const bool is_pm) {
 }
 
 __debug_optimize(3) uint8_t hour24_to_12hour(const uint8_t hour) {
-    const uint8_t result = (hour % 12);
+    const uint8_t result = hour % 12;
     return result != 0 ? result : 12;
 }
 

@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include <lib/assert.h>
+#include "assert.h"
 
 #ifndef ckd_add
     #define ckd_add(result, lhs, rhs) \

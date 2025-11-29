@@ -72,11 +72,11 @@ get_next_range_of_lsb_zero_bits(const uint64_t number,
                                 const uint64_t end_index)
 {
     const uint64_t prev_end = range_get_end_assert(prev);
-    if (!index_in_bounds(prev_end, sizeof_bits(number))) {
-        return RANGE_EMPTY();
+    if (index_in_bounds(prev_end, sizeof_bits(number))) {
+        return get_range_of_lsb_zero_bits(number, prev_end, end_index);
     }
 
-    return get_range_of_lsb_zero_bits(number, prev_end, end_index);
+    return RANGE_EMPTY();
 }
 
 __debug_optimize(3) struct range
@@ -85,9 +85,9 @@ get_next_range_of_lsb_one_bits(const uint64_t number,
                                const uint64_t end_index)
 {
     const uint64_t prev_end = range_get_end_assert(prev);
-    if (!index_in_bounds(prev_end, sizeof_bits(number))) {
-        return RANGE_EMPTY();
+    if (index_in_bounds(prev_end, sizeof_bits(number))) {
+        return get_range_of_lsb_one_bits(number, prev_end, end_index);
     }
 
-    return get_range_of_lsb_one_bits(number, prev_end, end_index);
+    return RANGE_EMPTY();
 }

@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include <stdio.h>
 #include <lib/adt/hashmap.h>
 
 uint32_t hasher(void *const key, const struct hashmap *const hashmap) {
@@ -71,4 +72,5 @@ void test_hashmap() {
     test_remove(&hashmap, /*object=*/9);
 
     hashmap_destroy(&hashmap);
+    printf("hasmap: All tests passed!\n");
 }

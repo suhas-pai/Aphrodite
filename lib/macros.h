@@ -153,17 +153,43 @@
 #define carr_foreach_mut_rev_from_index(arr, name, index) \
     for (auto name = (arr) + (index); name >= (arr); name--)
 
+#define carr_copy(dest, src, count) arrptr_copy((dest), (src), (count))
+
 #define arrptr_back(the_arr, count) ((the_arr) + ((count) - 1))
 #define arrptr_end(the_arr, count) ((the_arr) + (count))
 
 #define arrptr_size(object_size, count) ((object_size) * (count))
+#define arrptr_count(the_arr, total_size) ((total_size) / sizeof(*(the_arr)))
 
 #define arrptr_rbegin(the_arr, count) arrptr_back(the_arr, count)
 #define arrptr_rend(the_arr) ((the_arr) - 1)
 
-#define ptrrange_rbegin(the_arr, the_end) ((the_end) - 1)
-#define ptrrange_rback(the_arr) (the_arr)
-#define ptrrange_rend(the_arr, the_end) ((the_arr) - 1)
+#define arrptr_copy(dest, src, count) \
+    do { \
+        switch (sizeof(*(src))) { \
+            case sizeof(uint16_t): \
+                memcpy16(cast_to_ptr(uint16_t *, (dest)), \
+                         cast_to_ptr(const uint16_t *, (src)), \
+                         (count)); \
+                break; \
+            case sizeof(uint32_t): \
+                memcpy32(cast_to_ptr(uint32_t *, (dest)), \
+                         cast_to_ptr(const uint32_t *, (src)), \
+                         (count)); \
+                break; \
+            case sizeof(uint64_t): \
+                memcpy64(cast_to_ptr(uint64_t *, (dest)), \
+                         cast_to_ptr(const uint64_t *, (src)), \
+                         (count)); \
+                break; \
+            default: \
+                memcpy((dest), (src), arrptr_size(sizeof(*(src)), (count))); \
+                break; \
+        } \
+    } while (0)
+
+#define arrptr_copy_nocheck(dest, src, count) \
+    memcpy((dest), (src), arrptr_size(sizeof(*(src)), (count)))
 
 #define arrptr_foreach(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
@@ -174,6 +200,10 @@
     for (auto name = &(the_arr)[0]; \
          name < arrptr_end((the_arr), (count)); \
          name++)
+
+#define ptrrange_rbegin(the_end) ((the_end) - 1)
+#define ptrrange_rback(the_arr) (the_arr)
+#define ptrrange_rend(the_arr) ((the_arr) - 1)
 
 #define arrptr_foreach_rev(the_arr, count, name) \
     const auto h_var(arr) = (the_arr); \
@@ -195,19 +225,35 @@
 #define ptrrange_foreach_mut(the_arr, the_end, name) \
     for (auto name = &(the_arr)[0]; name < (the_end); name++)
 
+#define ptrrange_foreach_safe(the_arr, the_end, name) \
+    const auto h_var(p_arr) = (the_arr); \
+    const auto h_var(p_end) = (the_end); \
+    const auto h_var(p_count) = \
+        arrptr_count(h_var(p_arr), distance(h_var(p_arr), h_var(p_end))); \
+    arrptr_foreach(h_var(p_arr), h_var(p_count), name)
+
+#define ptrrange_foreach_safe_mut(the_arr, the_end, name) \
+    for (auto name = &(the_arr)[0]; name < (const void *)(the_end); name++)
+
 #define ptrrange_foreach_rev(the_arr, the_end, name) \
-    const auto h_var(begin) = ptrrange_rbegin(the_arr, the_end); \
+    const auto h_var(begin) = ptrrange_rbegin(the_end); \
     const auto h_var(end) = ptrrange_rback(the_arr); \
-    for (auto name = h_var(begin); name >= h_var(end); name--)
+    for (auto name = h_var(begin); \
+         (const void *)name >= (const void *)h_var(end); \
+         name--)
 
 #define ptrrange_foreach_rev_mut(the_arr, the_end, name) \
-    for (auto name = ptrrange_rbegin(the_arr); \
-         name >= ptrrange_rback(the_end); \
+    for (auto name = ptrrange_rbegin(the_end); \
+         (const void *)name >= (const void *)ptrrange_rback(the_end); \
          name--)
 
 #define for_upto_limit(lim, i) \
     const auto h_var(limit) = (lim); \
     for (auto i = (typeof(lim))0; i < h_var(limit); i++)
+
+#define for_upto_limit_rev(lim, i) \
+    const auto h_var(limit) = (lim); \
+    for (int64_t i = (int64_t)h_var(limit); i >= (typeof(lim))0; i--)
 
 #define swap(a, b) ({ \
     const auto __swap_tmp = (b); \

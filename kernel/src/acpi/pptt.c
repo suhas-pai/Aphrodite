@@ -8,6 +8,28 @@
 #include "acpi/pptt.h"
 #include "dev/printk.h"
 
+static inline enum os_acpi_pptt_cache_type_node_attr_alloc_kind
+get_alloc_kind_from_attributes(const uint8_t attributes) {
+    return (enum os_acpi_pptt_cache_type_node_attr_alloc_kind)
+        (attributes & __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND);
+}
+
+static inline enum os_acpi_pptt_cache_type_node_attr_cache_kind
+get_cache_kind_from_attributes(const uint8_t attributes) {
+    return (enum os_acpi_pptt_cache_type_node_attr_cache_kind)
+        (attributes &
+            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND) >>
+                OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND_SHIFT;
+}
+
+static inline enum os_acpi_pptt_cache_type_node_attr_write_policy
+get_write_policy_from_attributes(const uint8_t attributes) {
+    return (enum os_acpi_pptt_cache_type_node_attr_write_policy)
+        (attributes &
+            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY) >>
+                OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_SHIFT;
+}
+
 void pptt_init(const struct os_acpi_pptt *const pptt) {
     uint32_t offset = offsetof(struct os_acpi_pptt, buffer);
     while (index_in_bounds(offset, pptt->sdt.length)) {
@@ -91,35 +113,31 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                 }
 
                 const auto alloc_kind =
-                    (enum os_acpi_pptt_cache_type_node_attr_alloc_kind)
-                        node->attributes &
-                            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_ALLOC_KIND;
+                    get_alloc_kind_from_attributes(node->attributes);
 
                 const char *alloc_kind_str = "unknown";
                 switch (alloc_kind) {
-                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ_ALLOC:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ:
                         alloc_kind_str = "read-alloc";
                         break;
-                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE_ALLOC:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_WRITE:
                         alloc_kind_str = "write-alloc";
                         break;
-                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC:
-                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_ALLOC_2:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_RDWR_2:
                         alloc_kind_str = "read-write-alloc";
                         break;
                 }
 
                 const auto cache_kind =
-                    (enum os_acpi_pptt_cache_type_node_attr_cache_kind)
-                        node->attributes &
-                            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
+                    get_cache_kind_from_attributes(node->attributes);
 
                 const char *cache_kind_str = "unknown";
                 switch (cache_kind) {
                     case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_DATA:
                         cache_kind_str = "data";
                         break;
-                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTR:
                         cache_kind_str = "instruction";
                         break;
                     case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_UNIFIED:
@@ -129,16 +147,14 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                 }
 
                 const auto wr_policy =
-                    (enum os_acpi_pptt_cache_type_node_attr_write_policy)
-                        node->attributes &
-                            __OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_CACHE_KIND;
+                    get_write_policy_from_attributes(node->attributes);
 
                 const char *wr_policy_str = "unknown";
                 switch (wr_policy) {
                     case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_WRITE_POLICY_BACK:
                         wr_policy_str = "write-back";
                         break;
-                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTRUCTION:
+                    case OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_CACHE_KIND_INSTR:
                         wr_policy_str = "write-through";
                         break;
                 }

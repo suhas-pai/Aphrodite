@@ -65,13 +65,13 @@ void madt_init(const struct os_acpi_madt *const madt) {
          offset += iter->length, index++)
     {
         iter =
-            (const struct os_acpi_madt_entry_header *)
-                &madt->madt_entries[offset];
+            reg_to_ptr(const struct os_acpi_madt_entry_header,
+                       &madt->madt_entries,
+                       offset);
 
         switch (iter->kind) {
             case OS_ACPI_MADT_ENTRY_KIND_CPU_LOCAL_APIC: {
-                if (iter->length !=
-                        sizeof(struct os_acpi_madt_entry_cpu_lapic))
+                if (iter->length != sizeof(struct os_acpi_madt_entry_cpu_lapic))
                 {
                     printk(LOGLEVEL_INFO,
                            "madt: invalid local-apic entry at "
@@ -146,7 +146,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                const auto hdr =
+                const struct os_acpi_madt_entry_iso *const hdr =
                     (const struct os_acpi_madt_entry_iso *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -188,7 +188,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                const auto hdr =
+                const struct os_acpi_madt_entry_nmi_src *const hdr =
                     (const struct os_acpi_madt_entry_nmi_src *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -216,7 +216,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                     continue;
                 }
 
-                const auto hdr =
+                const struct os_acpi_madt_entry_nmi *const hdr =
                     (const struct os_acpi_madt_entry_nmi *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -258,7 +258,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__x86_64__)
-                const auto hdr =
+                const struct os_acpi_madt_entry_lapic_addr_override *const hdr =
                     (const struct os_acpi_madt_entry_lapic_addr_override *)iter;
 
                 printk(LOGLEVEL_INFO,

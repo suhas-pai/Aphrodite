@@ -76,7 +76,7 @@ void test_avltree() {
     insert_node(&tree, 73);
     insert_node(&tree, 71);
 
-    print_tree(&tree);
+    // print_tree(&tree);
     const avlnode_compare_key_t compare_identity = identify;
 
     free(avltree_delete(&tree, (void *)53, compare_identity, nullptr));
@@ -89,6 +89,6 @@ void test_avltree() {
     free(avltree_delete(&tree, (void *)73, compare_identity, nullptr));
     free(avltree_delete(&tree, (void *)71, compare_identity, nullptr));
 
-    printf("After deleting, tree should be null\n");
     assert(tree.root == nullptr);
+    printf("avltree: All tests passed!\n");
 }

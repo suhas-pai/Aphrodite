@@ -81,7 +81,7 @@ pci_domain_write_64(const struct pci_domain *domain,
 
 #define pci_read(entity, type, field) \
     ({ \
-        auto h_var(result) = (typeof_field(type, field))0; \
+        typeof_field(type, field) h_var(result); \
         auto h_var(bus) = pci_entity_get_bus(entity); \
         \
         switch (sizeof_field(type, field)) { \

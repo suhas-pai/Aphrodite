@@ -690,8 +690,7 @@ bool ahci_spec_hba_port_init(struct ahci_hba_port *const port) {
     }
 
     struct ahci_hba_port_cmdhdr_info *const cmdhdr_info_list =
-        kmalloc(sizeof(struct ahci_hba_port_cmdhdr_info)
-                * AHCI_HBA_CMD_HDR_COUNT);
+        kmalloc_arr(struct ahci_hba_port_cmdhdr_info, AHCI_HBA_CMD_HDR_COUNT);
 
     if (cmdhdr_info_list == nullptr) {
         free_page(cmd_list_page);

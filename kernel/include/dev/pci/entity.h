@@ -47,7 +47,6 @@ struct pci_entity {
     uint8_t interrupt_pin;
 
     bool supports_pcie : 1;
-    bool msix_enabled : 1;
 
     uint8_t max_bar_count : 3;
     uint8_t msi_pcie_offset;

@@ -104,7 +104,7 @@ try_contention(struct mutex *const mutex,
         (remove_has_waiter ? rm_mask(*flags, __MUTEX_FLAGS_HAS_WAITER) : *flags)
       | __MUTEX_FLAGS_CONTENDED;
 
-    if (atomic_compare_exchange_flags(mutex, flags,desired)) {
+    if (atomic_compare_exchange_flags(mutex, flags, desired)) {
         // As the sole contender, we can now attempt to acquire the lock.
         // If there is no owner, the lock can be acquired, which the caller will
         // do by atomically-storing either our thread pointer or the
