@@ -319,12 +319,12 @@ bool ps2_keyboard_probe(struct device *const the_device) {
     }
 
     const port_t input_buffer_port =
-        array_front(&resources->io_list, const struct os_acpi_io_info)->minimum;
+        array_front(resources->io_list, const struct os_acpi_io_info)->minimum;
     const port_t read_status_port =
-        array_at(&resources->io_list, const struct os_acpi_io_info, 1)->minimum;
+        array_at(resources->io_list, const struct os_acpi_io_info, 1)->minimum;
 
     const auto keyboard_irq =
-        array_front(&resources->irq_list, const struct os_acpi_irq_info);
+        array_front(resources->irq_list, const struct os_acpi_irq_info);
 
     const irq_number_t keyboard_irq_num = keyboard_irq->irq_list[0];
     ps2_init_keyboard(read_status_port, input_buffer_port, keyboard_irq_num);

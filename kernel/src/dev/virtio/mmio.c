@@ -68,7 +68,7 @@ static bool virtio_mmio_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_reg_info *const reg_info =
-        array_front(&reg->list, const struct devicetree_prop_reg_info);
+        array_front(reg->list, const struct devicetree_prop_reg_info);
 
     if (reg_info->size < sizeof(struct virtio_mmio_device)) {
         printk(LOGLEVEL_WARN,

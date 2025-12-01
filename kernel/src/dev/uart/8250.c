@@ -227,7 +227,7 @@ static bool uart8250_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_reg_info *const reg =
-        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+        array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
     const struct devicetree_prop_clock_frequency *const clock_freq_prop =
         cast_to_ptr(const struct devicetree_prop_clock_frequency *,

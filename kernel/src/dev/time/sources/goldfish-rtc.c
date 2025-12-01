@@ -86,7 +86,7 @@ static bool goldfish_rtc_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_reg_info *const reg =
-        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+        array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
     if (!is_page_aligned(reg->address)) {
         printk(LOGLEVEL_WARN,

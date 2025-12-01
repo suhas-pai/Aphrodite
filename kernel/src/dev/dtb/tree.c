@@ -18,7 +18,6 @@ __debug_optimize(3) struct devicetree *devicetree_alloc() {
     }
 
     devicetree_init_fields(tree, /*root=*/nullptr);
-
     struct devicetree_node *const root =
         simple_alloc(&tree->alloc, sizeof(*root));
 
@@ -72,7 +71,7 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
     }
 
     struct devicetree_node *node = tree->root;
-    path_sv_foreach_component(path, component_sv) {
+    path_sv_foreach_component(path, component_sv, /*skip_root=*/true) {
         bool found = false;
         devicetree_node_foreach_child(node, iter) {
             if (sv_equals(iter->name, component_sv)) {
@@ -81,11 +80,12 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
             }
         }
 
-        if (!found) {
-            return nullptr;
+        if (found) {
+            node = iter;
+            continue;
         }
 
-        node = iter;
+        break;
     }
 
     return nullptr;

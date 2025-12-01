@@ -353,8 +353,8 @@ bool aplic_dtb_probe(struct device *const the_device) {
             return false;
         }
 
-        struct devicetree_prop_reg_info *const reg_info =
-            array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+        const struct devicetree_prop_reg_info *const reg_info =
+            array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg_info->size < sizeof(struct aplic_registers)) {
             printk(LOGLEVEL_WARN,

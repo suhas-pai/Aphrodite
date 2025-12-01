@@ -102,7 +102,7 @@ static bool clint_dtb_probe(struct device *const the_device) {
         }
 
         const struct devicetree_prop_reg_info *const reg =
-            array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+            array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg->size < sizeof(struct clint_regs)) {
             printk(LOGLEVEL_WARN,
@@ -117,13 +117,15 @@ static bool clint_dtb_probe(struct device *const the_device) {
         }
     }
     {
-        struct devicetree_node *const cpus_node =
-            devicetree_get_node_at_path(tree, SV_STATIC("/cpus"));
+        const struct string_view path = SV_STATIC("/cpus");
+        const struct devicetree_node *const cpus_node =
+            devicetree_get_node_at_path(tree, path);
 
         if (cpus_node == nullptr) {
             printk(LOGLEVEL_WARN,
-                   "clint: failed to init because node at path \"/cpus\" is "
-                   "missing\n");
+                   "clint: failed to init because node at "
+                   "path \"" SV_FMT "\" is missing\n",
+                   SV_FMT_ARGS(path));
             return false;
         }
 

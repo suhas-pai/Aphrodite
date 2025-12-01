@@ -645,8 +645,8 @@ static bool gicv3_dtb_probe(struct device *const the_driver) {
         return false;
     }
 
-    const auto dist_reg_info =
-        array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+    const struct devicetree_prop_reg_info *const dist_reg_info =
+        array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
     if (dist_reg_info->size < sizeof(struct gicd_v3_registers)) {
         printk(LOGLEVEL_WARN,
@@ -656,8 +656,10 @@ static bool gicv3_dtb_probe(struct device *const the_driver) {
     }
 
     struct range redist_range = RANGE_EMPTY();
-    const auto redist_reg_info =
-        array_at(&reg_prop->list, struct devicetree_prop_reg_info, /*index=*/1);
+    const struct devicetree_prop_reg_info *const redist_reg_info =
+        array_at(reg_prop->list,
+                 const struct devicetree_prop_reg_info,
+                 /*index=*/1);
 
     if (!range_create_and_verify(redist_reg_info->address,
                                  redist_reg_info->size,

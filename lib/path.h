@@ -24,8 +24,11 @@ bool path_sv_is_relative(struct string_view path);
 struct string_view
 path_sv_filename_without_extension(struct string_view path);
 
-struct string_view path_cstr_get_first_component(const char *c_str);
-struct string_view path_sv_get_first_component(struct string_view path);
+struct string_view
+path_cstr_get_first_component(const char *c_str, bool skip_root);
+
+struct string_view
+path_sv_get_first_component(struct string_view path, bool skip_root);
 
 struct string_view
 path_cstr_get_next_component(const char *c_str,
@@ -35,15 +38,21 @@ struct string_view
 path_sv_get_next_component(struct string_view path,
                            struct string_view prev_component);
 
-#define path_cstr_foreach_component(the_path, iter) \
+#define path_cstr_foreach_component(the_path, iter, the_skip_root) \
     const auto h_var(path) = (the_path); \
-    for (struct string_view iter = path_cstr_get_first_component(h_var(path)); \
+    const auto h_var(skip) = (the_skip_root); \
+\
+    for (struct string_view iter = \
+            path_cstr_get_first_component(h_var(path), h_var(skip)); \
          !sv_is_empty(iter); \
          iter = path_cstr_get_next_component(h_var(path), iter))
 
-#define path_sv_foreach_component(the_path, iter) \
+#define path_sv_foreach_component(the_path, iter, the_skip_root) \
     const auto h_var(path) = (the_path); \
-    for (struct string_view iter = path_sv_get_first_component(h_var(path)); \
+    const auto h_var(skip) = (the_skip_root); \
+\
+    for (struct string_view iter = \
+            path_sv_get_first_component(h_var(path), h_var(skip)); \
          !sv_is_empty(iter); \
          iter = path_sv_get_next_component(h_var(path), iter))
 

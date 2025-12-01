@@ -134,6 +134,10 @@ __debug_optimize(3) char sv_back(const struct string_view sv) {
 
 __debug_optimize(3)
 int64_t sv_find_char(const struct string_view sv, const char ch) {
+    if (__builtin_expect(sv_is_empty(sv), 0)) {
+        return SV_NPOS;
+    }
+
     return sv_find_char_from_index(sv, 0, ch);
 }
 

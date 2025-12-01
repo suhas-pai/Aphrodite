@@ -699,10 +699,10 @@ static bool gicv2_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_reg_info *const dist_reg_info =
-        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+        array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
     const struct devicetree_prop_reg_info *const cpu_reg_info =
-        array_at(&reg_prop->list,
+        array_at(reg_prop->list,
                  const struct devicetree_prop_reg_info,
                  /*index=*/1);
 
@@ -755,7 +755,7 @@ static bool gicv2_dtb_probe(struct device *const the_device) {
         }
 
         const struct devicetree_prop_reg_info *const msi_reg_info =
-            array_front(&msi_reg_prop->list,
+            array_front(msi_reg_prop->list,
                         const struct devicetree_prop_reg_info);
 
         if (msi_reg_info->size != 0x1000) {

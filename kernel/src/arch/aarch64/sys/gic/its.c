@@ -610,8 +610,8 @@ gic_its_init_from_dtb(const struct devicetree *const tree,
         return nullptr;
     }
 
-    struct devicetree_prop_reg_info *const msi_reg_info =
-        array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+    const struct devicetree_prop_reg_info *const msi_reg_info =
+        array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
     if (msi_reg_info->size < sizeof(struct gic_its_registers)) {
         printk(LOGLEVEL_INFO, "gic/its: reg's range is too small\n");

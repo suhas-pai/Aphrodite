@@ -77,14 +77,16 @@ void *array_get_at(struct array array, uint32_t index);
 void *array_get_front(struct array array);
 void *array_get_back(struct array array);
 
-#define array_at(array, type, index) ({ \
-    assert((array)->object_size == sizeof(type)); \
-    ((type *)array_get_at(*(array), index)); \
+#define array_at(the_array, type, index) ({ \
+    const auto h_var(array) = (the_array); \
+    assert(h_var(array).object_size == sizeof(type)); \
+    ((type *)array_get_at(h_var(array), index)); \
 })
 
-#define array_front(array, type) ({ \
-    assert((array)->object_size == sizeof(type)); \
-    ((type *)array_get_front(*(array))); \
+#define array_front(the_array, type) ({ \
+    const auto h_var(array) = (the_array); \
+    assert(h_var(array).object_size == sizeof(type)); \
+    ((type *)array_get_front(h_var(array))); \
 })
 
 #define array_back(array, type) ({ \

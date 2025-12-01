@@ -26,7 +26,7 @@ void simple_alloc_destroy(struct simple_alloc *const alloc) {
     struct page *page = nullptr;
     list_foreach(&alloc->page_list, simple_alloc.list, page) {
         if (page->simple_alloc.refcount != 0) {
-            printk(LOGLEVEL_WARN,
+            printk(LOGLEVEL_CRITICAL,
                    "mm: leaks detected in simple_alloc page %p, "
                    "count: %" PRIu32 "\n",
                    page,

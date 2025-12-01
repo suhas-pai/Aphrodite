@@ -151,7 +151,7 @@ bool plic_dtb_probe(struct device *const device) {
         }
 
         const struct devicetree_prop_reg_info *const reg_info =
-            array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+            array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg_info->size < sizeof(struct plic_registers)) {
             printk(LOGLEVEL_WARN,

@@ -618,7 +618,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const auto imsic =
+                const struct os_acpi_madt_riscv_imsic *const imsic =
                     (const struct os_acpi_madt_riscv_imsic *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -657,7 +657,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const auto aplic =
+                const struct os_acpi_madt_riscv_aplic *const aplic =
                     (const struct os_acpi_madt_riscv_aplic *)iter;
 
                 printk(LOGLEVEL_INFO,
@@ -697,7 +697,7 @@ void madt_init(const struct os_acpi_madt *const madt) {
                 }
 
             #if defined(__riscv64)
-                const auto plic =
+                const struct os_acpi_madt_riscv_plic *const plic =
                     (const struct os_acpi_madt_riscv_plic *)iter;
 
                 printk(LOGLEVEL_INFO,

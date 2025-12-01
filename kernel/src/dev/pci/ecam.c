@@ -396,7 +396,7 @@ static bool pci_ecam_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_reg_info *const mmio_reg =
-        array_front(&reg_prop->list, const struct devicetree_prop_reg_info);
+        array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
     struct range mmio_range = RANGE_EMPTY();
     if (!range_create_and_verify(mmio_reg->address,

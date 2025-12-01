@@ -35,8 +35,8 @@ static void setup_from_dtb(const uint32_t hartid) {
         assert_msg(array_item_count(reg_prop->list) == 1,
                    "cpu: 'reg' prop is of the wrong format");
 
-        struct devicetree_prop_reg_info *const reg_info =
-            array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+        const struct devicetree_prop_reg_info *const reg_info =
+            array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
         assert_msg(reg_info->size == 0,
                    "cpu: 'reg' prop is of the wrong format");

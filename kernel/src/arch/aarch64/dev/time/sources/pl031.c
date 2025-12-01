@@ -57,8 +57,8 @@ static bool pl031_dtb_probe(struct device *const the_device) {
         return false;
     }
 
-    struct devicetree_prop_reg_info *const reg_info =
-        array_front(&reg_list, struct devicetree_prop_reg_info);
+    const struct devicetree_prop_reg_info *const reg_info =
+        array_front(reg_list, const struct devicetree_prop_reg_info);
 
     struct range reg_range = RANGE_EMPTY();
     if (!range_create_and_verify(reg_info->address, reg_info->size, &reg_range))

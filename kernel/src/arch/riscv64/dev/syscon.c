@@ -115,8 +115,8 @@ bool syscon_dtb_probe(struct device *const the_device) {
             return false;
         }
 
-        struct devicetree_prop_reg_info *const reg =
-            array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+        const struct devicetree_prop_reg_info *const reg =
+            array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg->size != SYSCON_MMIO_SIZE) {
             printk(LOGLEVEL_WARN,

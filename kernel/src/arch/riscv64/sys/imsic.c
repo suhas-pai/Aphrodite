@@ -197,8 +197,8 @@ imsic_init_from_dtb(const struct devicetree *const tree,
             return false;
         }
 
-        struct devicetree_prop_reg_info *const reg =
-            array_front(&reg_prop->list, struct devicetree_prop_reg_info);
+        const struct devicetree_prop_reg_info *const reg =
+            array_front(reg_prop->list, const struct devicetree_prop_reg_info);
 
         if (reg->size < PAGE_SIZE) {
             printk(LOGLEVEL_WARN,

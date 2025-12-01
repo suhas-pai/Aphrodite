@@ -1526,7 +1526,11 @@ __debug_optimize(3) static inline
 bool node_has_gic_compat(const struct devicetree_node *const node) {
     const struct devicetree_prop_compat *const compat_prop =
         cast_to_ptr(const struct devicetree_prop_compat *,
-             devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT));
+                    devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT));
+
+    if (compat_prop == nullptr) {
+        return false;
+    }
 
     carr_foreach(gicv2_compat_sv_list, iter) {
         if (devicetree_prop_compat_has_sv(compat_prop, *iter)) {
@@ -1630,8 +1634,8 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
 
         const struct devicetree_prop_intr_parent *const intr_parent =
             cast_to_ptr(const struct devicetree_prop_intr_parent *,
-                 devicetree_node_get_prop(parent,
-                                          DEVICETREE_PROP_INTR_PARENT));
+                        devicetree_node_get_prop(parent,
+                                                 DEVICETREE_PROP_INTR_PARENT));
 
         if (intr_parent == nullptr) {
             printk(LOGLEVEL_WARN,
@@ -1673,8 +1677,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
 
         const struct devicetree_prop_intr_cells *const intr_cells_prop =
             (const struct devicetree_prop_intr_cells *)
-                devicetree_node_get_prop(intc_node,
-                                         DEVICETREE_PROP_INTR_CELLS);
+                devicetree_node_get_prop(intc_node, DEVICETREE_PROP_INTR_CELLS);
 
         if (intr_cells_prop == nullptr) {
             printk(LOGLEVEL_WARN,
