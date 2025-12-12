@@ -721,7 +721,7 @@ strtoul(const char *const str, char **const endptr, const int base) {
     const enum str_to_num_result error =
         cstr_to_unsigned(str,
                          options,
-                         cast_to_ptr(const char **, endptr),
+                         cast_to_ptr(const char *, endptr),
                          &result);
 
     if (error != E_STR_TO_NUM_OK) {

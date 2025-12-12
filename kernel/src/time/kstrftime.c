@@ -45,7 +45,7 @@ time_print_format_callback(const struct strftime_spec_info *const spec_info,
     (void)cb_info;
     (void)should_cont_out;
 
-    putk_sv(cast_to_ptr(enum log_level, cb_info), sv);
+    putk_sv((enum log_level)(uint64_t)cb_info, sv);
     return sv.length;
 }
 

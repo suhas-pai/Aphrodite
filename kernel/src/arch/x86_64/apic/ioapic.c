@@ -122,7 +122,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
                "base %p is not aligned on a page boundary. ignoring\n",
                apic_id,
                gsib,
-               cast_to_ptr(void *, base));
+               cast_to_ptr(void, base));
         return;
     }
 
@@ -133,7 +133,7 @@ ioapic_add(const uint8_t apic_id, const uint32_t base, const uint32_t gsib) {
                "base %p overflows. ignoring\n",
                apic_id,
                gsib,
-               cast_to_ptr(void *, base));
+               cast_to_ptr(void, base));
         return;
     }
 

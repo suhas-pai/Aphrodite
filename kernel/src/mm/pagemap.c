@@ -3,34 +3,22 @@
  * © suhas pai
  */
 
-#if defined(__x86_64__)
-    #include "asm/regs.h"
-#elif defined(__aarch64__)
-    #if defined(AARCH64_CONFIG_16K_PAGES)
-        #include "asm/tcr.h"
-    #endif /* defined(AARCH64_CONFIG_16K_PAGES) */
-    #include "asm/ttbr.h"
-#elif defined(__riscv64)
-    #include "asm/satp.h"
-#elif defined(__loongarch64)
-    #include "asm/csr.h"
-#endif /* defined(__x86_64__) */
-
 #include "cpu/info.h"
 
 #include "mm/walker.h"
 #include "mm/pgmap.h"
+#include "mm/switch.h"
 
 #include "sched/process.h"
 
 __debug_optimize(3) struct pagemap pagemap_empty() {
     struct pagemap result = {
-    #if PAGEMAP_HAS_SPLIT_ROOT
+    #if PGT_HAS_SPLIT_ROOT
         .lower_root = nullptr,
         .higher_root = nullptr,
     #else
         .root = nullptr,
-    #endif /* PAGEMAP_HAS_SPLIT_ROOT */
+    #endif /* PGT_HAS_SPLIT_ROOT */
 
         .addrspace = ADDRSPACE_INIT(result.addrspace),
         .addrspace_lock = SPINLOCK_INIT(),
@@ -43,7 +31,7 @@ __debug_optimize(3) struct pagemap pagemap_empty() {
     return result;
 }
 
-#if PAGEMAP_HAS_SPLIT_ROOT
+#if PGT_HAS_SPLIT_ROOT
     __debug_optimize(3) struct pagemap
     pagemap_create(pte_t *const lower_root, pte_t *const higher_root) {
         struct pagemap result = {
@@ -76,7 +64,7 @@ __debug_optimize(3) struct pagemap pagemap_empty() {
         refcount_init(&result.refcount);
         return result;
     }
-#endif /* PAGEMAP_HAS_SPLIT_ROOT */
+#endif /* PGT_HAS_SPLIT_ROOT */
 
 bool
 pagemap_find_space_and_add_vma(struct pagemap *const pagemap,
@@ -150,39 +138,20 @@ pagemap_add_vma(struct pagemap *const pagemap,
 }
 
 void switch_to_pagemap(struct pagemap *const pagemap) {
-#if PAGEMAP_HAS_SPLIT_ROOT
+#if PGT_HAS_SPLIT_ROOT
     assert(pagemap->lower_root != nullptr);
     assert(pagemap->higher_root != nullptr);
 #else
     assert(pagemap->root != nullptr);
-#endif /* PAGEMAP_HAS_SPLIT_ROOT */
+#endif /* PGT_HAS_SPLIT_ROOT */
 
     with_spinlock_intr_disabled(&pagemap->cpu_lock, {
-    #if defined(__x86_64__)
-        cr3_write(virt_to_phys(pagemap->root));
-    #elif defined(__aarch64__)
-        ttbr0_el1_write(virt_to_phys(pagemap->lower_root));
-        ttbr1_el1_write(virt_to_phys(pagemap->higher_root));
-
-        #if defined(AARCH64_CONFIG_16K_PAGES)
-            tcr_el1_write(rm_mask(tcr_el1_read(), __TCR_TG1)
-                        | TCR_TG1_16KIB << TCR_TG1_SHIFT);
-        #endif /* defined(AARCH64_CONFIG_16K_PAGES) */
-
-        asm volatile ("dsb sy; isb" ::: "memory");
-    #elif defined(__riscv64)
-        const uint64_t value =
-            (SATP_MODE_39_BIT_PAGING + PAGING_MODE) << SATP_PHYS_MODE_SHIFT
-          | (virt_to_phys(pagemap->root) >> PML1_SHIFT);
-
-        csr_write(satp, value);
-        asm volatile ("sfence.vma" ::: "memory");
-    #elif defined(__loongarch64)
-        csr_write(pgdl, virt_to_phys(pagemap->lower_root));
-        csr_write(pgdh, virt_to_phys(pagemap->higher_root));
+    #if PGT_HAS_SPLIT_ROOT
+        mm_switch_root(virt_to_phys(pagemap->lower_root),
+                       virt_to_phys(pagemap->higher_root));
     #else
-        verify_not_reached();
-    #endif /* defined(__x86_64__) */
+        mm_switch_root(virt_to_phys(pagemap->root));
+    #endif /* PGT_HAS_SPLIT_ROOT */
 
         list_remove(&this_cpu_mut()->pagemap_node);
         list_add(&pagemap->cpu_list, &this_cpu_mut()->pagemap_node);

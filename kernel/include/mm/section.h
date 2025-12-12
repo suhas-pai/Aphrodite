@@ -47,5 +47,7 @@ page_section_init(struct page_section *section,
 struct range page_section_get_pfn_range(const struct page_section *section);
 struct page_section *mm_get_page_section_list();
 
+uint8_t mm_get_page_section_count();
+
 struct page_section *phys_to_section(uint64_t phys);
 struct page_section *pfn_to_section(uint64_t phys);

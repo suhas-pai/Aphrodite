@@ -21,7 +21,7 @@ parse_array_prop(const struct fdt_property *const fdt_prop,
         return false;
     }
 
-    *data_out = cast_to_ptr(const fdt32_t *, fdt_prop->data);
+    *data_out = cast_to_ptr(const fdt32_t, fdt_prop->data);
     *length_out = (uint32_t)prop_length / sizeof(fdt32_t);
 
     return true;
@@ -48,7 +48,7 @@ parse_cell_pair(const fdt32_t **const iter_ptr,
 
             return true;
         case 2:
-            *result_out = fdt64_to_cpu(*cast_to_ptr(const fdt64_t *, iter));
+            *result_out = fdt64_to_cpu(*cast_to_ptr(const fdt64_t, iter));
             *iter_ptr = iter + cell_count;
 
             return true;
@@ -84,13 +84,13 @@ parse_cell_pair_and_flags(const fdt32_t **const iter_ptr,
 
             return true;
         case 2:
-            *result_out = fdt64_to_cpu(*cast_to_ptr(const fdt64_t *, iter));
+            *result_out = fdt64_to_cpu(*cast_to_ptr(const fdt64_t, iter));
             *iter_ptr = iter + cell_count;
 
             return true;
         case 3:
             *flags_out = fdt32_to_cpu(*(const fdt32_t *)iter);
-            *result_out = fdt64_to_cpu(*cast_to_ptr(const fdt64_t *, iter + 1));
+            *result_out = fdt64_to_cpu(*cast_to_ptr(const fdt64_t, iter + 1));
 
             *iter_ptr = iter + cell_count;
             return true;
@@ -330,7 +330,7 @@ parse_integer_prop(const struct fdt_property *const fdt_prop,
         return false;
     }
 
-    *int_out = fdt32_to_cpu(*cast_to_ptr(fdt32_t *, fdt_prop->data));
+    *int_out = fdt32_to_cpu(*cast_to_ptr(fdt32_t, fdt_prop->data));
     return true;
 }
 
@@ -350,7 +350,7 @@ parse_integer_list_prop(const struct fdt_property *const fdt_prop,
         return true;
     }
 
-    const fdt32_t *const num_list = cast_to_ptr(fdt32_t *, fdt_prop->data);
+    const fdt32_t *const num_list = cast_to_ptr(fdt32_t, fdt_prop->data);
 
     *array = ARRAY_INIT(sizeof(uint32_t));
     array_reserve_and_set_item_count(array, data_length);
@@ -372,7 +372,7 @@ parse_range_prop(const struct fdt_property *const fdt_prop,
         return false;
     }
 
-    fdt32_t *const data = cast_to_ptr(fdt32_t *, fdt_prop->data);
+    fdt32_t *const data = cast_to_ptr(fdt32_t, fdt_prop->data);
 
     range_out->front = fdt32_to_cpu(data[0]);
     range_out->size = fdt32_to_cpu(data[1]);
@@ -1437,7 +1437,7 @@ parse_node_prop(const void *const dtb,
     }
 
     other_prop->name = name;
-    other_prop->data = cast_to_ptr(const fdt32_t *, fdt_prop->data);
+    other_prop->data = cast_to_ptr(const fdt32_t, fdt_prop->data);
     other_prop->data_length = (uint32_t)prop_len;
 
     if (!array_add(&node->other_props, &other_prop)) {
@@ -1525,7 +1525,7 @@ parse_node_children(const void *const dtb,
 __debug_optimize(3) static inline
 bool node_has_gic_compat(const struct devicetree_node *const node) {
     const struct devicetree_prop_compat *const compat_prop =
-        cast_to_ptr(const struct devicetree_prop_compat *,
+        cast_to_ptr(const struct devicetree_prop_compat,
                     devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT));
 
     if (compat_prop == nullptr) {
@@ -1633,7 +1633,7 @@ bool devicetree_parse(struct devicetree *const tree, const void *const dtb) {
         struct devicetree_node *const parent = node->parent;
 
         const struct devicetree_prop_intr_parent *const intr_parent =
-            cast_to_ptr(const struct devicetree_prop_intr_parent *,
+            cast_to_ptr(const struct devicetree_prop_intr_parent,
                         devicetree_node_get_prop(parent,
                                                  DEVICETREE_PROP_INTR_PARENT));
 

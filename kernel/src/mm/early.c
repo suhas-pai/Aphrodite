@@ -425,12 +425,12 @@ static inline void init_table_page(struct page *const page) {
 
 __debug_optimize(3) void
 mm_early_refcount_alloced_map(const uint64_t virt_addr, const uint64_t length) {
-#if PAGEMAP_HAS_SPLIT_ROOT
+#if PGT_HAS_SPLIT_ROOT
     init_table_page(virt_to_page(kernel_process.pagemap.lower_root));
     init_table_page(virt_to_page(kernel_process.pagemap.higher_root));
 #else
     init_table_page(virt_to_page(kernel_process.pagemap.root));
-#endif /* PAGEMAP_HAS_SPLIT_ROOT */
+#endif /* PGT_HAS_SPLIT_ROOT */
 
     struct pg_walker walker;
     pgwalker_create(&walker,
@@ -869,7 +869,7 @@ uint64_t find_boundary_for_section_split(struct page_section *const section) {
 
 __debug_optimize(3) static inline void split_sections_for_zones() {
     arrptr_foreach_mut(mm_get_page_section_list(),
-                       mm_get_section_count(),
+                       mm_get_page_section_count(),
                        section)
     {
         const auto begin_zone = phys_to_zone(section->range.front);
@@ -891,8 +891,10 @@ __debug_optimize(3) static inline void split_sections_for_zones() {
 
 __debug_optimize(3) static inline void setup_zone_section_list() {
     uint32_t number = 1;
-
-    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
+    arrptr_foreach(mm_get_page_section_list(),
+                   mm_get_page_section_count(),
+                   sect)
+    {
         const struct range pfn_range = page_section_get_pfn_range(sect);
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
@@ -926,7 +928,10 @@ void mm_post_arch_init() {
     }
 #endif
 
-    arrptr_foreach(mm_get_page_section_list(), mm_get_section_count(), sect) {
+    arrptr_foreach(mm_get_page_section_list(),
+                   mm_get_page_section_count(),
+                   sect)
+    {
         mark_critical_pages(sect);
     }
 

@@ -23,7 +23,7 @@ sv_substring_from(const struct string_view sv, const uint32_t index) {
 
 __debug_optimize(3) struct string_view
 sv_substring_upto(const struct string_view sv, const uint32_t index) {
-    assert(index == sv.length || sv_has_index(sv, index));
+    assert(sv_has_index(sv, index) || index == sv.length);
     return sv_create_length(sv.begin, index);
 }
 
@@ -37,7 +37,7 @@ struct string_view sv_drop_front(const struct string_view sv) {
 }
 
 __debug_optimize(3) char *sv_begin_mut(const struct string_view sv) {
-    return cast_to_ptr(char *, sv.begin);
+    return cast_to_ptr(char, sv.begin);
 }
 
 __debug_optimize(3) const char *sv_end(const struct string_view sv) {
@@ -93,28 +93,28 @@ __debug_optimize(3) uint64_t sv_hash(const struct string_view sv) {
             case 1:
                 return sv.begin[0];
             case 2:
-                return *cast_to_ptr(uint16_t *, sv.begin);
+                return *cast_to_ptr(uint16_t, sv.begin);
             case 3:
-                return (uint64_t)*cast_to_ptr(uint16_t *, sv.begin) |
+                return (uint64_t)*cast_to_ptr(uint16_t, sv.begin) |
                        ((uint32_t)sv.begin[2] << 16);
             case 4:
-                return (uint64_t)*cast_to_ptr(uint16_t *, sv.begin) |
+                return (uint64_t)*cast_to_ptr(uint16_t, sv.begin) |
                        ((uint32_t)sv.begin[2] << 16) |
                        ((uint32_t)sv.begin[3] << 24);
             case 5:
-                return (uint64_t)*cast_to_ptr(uint32_t *, sv.begin) |
+                return (uint64_t)*cast_to_ptr(uint32_t, sv.begin) |
                        ((uint64_t)sv.begin[4] << 32);
             case 6:
-                return (uint64_t)*cast_to_ptr(uint32_t *, sv.begin) |
+                return (uint64_t)*cast_to_ptr(uint32_t, sv.begin) |
                        ((uint64_t)sv.begin[4] << 32) |
                        ((uint64_t)sv.begin[5] << 40);
             case 7:
-                return (uint64_t)*cast_to_ptr(uint32_t *, sv.begin) |
+                return (uint64_t)*cast_to_ptr(uint32_t, sv.begin) |
                        ((uint64_t)sv.begin[4] << 32) |
                        ((uint64_t)sv.begin[5] << 40) |
                        ((uint64_t)sv.begin[6] << 48);
             case 8:
-                return *cast_to_ptr(uint64_t *, sv.begin);
+                return *cast_to_ptr(uint64_t, sv.begin);
         }
     }
 
@@ -123,12 +123,12 @@ __debug_optimize(3) uint64_t sv_hash(const struct string_view sv) {
 }
 
 __debug_optimize(3) char sv_front(const struct string_view sv) {
-    assert(sv.length != 0);
+    assert(!sv_is_empty(sv));
     return sv.begin[0];
 }
 
 __debug_optimize(3) char sv_back(const struct string_view sv) {
-    assert(sv.length != 0);
+    assert(!sv_is_empty(sv));
     return sv.begin[sv.length - 1];
 }
 
@@ -193,7 +193,7 @@ bool sv_equals(const struct string_view sv, const struct string_view sv2) {
     }
 
     // Both svs are empty
-    if (__builtin_expect(sv.length == 0, 0)) {
+    if (__builtin_expect(sv_is_empty(sv), 0)) {
         return true;
     }
 

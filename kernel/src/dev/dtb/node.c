@@ -103,7 +103,7 @@ devicetree_node_has_compat_sv(const struct devicetree_node *const node,
                               const struct string_view sv)
 {
     const struct devicetree_prop_compat *const compat_prop =
-        cast_to_ptr(const struct devicetree_prop_compat *,
+        cast_to_ptr(const struct devicetree_prop_compat,
                     devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT));
 
     if (compat_prop != nullptr) {

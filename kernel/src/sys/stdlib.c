@@ -611,16 +611,15 @@ __debug_optimize(3) void *memset(void *dst, const int val, unsigned long n) {
 }
 
 __debug_optimize(3)
-void *memset_explicit(void *dst, const int val, const unsigned long n) {
+void *memset_explicit(void *const dst, const int val, const unsigned long n) {
     return memset(dst, val, n);
 }
 
 __debug_optimize(3)
 void *memchr(const void *const ptr, const int ch, const size_t count) {
-    const uint8_t *const end = arrptr_end((const uint8_t *)ptr, count);
-    for (const uint8_t *iter = (const uint8_t *)ptr; iter != end; iter++) {
+    arrptr_foreach((const uint8_t *)ptr, count, iter) {
         if (*iter == ch) {
-            return cast_to_ptr(void *, iter);
+            return cast_to_ptr(void, iter);
         }
     }
 

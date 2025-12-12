@@ -18,7 +18,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
     bool result = false;
     if (dtb_driver->match_flags & __DTB_DRIVER_MATCH_COMPAT) {
         const struct devicetree_prop_compat *const compat_prop =
-            cast_to_ptr(const struct devicetree_prop_compat *,
+            cast_to_ptr(const struct devicetree_prop_compat,
                         devicetree_node_get_prop(node, DEVICETREE_PROP_COMPAT));
 
         if (compat_prop == nullptr) {
@@ -43,7 +43,7 @@ dtb_init_nodes_for_driver(struct dtb_driver *const dtb_driver,
 
     if (dtb_driver->match_flags & __DTB_DRIVER_MATCH_DEVICE_TYPE) {
         const struct devicetree_prop_device_type *const device_type_prop =
-            cast_to_ptr(const struct devicetree_prop_device_type *,
+            cast_to_ptr(const struct devicetree_prop_device_type,
                         devicetree_node_get_prop(node,
                                                  DEVICETREE_PROP_DEVICE_TYPE));
 
@@ -118,7 +118,7 @@ __debug_optimize(3) struct dtb_bus *dtb_bus() {
     return &g_dtb_bus;
 }
 
-static void dtb_bus_init() {
+__debug_optimize(3) static void dtb_bus_init() {
     bus_register(&dtb_bus()->bus);
 }
 

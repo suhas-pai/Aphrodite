@@ -10,6 +10,7 @@ extern void test_avltree();
 extern void test_bitmap();
 extern void test_hashmap();
 extern void test_path();
+extern void test_range();
 
 int main() {
     test_convert();
@@ -19,6 +20,7 @@ int main() {
     test_bitmap();
     test_hashmap();
     test_path();
+    test_range();
 
     return 0;
 }

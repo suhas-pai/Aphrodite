@@ -5,6 +5,7 @@
 
 #include "sys/mmio.h"
 
+__debug_optimize(3)
 uint64_t mmio_read_size(volatile const void *const ptr, const size_t size) {
     switch (size) {
         case sizeof(uint8_t):
@@ -20,7 +21,7 @@ uint64_t mmio_read_size(volatile const void *const ptr, const size_t size) {
     verify_not_reached();
 }
 
-void
+__debug_optimize(3) void
 mmio_write_size(volatile void *const ptr,
                 const size_t size,
                 const uint64_t value)

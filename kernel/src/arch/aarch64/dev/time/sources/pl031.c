@@ -42,7 +42,7 @@ static bool pl031_dtb_probe(struct device *const the_device) {
         parent_of(the_device, struct dtb_device, device);
 
     const auto reg_prop =
-        cast_to_ptr(const struct devicetree_prop_reg *,
+        cast_to_ptr(const struct devicetree_prop_reg,
                     devicetree_node_get_prop(device->node,
                                              DEVICETREE_PROP_REG));
 

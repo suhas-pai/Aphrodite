@@ -141,6 +141,11 @@ int test_path() {
             comp_index++;
         }
 
+        if (comp_index != ti->components_count) {
+            printf("Error: Did not reach expected component count\n");
+            result = false;
+        }
+
         comp_index = 0;
         path_sv_foreach_component(ti->path, comp, /*skip_root=*/false) {
             if (!index_in_bounds(comp_index, ti->components_count)) {
@@ -150,6 +155,11 @@ int test_path() {
 
             check_sv_set_result(comp, ti->components[comp_index], result);
             comp_index++;
+        }
+
+        if (comp_index != ti->components_count) {
+            printf("Error: Did not reach expected component count\n");
+            result = false;
         }
 
         comp_index = ti->non_root_start_index;
@@ -163,6 +173,11 @@ int test_path() {
             comp_index++;
         }
 
+        if (comp_index != ti->components_count) {
+            printf("Error: Did not reach expected component count\n");
+            result = false;
+        }
+
         comp_index = ti->non_root_start_index;
         path_sv_foreach_component(ti->path, comp, /*skip_root=*/true) {
             if (!index_in_bounds(comp_index, ti->components_count)) {
@@ -172,6 +187,11 @@ int test_path() {
 
             check_sv_set_result(comp, ti->components[comp_index], result);
             comp_index++;
+        }
+
+        if (comp_index != ti->components_count) {
+            printf("Error: Did not reach expected component count\n");
+            result = false;
         }
     }
 

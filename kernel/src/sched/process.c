@@ -7,12 +7,12 @@
 
 __hidden struct process kernel_process = {
     .pagemap = (struct pagemap){
-    #if PAGEMAP_HAS_SPLIT_ROOT
+    #if PGT_HAS_SPLIT_ROOT
         .lower_root = nullptr, // setup later
         .higher_root = nullptr, // setup later
     #else
         .root = nullptr, // setup later
-    #endif /* defined(__aarch64__)*/
+    #endif /* PGT_HAS_SPLIT_ROOT */
 
         .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
         .cpu_lock = SPINLOCK_INIT(),

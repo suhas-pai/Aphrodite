@@ -100,7 +100,7 @@
 #define SECTOR_SIZE 512
 
 #define parent_of(ptr, type, name) \
-    cast_to_ptr(type *, (const void *)ptr - offsetof(type, name))
+    cast_to_ptr(type, (const void *)ptr - offsetof(type, name))
 
 #define h_var(token) VAR_CONCAT(VAR_CONCAT_3(__, token, __), __LINE__)
 #define countof(carr) (sizeof(carr) / sizeof((carr)[0]))
@@ -168,18 +168,18 @@
     do { \
         switch (sizeof(*(src))) { \
             case sizeof(uint16_t): \
-                memcpy16(cast_to_ptr(uint16_t *, (dest)), \
-                         cast_to_ptr(const uint16_t *, (src)), \
+                memcpy16(cast_to_ptr(uint16_t, (dest)), \
+                         cast_to_ptr(const uint16_t, (src)), \
                          (count)); \
                 break; \
             case sizeof(uint32_t): \
-                memcpy32(cast_to_ptr(uint32_t *, (dest)), \
-                         cast_to_ptr(const uint32_t *, (src)), \
+                memcpy32(cast_to_ptr(uint32_t, (dest)), \
+                         cast_to_ptr(const uint32_t, (src)), \
                          (count)); \
                 break; \
             case sizeof(uint64_t): \
-                memcpy64(cast_to_ptr(uint64_t *, (dest)), \
-                         cast_to_ptr(const uint64_t *, (src)), \
+                memcpy64(cast_to_ptr(uint64_t, (dest)), \
+                         cast_to_ptr(const uint64_t, (src)), \
                          (count)); \
                 break; \
             default: \
@@ -228,8 +228,11 @@
 #define ptrrange_foreach_safe(the_arr, the_end, name) \
     const auto h_var(p_arr) = (the_arr); \
     const auto h_var(p_end) = (the_end); \
+\
+    assert((const void *)h_var(p_arr) <= (const void *)h_var(p_end)); \
     const auto h_var(p_count) = \
         arrptr_count(h_var(p_arr), distance(h_var(p_arr), h_var(p_end))); \
+\
     arrptr_foreach(h_var(p_arr), h_var(p_count), name)
 
 #define ptrrange_foreach_safe_mut(the_arr, the_end, name) \
@@ -296,7 +299,13 @@
         bits_to_bytes_noround(__bits_to_bytes_bits__); \
 })
 
-#define cast_to_ptr(type, value) ((type)(uint64_t)(value))
+#define cast_to_ptr(type, value) ((type *)(uint64_t)(value))
+#define set_if_not(var, value) \
+    do { \
+        if (!var) { \
+            var = (value); \
+        } \
+    } while (0)
 
 #define bits_to_bytes_noround(bits) ((bits) / 8)
 #define bytes_to_bits(bits) ((bits) * 8)

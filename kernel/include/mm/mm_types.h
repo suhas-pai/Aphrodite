@@ -31,9 +31,9 @@ uint64_t pfn_to_phys_manual(uint64_t pfn);
 struct page;
 
 #define verify_page_pointer(p) ({ \
-    auto __verp = (uint64_t)(p); \
-    __verp >= PAGE_OFFSET && __verp < PAGE_END &&\
-    ((__verp - PAGE_OFFSET) % sizeof(struct page)) == 0; \
+    auto h_var(verp) = (uint64_t)(p); \
+    h_var(verp) >= PAGE_OFFSET && h_var(verp) < PAGE_END &&\
+    ((h_var(verp) - PAGE_OFFSET) % sizeof(struct page)) == 0; \
 })
 
 #define pfn_to_phys(pfn) page_to_phys(pfn_to_page(pfn))

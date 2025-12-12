@@ -82,8 +82,7 @@ int test_time() {
     assert(weekday_next(WEEKDAY_SUNDAY) == WEEKDAY_MONDAY);
     assert(weekday_next(WEEKDAY_MONDAY) == WEEKDAY_TUESDAY);
     assert(weekday_next(WEEKDAY_TUESDAY) == WEEKDAY_WEDNESDAY);
-    assert(weekday_next(WEEKDAY_WEDNESDAY) ==
-           WEEKDAY_THURSDAY);
+    assert(weekday_next(WEEKDAY_WEDNESDAY) == WEEKDAY_THURSDAY);
     assert(weekday_next(WEEKDAY_THURSDAY) == WEEKDAY_FRIDAY);
     assert(weekday_next(WEEKDAY_FRIDAY) == WEEKDAY_SATURDAY);
     assert(weekday_next(WEEKDAY_SATURDAY) == WEEKDAY_SUNDAY);

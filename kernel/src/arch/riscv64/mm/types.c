@@ -82,8 +82,8 @@ __debug_optimize(3) bool pg_level_can_have_large(const pg_level_t level) {
 }
 
 __debug_optimize(3) bool pte_is_large(const pte_t pte) {
-    return (pte & (__PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC))
-                > __PTE_VALID;
+    const uint64_t flags = __PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC;
+    return (pte & flags) > __PTE_VALID;
 }
 
 __debug_optimize(3) bool pte_is_dirty(const pte_t pte) {
@@ -103,8 +103,8 @@ pte_flags_equal(const pte_t pte, const pg_level_t level, const uint64_t flags)
 {
     (void)level;
     const uint64_t mask =
-        __PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC | __PTE_USER
-      | __PTE_GLOBAL | __PTE_IO;
+        __PTE_VALID | __PTE_READ | __PTE_WRITE | __PTE_EXEC | __PTE_USER |
+        __PTE_GLOBAL | __PTE_IO;
 
     return (pte & mask) == flags;
 }

@@ -4,7 +4,9 @@
  */
 
 #include <stdatomic.h>
-#include <lib/overflow.h>
+
+#include <lib/macros.h>
+#include <lib/util.h>
 
 #include "mm/page.h"
 #include "mm/section.h"
@@ -171,6 +173,6 @@ void page_set_state(struct page *const page, const enum page_state state) {
 
 __debug_optimize(3)
 struct page_section *page_to_section(const struct page *const page) {
-    assert(page->section != 0);
+    assert(ordinal_in_bounds(page->section, mm_get_page_section_count()));
     return &mm_get_page_section_list()[page->section - 1];
 }

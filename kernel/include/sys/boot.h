@@ -9,8 +9,6 @@
 void boot_init();
 void boot_post_early_init();
 
-uint8_t mm_get_section_count();
-
 const struct limine_framebuffer_response *boot_get_fb();
 const struct limine_mp_response *boot_get_mp();
 

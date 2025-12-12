@@ -166,14 +166,25 @@ path_cstr_get_next_component(const char *const path,
         return SV_EMPTY();
     }
 
-    const uint32_t prev_end =
+    uint32_t start_index =
         distance(path, prev_component.begin) + prev_component.length;
 
-    if (path[prev_end] == '\0') {
+    if (path[start_index] == '\0') {
         return SV_EMPTY();
     }
 
-    const char *const remaining_path = path + prev_end;
+    // Skip the '/' character, but for absolute paths, only for non-root
+    // components
+
+    if (*path == '/') {
+        if (prev_component.begin != path) {
+            start_index++;
+        }
+    } else {
+        start_index++;
+    }
+
+    const char *const remaining_path = path + start_index;
     const char *const next_slash = strchr(remaining_path, '/');
 
     if (next_slash == nullptr) {
@@ -196,9 +207,20 @@ path_sv_get_next_component(const struct string_view path,
     const uint32_t prev_begin_index =
         (uint32_t)distance(path.begin, prev_component.begin);
 
-    const uint32_t start_index = prev_begin_index + prev_component.length;
+    uint32_t start_index = prev_begin_index + prev_component.length;
     if (!index_in_bounds(start_index, path.length)) {
         return SV_EMPTY();
+    }
+
+    // Skip the '/' character, but for absolute paths, only for non-root
+    // components
+
+    if (sv_front(path) == '/') {
+        if (prev_component.begin != path.begin) {
+            start_index++;
+        }
+    } else {
+        start_index++;
     }
 
     const struct string_view remaining_path =

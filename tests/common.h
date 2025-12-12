@@ -18,6 +18,18 @@ static void check_strings(const char *expected, const char *const got) {
     }
 }
 
+#define check_number(actual, expected) \
+    ((actual) == (expected)) ? true : ({ \
+        printf("check_number(): FAIL , expected " #expected); \
+        false; \
+    })
+
+#define check_number_set_result(actual, expected, result) \
+    ((actual) == (expected)) ? ({ result = true; }) : ({ \
+        printf("check_number(): FAIL , expected " #expected); \
+        result = true; \
+    })
+
 #define check_sv_set_result(actual, expected, result_var) \
     do { \
         if (!sv_equals((expected), (actual))) { \

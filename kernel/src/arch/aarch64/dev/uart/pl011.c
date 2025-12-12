@@ -97,7 +97,7 @@ pl011_send_char(struct terminal *const term,
 
 __debug_optimize(3) static
 void pl011_send_sv(struct terminal *const term, const struct string_view sv) {
-    struct pl011_device*const info =
+    struct pl011_device *const info =
         parent_of(term, struct pl011_device, term);
 
     volatile struct pl011_registers *const regs = info->regs;
@@ -147,7 +147,7 @@ pl011_init(struct bus *const bus,
                       SV_STATIC("pl011"));
 
     volatile struct pl011_registers *const regs =
-        cast_to_ptr(volatile struct pl011_registers *, base);
+        cast_to_ptr(volatile struct pl011_registers, base);
 
     const uint32_t cr = mmio_read(&regs->cr_offset);
     uint32_t lcr = mmio_read(&regs->lcr_offset);
@@ -208,7 +208,7 @@ static bool pl011_dtb_probe(struct device *const device) {
 
     const struct devicetree_node *const node = dtb_device->node;
     const struct devicetree_prop_reg *const reg_prop =
-        cast_to_ptr(const struct devicetree_prop_reg *,
+        cast_to_ptr(const struct devicetree_prop_reg,
                     devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {

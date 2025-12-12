@@ -18,7 +18,7 @@ struct array {
     assert(sizeof(type) == h_var(array).object_size);                          \
                                                                                \
     ptrrange_foreach((type *)array_begin(h_var(array)),                        \
-                     cast_to_ptr(type *, array_end(h_var(array))),             \
+                     cast_to_ptr(type, array_end(h_var(array))),               \
                      item)
 
 #define array_foreach_mut(list, type, item) \
@@ -26,7 +26,7 @@ struct array {
     assert(sizeof(type) == h_var(array).object_size);                          \
                                                                                \
     ptrrange_foreach_mut((type *)array_begin(h_var(array)),                    \
-                         cast_to_ptr(type *, array_end(h_var(array))),         \
+                         cast_to_ptr(type, array_end(h_var(array))),           \
                          item)
 
 #define array_foreach_from_index(list, type, item, index) \
@@ -36,7 +36,7 @@ struct array {
     assert(index_in_bounds(index, array_item_count(h_var(array))));            \
                                                                                \
     ptrrange_foreach((type *)array_begin(h_var(array)) + index,                \
-                     cast_to_ptr(type *, array_end(h_var(array))),             \
+                     cast_to_ptr(type, array_end(h_var(array))),               \
                      item)
 
 #define array_foreach_mut_from_index(list, type, item, index) \
@@ -46,7 +46,7 @@ struct array {
     assert(index_in_bounds(index, array_item_count(h_var(array))));            \
                                                                                \
     ptrrange_foreach_mut((type *)array_begin(h_var(array)) + index,            \
-                         cast_to_ptr(type *, array_end(h_var(array))),         \
+                         cast_to_ptr(type, array_end(h_var(array))),           \
                          item)
 
 #define ARRAY_INIT(size) \

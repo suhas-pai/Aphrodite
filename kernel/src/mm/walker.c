@@ -59,7 +59,7 @@ pgwalker_early_alloc_pgtable_cb(struct pg_walker *const walker,
 
 static inline uint64_t
 get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
-#if PAGEMAP_HAS_SPLIT_ROOT
+#if PGT_HAS_SPLIT_ROOT
     uint64_t root_phys = 0;
     if (virt_addr & 1ull << 63) {
         root_phys = virt_to_phys(pagemap->higher_root);
@@ -69,7 +69,7 @@ get_root_phys(const struct pagemap *const pagemap, const uint64_t virt_addr) {
 #else
     (void)virt_addr;
     const uint64_t root_phys = virt_to_phys(pagemap->root);
-#endif /* PAGEMAP_HAS_SPLIT_ROOT */
+#endif /* PGT_HAS_SPLIT_ROOT */
 
     return root_phys;
 }

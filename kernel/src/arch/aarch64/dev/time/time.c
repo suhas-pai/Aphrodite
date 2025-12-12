@@ -108,7 +108,7 @@ static void enable_dtb_timer_irqs() {
     }
 
     const auto intr_prop =
-        cast_to_ptr(struct devicetree_prop_interrupts *,
+        cast_to_ptr(struct devicetree_prop_interrupts,
                     devicetree_node_get_prop(node, DEVICETREE_PROP_INTERRUPTS));
 
     assert_msg(intr_prop != nullptr,

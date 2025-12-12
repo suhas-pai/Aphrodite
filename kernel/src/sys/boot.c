@@ -131,7 +131,7 @@ __debug_optimize(3) uint8_t mm_get_memmap_count() {
     return mm_memmap_count;
 }
 
-__debug_optimize(3) uint8_t mm_get_section_count() {
+__debug_optimize(3) uint8_t mm_get_page_section_count() {
     return mm_page_section_count;
 }
 

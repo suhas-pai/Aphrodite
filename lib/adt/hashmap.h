@@ -7,7 +7,7 @@
 #include <lib/list.h>
 
 typedef void *hashmap_key_t;
-#define hashmap_key_create(key) cast_to_ptr(hashmap_key_t, (key))
+#define hashmap_key_create(key) (hashmap_key_t)(uint64_t)(key)
 
 struct hashmap_node {
     struct list list;

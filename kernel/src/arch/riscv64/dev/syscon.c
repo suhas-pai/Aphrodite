@@ -99,7 +99,7 @@ bool syscon_dtb_probe(struct device *const the_device) {
     struct range reg_range = RANGE_EMPTY();
     {
         const struct devicetree_prop_reg *const reg_prop =
-            cast_to_ptr(const struct devicetree_prop_reg *,
+            cast_to_ptr(const struct devicetree_prop_reg,
                         devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
         if (reg_prop != nullptr) {
@@ -133,7 +133,7 @@ bool syscon_dtb_probe(struct device *const the_device) {
     }
 
     const struct devicetree_prop_phandle *const phandle_prop =
-        cast_to_ptr(const struct devicetree_prop_phandle *,
+        cast_to_ptr(const struct devicetree_prop_phandle,
                     devicetree_node_get_prop(node, DEVICETREE_PROP_PHANDLE));
 
     if (phandle_prop == nullptr) {

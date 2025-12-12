@@ -21,6 +21,7 @@
 
 #define PGT_LEVEL_COUNT 5ul
 #define PGT_PTE_COUNT(level) ({ (void)(level); (uint16_t)512; })
+#define PGT_HAS_SPLIT_ROOT 0
 
 #define PML1_MASK 0x1ff
 #define PML2_MASK PML1_MASK

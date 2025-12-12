@@ -42,6 +42,7 @@
 
 #define PTE_PHYS_MASK 0x0000fffffffff000ull
 #define PAGE_SHIFT PML1_SHIFT
+#define PGT_HAS_SPLIT_ROOT 1
 
 #define PML1(phys) (((phys) >> PML1_SHIFT) & PML1_MASK)
 #define PML2(phys) (((phys) >> PML2_SHIFT) & PML2_MASK)

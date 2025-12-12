@@ -26,7 +26,7 @@ static void setup_from_dtb(const uint32_t hartid) {
     assert_msg(cpus_node != nullptr, "cpu: dtb is missing a 'cpus' node");
     devicetree_node_foreach_child(cpus_node, iter) {
         const struct devicetree_prop_reg *const reg_prop =
-            cast_to_ptr(const struct devicetree_prop_reg *,
+            cast_to_ptr(const struct devicetree_prop_reg,
                         devicetree_node_get_prop(cpus_node,
                                                  DEVICETREE_PROP_REG));
 

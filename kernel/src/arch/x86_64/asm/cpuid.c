@@ -27,7 +27,7 @@ cpuid(const uint32_t leaf,
 
 // Issue a complete request, storing general registers output as a string.
 __debug_optimize(3) int cpuid_string(const int code, char string[const 16]) {
-    uint32_t *const where = cast_to_ptr(uint32_t *, string);
+    uint32_t *const where = cast_to_ptr(uint32_t, string);
     asm volatile("cpuid"
                  : "=a"(where[0]), "=b"(where[1]),
                    "=c"(where[2]), "=d"(where[3])

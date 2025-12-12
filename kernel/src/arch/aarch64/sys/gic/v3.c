@@ -631,7 +631,7 @@ static bool gicv3_dtb_probe(struct device *const the_driver) {
     }
 
     const struct devicetree_prop_reg *const reg_prop =
-        cast_to_ptr(const struct devicetree_prop_reg *,
+        cast_to_ptr(const struct devicetree_prop_reg,
                     devicetree_node_get_prop(node, DEVICETREE_PROP_REG));
 
     if (reg_prop == nullptr) {
