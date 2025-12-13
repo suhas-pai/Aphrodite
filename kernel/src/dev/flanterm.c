@@ -88,7 +88,8 @@ void setup_flanterm() {
                              /*font_spacing=*/1,
                              /*font_scale_x=*/1,
                              /*font_scale_y=*/1,
-                             /*margin=*/0);
+                             /*margin=*/0,
+                            FLANTERM_FB_ROTATE_0);
 
         if (context == nullptr) {
             printk(LOGLEVEL_WARN, "flanterm: failed to init\n");
