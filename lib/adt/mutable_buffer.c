@@ -130,10 +130,10 @@ __debug_optimize(3) bool
 mbuffer_truncate(struct mutable_buffer *const mbuffer,
                  const uint32_t new_used_size)
 {
-    if (new_used_size > mbuffer_used_size(*mbuffer)) {
-        return false;
+    if (new_used_size <= mbuffer_used_size(*mbuffer)) {
+        mbuffer->index = new_used_size;
+        return true;
     }
 
-    mbuffer->index = new_used_size;
-    return true;
+    return false;
 }

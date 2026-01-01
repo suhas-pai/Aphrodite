@@ -37,31 +37,33 @@ __debug_optimize(3) struct bus *bus_get_driver_parent(struct bus *const bus) {
     return bus->device.driver->bus;
 }
 
-void bus_subsystem_init() {
+__debug_optimize(3) void bus_subsystem_init() {
     struct bus *bus = nullptr;
     list_foreach(&g_bus_list, device.list, bus) {
-        bus->probe(bus);
+        bus_probe(bus);
     }
 }
 
-void bus_register(struct bus *const bus) {
+__debug_optimize(3) void bus_register(struct bus *const bus) {
     with_spinlock_intr_disabled(&g_lock, {
         list_add(&g_bus_list, &bus->device.list);
     });
 }
 
-void bus_unregister(struct bus *const bus) {
+__debug_optimize(3) void bus_unregister(struct bus *const bus) {
     with_spinlock_intr_disabled(&g_lock, {
         list_remove(&bus->device.list);
     });
 }
 
+__debug_optimize(3)
 void bus_add_device(struct bus *const bus, struct device *const device) {
     with_spinlock_intr_disabled(&bus->device.lock, {
         list_radd(&bus->device_list, &device->list);
     });
 }
 
+__debug_optimize(3)
 void bus_remove_device(struct bus *const bus, struct device *const device) {
     assert(device->bus == bus);
     with_spinlock_intr_disabled(&bus->device.lock, {
@@ -69,11 +71,14 @@ void bus_remove_device(struct bus *const bus, struct device *const device) {
     });
 }
 
+__debug_optimize(3)
 void bus_add_driver(struct bus *const bus, struct driver *const driver) {
     with_spinlock_intr_disabled(&bus->device.lock, {
         list_radd(&bus->driver_list, &driver->list);
     });
 }
+
+__debug_optimize(3)
 void bus_remove_driver(struct bus *const bus, struct driver *const driver) {
     assert(driver->bus == bus);
     with_spinlock_intr_disabled(&bus->device.lock, {
@@ -81,7 +86,7 @@ void bus_remove_driver(struct bus *const bus, struct driver *const driver) {
     });
 }
 
-bool bus_probe(struct bus *const bus) {
+__debug_optimize(3) bool bus_probe(struct bus *const bus) {
     if (bus->probe != nullptr) {
         return bus->probe(bus);
     }

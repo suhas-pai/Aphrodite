@@ -50,16 +50,15 @@ done:
 __debug_optimize(3) static inline int
 read_int_from_fmt_string(const char *const c_str, const char **const iter_out) {
     int result = 0;
-    cstring_foreach(c_str, iter) {
+    cstr_foreach(c_str, iter) {
         const uint8_t digit = *iter - '0';
         if (digit >= 10) {
             *iter_out = iter;
             break;
         }
 
-        if (__builtin_expect(
-            !ckd_mul(&result, result, 10) ||
-            !ckd_add(&result, result, digit), 0))
+        if (__builtin_expect(!ckd_mul(&result, result, 10) ||
+                             !ckd_add(&result, result, digit), 0))
         {
             *iter_out = iter;
             return -1;

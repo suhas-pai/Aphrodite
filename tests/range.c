@@ -115,7 +115,9 @@ static bool verify_has_loc(const struct range range) {
     }
 
     for_upto_limit(range.size, i) {
-        check_number_set_result(range_has_loc(range, range.front + i), true, result);
+        check_number_set_result(range_has_loc(range, range.front + i),
+                                true,
+                                result);
     }
 
     return result;

@@ -12,6 +12,7 @@
 #include "asm/msr.h"
 
 #include "apic/lapic.h"
+#include "asm/stack_trace.h"
 #include "cpu/info.h"
 
 #include "dev/pit.h"
@@ -166,6 +167,8 @@ void lapic_enable() {
 __debug_optimize(3) void lapic_eoi() {
     if (this_cpu()->called_eoi) {
         printk(LOGLEVEL_WARN, "isr: lapic_eoi() called more than once\n");
+        print_stack_trace(/*max_lines=*/10);
+
         return;
     }
 

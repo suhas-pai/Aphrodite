@@ -22,6 +22,7 @@ __debug_optimize(3) void simple_alloc_init(struct simple_alloc *const alloc) {
     list_init(&alloc->page_list);
 }
 
+__debug_optimize(3)
 void simple_alloc_destroy(struct simple_alloc *const alloc) {
     struct page *page = nullptr;
     list_foreach(&alloc->page_list, simple_alloc.list, page) {
@@ -37,6 +38,7 @@ void simple_alloc_destroy(struct simple_alloc *const alloc) {
     }
 }
 
+__debug_optimize(3)
 void *add_new_page(struct simple_alloc *const alloc, const uint32_t size) {
     struct page *const page = alloc_page(PAGE_STATE_SIMPLE_ALLOC, __ALLOC_ZERO);
     if (page == nullptr) {
@@ -90,7 +92,7 @@ void *simple_alloc(struct simple_alloc *const alloc, const uint32_t bad_size) {
     return result;
 }
 
-void *
+__debug_optimize(3) void *
 simple_alloc_size(struct simple_alloc *const alloc,
                   const uint32_t size,
                   uint32_t *const size_out)
@@ -141,6 +143,7 @@ bool simple_try_free(struct simple_alloc *const alloc, void *const buffer) {
     return false;
 }
 
+__debug_optimize(3)
 void simple_free(struct simple_alloc *const alloc, void *const buffer) {;
     assert(simple_try_free(alloc, buffer));
 }

@@ -86,7 +86,7 @@ void hpet_oneshot_fsec(const fsec_t fsec) {
     });
 
     while (!index_in_bounds(index, g_timer_count)) {
-        struct event *events = &g_bitset_event;
+        struct event *const events = &g_bitset_event;
         events_await(&events,
                      /*events_count=*/1,
                      /*block=*/true,
@@ -144,7 +144,7 @@ void hpet_init(const struct os_acpi_hpet *const hpet) {
     g_addrspace = (volatile struct hpet_addrspace *)g_hpet_mmio->base;
 
     const uint64_t cap_and_id = mmio_read(&g_addrspace->general_cap_and_id);
-    const uint32_t main_counter_period = cap_and_id >> 32;
+    const fsec_t main_counter_period = cap_and_id >> 32;
 
     printk(LOGLEVEL_INFO,
            "hpet: period is %" PRIu64 ".%" PRIu64 " nanoseconds\n",
@@ -152,15 +152,14 @@ void hpet_init(const struct os_acpi_hpet *const hpet) {
            femto_mod_nano(main_counter_period));
 
     g_frequency = femto_period_to_hz_freq(main_counter_period);
+    g_timer_count = ((cap_and_id >> 8) & 0x1f) + 1;
+
+    printk(LOGLEVEL_INFO, "hpet: got %" PRIu8 " timers\n", g_timer_count);
     printk(LOGLEVEL_INFO,
            "hpet: frequency is " FREQ_TO_UNIT_FMT "\n",
            FREQ_TO_UNIT_FMT_ARGS_ABBREV(g_frequency));
 
     mmio_write(&g_addrspace->general_config, 0);
-
-    g_timer_count = ((cap_and_id >> 8) & 0x1f) + 1;
-    printk(LOGLEVEL_INFO, "hpet: got %" PRIu8 " timers\n", g_timer_count);
-
     arrptr_foreach(g_addrspace->timers, g_timer_count, timer) {
         mmio_write(&timer->comparator_value, 0);
     }

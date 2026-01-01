@@ -274,11 +274,11 @@ bool range_has(const struct range range, const struct range other) {
 
 __debug_optimize(3)
 bool range_has_index_range(struct range range, struct range other) {
-    if (!range_has_index(range, other.front)) {
-        return false;
+    if (range_has_index(range, other.front)) {
+        return range.size - other.front >= other.size;
     }
 
-    return range.size - other.front >= other.size;
+    return false;
 }
 
 __debug_optimize(3)
@@ -290,9 +290,9 @@ bool range_overlaps(const struct range range, const struct range other) {
 __debug_optimize(3)
 bool range_adjacent(const struct range range, const struct range other) {
     uint64_t end = 0;
-    if (!ckd_add(&end, range.front, range.size)) {
-        return false;
+    if (ckd_add(&end, range.front, range.size)) {
+        return other.front == end;
     }
 
-    return other.front == end;
+    return false;
 }

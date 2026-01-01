@@ -153,6 +153,7 @@ override CPPFLAGS := \
 	-isystem src/extern \
 	-I limine-protocol/include \
     -isystem freestnd-c-hdrs/include \
+    -isystem src/extern/libfdt \
 	$(CPPFLAGS) \
 	-MMD \
 	-MP
@@ -323,7 +324,7 @@ obj-$(ARCH)/extern/uacpi/%.c.o: src/extern/uacpi/%.c GNUmakefile
 
 obj-$(ARCH)/extern/libfdt/%.c.o: src/extern/libfdt/%.c GNUmakefile
 	@mkdir -p "$(dir $@)"
-	$(CC) $(filter-out -Wsign-conversion -Wcast-align -fsanitize=undefined,$(CFLAGS)) -Wno-unused-parameter -isystem src/extern/libfdt $(CPPFLAGS) -c $< -o $@
+	$(CC) $(filter-out -Wsign-conversion -Wcast-align -fsanitize=undefined,$(CFLAGS)) -Wno-unused-parameter $(CPPFLAGS) -c $< -o $@
 
 obj-$(ARCH)/extern/lib/%.c.o: src/extern/lib/%.c GNUmakefile
 	@mkdir -p $(dir $@)

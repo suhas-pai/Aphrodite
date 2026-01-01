@@ -10,20 +10,21 @@
 
 #include "bitmap.h"
 
-struct bitmap bitmap_alloc(const uint32_t bit_count) {
+__debug_optimize(3) struct bitmap bitmap_alloc(const uint32_t bit_count) {
     return (struct bitmap){
         .gbuffer = gbuffer_alloc(bits_to_bytes_roundup(bit_count)),
     };
 }
 
+__debug_optimize(3)
 struct bitmap bitmap_open(void *const buffer, const uint32_t byte_count) {
-    return (struct bitmap){
-        .gbuffer =
-            gbuffer_open(buffer,
-                         /*used=*/byte_count,
-                         /*capacity=*/byte_count,
-                         /*is_alloc=*/false),
-    };
+    const struct growable_buffer gbuffer =
+        gbuffer_open(buffer,
+                     /*used=*/byte_count,
+                     /*capacity=*/byte_count,
+                     /*is_alloc=*/false);
+
+    return (struct bitmap){ .gbuffer = gbuffer };
 }
 
 __debug_optimize(3)

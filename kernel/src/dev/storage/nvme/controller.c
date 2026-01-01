@@ -24,10 +24,6 @@
 #define NVME_COMPLETION_QUEUE_SIZE 4
 
 #define NVME_QUEUE_PAGE_ALLOC_ORDER 0
-#define NVME_VERSION(major, minor, tertiary) \
-    ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT \
-   | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
-   | (uint32_t)tertiary)
 
 static struct list g_controller_list = LIST_INIT(g_controller_list);
 static uint32_t g_controller_count = 0;
@@ -50,7 +46,8 @@ static bool notify_queue_if_done(struct nvme_queue *const queue) {
     if ((status & __NVME_COMPL_QUEUE_ENTRY_STATUS_PHASE) != phase) {
         spin_release(&queue->lock);
         printk(LOGLEVEL_WARN,
-               "nvme: queue with qid %" PRIu8 " has a phase mismatch error\n",
+               "nvme: queue with queue-id %" PRIu8 " has a phase mismatch "
+               "error\n",
                queue->id);
 
         return false;
@@ -255,6 +252,10 @@ identify_namespaces(struct nvme_controller *const controller,
     return true;
 }
 
+static inline uint32_t calculate_stride(const uint32_t stride_offset) {
+    return 2ull << (2 + stride_offset);
+}
+
 bool
 nvme_controller_create(struct nvme_controller *const controller,
                        struct device *const device,
@@ -296,9 +297,9 @@ nvme_controller_create(struct nvme_controller *const controller,
            "nvme: stride is " SIZE_UNIT_FMT "\n",
            SIZE_UNIT_FMT_ARGS_ABBREV(controller->stride));
 
-    controller->stride = 2ull << (2 + stride_offset);
-    const uint32_t version = mmio_read(&regs->version);
+    controller->stride = calculate_stride(stride_offset);
 
+    const uint32_t version = mmio_read(&regs->version);
     printk(LOGLEVEL_INFO,
            "nvme: version is " NVME_VERSION_FMT "\n",
            NVME_VERSION_FMT_ARGS(version));
@@ -356,10 +357,9 @@ nvme_controller_create(struct nvme_controller *const controller,
 
     if (!identify_namespaces(controller, max_queue_cmd_count)) {
         mmio_write(&regs->config, 0);
-
         list_remove(&controller->list);
-        g_controller_count--;
 
+        g_controller_count--;
         return false;
     }
 

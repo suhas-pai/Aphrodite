@@ -18,7 +18,7 @@
 #include "dev/init.h"
 #include "dev/printk.h"
 
-const char ps2_key_to_char[PS2_KEYMAP_SIZE] = {
+static const char ps2_key_to_char[PS2_KEYMAP_SIZE] = {
     '\0', '\e', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
     '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
     '\n', '\0', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
@@ -26,7 +26,7 @@ const char ps2_key_to_char[PS2_KEYMAP_SIZE] = {
     '\0', ' '
 };
 
-const char ps2_key_to_char_shift[PS2_KEYMAP_SIZE] = {
+static const char ps2_key_to_char_shift[PS2_KEYMAP_SIZE] = {
     '\0', '\e', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
     '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
     '\n', '\0', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
@@ -34,7 +34,7 @@ const char ps2_key_to_char_shift[PS2_KEYMAP_SIZE] = {
     '\0', ' '
 };
 
-const char ps2_key_to_char_capslock[PS2_KEYMAP_SIZE] = {
+static const char ps2_key_to_char_capslock[PS2_KEYMAP_SIZE] = {
     '\0', '\e', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
     '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
     '\n', '\0', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',

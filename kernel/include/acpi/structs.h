@@ -767,11 +767,8 @@ struct os_acpi_gtdt_platform_timer_base {
 } __packed;
 
 enum os_acpi_gtdt_platform_timer_gt_block_physvirt_timer_flags : uint8_t {
-    __OS_ACPI_GTDT_PLAT_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ =
-        1 << 0,
-
-    __OS_ACPI_GTDT_PLAT_TIMER_GT_BLOCK_PHYSVIRT_TIMER_ACTIVE_LOW_POLARITY_IRQ =
-        1 << 1,
+    __OS_ACPI_GTDT_PLAT_TIMER_GT_BLOCK_PHYSVIRT_TIMER_EDGE_TRIGGER_IRQ = 1 << 0,
+    __OS_ACPI_GTDT_PLAT_TIMER_GT_BLOCK_PHYSVIRT_TIMER_ACTIVE_LOW_POL = 1 << 1,
 };
 
 enum os_acpi_gtdt_platform_timer_gt_block_timer_common_flags : uint8_t {
@@ -891,6 +888,12 @@ struct os_acpi_pptt_processor_hierarchy_node {
     uint32_t private_resource_count;
     uint32_t private_resource_offsets[];
 } __packed;
+
+#define os_acpi_pptt_foreach_resource_offset(the_pptt, iter) \
+    const auto h_var(pptt) = (the_pptt);\
+    arrptr_foreach(h_var(pptt)->private_resource_offsets, \
+                   h_var(pptt)->private_resource_count, \
+                   iter)
 
 enum os_acpi_pptt_cache_type_node_attr_alloc_kind : uint8_t {
     OS_ACPI_PPTT_CACHE_TYPE_NODE_ATTR_ALLOC_KIND_READ,

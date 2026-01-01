@@ -22,11 +22,11 @@
 #endif /* !defined(__printf_format) */
 
 #if !defined(__debug_optimize)
-    #if __has_attribute(optimize) && defined(DEBUG) && !defined(RELEASE)
-        #define __debug_optimize(n) __attribute__((optimize(n)))
-    #else
+    // #if __has_attribute(optimize) && defined(DEBUG) && !defined(RELEASE)
+    //     #define __debug_optimize(n) __attribute__((optimize(n)))
+    // #else
         #define __debug_optimize(n)
-    #endif /* __has_attribute(optimize) */
+    // #endif /* __has_attribute(optimize) */
 #endif /* !defined(__debug_optimize) */
 
 #if !defined(__noinline)
@@ -111,9 +111,7 @@
 #define carr_rend(arr) ((arr) - 1)
 #define carr_indexof(arr, iter) ((iter) - (arr))
 
-#define carr_foreach(arr, name) \
-    const auto h_var(end) = carr_end(arr); \
-    for (auto name = &arr[0]; name != h_var(end); name++)
+#define carr_foreach(arr, name) ptrrange_foreach((arr), carr_end(arr), name)
 
 #define carr_foreach_from_iter(arr, name, iter) \
     const auto h_var(end) = carr_end(arr); \
@@ -211,19 +209,23 @@
          name >= h_var(arr); \
          name--)
 
-#define arrptr_foreach_rev_mut(the_arr, count, name) \
-    const auto h_var(arr) = (the_arr); \
-    for (auto name = arrptr_rbegin(h_var(arr), count); \
-         name >= h_var(arr); \
-         name--)
+#define arrptr_foreach_rev_mut(the_arr, the_count, name) \
+    const auto h_var(count) = (the_count); \
+    if (h_var(count) > 0) \
+        for (auto h_var(arr) = (the_arr), \
+             name = arrptr_rbegin(h_var(arr), h_var(count)); \
+             name >= h_var(arr); \
+             name--)
 
 #define ptrrange_foreach(the_arr, the_end, name) \
     const auto h_var(arr) = (the_arr); \
-    const auto h_var(end) = (the_end); \
-    for (auto name = &h_var(arr)[0]; name < h_var(end); name++)
+    const auto h_var(end) = (const void *)(the_end); \
+    for (auto name = &h_var(arr)[0]; (const void *)name < h_var(end); name++)
 
 #define ptrrange_foreach_mut(the_arr, the_end, name) \
-    for (auto name = &(the_arr)[0]; name < (the_end); name++)
+    for (auto name = &(the_arr)[0]; \
+         (const void *)name < (const void *)(the_end); \
+         name++)
 
 #define ptrrange_foreach_safe(the_arr, the_end, name) \
     const auto h_var(p_arr) = (the_arr); \
@@ -253,6 +255,11 @@
 #define for_upto_limit(lim, i) \
     const auto h_var(limit) = (lim); \
     for (auto i = (typeof(lim))0; i < h_var(limit); i++)
+
+#define for_from_upto_limit(the_from, lim, i) \
+    const auto h_var(from) = (the_from); \
+    const auto h_var(limit) = (lim); \
+    for (auto i = h_var(from); i < h_var(limit); i++)
 
 #define for_upto_limit_rev(lim, i) \
     const auto h_var(limit) = (lim); \

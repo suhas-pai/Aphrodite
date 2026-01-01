@@ -66,7 +66,7 @@ int strncmp(const char *str1, const char *const str2, const size_t length) {
 }
 
 __debug_optimize(3) char *strchr(const char *const str, const int ch) {
-    cstring_foreach (str, iter) {
+    cstr_foreach (str, iter) {
         if (*iter == ch) {
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wcast-qual"
@@ -80,7 +80,7 @@ __debug_optimize(3) char *strchr(const char *const str, const int ch) {
 
 __debug_optimize(3) char *strrchr(const char *const str, const int ch) {
     char *result = nullptr;
-    cstring_foreach (str, iter) {
+    cstr_foreach (str, iter) {
         if (*iter == ch) {
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wcast-qual"

@@ -85,10 +85,10 @@ devicetree_get_node_at_path(const struct devicetree *const tree,
             continue;
         }
 
-        break;
+        return nullptr;
     }
 
-    return nullptr;
+    return node;
 }
 
 void

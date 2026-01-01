@@ -86,10 +86,7 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                     printk(LOGLEVEL_INFO, "\t" "private resource offsets:\n");
 
                     uint32_t i = 0;
-                    arrptr_foreach(node->private_resource_offsets,
-                                   node->private_resource_count,
-                                   res_offset)
-                    {
+                    os_acpi_pptt_foreach_resource_offset(node, res_offset) {
                         printk(LOGLEVEL_INFO,
                                "\t\t%" PRIu32 ". 0x%" PRIx32 "\n",
                                i,
@@ -102,8 +99,7 @@ void pptt_init(const struct os_acpi_pptt *const pptt) {
                 continue;
             }
             case OS_OS_ACPI_PPTT_NODE_CACHE_TYPE: {
-                const auto node =
-                    (struct os_acpi_pptt_cache_type_node *)base;
+                const auto node = (struct os_acpi_pptt_cache_type_node *)base;
 
                 offset += sizeof(*node);
                 if (!ordinal_in_bounds(offset, pptt->sdt.length)) {

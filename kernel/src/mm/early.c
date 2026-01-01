@@ -16,7 +16,6 @@
 #include "mm/zone.h"
 
 #include "sched/process.h"
-#include "sys/boot.h"
 
 struct freepage_array_info {
     struct list list;
@@ -66,13 +65,7 @@ asc_list_compare(const struct list *const a, const struct list *const b) {
     const struct freepage_array_info *const b_info =
         parent_of(b, struct freepage_array_info, asc_list);
 
-    if (a_info->avail_page_count < b_info->avail_page_count) {
-        return -1;
-    } else if (a_info->avail_page_count > b_info->avail_page_count) {
-        return 1;
-    }
-
-    return 0;
+    return twovar_cmp(a_info->avail_page_count, b_info->avail_page_count);
 }
 
 __debug_optimize(3)
@@ -222,11 +215,10 @@ __debug_optimize(3) uint64_t early_alloc_large_page(const pg_level_t level) {
         return INVALID_PHYS;
     }
 
-    struct freepage_array_info *info = nullptr;
-
     uint64_t free_page = INVALID_PHYS;
     bool is_in_middle = false;
 
+    struct freepage_array_info *info = nullptr;
     const uint64_t alloc_amount =
         1ull << lg_page_level_info_list[level - 1].order;
 
@@ -638,8 +630,8 @@ __debug_optimize(3) void mm_remove_early_identity_map() {
     }
 }
 
-__debug_optimize(3)
-static void mark_critical_pages(const struct page_section *const memmap) {
+__debug_optimize(3) static
+void mark_system_critical_pages(const struct page_section *const memmap) {
     struct freepage_array_info *iter = nullptr;
     list_foreach(&g_asc_freelist, asc_list, iter) {
         uint64_t iter_phys = virt_to_phys(iter);
@@ -891,20 +883,17 @@ __debug_optimize(3) static inline void split_sections_for_zones() {
 
 __debug_optimize(3) static inline void setup_zone_section_list() {
     uint32_t number = 1;
-    arrptr_foreach(mm_get_page_section_list(),
-                   mm_get_page_section_count(),
-                   sect)
-    {
-        const struct range pfn_range = page_section_get_pfn_range(sect);
+    mm_for_each_page_section(section) {
+        const struct range pfn_range = page_section_get_pfn_range(section);
         printk(LOGLEVEL_INFO,
                "mm: section %" PRIu32 " at range " RANGE_FMT ", "
                "pfn-range: " RANGE_FMT ", zone: %s\n",
                number,
-               RANGE_FMT_ARGS(sect->range),
+               RANGE_FMT_ARGS(section->range),
                RANGE_FMT_ARGS(pfn_range),
-               sect->zone->name);
+               section->zone->name);
 
-        list_add(&sect->zone->section_list, &sect->zone_list);
+        list_add(&section->zone->section_list, &section->zone_list);
         number++;
     }
 }
@@ -928,11 +917,8 @@ void mm_post_arch_init() {
     }
 #endif
 
-    arrptr_foreach(mm_get_page_section_list(),
-                   mm_get_page_section_count(),
-                   sect)
-    {
-        mark_critical_pages(sect);
+    mm_for_each_page_section(section) {
+        mark_system_critical_pages(section);
     }
 
     split_sections_for_zones();

@@ -117,7 +117,7 @@ static uint8_t mm_page_section_count = 0;
 static const void *rsdp = nullptr;
 static const void *dtb = nullptr;
 
-static uint64_t boot_time = 0;
+static sec_t boot_time = 0;
 
 __debug_optimize(3) const struct mm_memmap *mm_get_memmap_list() {
     return mm_memmap_list;
@@ -151,7 +151,7 @@ __debug_optimize(3) const void *boot_get_dtb() {
     return dtb;
 }
 
-__debug_optimize(3) uint64_t boot_get_time() {
+__debug_optimize(3) sec_t boot_get_time() {
     return boot_time;
 }
 
@@ -296,11 +296,11 @@ void boot_init() {
         }
 
         const auto section = &mm_page_section_list[section_index];
-        page_section_init(section, /*zone=*/nullptr, memmap->range, pfn);
 
-        for_upto_limit(MAX_ORDER, i) {
-            list_init(&section->freelist_list[i].page_list);
-            section->freelist_list[i].count = 0;
+        page_section_init(section, /*zone=*/nullptr, memmap->range, pfn);
+        carr_foreach(section->freelist_list, freelist) {
+            list_init(&freelist->page_list);
+            freelist->count = 0;
         }
 
         section_index++;

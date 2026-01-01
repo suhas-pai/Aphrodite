@@ -4,6 +4,8 @@
  */
 
 #pragma once
+
+#include <lib/time.h>
 #include "limine.h"
 
 void boot_init();
@@ -15,7 +17,7 @@ const struct limine_mp_response *boot_get_mp();
 const void *boot_get_rsdp();
 const void *boot_get_dtb();
 
-uint64_t boot_get_time();
+sec_t boot_get_time();
 uint64_t boot_get_slide();
 
 uint64_t mm_get_full_section_mask();

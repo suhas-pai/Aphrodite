@@ -343,7 +343,7 @@ void hashmap_destroy(struct hashmap *const hashmap) {
     hashmap->cb_info = nullptr;
 }
 
-void hashmap_free(struct hashmap *const hashmap) {
+__debug_optimize(3) void hashmap_free(struct hashmap *const hashmap) {
     hashmap_destroy(hashmap);
     free(hashmap);
 }

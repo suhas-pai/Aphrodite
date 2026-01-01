@@ -53,23 +53,21 @@ __debug_optimize(3) bool ps2_send_command(const enum ps2_command command) {
 }
 
 __debug_optimize(3) int16_t ps2_read_config() {
-    if (!ps2_send_command(PS2_CMD_READ_INPUT_BUFFER_BYTE)) {
-        return -1;
+    if (ps2_send_command(PS2_CMD_READ_INPUT_BUFFER_BYTE)) {
+        return ps2_read_input_byte();
     }
 
-    return ps2_read_input_byte();
+    return -1;
 }
 
 __debug_optimize(3) bool ps2_write_config(const uint8_t value) {
-    if (!ps2_send_command(PS2_CMD_WRITE_INPUT_BUFFER_BYTE)) {
-        return false;
+    if (ps2_send_command(PS2_CMD_WRITE_INPUT_BUFFER_BYTE)) {
+        if (ps2_write(g_input_buffer_port, value)) {
+            return true;
+        }
     }
 
-    if (!ps2_write(g_input_buffer_port, value)) {
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 __debug_optimize(3)
@@ -132,7 +130,7 @@ ps2_get_device_kind(const enum ps2_port_id device_id,
         return false;
     }
 
-    // NOTE: This is a hack. We're not supposed to have to have these checks.
+    // NOTE: This is incorrect, we're not supposed to have to have these checks.
 
     const int16_t first = ps2_read_input_byte();
     const int16_t second = ps2_read_input_byte();

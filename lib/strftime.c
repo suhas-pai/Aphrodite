@@ -8,7 +8,7 @@
 #include "parse_strftime.h"
 #include "strftime.h"
 
-static uint64_t
+__debug_optimize(3) static uint64_t
 time_format_to_string_sv_callback(
     const struct strftime_spec_info *const spec_info,
     void *const cb_info,
@@ -28,7 +28,7 @@ time_format_to_string_sv_callback(
     return result;
 }
 
-uint64_t
+__debug_optimize(3) uint64_t
 time_format_to_string_buffer(char *const buffer_in,
                              const uint64_t buffer_cap,
                              const char *const format,
@@ -50,7 +50,7 @@ time_format_to_string_buffer(char *const buffer_in,
     return result;
 }
 
-static uint64_t
+__debug_optimize(3) static uint64_t
 time_format_get_length_sv_callback(
     const struct strftime_spec_info *const spec_info,
     void *const info,

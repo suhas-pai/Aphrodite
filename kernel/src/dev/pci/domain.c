@@ -13,18 +13,21 @@
 
 #include "dev/device.h"
 
+__debug_optimize(3)
 static bool pci_domain_probe(struct bus *const bus) {
     struct pci_domain *const domain = parent_of(bus, struct pci_domain, bus);
     pci_domain_foreach_bus(domain, pci_bus) {
-        if (!bus_probe(&pci_bus->bus)) {
-            return false;
+        if (bus_probe(&pci_bus->bus)) {
+            continue;
         }
+
+        return false;
     }
 
     return true;
 }
 
-void
+__debug_optimize(3) void
 pci_domain_init(struct pci_domain *const domain,
                 struct bus *const parent,
                 const enum pci_domain_kind kind,
@@ -40,6 +43,7 @@ pci_domain_init(struct pci_domain *const domain,
     domain->segment = segment;
 }
 
+__debug_optimize(3)
 struct pci_bus *pci_domain_get_root_bus(struct pci_domain *const domain) {
     return list_head(&domain->bus.device_list, struct pci_bus, entity_list);
 }

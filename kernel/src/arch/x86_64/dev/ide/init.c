@@ -51,6 +51,7 @@ struct ide_device {
 static struct ide_device g_devices_list[4] = {0};
 static struct ide_channel g_channel_list[2] = {0};
 
+__debug_optimize(3)
 void ide_write(const uint8_t channel, const uint8_t reg, const uint8_t data) {
     if (reg > 0x07 && reg < 0x0C) {
         ide_write(channel,

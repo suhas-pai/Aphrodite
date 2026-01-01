@@ -23,7 +23,7 @@ __debug_optimize(3) struct pagemap pagemap_empty() {
         .addrspace = ADDRSPACE_INIT(result.addrspace),
         .addrspace_lock = SPINLOCK_INIT(),
 
-        .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
+        .cpu_list = LIST_INIT(result.cpu_list),
         .cpu_lock = SPINLOCK_INIT(),
     };
 
@@ -40,7 +40,7 @@ __debug_optimize(3) struct pagemap pagemap_empty() {
 
             .addrspace = ADDRSPACE_INIT(result.addrspace),
 
-            .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
+            .cpu_list = LIST_INIT(result.cpu_list),
             .cpu_lock = SPINLOCK_INIT(),
 
             .addrspace_lock = SPINLOCK_INIT(),
@@ -55,7 +55,7 @@ __debug_optimize(3) struct pagemap pagemap_empty() {
             .root = root,
             .addrspace = ADDRSPACE_INIT(result.addrspace),
 
-            .cpu_list = LIST_INIT(kernel_process.pagemap.cpu_list),
+            .cpu_list = LIST_INIT(result.cpu_list),
             .cpu_lock = SPINLOCK_INIT(),
 
             .addrspace_lock = SPINLOCK_INIT(),

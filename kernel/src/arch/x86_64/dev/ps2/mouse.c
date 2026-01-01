@@ -71,10 +71,12 @@ static const struct string_view pnp_ids[] = {
     SV_STATIC("PNP0FFC"), SV_STATIC("PNP0FFF"),
 };
 
+__debug_optimize(3)
 static uacpi_namespace_node *get_namespace() {
     return uacpi_namespace_get_predefined(UACPI_PREDEFINED_NAMESPACE_SB);
 }
 
+__debug_optimize(3)
 static void init_mouse_driver() {
     static struct acpi_driver acpi_driver = {
         .pnp_ids = pnp_ids,

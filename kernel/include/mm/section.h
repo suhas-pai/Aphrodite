@@ -38,6 +38,11 @@ struct page_section {
     uint64_t total_free;
 };
 
+#define mm_for_each_page_section(iter) \
+    arrptr_foreach(mm_get_page_section_list(), \
+                   mm_get_page_section_count(), \
+                   iter)
+
 void
 page_section_init(struct page_section *section,
                   struct page_zone *zone,

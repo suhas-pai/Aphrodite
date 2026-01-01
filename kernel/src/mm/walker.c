@@ -275,7 +275,7 @@ alloc_table_at_pte(struct pg_walker *const walker,
     const uint64_t phys =
         walker->alloc_pgtable(walker, level, alloc_pgtable_cb_info);
 
-    if (phys == INVALID_PHYS) {
+    if (__builtin_expect(phys == INVALID_PHYS, 0)) {
         return false;
     }
 
@@ -659,8 +659,10 @@ uint64_t pgwalker_get_phys_addr(const struct pg_walker *const walker) {
     return pte_to_phys(pte, level);
 }
 
-__debug_optimize(3)
-pte_t *pgwalker_get_pte(const struct pg_walker *walker, pg_level_t level) {
+__debug_optimize(3) pte_t *
+pgwalker_get_pte(const struct pg_walker *const walker,
+                 const pg_level_t level)
+{
     if (__builtin_expect(level < 1, 0)) {
         return nullptr;
     }

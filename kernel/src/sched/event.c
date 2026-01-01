@@ -56,8 +56,8 @@ __debug_optimize(3) static inline void
 remove_thread_from_listeners(struct event *const event,
                              struct thread *const thread)
 {
-    array_foreach_mut(&event->listeners, const struct event_listener, listener)
-    {
+    const struct array *const listeners = &event->listeners;
+    array_foreach_mut(listeners, const struct event_listener, listener) {
         if (listener->waiter == thread) {
             array_remove_item(&event->listeners, listener);
             return;

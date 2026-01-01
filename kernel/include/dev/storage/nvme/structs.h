@@ -58,6 +58,11 @@ enum nvme_version_masks : uint32_t {
     __NVME_VERSION_MAJOR = 0xFFFFull << NVME_VERSION_MAJOR_SHIFT,
 };
 
+#define NVME_VERSION(major, minor, tertiary) \
+    ((uint32_t)major << NVME_VERSION_MAJOR_SHIFT \
+   | (uint32_t)minor << NVME_VERSION_MINOR_SHIFT \
+   | (uint32_t)tertiary)
+
 #define NVME_VERSION_FMT "%" PRIu16 ".%" PRIu16 ".%" PRIu16
 #define NVME_VERSION_FMT_ARGS(version) \
     (version & __NVME_VERSION_MAJOR) >> NVME_VERSION_MAJOR_SHIFT, \

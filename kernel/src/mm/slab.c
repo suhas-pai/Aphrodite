@@ -151,7 +151,8 @@ slab_allocator_init(struct slab_allocator *const slab_alloc,
     return true;
 }
 
-static struct page *alloc_slab_page(struct slab_allocator *const alloc) {
+static struct page *
+alloc_slab_page_in_lock(struct slab_allocator *const alloc) {
     struct page *const head =
         alloc_pages(PAGE_STATE_SLAB_HEAD,
                     __ALLOC_ZERO | alloc->alloc_flags,
@@ -203,8 +204,13 @@ void *slab_alloc(struct slab_allocator *const alloc) {
     }
 
     struct page *head = nullptr;
-    if (list_empty(&alloc->free_slab_head_list)) {
-        head = alloc_slab_page(alloc);
+    if (!list_empty(&alloc->free_slab_head_list)) {
+        head =
+            list_head(&alloc->free_slab_head_list,
+                      struct page,
+                      slab.head.slab_list);
+    } else {
+        head = alloc_slab_page_in_lock(alloc);
         if (head == nullptr) {
             if (needs_lock) {
                 spin_release_restore_intr(&alloc->lock, flag);
@@ -212,11 +218,6 @@ void *slab_alloc(struct slab_allocator *const alloc) {
 
             return nullptr;
         }
-    } else {
-        head =
-            list_head(&alloc->free_slab_head_list,
-                      struct page,
-                      slab.head.slab_list);
     }
 
     alloc->free_obj_count--;
@@ -249,7 +250,7 @@ slab_alloc2(struct slab_allocator *const alloc, uint64_t *const offset) {
 
     struct page *head = nullptr;
     if (list_empty(&alloc->free_slab_head_list)) {
-        head = alloc_slab_page(alloc);
+        head = alloc_slab_page_in_lock(alloc);
         if (head == nullptr) {
             if (needs_lock) {
                 spin_release_restore_intr(&alloc->lock, flag);
