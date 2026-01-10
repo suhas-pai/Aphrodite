@@ -13,14 +13,19 @@ struct node {
     uint32_t number;
 };
 
-static int compare(struct avlnode *const ours, struct avlnode *const theirs) {
+static int
+compare(struct avlnode *const ours,
+        struct avlnode *const theirs,
+        void *const cb_info)
+{
     struct node *const our_node = parent_of(ours, struct node, info);
     struct node *const their_node = parent_of(theirs, struct node, info);
 
     return (int64_t)our_node->number - their_node->number;
 }
 
-static int identify(struct avlnode *const theirs, void *const key) {
+static int
+identify(struct avlnode *const theirs, void *const key, void *const cb_info) {
     struct node *const their_node = parent_of(theirs, struct node, info);
     return (int64_t)key - (int64_t)their_node->number;
 }
@@ -34,7 +39,8 @@ static void insert_node(struct avltree *const tree, const uint32_t number) {
                        (struct avlnode *)avl_node,
                        compare,
                        /*update=*/nullptr,
-                       /*added_node=*/nullptr);
+                       /*added_node=*/nullptr,
+                       /*cb_info=*/nullptr);
 
     assert(result);
 }
@@ -76,18 +82,27 @@ void test_avltree() {
     insert_node(&tree, 73);
     insert_node(&tree, 71);
 
-    // print_tree(&tree);
-    const avlnode_compare_key_t compare_identity = identify;
+    assert(avltree_find(&tree, (void *)33, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)73, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)9, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)21, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)53, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)61, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)71, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)8, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)11, identify, nullptr) != nullptr);
+    assert(avltree_find(&tree, (void *)5, identify, nullptr) == nullptr);
 
-    free(avltree_delete(&tree, (void *)53, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)11, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)21, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)9, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)8, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)61, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)33, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)73, compare_identity, nullptr));
-    free(avltree_delete(&tree, (void *)71, compare_identity, nullptr));
+    // print_tree(&tree);
+    free(avltree_delete(&tree, (void *)53, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)11, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)21, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)9, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)8, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)61, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)33, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)73, identify, nullptr, nullptr));
+    free(avltree_delete(&tree, (void *)71, identify, nullptr, nullptr));
 
     assert(tree.root == nullptr);
     printf("avltree: All tests passed!\n");

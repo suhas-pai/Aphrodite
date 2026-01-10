@@ -11,6 +11,8 @@
 #endif /* defined(BUILD_KERNEL) */
 
 #include <lib/align.h>
+#include <lib/compare.h>
+
 #include "addrspace.h"
 
 __debug_optimize(3)
@@ -84,9 +86,9 @@ traverse_tree(const struct address_space *const addrspace,
         // We fell outside of the free area we found, but we can proceed to the
         // right and find another free area (then from the left).
 
-        if (node->avlnode.right != nullptr) {
+        if (node->node.right != nullptr) {
             struct addrspace_node *const right =
-                addrspace_node_of(node->avlnode.right);
+                addrspace_node_of(node->node.right);
 
             if (right->largest_free_to_prev >= size) {
                 *node_out = right;
@@ -98,7 +100,7 @@ traverse_tree(const struct address_space *const addrspace,
         // node and proceed with the loop from there.
 
         while (true) {
-            if (node->avlnode.parent == nullptr) {
+            if (node->node.parent == nullptr) {
                 // Since we're at the root, we can only see if there's space to
                 // our right.
 
@@ -133,9 +135,9 @@ traverse_tree(const struct address_space *const addrspace,
             // were previously at.
 
             struct addrspace_node *const child = node;
-            node = addrspace_node_of(child->avlnode.parent);
+            node = addrspace_node_of(child->node.parent);
 
-            if (node->avlnode.left == &child->avlnode) {
+            if (node->node.left == &child->node) {
                 // We've found the parent of such a left node, break out of this
                 // look and go through the entire outside loop again.
 
@@ -152,7 +154,11 @@ find_from_start(const struct address_space *const addrspace,
                 const uint8_t pagesize_order,
                 struct addrspace_node **const prev_out)
 {
-    if (addrspace->avltree.root == nullptr) {
+#if ADDRSPACE_USE_REDBLACKTREE
+    if (redblacktree_empty(&addrspace->tree)) {
+#else
+    if (avltree_empty(&addrspace->tree)) {
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
         const uint64_t aligned_front =
             align_up_assert(in_range.front, PAGE_SIZE << pagesize_order);
 
@@ -170,16 +176,16 @@ find_from_start(const struct address_space *const addrspace,
     // found, or isn't acceptable, proceed to the current node's right. If the
     // current node has no right node, go upwards to the parent.
 
-    struct addrspace_node *node = addrspace_node_of(addrspace->avltree.root);
+    struct addrspace_node *node = addrspace_node_of(addrspace->tree.root);
     while (true) {
         // Move to the very left of the address space to find the left-most free
         // area available.
 
-        if (node->avlnode.left != nullptr &&
+        if (node->node.left != nullptr &&
             range_is_loc_above(in_range, node->range.front))
         {
             struct addrspace_node *const left =
-                addrspace_node_of(node->avlnode.left);
+                addrspace_node_of(node->node.left);
 
             if (left->largest_free_to_prev >= size) {
                 node = left;
@@ -207,25 +213,36 @@ find_from_start(const struct address_space *const addrspace,
     }
 }
 
-__debug_optimize(3) static void avltree_update(struct avlnode *const avlnode) {
-    struct addrspace_node *const node = addrspace_node_of(avlnode);
+#if ADDRSPACE_USE_REDBLACKTREE
+    typedef struct redblacktree_node addrspace_tree_node_t;
+    typedef struct redblacktree addrspace_tree_t;
+#else
+    typedef struct avlnode addrspace_tree_node_t;
+    typedef struct avltree addrspace_tree_t;
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
+
+__debug_optimize(3) static void
+update_callback(addrspace_tree_node_t *const tree_node, void *const cb_info) {
+    (void)cb_info;
+
+    struct addrspace_node *const node = addrspace_node_of(tree_node);
     struct addrspace_node *const prev = addrspace_node_prev(node);
 
     const uint64_t prev_end =
         prev != nullptr ? range_get_end_assert(prev->range) : 0;
 
     uint64_t largest_free_to_prev = distance(prev_end, node->range.front);
-    if (node->avlnode.left != nullptr) {
+    if (node->node.left != nullptr) {
         struct addrspace_node *const left =
-            addrspace_node_of(node->avlnode.left);
+            addrspace_node_of(node->node.left);
 
         largest_free_to_prev =
             max(largest_free_to_prev, left->largest_free_to_prev);
     }
 
-    if (node->avlnode.right != nullptr) {
+    if (node->node.right != nullptr) {
         struct addrspace_node *const right =
-            addrspace_node_of(node->avlnode.right);
+            addrspace_node_of(node->node.right);
 
         largest_free_to_prev =
             max(largest_free_to_prev, right->largest_free_to_prev);
@@ -235,9 +252,12 @@ __debug_optimize(3) static void avltree_update(struct avlnode *const avlnode) {
 }
 
 __debug_optimize(3) int
-avltree_compare(struct avlnode *const our_node,
-                struct avlnode *const their_node)
+compare_treenodes(addrspace_tree_node_t *const our_node,
+                  addrspace_tree_node_t *const their_node,
+                  void *const cb_info)
 {
+    (void)cb_info;
+
     const struct addrspace_node *const ours = addrspace_node_of(our_node);
     const struct addrspace_node *const theirs = addrspace_node_of(their_node);
 
@@ -270,18 +290,41 @@ addrspace_find_space_and_add_node(struct address_space *const addrspace,
 
     if (prev != nullptr) {
         list_add(&prev->list, &node->list);
-        avltree_insert_at_loc(&addrspace->avltree,
-                              &node->avlnode,
-                              &prev->avlnode,
-                              &prev->avlnode.right,
-                              avltree_update);
+    #if ADDRSPACE_USE_REDBLACKTREE
+        redblacktree_insert_at_loc(&addrspace->tree,
+                                   &node->node,
+                                   &prev->node,
+                                   &prev->node.right,
+                                   update_callback,
+                                   /*added_node=*/nullptr,
+                                   /*cb_info=*/nullptr);
+    #else
+        avltree_insert_at_loc(&addrspace->tree,
+                              &node->node,
+                              &prev->node,
+                              &prev->node.right,
+                              update_callback,
+                              /*added_node=*/nullptr,
+                              /*cb_info=*/nullptr);
+    #endif /* ADDRSPACE_USE_REDBLACKTREE */
     } else {
+    #if ADDRSPACE_USE_REDBLACKTREE
         const bool result =
-            avltree_insert(&addrspace->avltree,
-                           &node->avlnode,
-                           avltree_compare,
-                           avltree_update,
-                           /*added_node=*/nullptr);
+            redblacktree_insert(&addrspace->tree,
+                                &node->node,
+                                compare_treenodes,
+                                update_callback,
+                                /*added_node=*/nullptr,
+                                /*cb_info=*/nullptr);
+    #else
+        const bool result =
+            avltree_insert(&addrspace->tree,
+                           &node->node,
+                           compare_treenodes,
+                           update_callback,
+                           /*added_node=*/nullptr,
+                           /*cb_info=*/nullptr);
+    #endif /* ADDRSPACE_USE_REDBLACKTREE */
 
         assert(result);
         list_add(&addrspace->list, &node->list);
@@ -290,16 +333,19 @@ addrspace_find_space_and_add_node(struct address_space *const addrspace,
     return addr;
 }
 
-__debug_optimize(3) static void add_node_cb(struct avlnode *const avlnode) {
-    struct addrspace_node *const node = addrspace_node_of(avlnode);
-    struct avlnode *const parent = avlnode->parent;
+__debug_optimize(3) static
+void add_node_cb(addrspace_tree_node_t *const tree_node, void *const cb_info) {
+    (void)cb_info;
+
+    struct addrspace_node *const node = addrspace_node_of(tree_node);
+    addrspace_tree_node_t *const parent = tree_node->parent;
 
     if (parent == nullptr) {
         list_add(&node->addrspace->list, &node->list);
         return;
     }
 
-    if (avlnode == parent->right) {
+    if (tree_node == parent->right) {
         list_add(&addrspace_node_of(parent)->list, &node->list);
     } else {
         struct addrspace_node *const prev =
@@ -314,46 +360,88 @@ __debug_optimize(3) bool
 addrspace_add_node(struct address_space *const addrspace,
                    struct addrspace_node *const node)
 {
+#if ADDRSPACE_USE_REDBLACKTREE
     return
-        avltree_insert(&addrspace->avltree,
-                       &node->avlnode,
-                       avltree_compare,
-                       avltree_update,
-                       /*added_node=*/add_node_cb);
+        redblacktree_insert(&addrspace->tree,
+                            &node->node,
+                            compare_treenodes,
+                            update_callback,
+                            /*added_node=*/add_node_cb,
+                            /*cb_info=*/nullptr);
+#else
+    return
+        avltree_insert(&addrspace->tree,
+                       &node->node,
+                       compare_treenodes,
+                       update_callback,
+                       /*added_node=*/add_node_cb,
+                       /*cb_info=*/nullptr);
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
 }
 
 static int
-addrspace_node_range_compare(struct avlnode *const avlnode,
-                             void *const key)
+addrspace_node_range_compare(addrspace_tree_node_t *const treenode,
+                             void *const key,
+                             void *const cb_info)
 {
-    struct addrspace_node *const node = addrspace_node_of(avlnode);
+    (void)cb_info;
+
+    struct addrspace_node *const node = addrspace_node_of(treenode);
     const struct range range = *(struct range *)key;
 
     return
-        range_below(node->range, range) ? -1 :
-        range_above(node->range, range) ? 1 : 0;
+        range_below(node->range, range) ? LESS_THAN :
+        range_above(node->range, range) ? GREATER_THAN : EQUAL_TO;
 }
 
-struct avlnode *
+struct addrspace_node *
 addrspace_find_node_with_range(struct address_space *const addrspace,
                                struct range range)
 {
-    return
-        avltree_find(&addrspace->avltree, &range, addrspace_node_range_compare);
+#if ADDRSPACE_USE_REDBLACKTREE
+    addrspace_tree_node_t *const tree_node =
+        redblacktree_find(&addrspace->tree,
+                          &range,
+                          addrspace_node_range_compare,
+                          /*cb_info=*/nullptr);
+#else
+    addrspace_tree_node_t *const tree_node =
+        avltree_find(&addrspace->tree,
+                     &range,
+                     addrspace_node_range_compare,
+                     /*cb_info=*/nullptr);
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
+
+    if (tree_node == nullptr) {
+        return nullptr;
+    }
+
+    return addrspace_node_of(tree_node);
 }
 
 __debug_optimize(3)
 void addrspace_remove_node(struct addrspace_node *const node) {
-    avltree_delete_node(&node->addrspace->avltree,
-                        &node->avlnode,
-                        avltree_update);
+#if ADDRSPACE_USE_REDBLACKTREE
+    redblacktree_delete_node(&node->addrspace->tree,
+                             &node->node,
+                             update_callback,
+                             /*cb_info=*/nullptr);
+#else
+    avltree_delete_node(&node->addrspace->tree,
+                        &node->node,
+                        update_callback,
+                        /*cb_info=*/nullptr);
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
 
     list_deinit(&node->list);
 }
 
 #if defined(BUILD_KERNEL)
 __debug_optimize(3)
-void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
+void
+avlnode_print_node_cb(addrspace_tree_node_t *const avlnode,
+                      void *const cb_info)
+{
     (void)cb_info;
     if (avlnode == nullptr) {
         printk(LOGLEVEL_INFO, "(null)");
@@ -377,9 +465,16 @@ void avlnode_print_node_cb(struct avlnode *const avlnode, void *const cb_info) {
 
     __debug_optimize(3)
     void addrspace_print(struct address_space *const addrspace) {
-        avltree_print(&addrspace->avltree,
+    #if ADDRSPACE_USE_REDBLACKTREE
+        redblacktree_print(&addrspace->tree,
+                           avlnode_print_node_cb,
+                           avlnode_print_sv_cb,
+                           /*cb_info=*/nullptr);
+    #else
+        avltree_print(&addrspace->tree,
                       avlnode_print_node_cb,
                       avlnode_print_sv_cb,
                       /*cb_info=*/nullptr);
+    #endif /* ADDRSPACE_USE_REDBLACKTREE */
     }
 #endif /* defined(BUILD_KERNEL) */

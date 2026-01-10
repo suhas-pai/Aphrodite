@@ -3,6 +3,7 @@
  * © suhas pai
  */
 
+#include <lib/compare.h>
 #include "avltree.h"
 
 __debug_optimize(3) static inline
@@ -15,6 +16,10 @@ void avlnode_verify(struct avlnode *const node, struct avlnode *const parent) {
     assert(node != node->left);
     assert(node != node->right);
     assert(node->parent == parent);
+
+    if (node->parent != nullptr) {
+        assert(node->parent->left == node || node->parent->right == node);
+    }
 
     avlnode_verify(node->left, node);
     avlnode_verify(node->right, node);
@@ -76,6 +81,72 @@ print_prefix_lines(struct avlnode *const current,
             print_sv_cb(spaces, cb_info);
         }
     }
+}
+
+bool
+avltree_node_preorder(struct avltree *const tree,
+                      struct avlnode *const node,
+                      const avltree_traverse_callback_t callback,
+                      void *const cb_info)
+{
+    if (node == nullptr) {
+        return true;
+    }
+
+    if (!callback(tree, node, cb_info)) {
+        return false;
+    }
+
+    return (
+        avltree_node_preorder(tree, node->left, callback, cb_info) ||
+        avltree_node_preorder(tree, node->right, callback, cb_info)
+    );
+}
+
+bool
+avltree_node_inorder(struct avltree *const tree,
+                     struct avlnode *const node,
+                     const avltree_traverse_callback_t callback,
+                     void *const cb_info)
+{
+    if (node == nullptr) {
+        return true;
+    }
+
+    if (!avltree_node_inorder(tree, node->left, callback, cb_info)) {
+        return false;
+    }
+
+    if (!callback(tree, node, cb_info)) {
+        return false;
+    }
+
+    return avltree_node_inorder(tree, node->right, callback, cb_info);
+}
+
+bool
+avltree_node_postorder(struct avltree *const tree,
+                       struct avlnode *const node,
+                       const avltree_traverse_callback_t callback,
+                       void *const cb_info)
+{
+    if (node == nullptr) {
+        return true;
+    }
+
+    if (!avltree_node_postorder(tree, node->left, callback, cb_info)) {
+        return false;
+    }
+
+    if (!avltree_node_postorder(tree, node->right, callback, cb_info)) {
+        return false;
+    }
+
+    return callback(tree, node, cb_info);
+}
+
+__debug_optimize(3) bool avltree_empty(const struct avltree *const tree) {
+    return tree->root == nullptr;
 }
 
 void
@@ -145,8 +216,21 @@ avlnode_print(struct avlnode *const node,
     } while (true);
 }
 
-__debug_optimize(3)
-static struct avlnode *rotate_left(struct avlnode *const node) {
+__debug_optimize(3) static inline void
+avlnode_update(struct avlnode *const node,
+               const avltree_node_moved_t moved,
+               void *const cb_info)
+{
+    if (moved != nullptr) {
+        moved(node, cb_info);
+    }
+}
+
+__debug_optimize(3) static struct avlnode *
+rotate_left(struct avlnode *const node,
+            const avltree_node_moved_t moved,
+            void *const cb_info)
+{
     avlnode_verify(node, node->parent);
 
     struct avlnode *const new_top = node->right;
@@ -166,14 +250,28 @@ static struct avlnode *rotate_left(struct avlnode *const node) {
     new_top->parent = new_top_parent;
     new_top->left = new_top_left;
 
+    if (new_top_parent != nullptr) {
+        if (new_top_parent->left == node) {
+            new_top_parent->left = new_top;
+        } else {
+            new_top_parent->right = new_top;
+        }
+    }
+
     avlnode_verify(node, node->parent);
     avlnode_verify(new_top, new_top->parent);
+
+    avlnode_update(node, moved, cb_info);
+    avlnode_update(new_top, moved, cb_info);
 
     return new_top;
 }
 
-__debug_optimize(3)
-static struct avlnode *rotate_right(struct avlnode *const node) {
+__debug_optimize(3) static struct avlnode *
+rotate_right(struct avlnode *const node,
+             const avltree_node_moved_t moved,
+             void *const cb_info)
+{
     avlnode_verify(node, node->parent);
 
     struct avlnode *const new_top = node->left;
@@ -193,8 +291,19 @@ static struct avlnode *rotate_right(struct avlnode *const node) {
     new_top->parent = new_top_parent;
     new_top->right = new_top_right;
 
+    if (new_top_parent != nullptr) {
+        if (new_top_parent->left == node) {
+            new_top_parent->left = new_top;
+        } else {
+            new_top_parent->right = new_top;
+        }
+    }
+
     avlnode_verify(node, node->parent);
     avlnode_verify(new_top, new_top->parent);
+
+    avlnode_update(node, moved, cb_info);
+    avlnode_update(new_top, moved, cb_info);
 
     return new_top;
 }
@@ -224,17 +333,11 @@ get_node_link(struct avlnode *const node, struct avltree *const tree) {
     return &tree->root;
 }
 
-__debug_optimize(3) static inline
-void avlnode_update(struct avlnode *const node, const avlnode_update_t update) {
-    if (update != nullptr) {
-        update(node);
-    }
-}
-
 static void
 avltree_fixup(struct avltree *const tree,
               struct avlnode *node,
-              const avlnode_update_t update)
+              const avltree_node_moved_t moved,
+              void *const cb_info)
 {
     while (true) {
         if (node == nullptr) {
@@ -253,21 +356,19 @@ avltree_fixup(struct avltree *const tree,
 
             if (double_rotate) {
                 // We need to perform a double rotation - Right-Left rotation
-                new_node = rotate_right(new_node);
+                new_node = rotate_right(new_node, moved, cb_info);
                 node->right = new_node;
 
                 reset_node_height(new_node);
-                avlnode_update(new_node, update);
+                avlnode_update(new_node, moved, cb_info);
             }
 
             struct avlnode **const link = get_node_link(node, tree);
 
-            *link = rotate_left(node);
+            *link = rotate_left(node, moved, cb_info);
             reset_node_height(node);
 
             avlnode_verify(new_node, new_node->parent);
-            avlnode_update(node, update);
-
             node = new_node;
         } else if (balance < -1) {
             // Left-Heavy
@@ -278,7 +379,7 @@ avltree_fixup(struct avltree *const tree,
 
             if (double_rotate) {
                 // We need to perform a double rotation - Left-Right rotation
-                new_node = rotate_left(new_node);
+                new_node = rotate_left(new_node, moved, cb_info);
                 node->left = new_node;
 
                 reset_node_height(new_node);
@@ -286,31 +387,67 @@ avltree_fixup(struct avltree *const tree,
 
             struct avlnode **const link = get_node_link(node, tree);
 
-            *link = rotate_right(node);
+            *link = rotate_right(node, moved, cb_info);
             reset_node_height(node);
 
             avlnode_verify(new_node, new_node->parent);
-            avlnode_update(node, update);
-
             node = new_node;
         } else {
             reset_node_height(node);
+            avlnode_update(node, moved, cb_info);
         }
 
         avlnode_verify(node, node->parent);
-        avlnode_update(node, update);
-
         node = node->parent;
     }
 }
 
-__debug_optimize(3) static void
-insert_at_loc(struct avltree *const tree,
-              struct avlnode *const node,
-              struct avlnode *const parent,
-              struct avlnode **const link,
-              const avlnode_update_t update,
-              const avlnode_added_node_t added_node)
+__debug_optimize(3) bool
+avltree_insert(struct avltree *const tree,
+               struct avlnode *const node,
+               const avlnode_compare_t comparator,
+               const avltree_node_moved_t node_moved,
+               const avltree_node_added_t added_node,
+               void *const cb_info)
+{
+    struct avlnode *parent = nullptr;
+    struct avlnode *curr_node = tree->root;
+    struct avlnode **link = &tree->root;
+
+    while (curr_node != nullptr) {
+        const int compare = comparator(node, curr_node, cb_info);
+        if (compare == 0) {
+            return false;
+        }
+
+        parent = curr_node;
+        if (is_less_than(compare)) {
+            link = &curr_node->left;
+            curr_node = curr_node->left;
+        } else {
+            link = &curr_node->right;
+            curr_node = curr_node->right;
+        }
+    }
+
+    avltree_insert_at_loc(tree,
+                          node,
+                          parent,
+                          link,
+                          node_moved,
+                          added_node,
+                          cb_info);
+    return true;
+}
+
+__debug_optimize(3) void
+avltree_insert_at_loc(struct avltree *const tree,
+                      struct avlnode *const node,
+                      struct avlnode *const parent,
+                      struct avlnode **const link,
+                      const avltree_node_moved_t moved,
+                      const avltree_node_added_t added_node,
+                      void *const cb_info)
 {
     node->height = 1;
     node->left = nullptr;
@@ -321,67 +458,27 @@ insert_at_loc(struct avltree *const tree,
     avlnode_verify(node, parent);
 
     if (added_node != nullptr) {
-        added_node(node);
+        added_node(node, cb_info);
     }
 
-    avlnode_update(node, update);
-    avltree_fixup(tree, parent, update);
-}
-
-__debug_optimize(3) bool
-avltree_insert(struct avltree *const tree,
-               struct avlnode *const node,
-               const avlnode_compare_t comparator,
-               const avlnode_update_t update,
-               const avlnode_added_node_t added_node)
-{
-    struct avlnode *parent = nullptr;
-    struct avlnode *curr_node = tree->root;
-    struct avlnode **link = &tree->root;
-
-    while (curr_node != nullptr) {
-        const int compare = comparator(node, curr_node);
-        if (compare == 0) {
-            return false;
-        }
-
-        parent = curr_node;
-        if (compare < 0) {
-            link = &curr_node->left;
-            curr_node = curr_node->left;
-        } else {
-            link = &curr_node->right;
-            curr_node = curr_node->right;
-        }
-    }
-
-    insert_at_loc(tree, node, parent, link, update, added_node);
-    return true;
-}
-
-__debug_optimize(3) void
-avltree_insert_at_loc(struct avltree *const tree,
-                      struct avlnode *const node,
-                      struct avlnode *const parent,
-                      struct avlnode **const link,
-                      const avlnode_update_t update)
-{
-    insert_at_loc(tree, node, parent, link, update, /*added_node=*/nullptr);
+    avlnode_update(node, moved, cb_info);
+    avltree_fixup(tree, parent, moved, cb_info);
 }
 
 struct avlnode *
 avltree_find(struct avltree *const tree,
              void *const key,
-             const avlnode_compare_key_t comparator)
+             const avlnode_compare_key_t comparator,
+             void *const cb_info)
 {
     struct avlnode *curr_node = tree->root;
     while (curr_node != nullptr) {
-        const int compare = comparator(curr_node, key);
+        const int compare = comparator(curr_node, key, cb_info);
         if (compare == 0) {
             return curr_node;
         }
 
-        curr_node = compare < 0 ? curr_node->left : curr_node->right;
+        curr_node = is_less_than(compare) ? curr_node->left : curr_node->right;
     }
 
     return nullptr;
@@ -391,13 +488,14 @@ __debug_optimize(3) struct avlnode *
 avltree_delete(struct avltree *const tree,
                void *const key,
                const avlnode_compare_key_t comparator,
-               const avlnode_update_t update)
+               const avltree_node_moved_t moved,
+               void *const cb_info)
 {
     struct avlnode *curr_node = tree->root;
     while (curr_node != nullptr) {
-        const int compare = comparator(curr_node, key);
+        const int compare = comparator(curr_node, key, cb_info);
         if (compare == 0) {
-            avltree_delete_node(tree, curr_node, update);
+            avltree_delete_node(tree, curr_node, moved, cb_info);
             return curr_node;
         }
 
@@ -432,7 +530,8 @@ __debug_optimize(3) struct avlnode *avlnode_successor(struct avlnode *node) {
 void
 avltree_delete_node(struct avltree *const tree,
                     struct avlnode *const node,
-                    const avlnode_update_t update)
+                    const avltree_node_moved_t moved,
+                    void *const cb_info)
 {
     struct avlnode **node_link = get_node_link(node, tree);
     struct avlnode *parent = node->parent;
@@ -502,7 +601,7 @@ avltree_delete_node(struct avltree *const tree,
         first_child->parent = parent;
     }
 
-    avltree_fixup(tree, parent, update);
+    avltree_fixup(tree, parent, moved, cb_info);
 }
 
 __debug_optimize(3)

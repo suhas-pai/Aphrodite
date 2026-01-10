@@ -347,7 +347,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -rf bin-* obj-* .deps-obtained freestnd-c-hdrs cc-runtime* limine-protocol
+	rm -rf bin-* obj-* .deps-obtained .cache compile_commands.json freestnd-c-hdrs cc-runtime* limine-protocol
 
 .PHONY: install
 install: all

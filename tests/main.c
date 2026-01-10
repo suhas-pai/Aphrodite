@@ -11,6 +11,7 @@ extern void test_bitmap();
 extern void test_hashmap();
 extern void test_path();
 extern void test_range();
+extern void test_redblacktree();
 
 int main() {
     test_convert();
@@ -21,6 +22,7 @@ int main() {
     test_hashmap();
     test_path();
     test_range();
+    test_redblacktree();
 
     return 0;
 }

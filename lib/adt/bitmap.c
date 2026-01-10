@@ -530,6 +530,6 @@ void bitmap_set_all(struct bitmap *const bitmap, const bool value) {
     }
 }
 
-void bitmap_destroy(struct bitmap *const bitmap) {
+__debug_optimize(3) void bitmap_destroy(struct bitmap *const bitmap) {
     gbuffer_destroy(&bitmap->gbuffer);
 }

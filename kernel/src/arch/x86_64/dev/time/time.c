@@ -12,11 +12,12 @@
 #include "sys/boot.h"
 
 __debug_optimize(3) nsec_t nsec_since_boot() {
-    if (!hpet_initialized()) {
-        return 0;
+    if (hpet_initialized()) {
+        const uint64_t femto = hpet_get_femto();
+        return seconds_to_nano(boot_get_time()) + femto_to_nano(femto);
     }
 
-    return seconds_to_nano(boot_get_time()) + femto_to_nano(hpet_get_femto());
+    return 0;
 }
 
 __debug_optimize(3) void stall_for_usec(const usec_t usec) {

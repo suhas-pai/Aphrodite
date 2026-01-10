@@ -6,19 +6,32 @@
 #pragma once
 
 #include <lib/adt/avltree.h>
+#include <lib/adt/redblacktree.h>
 #include <lib/adt/range.h>
 
 #include <lib/list.h>
 
+#define ADDRSPACE_USE_REDBLACKTREE 1
+
 struct address_space {
-    struct avltree avltree;
+#if ADDRSPACE_USE_REDBLACKTREE
+    struct redblacktree tree;
+#else
+    struct avltree tree;
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
+
     struct list list;
 };
 
 struct addrspace_node {
     struct address_space *addrspace;
 
-    struct avlnode avlnode;
+#if ADDRSPACE_USE_REDBLACKTREE
+    struct redblacktree_node node;
+#else
+    struct avlnode node;
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
+
     struct list list;
     struct range range;
 
@@ -28,22 +41,39 @@ struct addrspace_node {
     uint64_t largest_free_to_prev;
 };
 
-#define ADDRSPACE_INIT(lvalue) \
-    ((struct address_space){ \
-        .avltree = AVLTREE_INIT(), \
-        .list = LIST_INIT(lvalue.list) \
-    })
+#if ADDRSPACE_USE_REDBLACKTREE
+    #define ADDRSPACE_INIT(lvalue) \
+        ((struct address_space){ \
+            .tree = REDBLACKTREE_INIT(), \
+            .list = LIST_INIT(lvalue.list) \
+        })
 
-#define ADDRSPACE_NODE_INIT(lvalue, addrspace_) \
-    ((struct addrspace_node){ \
-        .addrspace = (addrspace_), \
-        .avlnode = AVLNODE_INIT(), \
-        .list = LIST_INIT(lvalue.list),  \
-        .range = RANGE_EMPTY(), \
-        .largest_free_to_prev = 0 \
-    })
+    #define ADDRSPACE_NODE_INIT(lvalue, addrspace_) \
+        ((struct addrspace_node){ \
+            .addrspace = (addrspace_), \
+            .node = REDBLACKTREE_NODE_INIT(), \
+            .list = LIST_INIT(lvalue.list),  \
+            .range = RANGE_EMPTY(), \
+            .largest_free_to_prev = 0 \
+        })
+#else
+    #define ADDRSPACE_INIT(lvalue) \
+        ((struct address_space){ \
+            .tree = AVLTREE_INIT(), \
+            .list = LIST_INIT(lvalue.list) \
+        })
 
-#define addrspace_node_of(obj) parent_of((obj), struct addrspace_node, avlnode)
+    #define ADDRSPACE_NODE_INIT(lvalue, addrspace_) \
+        ((struct addrspace_node){ \
+            .addrspace = (addrspace_), \
+            .node = AVLNODE_INIT(), \
+            .list = LIST_INIT(lvalue.list),  \
+            .range = RANGE_EMPTY(), \
+            .largest_free_to_prev = 0 \
+        })
+#endif /* ADDRSPACE_USE_REDBLACKTREE */
+
+#define addrspace_node_of(obj) parent_of((obj), struct addrspace_node, node)
 #define addrspace_foreach_node(addrspace, node) \
     list_foreach(&addrspace->list, list, node)
 
@@ -62,7 +92,7 @@ bool
 addrspace_add_node(struct address_space *addrspace,
                    struct addrspace_node *node);
 
-struct avlnode *
+struct addrspace_node *
 addrspace_find_node_with_range(struct address_space *addrspace,
                                struct range range);
 

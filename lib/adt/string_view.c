@@ -52,13 +52,13 @@ bool sv_compare_c_str(const struct string_view sv, const char *const c_str) {
 __debug_optimize(3)
 int sv_compare(const struct string_view sv, const struct string_view sv2) {
     if (sv.length > sv2.length) {
-        if (sv2.length == 0) {
+        if (__builtin_expect(sv2.length == 0, 0)) {
             return *sv.begin;
         }
 
         return strncmp(sv.begin, sv2.begin, sv2.length);
     } else if (sv.length < sv2.length) {
-        if (sv.length == 0) {
+        if (__builtin_expect(sv.length == 0, 0)) {
             return -*sv2.begin;
         }
 
